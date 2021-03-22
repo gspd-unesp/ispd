@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+
+<!--
+    TODO define vocabulary identification data
+    PUBLIC ID  : -//vendor//vocabulary//EN
+    SYSTEM ID  : http://server/path/__NAME__
+-->
+
+<!-- TODO define your own vocabulary/syntax. Example follows:  -->
+<!ELEMENT system (owner*,(machine|link|cluster|internet|virtualMac)*,load?,file_system?)>
+<!ATTLIST system version CDATA #REQUIRED>
+
+<!ELEMENT owner EMPTY>
+<!ATTLIST owner id CDATA #REQUIRED>
+
+<!ELEMENT position EMPTY>
+<!ATTLIST position x CDATA #REQUIRED>
+<!ATTLIST position y CDATA #REQUIRED>
+
+<!ELEMENT icon_id EMPTY>
+<!ATTLIST icon_id global CDATA #REQUIRED>
+<!ATTLIST icon_id local CDATA #REQUIRED>
+
+<!ELEMENT slave EMPTY>
+<!ATTLIST slave id CDATA #REQUIRED>
+
+<!ELEMENT master (slave*)>
+<!ATTLIST master vm_alloc CDATA "---">
+<!ATTLIST master scheduler CDATA "---">
+
+<!ELEMENT machine (master?,position,icon_id,characteristic?)>
+<!ATTLIST machine id ID #REQUIRED>
+<!ATTLIST machine power CDATA "0.0">
+<!ATTLIST machine load CDATA "0.0">
+<!ATTLIST machine owner CDATA "user1">
+
+<!ELEMENT characteristic (process,memory,hard_disk,cost?)>
+
+<!ELEMENT cost EMPTY>
+<!ATTLIST cost cost_proc CDATA "0.0">
+<!ATTLIST cost cost_mem CDATA "0.0">
+<!ATTLIST cost cost_disk CDATA "0.0">
+
+<!ELEMENT process EMPTY>
+<!ATTLIST process power CDATA "0.0">
+<!ATTLIST process number CDATA "1">
+<!ATTLIST process model CDATA "x86">
+
+<!ELEMENT memory EMPTY>
+<!ATTLIST memory size CDATA "0.0">
+
+<!ELEMENT hard_disk EMPTY>
+<!ATTLIST hard_disk size CDATA "0.0">
+
+<!ELEMENT cluster (position,icon_id,characteristic?)>
+<!ATTLIST cluster id ID #REQUIRED>
+<!ATTLIST cluster nodes CDATA "0">
+<!ATTLIST cluster power CDATA "0.0">
+<!ATTLIST cluster bandwidth CDATA "0.0">
+<!ATTLIST cluster latency CDATA "0.0">
+<!ATTLIST cluster scheduler CDATA "---">
+<!ATTLIST cluster vm_alloc CDATA "---">
+<!ATTLIST cluster owner CDATA "user1">
+<!ATTLIST cluster master CDATA "true">
+
+<!ELEMENT internet (position,icon_id)>
+<!ATTLIST internet id ID #REQUIRED>
+<!ATTLIST internet bandwidth CDATA "0.0">
+<!ATTLIST internet load CDATA "0.0">
+<!ATTLIST internet latency CDATA "0.0">
+
+<!ELEMENT connect EMPTY>
+<!ATTLIST connect origination CDATA #REQUIRED>
+<!ATTLIST connect destination CDATA #REQUIRED>
+
+<!ELEMENT link (connect,position?,position?,icon_id)>
+<!ATTLIST link id ID #REQUIRED>
+<!ATTLIST link bandwidth CDATA "0.0">
+<!ATTLIST link load CDATA "0.0">
+<!ATTLIST link latency CDATA "0.0">
+
+<!ELEMENT virtualMac EMPTY>
+<!ATTLIST virtualMac id ID #REQUIRED>
+<!ATTLIST virtualMac owner CDATA "0.0">
+<!ATTLIST virtualMac vmm CDATA "0.0">
+<!ATTLIST virtualMac power CDATA "0.0">
+<!ATTLIST virtualMac mem_alloc CDATA "0.0">
+<!ATTLIST virtualMac disk_alloc CDATA "0.0">
+<!ATTLIST virtualMac op_system CDATA "0.0" >
+
+<!ELEMENT load (trace|random|node+|dag+)>
+
+<!ELEMENT trace EMPTY>
+<!ATTLIST trace file_path CDATA #REQUIRED>
+<!ATTLIST trace tasks CDATA "0">
+<!ATTLIST trace format CDATA "iSPD">
+
+<!ELEMENT random (size,size)>
+<!ATTLIST random owner CDATA "user1">
+<!ATTLIST random tasks CDATA "0">
+<!ATTLIST random time_arrival CDATA "0">
+
+<!ELEMENT node (size,size)>
+<!ATTLIST node application CDATA "app0">
+<!ATTLIST node owner CDATA "user1">
+<!ATTLIST node id_master CDATA "???">
+<!ATTLIST node tasks CDATA "0">
+
+<!ELEMENT size EMPTY>
+<!ATTLIST size type (computing|communication) #REQUIRED>
+<!ATTLIST size maximum CDATA "0">
+<!ATTLIST size average CDATA "0">
+<!ATTLIST size minimum CDATA "0">
+<!ATTLIST size probability CDATA "0.0">
+
+<!ELEMENT dag EMPTY>
+<!ATTLIST dag application CDATA "app0">
+<!ATTLIST dag owner CDATA "user1">
+<!ATTLIST dag id_master CDATA "???">
+<!ATTLIST dag tasks CDATA "0">
+<!ATTLIST dag file_path CDATA #REQUIRED>
+
+<!ELEMENT file_system (file+)>
+
+<!ELEMENT file (slave*)>
+<!ATTLIST file id CDATA #REQUIRED>
+<!ATTLIST file size CDATA #REQUIRED>
