@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
+<platform_description version="1">
+    <cpu name="icon8" power="33000.0"/>
+    <cpu name="icon1" power="33000.0"/>
+    <cpu name="icon3" power="33000.0"/>
+    <cpu name="icon0" power="33000.0"/>
+    <cpu name="icon6" power="33000.0"/>
+    <cpu name="icon2" power="33000.0"/>
+    <cpu name="icon9" power="33000.0"/>
+    <cpu name="icon7" power="33000.0"/>
+    <cpu name="icon4" power="33000.0"/>
+    <cpu name="icon5" power="33000.0"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan20"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan14"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan30"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan28"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan24"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan16"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan17"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan15"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan13"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan18"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan27"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan23"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan29"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan19"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan21"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan12"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan11"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan22"/>
+    <network_link bandwidth="100.0" latency="0.005" name="lan26"/>
+    <route dst="icon1" src="icon0">
+        <route_element name="lan11"/>
+    </route>
+    <route dst="icon0" src="icon1">
+        <route_element name="lan12"/>
+    </route>
+    <route dst="icon2" src="icon0">
+        <route_element name="lan27"/>
+    </route>
+    <route dst="icon0" src="icon2">
+        <route_element name="lan28"/>
+    </route>
+    <route dst="icon3" src="icon0">
+        <route_element name="lan15"/>
+    </route>
+    <route dst="icon0" src="icon3">
+        <route_element name="lan16"/>
+    </route>
+    <route dst="icon4" src="icon0">
+        <route_element name="lan19"/>
+    </route>
+    <route dst="icon0" src="icon4">
+        <route_element name="lan20"/>
+    </route>
+    <route dst="icon5" src="icon0">
+        <route_element name="lan23"/>
+    </route>
+    <route dst="icon0" src="icon5">
+        <route_element name="lan24"/>
+    </route>
+    <route dst="icon6" src="icon0">
+        <route_element name="lan29"/>
+    </route>
+    <route dst="icon0" src="icon6">
+        <route_element name="lan30"/>
+    </route>
+    <route dst="icon7" src="icon0">
+        <route_element name="lan13"/>
+    </route>
+    <route dst="icon0" src="icon7">
+        <route_element name="lan14"/>
+    </route>
+    <route dst="icon8" src="icon0">
+        <route_element name="lan17"/>
+    </route>
+    <route dst="icon0" src="icon8">
+        <route_element name="lan18"/>
+    </route>
+    <route dst="icon9" src="icon0">
+        <route_element name="lan21"/>
+    </route>
+    <route dst="icon0" src="icon9">
+        <route_element name="lan22"/>
+    </route>
+    <route dst="icon0" src="icon10">
+        <route_element name="lan26"/>
+    </route>
+</platform_description>

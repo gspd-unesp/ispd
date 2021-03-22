@@ -1,0 +1,39 @@
+# Netbeans
+/nbproject/private/
+/build/
+/dist/
+
+# iSPD
+/Erros/
+/ispd/
+/modeloiconico
+/modelosimulavel
+
+# Backup files
+*.bak
+
+# Vim
+.vim/
+.*.swp
+*~
+
+# VS Code
+.vscode/
+
+# Idea
+.idea/
+
+# Hidden files
+.*
+
+# Log files
+*.log
+
+# Github
+!.github/
+
+# Git
+!.gitignore
+!.gitmodules
+
+

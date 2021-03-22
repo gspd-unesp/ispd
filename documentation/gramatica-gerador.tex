@@ -1,0 +1,62 @@
+% exemplo do GSPD com LaTeX!
+
+\documentclass[12pt]{article}
+
+\usepackage{graphicx} %para adicionar imagem ao texto
+
+\usepackage[brazil]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{ae}
+
+\title{Gramática do gerador de escalonamento}
+\author{Denison Menezes}
+
+\begin{document}
+
+\maketitle % escreve o titulo
+
+<dígito>	::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+<letra>		::=	a | b | c | ... | z | A | B | C | ... | Z
+
+<variável>	::= <variável\_tarefa> | <variável\_recurso>
+
+<variável\_tarefa>:= [TCP] | [NTS] | [NTC] | [NTA] | [TC] | [PCU]
+
+<variável\_recurso>:= [PP] | [LC] | [TCT] | [NTE] | [TCMT]
+
+<inteiro>	::=	\{<dígito>\}$^{+}$
+
+<real>		::=	\{<inteiro>\}$^{+}$<ponto>\{<inteiro>\}$^{+}$
+
+<identificador>	::=	<letra> \{<letra> | <dígito>\}$^{*}$
+
+<constante>	::=	<inteiro> | <real>
+
+<fila>		::= 
+
+<formula>	::=	``RANDOM'' | (``CRESCENT'' | ``DECREASING'') ``('' <expressão> ``)'' | <fila>
+
+<expressão>	::=	<numExp>
+
+<numExp>	::=	<numExp2> ( ( ``-'' | ``+'' ) <numExp2> )$^{*}$
+
+<numExp2>	::=	<numExp3> ( ( ``/'' | ``*'' ) <numExp3> )$^{*}$
+
+<numExp3>	::=	[ ( ``+'' | ``-'' ) ] numExp4
+
+<numExp4>	::=	<variável> | <constante> | ``('' <expressão> ``)''
+
+<inicial>	::=	<nome> <caracteristica> <escalonador\_tarefa> <escalonador\_recurso>
+
+<nome>		::= ``SCHEDULER'' <identificador>
+
+<caracteristica>	::=	``STATIC'' | ``DYNAMIC'' <tipo\_atualizacao>
+
+<escalonador\_tarefa>	::=	``TASK SCHEDULER:'' <formula>
+
+<escalonador\_recurso>	::=	``RESOURCE SCHEDULER:'' <formula>
+
+<tipo\_atualizacao>	::=	``TASK ENTRY'' | ``TASK OUTPUT'' | ``TIME INTERVAL ``('' <real> ``)''
+
+\end{document}

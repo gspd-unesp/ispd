@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE system SYSTEM "iSPD.dtd">
+<system version="1">
+    <owner id="user2"/>
+    <owner id="user1"/>
+    <owner id="user4"/>
+    <owner id="user3"/>
+    <owner id="user5"/>
+    <link bandwidth="100.0" id="lan45" latency="0.005" load="0.05">
+        <connect destination="0" origination="35"/>
+        <position x="303" y="202"/>
+        <position x="493" y="297"/>
+        <icon_id global="45" local="29"/>
+    </link>
+    <machine id="icon1" load="0.05" owner="user1" power="16000.0">
+        <position x="100" y="100"/>
+        <icon_id global="1" local="1"/>
+    </machine>
+    <link bandwidth="100.0" id="lan38" latency="0.005" load="0.05">
+        <connect destination="31" origination="0"/>
+        <position x="401" y="105"/>
+        <position x="303" y="202"/>
+        <icon_id global="38" local="22"/>
+    </link>
+    <link bandwidth="100.0" id="lan24" latency="0.005" load="0.05">
+        <connect destination="0" origination="5"/>
+        <position x="303" y="202"/>
+        <position x="100" y="300"/>
+        <icon_id global="24" local="13"/>
+    </link>
+    <link bandwidth="100.0" id="lan19" latency="0.005" load="0.05">
+        <connect destination="4" origination="0"/>
+        <position x="200" y="98"/>
+        <position x="303" y="202"/>
+        <icon_id global="19" local="8"/>
+    </link>
+    <link bandwidth="100.0" id="lan18" latency="0.005" load="0.05">
+        <connect destination="0" origination="8"/>
+        <position x="303" y="202"/>
+        <position x="204" y="304"/>
+        <icon_id global="18" local="7"/>
+    </link>
+    <link bandwidth="100.0" id="lan42" latency="0.005" load="0.05">
+        <connect destination="33" origination="0"/>
+        <position x="492" y="198"/>
+        <position x="303" y="202"/>
+        <icon_id global="42" local="26"/>
+    </link>
+    <link bandwidth="100.0" id="lan37" latency="0.005" load="0.05">
+        <connect destination="0" origination="32"/>
+        <position x="303" y="202"/>
+        <position x="300" y="100"/>
+        <icon_id global="37" local="21"/>
+    </link>
+    <link bandwidth="100.0" id="lan16" latency="0.005" load="0.05">
+        <connect destination="0" origination="3"/>
+        <position x="303" y="202"/>
+        <position x="299" y="303"/>
+        <icon_id global="16" local="5"/>
+    </link>
+    <link bandwidth="100.0" id="lan27" latency="0.005" load="0.05">
+        <connect destination="2" origination="0"/>
+        <position x="400" y="300"/>
+        <position x="303" y="202"/>
+        <icon_id global="27" local="16"/>
+    </link>
+    <link bandwidth="100.0" id="lan29" latency="0.005" load="0.05">
+        <connect destination="6" origination="0"/>
+        <position x="98" y="195"/>
+        <position x="303" y="202"/>
+        <icon_id global="29" local="18"/>
+    </link>
+    <link bandwidth="100.0" id="lan28" latency="0.005" load="0.05">
+        <connect destination="0" origination="2"/>
+        <position x="303" y="202"/>
+        <position x="400" y="300"/>
+        <icon_id global="28" local="17"/>
+    </link>
+    <link bandwidth="100.0" id="lan20" latency="0.005" load="0.05">
+        <connect destination="0" origination="4"/>
+        <position x="303" y="202"/>
+        <position x="200" y="98"/>
+        <icon_id global="20" local="9"/>
+    </link>
+    <cluster bandwidth="300.0" id="icon31" latency="0.001" master="true" nodes="200" owner="user1" power="33000.0" scheduler="RoundRobin">
+        <position x="401" y="105"/>
+        <icon_id global="31" local="11"/>
+    </cluster>
+    <link bandwidth="100.0" id="lan40" latency="0.005" load="0.05">
+        <connect destination="34" origination="0"/>
+        <position x="484" y="104"/>
+        <position x="303" y="202"/>
+        <icon_id global="40" local="24"/>
+    </link>
+    <cluster bandwidth="300.0" id="icon32" latency="0.001" master="false" nodes="100" owner="user1" power="33000.0" scheduler="RoundRobin">
+        <position x="300" y="100"/>
+        <icon_id global="32" local="12"/>
+    </cluster>
+    <machine id="icon4" load="0.0" owner="user1" power="16000.0">
+        <position x="200" y="98"/>
+        <icon_id global="4" local="4"/>
+    </machine>
+    <link bandwidth="100.0" id="lan44" latency="0.005" load="0.05">
+        <connect destination="35" origination="0"/>
+        <position x="493" y="297"/>
+        <position x="303" y="202"/>
+        <icon_id global="44" local="28"/>
+    </link>
+    <cluster bandwidth="300.0" id="icon35" latency="0.001" master="true" nodes="200" owner="user1" power="33000.0" scheduler="Workqueue">
+        <position x="493" y="297"/>
+        <icon_id global="35" local="15"/>
+    </cluster>
+    <link bandwidth="100.0" id="lan41" latency="0.005" load="0.05">
+        <connect destination="0" origination="34"/>
+        <position x="303" y="202"/>
+        <position x="484" y="104"/>
+        <icon_id global="41" local="25"/>
+    </link>
+    <link bandwidth="100.0" id="lan39" latency="0.005" load="0.05">
+        <connect destination="0" origination="31"/>
+        <position x="303" y="202"/>
+        <position x="401" y="105"/>
+        <icon_id global="39" local="23"/>
+    </link>
+    <link bandwidth="100.0" id="lan36" latency="0.005" load="0.05">
+        <connect destination="32" origination="0"/>
+        <position x="300" y="100"/>
+        <position x="303" y="202"/>
+        <icon_id global="36" local="20"/>
+    </link>
+    <link bandwidth="100.0" id="lan23" latency="0.005" load="0.05">
+        <connect destination="5" origination="0"/>
+        <position x="100" y="300"/>
+        <position x="303" y="202"/>
+        <icon_id global="23" local="12"/>
+    </link>
+    <machine id="icon6" load="0.05" owner="user1" power="16000.0">
+        <position x="98" y="195"/>
+        <icon_id global="6" local="6"/>
+    </machine>
+    <cluster bandwidth="300.0" id="icon34" latency="0.001" master="false" nodes="100" owner="user1" power="33000.0" scheduler="RoundRobin">
+        <position x="484" y="104"/>
+        <icon_id global="34" local="14"/>
+    </cluster>
+    <machine id="icon0" load="0.05" owner="user1" power="33000.0">
+        <master scheduler="DynamicFPLTF">
+            <slave id="1"/>
+            <slave id="2"/>
+            <slave id="3"/>
+            <slave id="4"/>
+            <slave id="5"/>
+            <slave id="6"/>
+            <slave id="7"/>
+            <slave id="8"/>
+            <slave id="9"/>
+            <slave id="10"/>
+            <slave id="31"/>
+            <slave id="34"/>
+            <slave id="35"/>
+            <slave id="32"/>
+            <slave id="33"/>
+            <slave id="38"/>
+            <slave id="39"/>
+            <slave id="36"/>
+            <slave id="37"/>
+            <slave id="42"/>
+            <slave id="43"/>
+            <slave id="40"/>
+            <slave id="41"/>
+            <slave id="46"/>
+            <slave id="47"/>
+            <slave id="44"/>
+            <slave id="45"/>
+            <slave id="51"/>
+            <slave id="50"/>
+            <slave id="49"/>
+            <slave id="48"/>
+            <slave id="55"/>
+            <slave id="54"/>
+            <slave id="53"/>
+            <slave id="52"/>
+            <slave id="59"/>
+            <slave id="58"/>
+            <slave id="57"/>
+            <slave id="56"/>
+            <slave id="63"/>
+            <slave id="62"/>
+            <slave id="61"/>
+            <slave id="60"/>
+            <slave id="68"/>
+            <slave id="69"/>
+            <slave id="70"/>
+            <slave id="64"/>
+            <slave id="65"/>
+            <slave id="66"/>
+            <slave id="67"/>
+        </master>
+        <position x="303" y="202"/>
+        <icon_id global="0" local="0"/>
+    </machine>
+    <link bandwidth="100.0" id="lan11" latency="0.005" load="0.05">
+        <connect destination="1" origination="0"/>
+        <position x="100" y="100"/>
+        <position x="303" y="202"/>
+        <icon_id global="11" local="0"/>
+    </link>
+    <machine id="icon5" load="0.05" owner="user1" power="16000.0">
+        <position x="100" y="300"/>
+        <icon_id global="5" local="5"/>
+    </machine>
+    <cluster bandwidth="300.0" id="icon33" latency="0.001" master="false" nodes="100" owner="user1" power="33000.0" scheduler="RoundRobin">
+        <position x="492" y="198"/>
+        <icon_id global="33" local="13"/>
+    </cluster>
+    <link bandwidth="100.0" id="lan43" latency="0.005" load="0.05">
+        <connect destination="0" origination="33"/>
+        <position x="303" y="202"/>
+        <position x="492" y="198"/>
+        <icon_id global="43" local="27"/>
+    </link>
+    <machine id="icon3" load="0.05" owner="user1" power="16000.0">
+        <position x="299" y="303"/>
+        <icon_id global="3" local="3"/>
+    </machine>
+    <link bandwidth="100.0" id="lan30" latency="0.005" load="0.05">
+        <connect destination="0" origination="6"/>
+        <position x="303" y="202"/>
+        <position x="98" y="195"/>
+        <icon_id global="30" local="19"/>
+    </link>
+    <link bandwidth="100.0" id="lan17" latency="0.005" load="0.05">
+        <connect destination="8" origination="0"/>
+        <position x="204" y="304"/>
+        <position x="303" y="202"/>
+        <icon_id global="17" local="6"/>
+    </link>
+    <link bandwidth="100.0" id="lan15" latency="0.005" load="0.05">
+        <connect destination="3" origination="0"/>
+        <position x="299" y="303"/>
+        <position x="303" y="202"/>
+        <icon_id global="15" local="4"/>
+    </link>
+    <machine id="icon2" load="0.05" owner="user1" power="16000.0">
+        <position x="400" y="300"/>
+        <icon_id global="2" local="2"/>
+    </machine>
+    <link bandwidth="100.0" id="lan12" latency="0.005" load="0.05">
+        <connect destination="0" origination="1"/>
+        <position x="303" y="202"/>
+        <position x="100" y="100"/>
+        <icon_id global="12" local="1"/>
+    </link>
+    <machine id="icon8" load="0.05" owner="user1" power="16000.0">
+        <position x="204" y="304"/>
+        <icon_id global="8" local="8"/>
+    </machine>
+    <load>
+        <node application="application0" id_master="icon0" owner="user1" tasks="1000">
+            <size maximum="30000.0" minimum="10000.0" type="computing"/>
+            <size maximum="1000.0" minimum="100.0" type="communication"/>
+        </node>
+        <node application="application1" id_master="icon31" owner="user2" tasks="1000">
+            <size maximum="30000.0" minimum="10000.0" type="computing"/>
+            <size maximum="1000.0" minimum="100.0" type="communication"/>
+        </node>
+        <node application="application2" id_master="icon0" owner="user3" tasks="1000">
+            <size maximum="30000.0" minimum="10000.0" type="computing"/>
+            <size maximum="1000.0" minimum="100.0" type="communication"/>
+        </node>
+        <node application="application3" id_master="icon35" owner="user4" tasks="1000">
+            <size maximum="30000.0" minimum="10000.0" type="computing"/>
+            <size maximum="1000.0" minimum="100.0" type="communication"/>
+        </node>
+        <node application="application4" id_master="icon0" owner="user5" tasks="1000">
+            <size maximum="30000.0" minimum="10000.0" type="computing"/>
+            <size maximum="1000.0" minimum="100.0" type="communication"/>
+        </node>
+    </load>
+</system>

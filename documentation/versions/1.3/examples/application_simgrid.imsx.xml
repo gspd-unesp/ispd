@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
+<platform_description version="1">
+    <process function="master" host="icon0">
+        <argument value="5000"/>
+        <argument value="30000.0"/>
+        <argument value="1000.0"/>
+        <argument value="icon1"/>
+        <argument value="icon2"/>
+        <argument value="icon3"/>
+        <argument value="icon4"/>
+        <argument value="icon5"/>
+        <argument value="icon6"/>
+        <argument value="icon7"/>
+        <argument value="icon8"/>
+        <argument value="icon9"/>
+        <argument value="icon10"/>
+    </process>
+    <process function="slave" host="icon8"/>
+    <process function="slave" host="icon1"/>
+    <process function="slave" host="icon3"/>
+    <process function="slave" host="icon10"/>
+    <process function="slave" host="icon6"/>
+    <process function="slave" host="icon2"/>
+    <process function="slave" host="icon9"/>
+    <process function="slave" host="icon7"/>
+    <process function="slave" host="icon4"/>
+    <process function="slave" host="icon5"/>
+</platform_description>
