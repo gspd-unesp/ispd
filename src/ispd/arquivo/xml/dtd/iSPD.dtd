@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ==========================================================
+ iSPD : iconic Simulator of Parallel and Distributed System
+ ==========================================================
+ 
+ (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ 
+ Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ 
+ ===============
+ iSPD.dtd
+ ===============
+ (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ 
+ Original Author:  Denison Menezes (for GSPD);
+ Contributor(s):   -;
+ 
+ Changes
+ ===============
+ =============== iSPD 1.3 =============================================
+ 01-Mar-2014 : Add characteristics
+ 09-Set-2014 : Version 2.0;
+-->
+
+<!--
+    TODO define vocabulary identification data
+    PUBLIC ID  : -//vendor//vocabulary//EN
+    SYSTEM ID  : http://server/path/__NAME__
+-->
+
+<!-- TODO define your own vocabulary/syntax. Example follows:  -->
+<!ELEMENT system (owner*,(machine|link|cluster|internet)*,load?,file_system?)>
+<!ATTLIST system version CDATA #REQUIRED>
+
+<!ELEMENT owner EMPTY>
+<!ATTLIST owner id CDATA #REQUIRED>
+<!ATTLIST owner powerlimit CDATA "100.0">
+
+<!ELEMENT position EMPTY>
+<!ATTLIST position x CDATA #REQUIRED>
+<!ATTLIST position y CDATA #REQUIRED>
+
+<!ELEMENT icon_id EMPTY>
+<!ATTLIST icon_id global CDATA #REQUIRED>
+<!ATTLIST icon_id local CDATA #REQUIRED>
+
+<!ELEMENT slave EMPTY>
+<!ATTLIST slave id CDATA #REQUIRED>
+
+<!ELEMENT master (slave*)>
+<!ATTLIST master scheduler CDATA "---">
+
+<!ELEMENT machine (master?,position,icon_id,characteristic?)>
+<!ATTLIST machine id ID #REQUIRED>
+<!ATTLIST machine power CDATA "0.0">
+<!ATTLIST machine load CDATA "0.0">
+<!ATTLIST machine owner CDATA "user1">
+<!ATTLIST machine energy CDATA "0.0">
+
+<!ELEMENT characteristic (process,memory,hard_disk)>
+
+<!ELEMENT process EMPTY>
+<!ATTLIST process power CDATA "0.0">
+<!ATTLIST process number CDATA "1">
+<!ATTLIST process model CDATA "x86">
+
+<!ELEMENT memory EMPTY>
+<!ATTLIST memory size CDATA "0.0">
+
+<!ELEMENT hard_disk EMPTY>
+<!ATTLIST hard_disk size CDATA "0.0">
+
+<!ELEMENT cluster (position,icon_id,characteristic?)>
+<!ATTLIST cluster id ID #REQUIRED>
+<!ATTLIST cluster nodes CDATA "0">
+<!ATTLIST cluster power CDATA "0.0">
+<!ATTLIST cluster bandwidth CDATA "0.0">
+<!ATTLIST cluster latency CDATA "0.0">
+<!ATTLIST cluster scheduler CDATA "---">
+<!ATTLIST cluster owner CDATA "user1">
+<!ATTLIST cluster master CDATA "true">
+<!ATTLIST machine energy CDATA "0.0">
+
+<!ELEMENT internet (position,icon_id)>
+<!ATTLIST internet id ID #REQUIRED>
+<!ATTLIST internet bandwidth CDATA "0.0">
+<!ATTLIST internet load CDATA "0.0">
+<!ATTLIST internet latency CDATA "0.0">
+
+<!ELEMENT connect EMPTY>
+<!ATTLIST connect origination CDATA #REQUIRED>
+<!ATTLIST connect destination CDATA #REQUIRED>
+
+<!ELEMENT link (connect,position?,position?,icon_id)>
+<!ATTLIST link id ID #REQUIRED>
+<!ATTLIST link bandwidth CDATA "0.0">
+<!ATTLIST link load CDATA "0.0">
+<!ATTLIST link latency CDATA "0.0">
+
+<!ELEMENT load (trace|random|node+|dag+)>
+
+<!ELEMENT trace EMPTY>
+<!ATTLIST trace file_path CDATA #REQUIRED>
+<!ATTLIST trace tasks CDATA "0">
+<!ATTLIST trace format CDATA "iSPD">
+
+<!ELEMENT random (size,size)>
+<!ATTLIST random owner CDATA "user1">
+<!ATTLIST random tasks CDATA "0">
+<!ATTLIST random time_arrival CDATA "0">
+
+<!ELEMENT node (size,size)>
+<!ATTLIST node application CDATA "app0">
+<!ATTLIST node owner CDATA "user1">
+<!ATTLIST node id_master CDATA "???">
+<!ATTLIST node tasks CDATA "0">
+
+<!ELEMENT size EMPTY>
+<!ATTLIST size type (computing|communication) #REQUIRED>
+<!ATTLIST size maximum CDATA "0">
+<!ATTLIST size average CDATA "0">
+<!ATTLIST size minimum CDATA "0">
+<!ATTLIST size probability CDATA "0.0">
+
+<!ELEMENT dag EMPTY>
+<!ATTLIST dag application CDATA "app0">
+<!ATTLIST dag owner CDATA "user1">
+<!ATTLIST dag id_master CDATA "???">
+<!ATTLIST dag tasks CDATA "0">
+<!ATTLIST dag file_path CDATA #REQUIRED>
+
+<!ELEMENT file_system (file+)>
+
+<!ELEMENT file (slave*)>
+<!ATTLIST file id CDATA #REQUIRED>
+<!ATTLIST file size CDATA #REQUIRED>
