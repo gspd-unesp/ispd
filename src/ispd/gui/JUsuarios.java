@@ -1,24 +1,54 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
- * Usuarios.java
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
  *
- * Created on 01/06/2011, 12:47:59
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * JUsuarios.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * Created on 01/06/2011
+ * 09-Set-2014 : Version 2.0;
+ *
  */
-
 package ispd.gui;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Vector;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  * Janela usada para adicionar e remover os usuarios da simulação modelada
- * @author denison_usuario
+ * @author denison
  */
 public class JUsuarios extends javax.swing.JDialog {
 
@@ -35,6 +65,31 @@ public class JUsuarios extends javax.swing.JDialog {
 
     public HashSet<String> getUsuarios(){
         HashSet<String> ret = new HashSet<String>(usuarios);
+        return ret;
+    }
+    
+    public JUsuarios(java.awt.Frame parent, boolean modal, HashSet<String> usuarios, ResourceBundle palavras, HashMap<String, Double> perfil) {
+        super(parent, modal); 
+        this.usuarios = new Vector<Vector>();
+        this.perfis = new Vector<String>();
+        this.perfis.add("Users");
+        this.perfis.add("Limite de Consumo (Porcentagem do consumo da porção)");
+        for (String usuario : usuarios) {
+            Vector user = new Vector<String>();
+            user.add(usuario);
+            user.add(perfil.get(usuario));
+            this.usuarios.add(user);
+        }
+        this.usuario = usuarios;
+        this.palavras = palavras;
+        initComponents();
+    }
+
+    public HashMap<String,Double> getLimite(){
+        HashMap<String,Double> ret = new HashMap<String,Double>();
+        for (Vector user : usuarios) {
+            ret.put(user.get(0).toString(), Double.parseDouble(user.get(1).toString()));
+        }
         return ret;
     }
 
@@ -100,6 +155,11 @@ public class JUsuarios extends javax.swing.JDialog {
                 jButtonOkActionPerformed(evt);
             }
         });
+
+        jTable1.setModel(new DefaultTableModel(this.usuarios,this.perfis){ public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return true;
+        }});
+        jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

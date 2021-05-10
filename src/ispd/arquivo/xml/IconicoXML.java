@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * IconicoXML.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ *
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.arquivo.xml;
 
@@ -97,7 +132,7 @@ public class IconicoXML {
      * @return indica se arquivo foi salvo corretamente
      */
     public static boolean escrever(Document documento, File arquivo) {
-        return ManipuladorXML.escrever(documento, arquivo, "iSPD.dtd");
+        return ManipuladorXML.escrever(documento, arquivo, "iSPD.dtd", false);
     }
 
     /**
@@ -172,9 +207,11 @@ public class IconicoXML {
         List<CS_Internet> nets = new ArrayList<CS_Internet>();
         //cria lista de usuarios e o poder computacional cedido por cada um
         HashMap<String, Double> usuarios = new HashMap<String, Double>();
+        HashMap<String,Double> perfis = new HashMap<String,Double>();
         for (int i = 0; i < owners.getLength(); i++) {
             Element owner = (Element) owners.item(i);
             usuarios.put(owner.getAttribute("id"), 0.0);
+            perfis.put(owner.getAttribute("id"), Double.parseDouble(owner.getAttribute("powerlimit")));
         }
         //cria maquinas, mestres, internets e mestres dos clusters
         //Realiza leitura dos icones de máquina
@@ -189,10 +226,10 @@ public class IconicoXML {
                         maquina.getAttribute("owner"),
                         Double.parseDouble(maquina.getAttribute("power")),
                         Double.parseDouble(maquina.getAttribute("load")),
-                        master.getAttribute("scheduler")/*Escalonador*/);
-                mestres.add(mestre);
+                        master.getAttribute("scheduler")/*Escalonador*/,
+                        Double.parseDouble(maquina.getAttribute("energy")));
                 centroDeServicos.put(global, mestre);
-                //Contabiliza para o usuario poder computacional do mestre
+                mestres.add(mestre);
                 usuarios.put(mestre.getProprietario(), usuarios.get(mestre.getProprietario()) + mestre.getPoderComputacional());
             } else {
                 CS_Maquina maq = new CS_Maquina(
@@ -200,7 +237,8 @@ public class IconicoXML {
                         maquina.getAttribute("owner"),
                         Double.parseDouble(maquina.getAttribute("power")),
                         1/*num processadores*/,
-                        Double.parseDouble(maquina.getAttribute("load")));
+                        Double.parseDouble(maquina.getAttribute("load")),
+                        Double.parseDouble(maquina.getAttribute("energy")));
                 maqs.add(maq);
                 centroDeServicos.put(global, maq);
                 usuarios.put(maq.getProprietario(), usuarios.get(maq.getProprietario()) + maq.getPoderComputacional());
@@ -217,7 +255,8 @@ public class IconicoXML {
                         cluster.getAttribute("owner"),
                         Double.parseDouble(cluster.getAttribute("power")),
                         0.0,
-                        cluster.getAttribute("scheduler")/*Escalonador*/);
+                        cluster.getAttribute("scheduler")/*Escalonador*/,
+                        Double.parseDouble(cluster.getAttribute("energy")));
                 mestres.add(clust);
                 centroDeServicos.put(global, clust);
                 //Contabiliza para o usuario poder computacional do mestre
@@ -241,7 +280,8 @@ public class IconicoXML {
                             Double.parseDouble(cluster.getAttribute("power")),
                             1/*numero de processadores*/,
                             0.0/*TaxaOcupacao*/,
-                            j + 1/*identificador da maquina no cluster*/);
+                            j + 1/*identificador da maquina no cluster*/,
+                            Double.parseDouble(cluster.getAttribute("energy")));
                     maq.addConexoesSaida(Switch);
                     maq.addConexoesEntrada(Switch);
                     Switch.addConexoesEntrada(maq);
@@ -272,7 +312,8 @@ public class IconicoXML {
                             Double.parseDouble(cluster.getAttribute("power")),
                             1/*numero de processadores*/,
                             0.0/*TaxaOcupacao*/,
-                            j + 1/*identificador da maquina no cluster*/);
+                            j + 1/*identificador da maquina no cluster*/,
+                        Double.parseDouble(cluster.getAttribute("energy")));
                     maq.addConexoesSaida(Switch);
                     maq.addConexoesEntrada(Switch);
                     Switch.addConexoesEntrada(maq);
@@ -347,9 +388,11 @@ public class IconicoXML {
         //verifica se há usuarios sem nenhum recurso
         ArrayList<String> proprietarios = new ArrayList<String>();
         ArrayList<Double> poderComp = new ArrayList<Double>();
+        ArrayList<Double> perfil = new ArrayList<>();
         for (String user : usuarios.keySet()) {
             proprietarios.add(user);
             poderComp.add(usuarios.get(user));
+            perfil.add(perfis.get(user));
         }
         //cria as métricas de usuarios para cada mestre
         for (CS_Processamento mestre : mestres) {
@@ -802,7 +845,7 @@ public class IconicoXML {
             Element id = (Element) cluster.getElementsByTagName("icon_id").item(0);
             int global = Integer.parseInt(id.getAttribute("global"));
             int local = Integer.parseInt(id.getAttribute("local"));
-            Cluster clust = new Cluster(x, y, local, global);
+            Cluster clust = new Cluster(x, y, local, global, Double.parseDouble(cluster.getAttribute("power")));
             clust.setSelected(false);
             vertices.add(clust);
             icones.put(global, clust);
@@ -847,7 +890,7 @@ public class IconicoXML {
                 Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
                 int global = Integer.parseInt(id.getAttribute("global"));
                 int local = Integer.parseInt(id.getAttribute("local"));
-                Machine maq = new Machine(x, y, local, global);
+                Machine maq = new Machine(x, y, local, global, Double.parseDouble(maquina.getAttribute("energy")));
                 maq.setSelected(false);
                 icones.put(global, maq);
                 vertices.add(maq);
@@ -864,7 +907,7 @@ public class IconicoXML {
                 Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
                 int global = Integer.parseInt(id.getAttribute("global"));
                 int local = Integer.parseInt(id.getAttribute("local"));
-                Machine maq = new Machine(x, y, local, global);
+                Machine maq = new Machine(x, y, local, global, Double.parseDouble(maquina.getAttribute("energy")));
                 maq.setSelected(false);
                 icones.put(global, maq);
             }
@@ -891,7 +934,10 @@ public class IconicoXML {
                 List<ItemGrade> escravos = new ArrayList<ItemGrade>(slaves.getLength());
                 for (int j = 0; j < slaves.getLength(); j++) {
                     Element slave = (Element) slaves.item(j);
-                    escravos.add((ItemGrade) icones.get(Integer.parseInt(slave.getAttribute("id"))));
+                    ItemGrade escravo = (ItemGrade) icones.get(Integer.parseInt(slave.getAttribute("id")));
+                    if (escravo != null) {
+                        escravos.add(escravo);
+                    }
                 }
                 maq.setEscravos(escravos);
             }
@@ -979,10 +1025,23 @@ public class IconicoXML {
         return documento;
     }
 
-    public void addUsers(Collection<String> usuarios) {
+    
+    public static HashMap<String,Double> newListPerfil(Document descricao) {
+        NodeList owners = descricao.getElementsByTagName("owner");
+        HashMap<String,Double> perfis = new HashMap<>();
+        //Realiza leitura dos usuários/proprietários do modelo
+        for (int i = 0; i < owners.getLength(); i++) {
+            Element owner = (Element) owners.item(i);
+            perfis.put(owner.getAttribute("id"),Double.parseDouble(owner.getAttribute("powerlimit")));
+        }
+        return perfis;
+    }
+
+    public void addUsers(Collection<String> usuarios, HashMap<String,Double> perfis) {
         for (String user : usuarios) {
             Element owner = descricao.createElement("owner");
             owner.setAttribute("id", user);
+            owner.setAttribute("powerlimit", perfis.get(user).toString());
             system.appendChild(owner);
         }
     }
@@ -1012,7 +1071,7 @@ public class IconicoXML {
             Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
             Double memoriaRAM, Double discoRigido,
             Double banda, Double latencia,
-            String algoritmo, String proprietario, Boolean mestre) {
+            String algoritmo, String proprietario, Boolean mestre, Double energy) {
         Element aux;
         Element posicao = descricao.createElement("position");
         posicao.setAttribute("x", x.toString());
@@ -1061,6 +1120,7 @@ public class IconicoXML {
         aux.setAttribute("vm_alloc", alloc);
         aux.setAttribute("owner", proprietario);
         aux.setAttribute("master", mestre.toString());
+        aux.setAttribute("energy",Double.toString(energy));
 
         aux.setAttribute("id", nome);
         aux.appendChild(posicao);
@@ -1073,7 +1133,7 @@ public class IconicoXML {
     public void addMachine(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
             Double poderComputacional, Double ocupacao, String algoritmo, String proprietario,
             Integer numeroNucleos, Double memoriaRAM, Double discoRigido,
-            boolean mestre, Collection<Integer> escravos) {
+            boolean mestre, Collection<Integer> escravos, Double energy) {
         Element aux;
         Element posicao = descricao.createElement("position");
         posicao.setAttribute("x", x.toString());
@@ -1125,6 +1185,7 @@ public class IconicoXML {
         //aux.setAttribute("cost_mem", Costpermemory.toString());
         //aux.setAttribute("cost_disk", CostperDisk.toString());
 
+        aux.setAttribute("energy",Double.toString(energy));
         if (mestre) {
             //preenche escravos
             Element master = descricao.createElement("master");

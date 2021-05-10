@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * HtmlPane.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.gui.auxiliar;
 
@@ -39,7 +74,9 @@ public class HtmlPane extends JEditorPane implements HyperlinkListener {
      * Cria um e exibe JDialog contendo uma pagina de html
      *
      * @param pai janela que fez a chamada
+     * @param titulo Titulo da janela que será exibida
      * @param page pagina html que será exibida
+     * @throws java.io.IOException para URL nulo ou inválido
      */
     public static void newHTMLDialog(Window pai, String titulo, URL page) throws IOException {
         JDialog frame = new JDialog(pai, titulo, ModalityType.APPLICATION_MODAL);
@@ -56,7 +93,7 @@ public class HtmlPane extends JEditorPane implements HyperlinkListener {
     /**
      * Abre um link com o navegador padrão
      *
-     * @param uri endereço que será aberto
+     * @param url endereço que será aberto
      */
     public static void openDefaultBrowser(URL url) {
         Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
@@ -96,6 +133,12 @@ public class HtmlPane extends JEditorPane implements HyperlinkListener {
         int fim = html.indexOf("</", inicio);
         String buscar = html.substring(inicio, fim);
         buscar = buscar.replaceAll("\n", "");
+        buscar = buscar.replaceAll("&#225;","á");
+        buscar = buscar.replaceAll("&#227;","ã");
+        buscar = buscar.replaceAll("&#231;","ç");
+        buscar = buscar.replaceAll("&#233;","é");
+        buscar = buscar.replaceAll("&#245;","õ");
+        //Removendo espaço em branco
         inicio = 0;
         while (buscar.charAt(inicio) == ' ') {
             inicio++;
@@ -110,16 +153,16 @@ public class HtmlPane extends JEditorPane implements HyperlinkListener {
         try {
             text = document.getText(0, document.getLength());
         } catch (BadLocationException ex) {
-            Logger.getLogger(JResultados.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(HtmlPane.class.getName()).log(Level.SEVERE, null, ex);
         }
         int posicao = text.lastIndexOf(buscar);
-        if (posicao > 0) {
+        if (posicao > 20) { // posicao > 0
             try {
                 Rectangle caretCoords = this.modelToView(posicao);
                 caretCoords.y += this.getParent().getHeight() - caretCoords.height;
                 this.scrollRectToVisible(caretCoords);
             } catch (BadLocationException ex) {
-                Logger.getLogger(JResultados.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(HtmlPane.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
             this.setCaretPosition(0);

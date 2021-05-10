@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * CS_Processamento.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.motor.filas.servidores;
 
@@ -19,7 +54,7 @@ import java.util.Collections;
  * Classe abstrata que representa os servidores de processamento do modelo de fila,
  * Esta classe possui atributos referente a este ripo de servidor, e indica como
  * calcular o tempo gasto para processar uma tarefa.
- * @author denison_usuario
+ * @author denison
  */
 public abstract class CS_Processamento extends CentroServico {
 
@@ -32,23 +67,26 @@ public abstract class CS_Processamento extends CentroServico {
     private double PoderComputacionalDisponivelPorProcessador;
     private MetricasProcessamento metrica;
     private List<ParesOrdenadosUso> lista_pares = new ArrayList<ParesOrdenadosUso>();
+    private Double consumoEnergia;
     
-    public CS_Processamento(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina) {
+    public CS_Processamento(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina, Double energia) {
         this.poderComputacional = PoderComputacional;
         this.numeroProcessadores = numeroProcessadores;
         this.Ocupacao = Ocupacao;
         this.metrica = new MetricasProcessamento(id, numeroMaquina, proprietario);
+        this.consumoEnergia = energia;
         this.PoderComputacionalDisponivelPorProcessador =
                 (this.poderComputacional - (this.poderComputacional * this.Ocupacao))
                 / this.numeroProcessadores;
     }
     
-    
-    
     public int getnumeroMaquina(){
         return metrica.getnumeroMaquina();
     }
     
+    public Double getConsumoEnergia(){
+        return this.consumoEnergia;
+    }
     
     public double getOcupacao() {
         return Ocupacao;

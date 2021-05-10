@@ -1,15 +1,49 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
- * Principal.java
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
  *
- * Created on 11/04/2011, 17:26:44
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * JPrincipal.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * Created on 11/04/2011
+ * 09-Set-2014 : Version 2.0;
+ * 14-Out-2014 : adicionado configurações para simulação e resultados
+ *
  */
 package ispd.gui;
 
+import ispd.arquivo.exportador.Exportador;
+import ispd.arquivo.interpretador.gridsim.InterpretadorGridSim;
+import ispd.arquivo.interpretador.simgrid.InterpretadorSimGrid;
+import ispd.arquivo.xml.ConfiguracaoISPD;
 import DescreveSistema.DescreveSistema;
 import ispd.arquivo.exportador.Exportador;
 import ispd.arquivo.xml.IconicoXML;
@@ -22,6 +56,7 @@ import ispd.gui.configuracao.JPanelConfigIcon;
 import ispd.gui.iconico.grade.DesenhoGrade;
 import ispd.gui.iconico.grade.ItemGrade;
 import ispd.gui.iconico.grade.VirtualMachine;
+import ispd.gui.iconico.simulacao.JSimulacaoGrafica;
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
@@ -58,7 +93,7 @@ import org.xml.sax.SAXException;
  *
  * Implementação da janela principal do iSPD
  *
- * @author denison_usuario
+ * @author denison
  *
  */
 public class JPrincipal extends javax.swing.JFrame implements KeyListener {
@@ -82,9 +117,13 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
         //Utiliza o idioma do sistema como padrão
         Locale locale = Locale.getDefault();
         palavras = ResourceBundle.getBundle("ispd.idioma.Idioma", locale);
+        configura = new ConfiguracaoISPD();
         String[] exts = {".ims", ".imsx", ".wmsx"};
         filtro = new FiltroDeArquivos(palavras.getString("Iconic Model of Simulation"), exts, true);
         initComponents();
+        jFileChooser.setSelectedFile(configura.getLastFile());
+        jSobre = new JSobre(this, true);
+        jSobre.setLocationRelativeTo(this);
         // permite que o frame processe os eventos de teclado
         this.addKeyListener(this);
         this.jScrollPaneAreaDesenho.addKeyListener(this);
@@ -179,6 +218,8 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
         jMenuItemDelete = new javax.swing.JMenuItem();
         jMenuItemEquiparar = new javax.swing.JMenuItem();
         jMenuItemOrganizar = new javax.swing.JMenuItem();
+        javax.swing.JPopupMenu.Separator jSeparator5 = new javax.swing.JPopupMenu.Separator();
+        jMenuItem1 = new javax.swing.JMenuItem();
         jMenuExibir = new javax.swing.JMenu();
         jCheckBoxMenuItemConectado = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemIndireto = new javax.swing.JCheckBoxMenuItem();
@@ -574,6 +615,15 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
                 }
             });
             jMenuEditar.add(jMenuItemOrganizar);
+            jMenuEditar.add(jSeparator5);
+
+            jMenuItem1.setText("Preferences");
+            jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jMenuItem1ActionPerformed(evt);
+                }
+            });
+            jMenuEditar.add(jMenuItem1);
 
             jMenuBar.add(jMenuEditar);
 
@@ -739,7 +789,6 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
             pack();
         }// </editor-fold>//GEN-END:initComponents
 
-
     private void jMenuItemGerenciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemGerenciarActionPerformed
         // TODO add your handling code here:
         jFrameGerenciador.setLocationRelativeTo(this);
@@ -747,30 +796,7 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
     }//GEN-LAST:event_jMenuItemGerenciarActionPerformed
 
     private void jMenuItemSobreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSobreActionPerformed
-        // TODO add your handling code here:
-        Icon icone = new ImageIcon(getClass().getResource("imagens/Logo_iSPD_128.png"));
-        String sobre = "\n" + palavras.getString("InicioSobre") + "\n"
-                + "\"Instituto de Biociências, Letras e Ciências Exatas\", UNESP - Univ Estadual\n"
-                + "Paulista, campus de São José do Rio Preto, Departamento de Ciências de\n"
-                + "Computação e Estatística (DCCE), Laboratório do Grupo de Sistemas\n"
-                + "Paralelos e Distribuídos (GSPD).\n\n"
-                + palavras.getString("Developers") + ":\n"
-                + "                Prof. Dr. Aleardo Manacero Junior\n"
-                + "                Profª. Drª. Renata Spolon Lobato\n"
-                + "                Aldo Ianelo Guerra\n"
-                + "                Marco Antonio Barros Alves Garcia\n"
-                + "                Paulo Henrique Maestrello Assad Oliveira\n"
-                + "                Tiago Polizelli Brait\n"
-                + "                Vanessa Gomes de Oliveira\n"
-                + "                Victor Aoqui\n"
-                + "                Denison Menezes\n"
-                + "                Diogo Tavares da Silva\n"
-                + "                Gabriel Covello Furlanetto\n"
-                + "                Rafael Stabile \n"
-                + "                Danilo Costa Marim Segura\n"
-                + "                Arthur Jorge\n"
-                + "                João Antonio Magri Rodrigues";
-        JOptionPane.showOptionDialog(this, sobre, palavras.getString("About") + " \"" + palavras.getString("nomePrograma") + "\"", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, icone, null, null);
+        jSobre.setVisible(true);
     }//GEN-LAST:event_jMenuItemSobreActionPerformed
 
     private void jMenuItemInglesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemInglesActionPerformed
@@ -878,7 +904,6 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
     }//GEN-LAST:event_jButtonSimularActionPerformed
 
     private void jMenuItemNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNovoActionPerformed
-        // TODO add your handling code here:
         int escolha = JOptionPane.YES_OPTION;
         if (modificado) {
             escolha = savarAlteracao();
@@ -912,8 +937,6 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
                 break;
 
         }
-
-
     }//GEN-LAST:event_jMenuItemNovoActionPerformed
 
     private void jMenuItemAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAbrirActionPerformed
@@ -983,6 +1006,9 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
                         Logger.getLogger(JPrincipal.class.getName()).log(Level.SEVERE, null, ex);
                         JOptionPane.showMessageDialog(null, palavras.getString("Error opening file.") + "\n" + ex.getMessage(), palavras.getString("WARNING"), JOptionPane.PLAIN_MESSAGE);
                     } catch (SAXException ex) {
+                        Logger.getLogger(JPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+                        JOptionPane.showMessageDialog(null, palavras.getString("Error opening file.") + "\n" + ex.getMessage(), palavras.getString("WARNING"), JOptionPane.PLAIN_MESSAGE);
+                    } catch (Exception ex) {
                         Logger.getLogger(JPrincipal.class.getName()).log(Level.SEVERE, null, ex);
                         JOptionPane.showMessageDialog(null, palavras.getString("Error opening file.") + "\n" + ex.getMessage(), palavras.getString("WARNING"), JOptionPane.PLAIN_MESSAGE);
                     }
@@ -1090,15 +1116,7 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
     }//GEN-LAST:event_jMenuItemFecharActionPerformed
 
     private void jMenuItemSairActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSairActionPerformed
-        // TODO add your handling code here:
-        if (modificado) {
-            int escolha = savarAlteracao();
-            if (escolha != JOptionPane.CANCEL_OPTION && escolha != JOptionPane.CLOSED_OPTION) {
-                System.exit(0);
-            }
-        } else {
-            System.exit(0);
-        }
+        formWindowClosing(null);
     }//GEN-LAST:event_jMenuItemSairActionPerformed
 
     private void jMenuItemPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemPasteActionPerformed
@@ -1303,16 +1321,18 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
     private void jButtonUsuariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUsuariosActionPerformed
         // TODO add your handling code here:
         if (aDesenho != null) {
-            JUsuarios jusers = new JUsuarios(this, true, aDesenho.getUsuarios(), palavras);
+            JUsuarios jusers = new JUsuarios(this, true, aDesenho.getUsuarios(), palavras, aDesenho.getPerfil());
             jusers.setLocationRelativeTo(this);
             jusers.setVisible(true);
             aDesenho.setUsuarios(jusers.getUsuarios());
+            aDesenho.setPerfil(jusers.getLimite());
             modificar();
         }
     }//GEN-LAST:event_jButtonUsuariosActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        // TODO add your handling code here:
+        configura.setLastFile(arquivoAberto);
+        configura.save();
         if (modificado) {
             int escolha = savarAlteracao();
             if (escolha != JOptionPane.CANCEL_OPTION && escolha != JOptionPane.CLOSED_OPTION) {
@@ -1532,6 +1552,7 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
     private javax.swing.JMenu jMenuFerramentas;
     private javax.swing.JMenu jMenuIdioma;
     private javax.swing.JMenu jMenuImport;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItemAbrir;
     private javax.swing.JMenuItem jMenuItemAbrirResult;
     private javax.swing.JMenuItem jMenuItemAjuda;
@@ -1578,6 +1599,8 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
     private DesenhoGrade aDesenho = null;
     private HashSet<VirtualMachine> maquinasVirtuais;
     private FiltroDeArquivos filtro;
+    private JSobre jSobre;
+    private ConfiguracaoISPD configura;
 
     public JPanelConfigIcon getjPanelConfiguracao() {
         return jPanelConfiguracao;
@@ -1749,10 +1772,9 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
         jMenuItemPaste.setEnabled(opcao);
         jMenuItemDelete.setEnabled(opcao);
         //Exibir
-        jCheckBoxMenuItemConectado.setEnabled(opcao);
         jCheckBoxMenuItemIndireto.setEnabled(opcao);
+        jCheckBoxMenuItemConectado.setEnabled(opcao);
         jCheckBoxMenuItemEscalonavel.setEnabled(opcao);
-
     }
 
     @Override

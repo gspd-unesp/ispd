@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * Cluster.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.gui.iconico.grade;
 
@@ -36,8 +71,9 @@ public class Cluster extends Vertice implements ItemGrade {
     private Double costpermemory; 
     private Double costperdisk;
     private String VMMallocpolicy;
+    private Double consumoEnergia;
 
-    public Cluster(Integer x, Integer y, int idLocal, int idGlobal) {
+    public Cluster(Integer x, Integer y, int idLocal, int idGlobal, Double energia) {
         super(x, y);
         this.id = new IdentificadorItemGrade(idLocal, idGlobal, "cluster" + idGlobal);
         this.algoritmo = "---";
@@ -56,13 +92,22 @@ public class Cluster extends Vertice implements ItemGrade {
         this.VMMallocpolicy = "---";
         this.conexoesEntrada = new HashSet<ItemGrade>();
         this.conexoesSaida = new HashSet<ItemGrade>();
+        this.consumoEnergia = energia;//Consumo de energia de cada uma das máquinas do cluster
     }
 
     @Override
     public IdentificadorItemGrade getId() {
         return this.id;
     }
-
+    
+    public void setConsumoEnergia( Double energia ){
+        this.consumoEnergia = energia;
+    }
+    
+    public Double getConsumoEnergia(){
+        return this.consumoEnergia;
+    }
+    
     @Override
     public Set<ItemGrade> getConexoesEntrada() {
         return conexoesEntrada;
@@ -102,7 +147,7 @@ public class Cluster extends Vertice implements ItemGrade {
      */
     @Override
     public Cluster criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
-        Cluster temp = new Cluster(posicaoMouseX, posicaoMouseY, idGlobal, idLocal);
+        Cluster temp = new Cluster(posicaoMouseX, posicaoMouseY, idGlobal, idLocal, this.consumoEnergia);
         temp.algoritmo = this.algoritmo;
         temp.poderComputacional = this.poderComputacional;
         temp.mestre = this.mestre;

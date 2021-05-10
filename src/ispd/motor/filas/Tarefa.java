@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * Tarefa.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.motor.filas;
 
@@ -14,7 +49,7 @@ import java.util.List;
  * Classe que representa o cliente do modelo de filas, ele será atendo pelos
  * centros de serviços Os clientes podem ser: Tarefas
  *
- * @author denison_usuario
+ * @author denison
  */
 public class Tarefa implements Cliente {
     //Estados que a tarefa pode estar
@@ -35,6 +70,10 @@ public class Tarefa implements Cliente {
      * Indica a quantidade de mflops já processados no momento de um bloqueio
      */
     private double mflopsProcessado;
+    /**
+     * Indica a quantidade de mflops desperdiçados por uma preempção ou cancelamento
+     */
+    private double mflopsDesperdicados = 0;
     /**
      * Tamanho do arquivo em Mbits que será enviado para o escravo
      */
@@ -287,12 +326,21 @@ public class Tarefa implements Cliente {
         this.mflopsProcessado = mflopsProcessado;
     }
 
-    public double getCheckPoint() {
+    public double getMflopsDesperdicados() {
+        return mflopsDesperdicados;
+    }
+
+    public void incMflopsDesperdicados(double mflopsDesperdicados) {
+        this.mflopsDesperdicados += mflopsDesperdicados;
+    }
+    
+    public double getCheckPoint() {//Se for alterado o tempo de checkpoint, alterar também no métricas
         //return 1.0;//Fazer Chekcpoint a cada 1 megaflop
-        //double tempo = mflopsProcessado/((CS_Processamento) localProcessamento).getPoderComputacional();
-        //double resto = tempo%600;
-        //return mflopsProcessado - ((CS_Processamento) localProcessamento).getPoderComputacional()*resto;
+        //Se for alterado o tempo de checkpoint, alterar também no métricas linha 832, cálculo da energia desperdiçada
         return 0.0;
+        //double tempo = mflopsProcessado/((CS_Processamento) localProcessamento).getPoderComputacional();
+        //double resto = tempo%300;
+        //return mflopsProcessado - ((CS_Processamento) localProcessamento).getPoderComputacional()*resto;
         //throw new UnsupportedOperationException("Not yet implemented");
     }
 

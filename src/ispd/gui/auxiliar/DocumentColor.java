@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * DocumentColor.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.gui.auxiliar;
 
@@ -42,14 +77,16 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
 /**
- *
- * @author denison
+ * Estilo de texto para visualizar código Java
+ * Após ser instanciado deve chamar o método:
+ *      configurarTextComponent(JTextComponent)
+ * Com esse método o componente de texto será configurado
+ * @author Denison
  */
 public class DocumentColor extends DefaultStyledDocument implements CaretListener {
 
-    private Element rootElement;
-    // RegEx, Color, Bold, Italics
-    private String[] keywords = {
+    private final Element rootElement;
+    private final String[] keywords = {
         "\\bfor\\b",
         "\\bif\\b",
         "\\belse\\b",
@@ -72,25 +109,28 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         "\\bpackage\\b",
         "\\bimport\\b",
         "\\bclass\\b",
-        "\\bextends\\b"};
-    private String[] keyStrings = {
+        "\\bextends\\b",
+        "\\btrue\\b",
+        "\\bfalse\\b"
+    };
+    private final String[] keyStrings = {
         "\"(.*)\"",
         "(\'.\')",
         "(\'..\')"};
-    private String keyNumbers = "\\b[0-9]+\\b";
-    private MutableAttributeSet style;
-    private Color defaultStyle = Color.black;
-    private Color commentStyle = Color.lightGray;
-    private Color keyStyle = Color.blue;
-    private Color numberStyle = new Color(0, 150, 0);
-    private Color stringStyle = new Color(250, 125, 0);
-    private Pattern singleCommentDelim = Pattern.compile("//");
-    private Pattern multiCommentDelimStart = Pattern.compile("/\\*");
-    private Pattern multiCommentDelimEnd = Pattern.compile("\\*/");
-    private Font font;
+    private final String keyNumbers = "\\b[0-9]+\\b";
+    private final MutableAttributeSet style;
+    private final Color defaultStyle = Color.black;
+    private final Color commentStyle = Color.lightGray;
+    private final Color keyStyle = Color.blue;
+    private final Color numberStyle = new Color(0, 150, 0);
+    private final Color stringStyle = new Color(250, 125, 0);
+    private final Pattern singleCommentDelim = Pattern.compile("//");
+    private final Pattern multiCommentDelimStart = Pattern.compile("/\\*");
+    private final Pattern multiCommentDelimEnd = Pattern.compile("\\*/");
+    private final Font font;
     //Desenha linhas
-    private JTextArea BarraNumLinhas;
-    private JLabel BarraPosCursor;
+    private final JTextArea BarraNumLinhas;
+    private final JLabel BarraPosCursor;
     private Integer numeroLinhas;
     //Popup para auto completar
     private JPopupMenu popup;
@@ -102,7 +142,6 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         "Mensagens.CANCELAR", "Mensagens.PARAR", "Mensagens.DEVOLVER", "Mensagens.DEVOLVER_COM_PREEMPCAO", "Mensagens.ATUALIZAR"};
 
     public DocumentColor() {
-
         putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
         rootElement = getDefaultRootElement();
         style = new SimpleAttributeSet();
@@ -308,19 +347,22 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
                 inicio = ce.getMark();
                 fim = ce.getDot();
             }
-            try {
-                textoSelecionado = "\\b" + this.getText(inicio, fim - inicio) + "\\b";
-                processChangedLines(0, 0);
-                //Marcar texto igual ao texto selecionado
-                StyleConstants.setForeground(style, Color.BLACK);
-                StyleConstants.setBackground(style, Color.YELLOW);
-                Pattern p = Pattern.compile(textoSelecionado);
-                Matcher m = p.matcher(jTexto.getText());
-                while (m.find()) {
-                    setCharacterAttributes(m.start(), m.end() - m.start(), style, true);
+            if(fim-inicio > 1 && fim-inicio < 50) {
+                try {
+                    textoSelecionado = "\\b" + this.getText(inicio, fim - inicio) + "\\b";
+                    processChangedLines(0, 0);
+                    //Marcar texto igual ao texto selecionado
+                    StyleConstants.setForeground(style, Color.BLACK);
+                    StyleConstants.setBackground(style, Color.YELLOW);
+                    Pattern p = Pattern.compile(textoSelecionado);
+                    Matcher m = p.matcher(jTexto.getText());
+                    while (m.find()) {
+                        setCharacterAttributes(m.start(), m.end() - m.start(), style, true);
+                    }
+                    StyleConstants.setBackground(style, Color.WHITE);
+                } catch (Exception ex) {
+                    StyleConstants.setBackground(style, Color.WHITE);
                 }
-                StyleConstants.setBackground(style, Color.WHITE);
-            } catch (Exception ex) {
             }
             BarraPosCursor.setText("selection from: " + inicio + " to " + fim + " ");
         }

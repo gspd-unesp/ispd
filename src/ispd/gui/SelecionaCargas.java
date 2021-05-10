@@ -1,16 +1,45 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
- * SelecionaCargas.java
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
  *
- * Created on 31/05/2011, 10:07:56
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * SelecionaCargas.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * Created on 31/05/2011
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.gui;
 
-import ispd.arquivo.interpretador.cargas.Interpretador;
+import ispd.arquivo.xml.TraceXML;
 import ispd.gui.auxiliar.FiltroDeArquivos;
 import ispd.motor.carga.CargaList;
 import ispd.motor.carga.CargaRandom;
@@ -34,7 +63,7 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  *
- * @author denison_usuario
+ * @author denison
  */
 public class SelecionaCargas extends javax.swing.JDialog {
 
@@ -821,7 +850,7 @@ public class SelecionaCargas extends javax.swing.JDialog {
     private void jButtonAddUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddUserActionPerformed
         // TODO add your handling code here:
         String newUser = JOptionPane.showInputDialog(this, palavras.getString("Enter the name"), palavras.getString("Add user"), JOptionPane.QUESTION_MESSAGE);
-        if (!usuarios.contains(newUser) && !newUser.equals("")) {
+        if (newUser != null && !newUser.equals("") && !usuarios.contains(newUser)) {
             usuarios.add(newUser);
         }
     }//GEN-LAST:event_jButtonAddUserActionPerformed
@@ -986,7 +1015,7 @@ private void jTextFieldCaminhoTraceActionPerformed(java.awt.event.ActionEvent ev
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             file = jOpenTrace.getSelectedFile();
             jTextFieldCaminhoWMS.setText(file.getAbsolutePath());
-            Interpretador interpret = new Interpretador(file.getAbsolutePath());
+            TraceXML interpret = new TraceXML(file.getAbsolutePath());
             jTextNotification.setText(interpret.LerCargaWMS());
             NumTaskTrace = interpret.getNum_Tasks();
             TipoTrace = interpret.getTipo();

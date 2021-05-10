@@ -1,21 +1,59 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * CargaTrace.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Diogo Tavares;
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.motor.carga;
 
 import NumerosAleatorios.GeracaoNumAleatorios;
 import ispd.arquivo.interpretador.cargas.Interpretador;
+import ispd.arquivo.xml.TraceXML;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_Maquina;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
+import ispd.motor.random.Distribution;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +71,7 @@ public class CargaTrace extends GerarCarga {
     public CargaTrace(File file, int num_tasks, String tipo) {
         this.file = file;
         this.caminho = file.getAbsolutePath();
-        Interpretador interpret = new Interpretador(caminho);
+        TraceXML interpret = new TraceXML(caminho);
         this.num_tasks = num_tasks;
         this.tipo = tipo;
     }
@@ -54,9 +92,10 @@ public class CargaTrace extends GerarCarga {
         List<Tarefa> tarefas = new ArrayList<Tarefa>();
         List<String> users = new ArrayList<String>();
         List<Double> pcomp = new ArrayList<Double>();
+        List<Double> perfil= new ArrayList<Double>();
         int quantidadePorMestre = this.num_tasks / rdf.getMestres().size();
         int resto = this.num_tasks % rdf.getMestres().size();
-        GeracaoNumAleatorios gerador = new GeracaoNumAleatorios((int) System.currentTimeMillis());
+        Distribution gerador = new Distribution((int)System.currentTimeMillis());
         double mediaCap = MediaCapProcGrade(rdf.getMaquinas());
         try {
             BufferedReader in = new BufferedReader(new FileReader(caminho));
@@ -74,6 +113,7 @@ public class CargaTrace extends GerarCarga {
                         String[] campos = aux.split("\"");
                         if (rdf.getUsuarios().contains(campos[11]) == false && users.contains(campos[11]) == false) {
                             users.add(campos[11]);
+                            perfil.add(100.0);
                             pcomp.add(0.0);
                         }
                         Tarefa tarefa = new Tarefa(
@@ -97,6 +137,7 @@ public class CargaTrace extends GerarCarga {
                     String[] campos = aux.split("\"");
                     if (rdf.getUsuarios().contains(campos[11]) == false && users.contains(campos[11]) == false) {
                         users.add(campos[11]);
+                        perfil.add(100.0);
                         pcomp.add(0.0);
                     }
                     Tarefa tarefa = new Tarefa(
@@ -116,7 +157,7 @@ public class CargaTrace extends GerarCarga {
                 }
                 for (CS_Processamento mestre : rdf.getMestres()) {
                     CS_Mestre mestreaux = (CS_Mestre) mestre;
-                    mestreaux.getEscalonador().getMetricaUsuarios().addAllUsuarios(users, pcomp);
+                    mestreaux.getEscalonador().getMetricaUsuarios().addAllUsuarios(users, pcomp, perfil);
                 }
                 rdf.getUsuarios().addAll(users);
                 return tarefas;
@@ -128,6 +169,7 @@ public class CargaTrace extends GerarCarga {
                         String[] campos = aux.split("\"");
                         if (rdf.getUsuarios().contains(campos[11]) == false && users.contains(campos[11]) == false) {
                             users.add(campos[11]);
+                            perfil.add(100.0);
                             pcomp.add(0.0);
                         }
                         Tarefa tarefa = new Tarefa(
@@ -148,6 +190,7 @@ public class CargaTrace extends GerarCarga {
                     String[] campos = aux.split("\"");
                     if (rdf.getUsuarios().contains(campos[11]) == false && users.contains(campos[11]) == false) {
                         users.add(campos[11]);
+                        perfil.add(100.0);
                         pcomp.add(0.0);
                     }
                     Tarefa tarefa = new Tarefa(
@@ -163,7 +206,7 @@ public class CargaTrace extends GerarCarga {
                 }
                 for (CS_Processamento mestre : rdf.getMestres()) {
                     CS_Mestre mestreaux = (CS_Mestre) mestre;
-                    mestreaux.getEscalonador().getMetricaUsuarios().addAllUsuarios(users, pcomp);
+                    mestreaux.getEscalonador().getMetricaUsuarios().addAllUsuarios(users, pcomp,perfil);
                 }
                 rdf.getUsuarios().addAll(users);
                 return tarefas;

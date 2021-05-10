@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * MetricasUsuarios.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.motor.metricas;
 
@@ -11,7 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 /**
  *
- * @author denison_usuario
+ * @author denison
  */
 public class MetricasUsuarios {
 
@@ -20,16 +55,19 @@ public class MetricasUsuarios {
     private List<Double> poderComputacional;
     private List<HashSet<Tarefa>> tarefasSubmetidas;
     private List<HashSet<Tarefa>> tarefasConcluidas;
+    private HashMap<String,Double> limites;
     
     public MetricasUsuarios(){
         usuarios = new HashMap<String, Integer>();
+        limites = new HashMap<String, Double>();
         listaUsuarios = new ArrayList<String>();
         poderComputacional = new ArrayList<Double>();
         tarefasSubmetidas = new ArrayList<HashSet<Tarefa>>();
         tarefasConcluidas = new ArrayList<HashSet<Tarefa>>();
     }
     
-    public void addUsuario(String nome, Double poderComputacional){
+    public void addUsuario(String nome, Double poderComputacional, Double perfil){
+        this.limites.put(nome, perfil);
         this.listaUsuarios.add(nome);
         this.usuarios.put(nome, listaUsuarios.indexOf(nome));
         this.poderComputacional.add(poderComputacional);
@@ -37,8 +75,9 @@ public class MetricasUsuarios {
         this.tarefasConcluidas.add(new HashSet<Tarefa>());
     }
     
-    public void addAllUsuarios(List<String> nomes, List<Double> poderComputacional){
+    public void addAllUsuarios(List<String> nomes, List<Double> poderComputacional, List<Double> perfis){
         for(int i = 0; i < nomes.size(); i++){
+            this.limites.put(nomes.get(i), perfis.get(i));
             this.listaUsuarios.add(nomes.get(i));
             this.usuarios.put(nomes.get(i), i);
             this.poderComputacional.add(poderComputacional.get(i));
@@ -53,6 +92,7 @@ public class MetricasUsuarios {
             if(index == null){
                 this.listaUsuarios.add(mtc.listaUsuarios.get(i));
                 this.usuarios.put(mtc.listaUsuarios.get(i), this.listaUsuarios.indexOf(mtc.listaUsuarios.get(i)));
+                this.limites.put(mtc.listaUsuarios.get(i), mtc.limites.get(usuarios.get(this.listaUsuarios.indexOf(mtc.listaUsuarios.get(i)))));
                 this.poderComputacional.add(mtc.poderComputacional.get(i));
                 this.tarefasSubmetidas.add(mtc.tarefasSubmetidas.get(i));
                 this.tarefasConcluidas.add(mtc.tarefasConcluidas.get(i));
@@ -146,6 +186,10 @@ public class MetricasUsuarios {
 
     public List<String> getUsuarios() {
         return listaUsuarios;
+    }
+    
+    public HashMap<String,Double> getLimites(){
+        return this.limites;
     }
     
     public HashMap<String, Integer> getUsuariosMap() {
