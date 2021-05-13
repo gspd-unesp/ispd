@@ -86,7 +86,6 @@ public class Metricas implements Serializable {
     private double MflopsDesperdicio;
     private int numTarefasCanceladas;
     private int numTarefas;
-    private Map<String, Integer> tarefasConcluidas;
 
     //Maps de Satisfacao, Energia e Preempção
     private Map<String, BigDecimal> satisfacaoGeralSim;//Satisfação geral do usuário considerando beta calculado com tempo de simulação
@@ -274,7 +273,7 @@ public class Metricas implements Serializable {
         }
 
         Double porcentLimite;//Limite de consumo em porcentagem do consumo total da porção do usuário
-        
+
         for (String user : usuarios) {
 
             porcentLimite = redeDeFilas.getLimites().get(user) / 100;
@@ -284,9 +283,7 @@ public class Metricas implements Serializable {
 
         getMetricaFilaTarefa(tarefas, redeDeFilas);
         getMetricaComunicacao(redeDeFilas);
-        getMetricaProcessamentoCloud(redeDeFilas);
-        getMetricaAlocacao(redeDeFilas);
-        getMetricaCusto(redeDeFilas);
+        getMetricaProcessamento(redeDeFilas);
 
         //Historicos
         historicoSatisfacaoDesempenho.add(satisfacaoDesempenho);
@@ -309,6 +306,23 @@ public class Metricas implements Serializable {
         historicoTempoFinal.add(tempoFinalExec);
         historicoTurnaroundTime.add(turnaroundTime);
         historicoTempoSim.add(this.tempoSIM);
+    }
+
+    public Metricas(RedeDeFilasCloud redeDeFilas, double time, List<Tarefa> tarefas) {
+        this.numeroDeSimulacoes = 1;
+        this.metricasGlobais = new MetricasGlobais(redeDeFilas, time, tarefas);
+        metricasSatisfacao = new HashMap<String, Double>();
+        tarefasConcluidas = new HashMap<String, Integer>();
+        this.usuarios = redeDeFilas.getUsuarios();
+        for (String user : usuarios) {
+            metricasSatisfacao.put(user, 0.0);
+            tarefasConcluidas.put(user, 0);
+        }
+        getMetricaFilaTarefaCloud(tarefas, redeDeFilas);
+        getMetricaComunicacao(redeDeFilas);
+        getMetricaProcessamentoCloud(redeDeFilas);
+        getMetricaAlocacao(redeDeFilas);
+        getMetricaCusto(redeDeFilas);
     }
 
     public void addMetrica(Metricas metrica) {
@@ -524,18 +538,6 @@ public class Metricas implements Serializable {
                 tempoMedioFilaProcessamento = tar.getMetricas().getTempoEsperaProc();
                 tempoMedioProcessamento = tar.getMetricas().getTempoProcessamento();
                 numTarefas++;
-            } else if (no.getEstado() == Tarefa.CANCELADO) {
-                MflopsDesperdicio += no.getTamProcessamento() * no.getMflopsProcessado();
-                numTarefasCanceladas++;
-            }
-            //Rever, se for informação pertinente adicionar nas métricas da tarefa ou CS_Processamento e calcula durante a simulação
-            CS_Processamento temp = (CS_Processamento) no.getLocalProcessamento();
-            if (temp != null) {
-                for (int i = 0; i < no.getTempoInicial().size(); i++) {
-                    temp.setTempoProcessamento(no.getTempoInicial().get(i), no.getTempoFinal().get(i));
-                }
-            }
-        }
 
                 propTar = tar.getProprietario();
                 tarefasConcluidas.put(propTar, tarefasConcluidas.get(propTar) + 1);
@@ -698,7 +700,63 @@ public class Metricas implements Serializable {
         
     }
 
-    private void getMetricaComunicacao(RedeDeFilas redeDeFilas) {
+    private void getMetricaFilaTarefaCloud(List<Tarefa> tarefas, RedeDeFilasCloud rede) {
+        this.tempoMedioFilaComunicacao = 0;
+        this.tempoMedioComunicacao = 0;
+        this.tempoMedioFilaProcessamento = 0;
+        this.tempoMedioProcessamento = 0;
+        this.numTarefasCanceladas = 0;
+        this.MflopsDesperdicio = 0;
+        this.numTarefas = 0;
+
+        Double mediaPoder = 0.0;
+        for (int i = 0; i < rede.getVMs().size(); i++) {
+            mediaPoder += rede.getVMs().get(i).getPoderComputacional();
+        }
+        mediaPoder = mediaPoder / rede.getVMs().size();
+        for (Tarefa no : tarefas) {
+            if (no.getEstado() == Tarefa.CONCLUIDO) {
+
+                Double suij;
+                CS_Processamento vm = (CS_Processamento) no.getHistoricoProcessamento().get(0);
+                suij = (no.getTamProcessamento() / mediaPoder / (no.getTempoFinal().get(no.getTempoFinal().size() - 1) - no.getTimeCriacao())) * (100);
+                metricasSatisfacao.put(no.getProprietario(), suij + metricasSatisfacao.get(no.getProprietario()));
+                tarefasConcluidas.put(no.getProprietario(), 1 + tarefasConcluidas.get(no.getProprietario()));
+
+            }
+            if (no.getEstado() == Tarefa.CONCLUIDO) {
+                tempoMedioFilaComunicacao += no.getMetricas().getTempoEsperaComu();
+                tempoMedioComunicacao += no.getMetricas().getTempoComunicacao();
+                tempoMedioFilaProcessamento = no.getMetricas().getTempoEsperaProc();
+                tempoMedioProcessamento = no.getMetricas().getTempoProcessamento();
+                numTarefas++;
+            } else if (no.getEstado() == Tarefa.CANCELADO) {
+                MflopsDesperdicio += no.getTamProcessamento() * no.getMflopsProcessado();
+                numTarefasCanceladas++;
+            }
+            //Rever, se for informação pertinente adicionar nas métricas da tarefa ou CS_Processamento e calcula durante a simulação
+            CS_Processamento temp = (CS_Processamento) no.getLocalProcessamento();
+            if (temp != null) {
+                for (int i = 0; i < no.getTempoInicial().size(); i++) {
+                    temp.setTempoProcessamento(no.getTempoInicial().get(i), no.getTempoFinal().get(i));
+                }
+            }
+        }
+
+        for (Map.Entry<String, Double> entry : metricasSatisfacao.entrySet()) {
+
+            String string = entry.getKey();
+            entry.setValue(entry.getValue() / tarefasConcluidas.get(string));
+
+        }
+
+        tempoMedioFilaComunicacao = tempoMedioFilaComunicacao / numTarefas;
+        tempoMedioComunicacao = tempoMedioComunicacao / numTarefas;
+        tempoMedioFilaProcessamento = tempoMedioFilaProcessamento / numTarefas;
+        tempoMedioProcessamento = tempoMedioProcessamento / numTarefas;
+    }
+
+    private void getMetricaProcessamento(RedeDeFilas redeDeFilas) {
         metricasProcessamento = new HashMap<String, MetricasProcessamento>();
         for (CS_Processamento maq : redeDeFilas.getMestres()) {
             metricasProcessamento.put(maq.getId() + maq.getnumeroMaquina(), maq.getMetrica());
@@ -813,6 +871,7 @@ public class Metricas implements Serializable {
                 metricasCusto.put(vm.getId() + vm.getnumeroMaquina(), vm.getMetricaCusto());
             }
         }
+    }
 
     private void addMetricaSatisfacaoGeralTempoSim(Map<String, BigDecimal> metricasSatisfacao) {
         this.historicoSatisfacaoGeralTempoSim.add(metricasSatisfacao);
