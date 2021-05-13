@@ -515,7 +515,7 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     public void atenderDesligamento(Simulacao simulacao, Mensagem mensagem) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-}
+
 
     public List<Tarefa> getHistorico() {
         return this.historicoProcessamento;

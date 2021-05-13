@@ -365,11 +365,10 @@ public class JResultados extends javax.swing.JDialog {
         jTabbedPaneGrid.addTab("Global", jPanelGlobal);
 
         jTextAreaTarefa.setColumns(20);
-        jTextAreaTarefa.setEditable(false);
+        jTextAreaTarefa.setEditable(false)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPaneGobal, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+                .addContainerGap();
 
         jTabbedPanelGraficosIndividuais.addTab("Global", jPanelGlobal);
 
