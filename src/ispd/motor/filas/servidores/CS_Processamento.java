@@ -69,6 +69,16 @@ public abstract class CS_Processamento extends CentroServico {
     private List<ParesOrdenadosUso> lista_pares = new ArrayList<ParesOrdenadosUso>();
     private Double consumoEnergia;
     
+    public CS_Processamento(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina) {
+        this.poderComputacional = PoderComputacional;
+        this.numeroProcessadores = numeroProcessadores;
+        this.Ocupacao = Ocupacao;
+        this.metrica = new MetricasProcessamento(id, numeroMaquina, proprietario);
+        this.PoderComputacionalDisponivelPorProcessador =
+                (this.poderComputacional - (this.poderComputacional * this.Ocupacao))
+                / this.numeroProcessadores;
+    }
+    
     public CS_Processamento(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina, Double energia) {
         this.poderComputacional = PoderComputacional;
         this.numeroProcessadores = numeroProcessadores;
