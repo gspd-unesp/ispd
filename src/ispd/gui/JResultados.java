@@ -361,15 +361,6 @@ public class JResultados extends javax.swing.JDialog {
                     .addComponent(jScrollPaneGobal, javax.swing.GroupLayout.PREFERRED_SIZE, 298, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
-
-        jTabbedPaneGrid.addTab("Global", jPanelGlobal);
-
-        jTextAreaTarefa.setColumns(20);
-        jTextAreaTarefa.setEditable(false)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPaneGobal, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
-                .addContainerGap();
-
         jTabbedPanelGraficosIndividuais.addTab("Global", jPanelGlobal);
 
         jTextAreaTarefa.setEditable(false);
