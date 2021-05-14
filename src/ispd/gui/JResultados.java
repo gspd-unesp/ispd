@@ -149,7 +149,57 @@ public class JResultados extends javax.swing.JDialog {
         charts.criarProcessamento(metricas.getMetricasProcessamento());
         charts.criarComunicacao(metricas.getMetricasComunicacao());
     }
+    
+    /**
+     * Creates new form JResultados
+     */
+    public JResultados(java.awt.Frame parent, Metricas metricas, RedeDeFilas rdf, List<Tarefa> tarefas) {
+        super(parent, true);
+        this.tarefas = tarefas;
+        gerarGraficosProcessamento(metricas.getMetricasProcessamento());
+        gerarGraficosComunicacao(metricas.getMetricasComunicacao());
+        tabelaRecurso = setTabelaRecurso(metricas);
+        initComponents();
+        this.jTextAreaGlobal.setText(getResultadosGlobais(metricas.getMetricasGlobais()));
+        html.setMetricasGlobais(metricas.getMetricasGlobais());
+        this.jTextAreaTarefa.setText(getResultadosTarefas(metricas));
+        html.setMetricasTarefas(metricas);
+        CS_Mestre mestre = (CS_Mestre) rdf.getMestres().get(0);
+        setResultadosUsuario(mestre.getEscalonador().getMetricaUsuarios(), metricas);
 
+        if (rdf.getMaquinas().size() < 21) {
+            graficoProcessamentoTempo = new ChartPanel(criarGraficoProcessamentoTempo(rdf));
+            graficoProcessamentoTempo.setPreferredSize(new Dimension(600, 300));
+        } else {
+            this.jButtonProcessamentoMaquina.setVisible(false);
+            for (CS_Processamento maq : rdf.getMaquinas()) {
+                poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
+            }
+        }
+        if (tarefas.size() < 50) {
+            graficoProcessamentoTempoTarefa = new ChartPanel(criarGraficoProcessamentoTempoTarefa(tarefas));
+            graficoProcessamentoTempoTarefa.setPreferredSize(new Dimension(600, 300));
+        } else {
+            this.jButtonProcessamentoTarefa.setVisible(false);
+        }
+        JFreeChart temp[] = gerarGraficoProcessamentoTempoUser(tarefas, rdf);
+        graficoProcessamentoTempoUser1 = new ChartPanel(temp[0]);
+        graficoProcessamentoTempoUser1.setPreferredSize(new Dimension(600, 300));
+        graficoProcessamentoTempoUser2 = new ChartPanel(temp[1]);
+        graficoProcessamentoTempoUser2.setPreferredSize(new Dimension(600, 300));
+
+        //graficoEstadoTarefa = new ChartPanel(criarGraficoEstadoTarefa(tarefas));
+        //graficoEstadoTarefa.setPreferredSize(new Dimension(600, 300));
+        //graficoEstadoTarefa2 = new ChartPanel(criarGraficoEstadoTarefa2(tarefas, rdf));
+        //graficoEstadoTarefa2.setPreferredSize(new Dimension(600, 300));
+        this.jScrollPaneProcessamento.setViewportView(this.graficoBarraProcessamento);
+        this.jScrollPaneComunicacao.setViewportView(this.graficoBarraComunicacao);
+        this.jScrollPaneProcessamentoTempo.setViewportView(this.graficoProcessamentoTempo);
+
+        //this.jScrollPaneProcessamento.setViewportView(this.graficoEstadoTarefa);
+        //this.jScrollPaneComunicacao.setViewportView(this.graficoEstadoTarefa2);
+    }
+    
     /**
      * Creates new form JResultados
      */
