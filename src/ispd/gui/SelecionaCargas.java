@@ -932,7 +932,7 @@ private void jButtonConvertExternoActionPerformed(java.awt.event.ActionEvent evt
 // TODO add your handling code here:
     
     try {
-        Interpretador interpret = new Interpretador(jTextFieldCaminhoTrace.getText());
+        TraceXML interpret = new TraceXML(jTextFieldCaminhoTrace.getText());
         try {//inicia a conversão do arquivo
             double t1 = System.currentTimeMillis();
             interpret.convert();
