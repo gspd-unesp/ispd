@@ -658,7 +658,6 @@ public class JResultados extends javax.swing.JDialog {
         });
         jToolBar2.add(jButtonUsage2);
 
-        javax.swing.GroupLayout jPanelProcessamentoLayout = new javax.swing.GroupLayout(jPanelProcessamento);
         jPanelProcessamento.setLayout(jPanelProcessamentoLayout);
         jPanelProcessamentoLayout.setHorizontalGroup(
             jPanelProcessamentoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -816,10 +815,12 @@ public class JResultados extends javax.swing.JDialog {
 
     private void jButtonProcessamentoMaquinaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProcessamentoMaquinaActionPerformed
         this.jScrollPaneProcessamentoTempo.setViewportView(this.graficoProcessamentoTempo);
+        this.jScrollPaneCharts.setViewportView(charts.getMachineThroughTimeChart());
     }//GEN-LAST:event_jButtonProcessamentoMaquinaActionPerformed
 
     private void jButtonProcessamentoTarefaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProcessamentoTarefaActionPerformed
         this.jScrollPaneProcessamentoTempo.setViewportView(this.graficoProcessamentoTempoTarefa);
+        this.jScrollPaneCharts.setViewportView(charts.getTaskThroughTimeChart());
     }//GEN-LAST:event_jButtonProcessamentoTarefaActionPerformed
 
     private void jButtonProcessamentoUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProcessamentoUserActionPerformed
@@ -829,13 +830,6 @@ public class JResultados extends javax.swing.JDialog {
             this.jScrollPaneProcessamentoTempo.setViewportView(this.graficoProcessamentoTempoUser2);
         }
     }//GEN-LAST:event_jButtonProcessamentoUserActionPerformed
-    private void jButtonProcessamentoTarefaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProcessamentoTarefaActionPerformed
-        this.jScrollPaneCharts.setViewportView(charts.getTaskThroughTimeChart());
-    }//GEN-LAST:event_jButtonProcessamentoTarefaActionPerformed
-
-    private void jButtonProcessamentoMaquinaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProcessamentoMaquinaActionPerformed
-        this.jScrollPaneCharts.setViewportView(charts.getMachineThroughTimeChart());
-    }//GEN-LAST:event_jButtonProcessamentoMaquinaActionPerformed
 
     private void jButtonUserModelo1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUserModelo1ActionPerformed
         this.jScrollPaneCharts.setViewportView(charts.getUserThroughTimeChart1());
@@ -892,42 +886,18 @@ public class JResultados extends javax.swing.JDialog {
         }
     }//GEN-LAST:event_jButtonSalvarActionPerformed
 
-    private void jButtonSalvarTracesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSalvarTracesActionPerformed
-        FiltroDeArquivos filtro = new FiltroDeArquivos("Workload Model of Simulation", ".wmsx", true);
-        JFileChooser jFileChooser = new JFileChooser();
-        jFileChooser.setFileFilter(filtro);
-        int returnVal = jFileChooser.showSaveDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = jFileChooser.getSelectedFile();
-            if (!file.getName().endsWith(".wmsx")) {
-                File temp = new File(file.toString() + ".wmsx");
-                file = temp;
-            }
-            Interpretador interpret = new Interpretador(file.getAbsolutePath());
-            interpret.geraTraceSim(tarefas);
-        }
-    }//GEN-LAST:event_jButtonSalvarTracesActionPerformed
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JButton jButtonCBarra;
     private javax.swing.JButton jButtonCPizza;
     private javax.swing.JButton jButtonPBarra;
     private javax.swing.JButton jButtonPPizza;
-    private javax.swing.JButton jButtonProcessamentoMaquina;
     private javax.swing.JButton jButtonProcessamentoTarefa;
     private javax.swing.JButton jButtonProcessamentoUser;
-    private javax.swing.JButton jButtonSalvar;
-    private javax.swing.JButton jButtonSalvarTraces;
     private javax.swing.JPanel jPanelComunicacao;
-    private javax.swing.JPanel jPanelGlobal;
-    private javax.swing.JPanel jPanelProcessamento;
     private javax.swing.JPanel jPanelProcessamentoTempo;
     private javax.swing.JScrollPane jScrollPaneComunicacao;
-    private javax.swing.JScrollPane jScrollPaneGobal;
     private javax.swing.JScrollPane jScrollPaneProcessamento;
     private javax.swing.JScrollPane jScrollPaneProcessamentoTempo;
-    private javax.swing.JScrollPane jScrollPaneRecurso;
-    private javax.swing.JScrollPane jScrollPaneTarefa;
-    private javax.swing.JScrollPane jScrollPaneUsuario;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTabbedPane jTabbedPaneGrid;
 
@@ -1002,7 +972,6 @@ public class JResultados extends javax.swing.JDialog {
     private javax.swing.JButton jButtonProcessBarra;
     private javax.swing.JButton jButtonProcessPizza;
     private javax.swing.JButton jButtonProcessamentoMaquina;
-    private javax.swing.JButton jButtonProcessamentoTarefa;
     private javax.swing.JButton jButtonSalvar;
     private javax.swing.JButton jButtonSalvarTraces;
     private javax.swing.JButton jButtonUsage1;
@@ -1025,11 +994,9 @@ public class JResultados extends javax.swing.JDialog {
     private javax.swing.JTextArea jTextAreaGlobal;
     private javax.swing.JTextArea jTextAreaTarefa;
     private javax.swing.JTextArea jTextAreaUsuario;
-    private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBarComunicacao;
-    private javax.swing.JToolBar jToolBarProcessamento;
     private javax.swing.JToolBar jToolBarProcessamentoTempo;
-    // End of variables declaration//GEN-END:variables
+    // End of variables declaration                   
     private List<Tarefa> tarefas;
     private Object[][] tabelaRecurso;
     private ChartPanel graficoBarraProcessamento;
@@ -1053,8 +1020,6 @@ public class JResultados extends javax.swing.JDialog {
     private javax.swing.JToolBar jToolBarProcessamento;
     private javax.swing.JToolBar jToolBarTask;
     // End of variables declaration//GEN-END:variables
-    private List<Tarefa> tarefas;
-    private Object[][] tabelaRecurso;
     private Graficos charts;
     private SalvarResultadosHTML html = new SalvarResultadosHTML();
 
@@ -1194,33 +1159,33 @@ public class JResultados extends javax.swing.JDialog {
      */
     public void salvarHTML(File file) {
         //Gerar resultados:
-        html.setTabela(tabelaRecurso);
-        BufferedImage[] charts = new BufferedImage[8];
-        if (this.graficoBarraProcessamento != null) {
-            charts[0] = this.graficoBarraProcessamento.getChart().createBufferedImage(1200, 600);
-        }
-        if (this.graficoPizzaProcessamento != null) {
-            charts[1] = this.graficoPizzaProcessamento.getChart().createBufferedImage(1200, 600);
-        }
-        if (this.graficoBarraComunicacao != null) {
-            charts[2] = this.graficoBarraComunicacao.getChart().createBufferedImage(1200, 600);
-        }
-        if (this.graficoPizzaComunicacao != null) {
-            charts[3] = this.graficoPizzaComunicacao.getChart().createBufferedImage(1200, 600);
-        }
-        if (this.graficoProcessamentoTempo != null) {
-            charts[4] = this.graficoProcessamentoTempo.getChart().createBufferedImage(1200, 600);
-        }
-        if (this.graficoProcessamentoTempoTarefa != null) {
-            charts[5] = this.graficoProcessamentoTempoTarefa.getChart().createBufferedImage(1200, 600);
-        }
-        if (this.graficoProcessamentoTempoUser1 != null) {
-            charts[6] = this.graficoProcessamentoTempoUser1.getChart().createBufferedImage(1200, 600);
-        }
-        if (this.graficoProcessamentoTempoUser2 != null) {
-            charts[7] = this.graficoProcessamentoTempoUser2.getChart().createBufferedImage(1200, 600);
-        }
-        html.setCharts(charts);
+//        html.setTabela(tabelaRecurso);
+//        BufferedImage[] charts = new BufferedImage[8];
+//        if (this.graficoBarraProcessamento != null) {
+//            charts[0] = this.graficoBarraProcessamento.getChart().createBufferedImage(1200, 600);
+//        }
+//        if (this.graficoPizzaProcessamento != null) {
+//            charts[1] = this.graficoPizzaProcessamento.getChart().createBufferedImage(1200, 600);
+//        }
+//        if (this.graficoBarraComunicacao != null) {
+//            charts[2] = this.graficoBarraComunicacao.getChart().createBufferedImage(1200, 600);
+//        }
+//        if (this.graficoPizzaComunicacao != null) {
+//            charts[3] = this.graficoPizzaComunicacao.getChart().createBufferedImage(1200, 600);
+//        }
+//        if (this.graficoProcessamentoTempo != null) {
+//            charts[4] = this.graficoProcessamentoTempo.getChart().createBufferedImage(1200, 600);
+//        }
+//        if (this.graficoProcessamentoTempoTarefa != null) {
+//            charts[5] = this.graficoProcessamentoTempoTarefa.getChart().createBufferedImage(1200, 600);
+//        }
+//        if (this.graficoProcessamentoTempoUser1 != null) {
+//            charts[6] = this.graficoProcessamentoTempoUser1.getChart().createBufferedImage(1200, 600);
+//        }
+//        if (this.graficoProcessamentoTempoUser2 != null) {
+//            charts[7] = this.graficoProcessamentoTempoUser2.getChart().createBufferedImage(1200, 600);
+//        }
+//        html.setCharts(charts);
         BufferedImage[] chartsImagem = new BufferedImage[8];
         if (charts.getProcessingBarChart() != null) {
             chartsImagem[0] = charts.getProcessingBarChart().getChart().createBufferedImage(1200, 600);
