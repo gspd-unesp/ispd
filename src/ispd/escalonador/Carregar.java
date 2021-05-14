@@ -72,32 +72,11 @@ public class Carregar {
      * @return Nova instancia do objeto Escalonador
      */
     public static Escalonador getNewEscalonador(String nome) {
-        if (loader == null) {
-            File diretorio = new File(DIRETORIO);
-            if (diretorio.exists()) {
-                try {
-                    Carregar ref = new Carregar();
-                    URL[] aux = new URL[1];
-                    aux[0] = diretorio.toURI().toURL();
-                    Carregar.loader = URLClassLoader.newInstance(aux, ref.getClass().getClassLoader());
-                } catch (MalformedURLException ex) {
-                    Logger.getLogger(Carregar.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
         try {
             Class cl = loader.loadClass(CAMINHO_CLASSE + nome);
             Escalonador escalonador = (Escalonador) cl.newInstance();
             //Escalonador escalonador = (Escalonador) Class.forName("novoescalonador."+nome, true, loader).newInstance();
             return escalonador;
-        } catch (RuntimeException ex) {
-            Logger.getLogger(Carregar.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(Carregar.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(Carregar.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Carregar.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             Logger.getLogger(Carregar.class.getName()).log(Level.SEVERE, null, ex);
         }
