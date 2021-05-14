@@ -91,6 +91,22 @@ public class RedeDeFilas {
      * @param links
      * @param internets
      */
+    public RedeDeFilas(List<CS_Processamento> mestres, List<CS_Maquina> maquinas, List<CS_Comunicacao> links, List<CS_Internet> internets) {
+        this.mestres = mestres;
+        this.maquinas = maquinas;
+        this.links = links;
+        this.internets = internets;
+    }
+    
+    /**
+     * Armazena listas com a arquitetura de todo o sistema modelado, utilizado
+     * para buscas das métricas e pelo motor de simulação
+     *
+     * @param mestres
+     * @param maquinas
+     * @param links
+     * @param internets
+     */
     public RedeDeFilas(List<CS_Processamento> mestres, List<CS_Maquina> maquinas, List<CS_Comunicacao> links, List<CS_Internet> internets, HashMap<String,Double> limites) {
         this.mestres = mestres;
         this.maquinas = maquinas;
