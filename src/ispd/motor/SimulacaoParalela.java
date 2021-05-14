@@ -125,7 +125,6 @@ public class SimulacaoParalela extends Simulacao {
         threadPool.shutdown();
         while (!threadPool.isTerminated()) {
         }
-        janela.incProgresso(5);
     }
 
     @Override
