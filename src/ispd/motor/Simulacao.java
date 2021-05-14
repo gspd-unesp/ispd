@@ -159,7 +159,6 @@ public abstract class Simulacao {
         Metricas metrica = new Metricas(redeDeFilas, getTime(null), tarefas);
         janela.print("Getting Results.");
         janela.print(" -> ");
-        Metricas metrica = new Metricas(redeDeFilas, getTime(null), tarefas);
         janela.incProgresso(5);
         janela.println("OK", Color.green);
         return metrica;
