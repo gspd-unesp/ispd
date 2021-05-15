@@ -100,6 +100,14 @@ public class IconicoXML {
     private Element load;
     private int tipoModelo;
 
+    public IconicoXML() {
+        descricao = ManipuladorXML.novoDocumento();
+        system = descricao.createElement("system");
+        system.setAttribute("version", "1.2");
+        load = null;
+        descricao.appendChild(system);
+    }
+
     public IconicoXML(int tipoModelo) {
         this.tipoModelo = tipoModelo;
         descricao = ManipuladorXML.novoDocumento();
