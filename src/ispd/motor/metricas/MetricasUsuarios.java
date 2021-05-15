@@ -74,7 +74,17 @@ public class MetricasUsuarios {
         this.tarefasSubmetidas.add(new HashSet<Tarefa>());
         this.tarefasConcluidas.add(new HashSet<Tarefa>());
     }
-    
+
+    public void addAllUsuarios(List<String> nomes, List<Double> poderComputacional){
+        for(int i = 0; i < nomes.size(); i++){
+            this.listaUsuarios.add(nomes.get(i));
+            this.usuarios.put(nomes.get(i), i);
+            this.poderComputacional.add(poderComputacional.get(i));
+            this.tarefasSubmetidas.add(new HashSet<Tarefa>());
+            this.tarefasConcluidas.add(new HashSet<Tarefa>());
+        }
+    }
+
     public void addAllUsuarios(List<String> nomes, List<Double> poderComputacional, List<Double> perfis){
         for(int i = 0; i < nomes.size(); i++){
             this.limites.put(nomes.get(i), perfis.get(i));
