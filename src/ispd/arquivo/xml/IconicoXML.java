@@ -1076,10 +1076,40 @@ public class IconicoXML {
     }
 
     public void addCluster(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-            Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
-            Double memoriaRAM, Double discoRigido,
-            Double banda, Double latencia,
-            String algoritmo, String proprietario, Boolean mestre, Double energy) {
+                           Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
+                           Double memoriaRAM, Double discoRigido,
+                           Double banda, Double latencia,
+                           String algoritmo, String proprietario, Boolean mestre, Double energy) {
+        Element aux;
+        Element posicao = descricao.createElement("position");
+        posicao.setAttribute("x", x.toString());
+        posicao.setAttribute("y", y.toString());
+        Element icon_id = descricao.createElement("icon_id");
+        icon_id.setAttribute("global", idGlobal.toString());
+        icon_id.setAttribute("local", idLocal.toString());
+
+        aux = descricao.createElement("cluster");
+        aux.setAttribute("nodes", numeroEscravos.toString());
+        aux.setAttribute("power", poderComputacional.toString());
+        aux.setAttribute("bandwidth", banda.toString());
+        aux.setAttribute("latency", latencia.toString());
+        aux.setAttribute("scheduler", algoritmo);
+        aux.setAttribute("owner", proprietario);
+        aux.setAttribute("master", mestre.toString());
+        aux.setAttribute("energy",Double.toString(energy));
+
+        aux.setAttribute("id", nome);
+        aux.appendChild(posicao);
+        aux.appendChild(icon_id);
+        aux.appendChild(newCharacteristic(poderComputacional, numeroNucleos, memoriaRAM, discoRigido));
+        system.appendChild(aux);
+    }
+
+    public void addCluster(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
+                           Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
+                           Double memoriaRAM, Double discoRigido,
+                           Double banda, Double latencia,
+                           String algoritmo, String proprietario, Boolean mestre) {
         Element aux;
         Element posicao = descricao.createElement("position");
         posicao.setAttribute("x", x.toString());
@@ -1105,12 +1135,12 @@ public class IconicoXML {
     }
 
     public void addClusterIaaS(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-            Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
-            Double memoriaRAM, Double discoRigido,
-            Double banda, Double latencia,
-            String algoritmo,String alloc, Double CostperProcessing,
-            Double Costpermemory, Double CostperDisk,
-            String proprietario, Boolean mestre) {
+                               Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
+                               Double memoriaRAM, Double discoRigido,
+                               Double banda, Double latencia,
+                               String algoritmo,String alloc, Double CostperProcessing,
+                               Double Costpermemory, Double CostperDisk,
+                               String proprietario, Boolean mestre) {
         Element aux;
         Element posicao = descricao.createElement("position");
         posicao.setAttribute("x", x.toString());
@@ -1128,7 +1158,6 @@ public class IconicoXML {
         aux.setAttribute("vm_alloc", alloc);
         aux.setAttribute("owner", proprietario);
         aux.setAttribute("master", mestre.toString());
-        aux.setAttribute("energy",Double.toString(energy));
 
         aux.setAttribute("id", nome);
         aux.appendChild(posicao);
@@ -1139,9 +1168,44 @@ public class IconicoXML {
     }
 
     public void addMachine(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-            Double poderComputacional, Double ocupacao, String algoritmo, String proprietario,
-            Integer numeroNucleos, Double memoriaRAM, Double discoRigido,
-            boolean mestre, Collection<Integer> escravos, Double energy) {
+                           Double poderComputacional, Double ocupacao, String algoritmo, String proprietario,
+                           Integer numeroNucleos, Double memoriaRAM, Double discoRigido,
+                           boolean mestre, Collection<Integer> escravos, Double energy) {
+        Element aux;
+        Element posicao = descricao.createElement("position");
+        posicao.setAttribute("x", x.toString());
+        posicao.setAttribute("y", y.toString());
+        Element icon_id = descricao.createElement("icon_id");
+        icon_id.setAttribute("global", idGlobal.toString());
+        icon_id.setAttribute("local", idLocal.toString());
+
+        aux = descricao.createElement("machine");
+        aux.setAttribute("power", Double.toString(poderComputacional));
+        aux.setAttribute("load", Double.toString(ocupacao));
+        aux.setAttribute("owner", proprietario);
+        aux.setAttribute("energy",Double.toString(energy));
+        if (mestre) {
+            //preenche escravos
+            Element master = descricao.createElement("master");
+            master.setAttribute("scheduler", algoritmo);
+            for (Integer escravo : escravos) {
+                Element slave = descricao.createElement("slave");
+                slave.setAttribute("id", escravo.toString());
+                master.appendChild(slave);
+            }
+            aux.appendChild(master);
+        }
+        aux.setAttribute("id", nome);
+        aux.appendChild(posicao);
+        aux.appendChild(icon_id);
+        aux.appendChild(newCharacteristic(poderComputacional, numeroNucleos, memoriaRAM, discoRigido));
+        system.appendChild(aux);
+    }
+
+    public void addMachine(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
+                           Double poderComputacional, Double ocupacao, String algoritmo, String proprietario,
+                           Integer numeroNucleos, Double memoriaRAM, Double discoRigido,
+                           boolean mestre, Collection<Integer> escravos) {
         Element aux;
         Element posicao = descricao.createElement("position");
         posicao.setAttribute("x", x.toString());
@@ -1173,10 +1237,10 @@ public class IconicoXML {
     }
 
     public void addMachineIaaS(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-            Double poderComputacional, Double ocupacao, String alloc, String algoritmo, String proprietario,
-            Integer numeroNucleos, Double memoriaRAM, Double discoRigido, Double CostperProcessing,
-            Double Costpermemory, Double CostperDisk,
-            boolean mestre, Collection<Integer> escravos) {
+                               Double poderComputacional, Double ocupacao, String alloc, String algoritmo, String proprietario,
+                               Integer numeroNucleos, Double memoriaRAM, Double discoRigido, Double CostperProcessing,
+                               Double Costpermemory, Double CostperDisk,
+                               boolean mestre, Collection<Integer> escravos) {
         Element aux;
         Element posicao = descricao.createElement("position");
         posicao.setAttribute("x", x.toString());
@@ -1193,7 +1257,6 @@ public class IconicoXML {
         //aux.setAttribute("cost_mem", Costpermemory.toString());
         //aux.setAttribute("cost_disk", CostperDisk.toString());
 
-        aux.setAttribute("energy",Double.toString(energy));
         if (mestre) {
             //preenche escravos
             Element master = descricao.createElement("master");
