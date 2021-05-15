@@ -1389,6 +1389,21 @@ public class IconicoXML {
         return descricao;
     }
 
+    private Node newCharacteristic(Double poderComputacional, Integer numeroNucleos, Double memoriaRAM, Double discoRigido) {
+        Element characteristic = descricao.createElement("characteristic");
+        Element process = descricao.createElement("process");
+        process.setAttribute("power", poderComputacional.toString());
+        process.setAttribute("number", numeroNucleos.toString());
+        Element memory = descricao.createElement("memory");
+        memory.setAttribute("size", memoriaRAM.toString());
+        Element hard_disk = descricao.createElement("hard_disk");
+        hard_disk.setAttribute("size", discoRigido.toString());
+        characteristic.appendChild(process);
+        characteristic.appendChild(memory);
+        characteristic.appendChild(hard_disk);
+        return characteristic;
+    }
+
     private Node newCharacteristic(Double poderComputacional, Integer numeroNucleos, Double memoriaRAM, Double discoRigido, Double costperProcessing, Double costperMemory, Double costperDisk) {
         Element characteristic = descricao.createElement("characteristic");
         Element process = descricao.createElement("process");
