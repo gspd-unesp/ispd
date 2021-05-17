@@ -894,6 +894,12 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
         }
     }//GEN-LAST:event_jButtonTarefasActionPerformed
 
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        JPreferences jp = new JPreferences(this, true, configura);
+        jp.setLocationRelativeTo(this);
+        jp.setVisible(true);
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
     private void jButtonSimularActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSimularActionPerformed
         // TODO add your handling code here:
         JSimulacao janelaSimulacao = new JSimulacao(this, true, aDesenho.getGrade(), aDesenho.toString(), palavras, tipoModelo);
