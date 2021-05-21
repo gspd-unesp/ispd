@@ -172,9 +172,9 @@ public class SelecionaCargas extends javax.swing.JDialog {
 
         jLabelNumberOfTasks.setText(palavras.getString("Number of tasks")); // NOI18N
 
-        jSpinnerNumTarefas.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerNumTarefas.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
-        jSpinnerMinComputacao.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerMinComputacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         jLabel1.setText(palavras.getString("Computational size")); // NOI18N
 
@@ -182,29 +182,29 @@ public class SelecionaCargas extends javax.swing.JDialog {
 
         jLabel3.setText(palavras.getString("Time of arrival")); // NOI18N
 
-        jSpinnerMinComunicacao.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerMinComunicacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
-        jSpinnerTimeOfArrival.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerTimeOfArrival.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         jLabel4.setText(palavras.getString("Minimum")); // NOI18N
 
         jLabel5.setText(palavras.getString("Average")); // NOI18N
 
-        jSpinnerAverageComputacao.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerAverageComputacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
-        jSpinnerAverageComunicacao.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerAverageComunicacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         jLabel6.setText(palavras.getString("Maximum")); // NOI18N
 
-        jSpinnerMaxComputacao.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerMaxComputacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
-        jSpinnerMaxComunicacao.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerMaxComunicacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         jLabel7.setText(palavras.getString("Probability")); // NOI18N
 
-        jSpinnerProbabilityComputacao.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), null, Float.valueOf(1.0f)));
+        jSpinnerProbabilityComputacao.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
 
-        jSpinnerProbabilityComunicacao.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), null, Float.valueOf(1.0f)));
+        jSpinnerProbabilityComunicacao.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
 
         jLabel9.setText(palavras.getString("MFLOPS")); // NOI18N
 
@@ -324,19 +324,19 @@ public class SelecionaCargas extends javax.swing.JDialog {
 
         jLabelNumberOfTasks1.setText(palavras.getString("Number of tasks")); // NOI18N
 
-        jSpinnerNumTarefasNo.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinnerNumTarefasNo.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         jLabel13.setText(palavras.getString("Computational")); // NOI18N
 
         jLabel14.setText(palavras.getString("Communication")); // NOI18N
 
-        jSpinnerMaxCompNo.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), null, Float.valueOf(1.0f)));
+        jSpinnerMaxCompNo.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
 
-        jSpinnerMinCompNo.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), null, Float.valueOf(1.0f)));
+        jSpinnerMinCompNo.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
 
-        jSpinnerMinComuNo.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), null, Float.valueOf(1.0f)));
+        jSpinnerMinComuNo.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
 
-        jSpinnerMaxComuNo.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), null, Float.valueOf(1.0f)));
+        jSpinnerMaxComuNo.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
 
         jButtonAddTabela.setText(palavras.getString("Add")); // NOI18N
         jButtonAddTabela.addActionListener(new java.awt.event.ActionListener() {

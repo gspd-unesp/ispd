@@ -1299,6 +1299,7 @@ public class GerarEscalonador extends javax.swing.JDialog {
         setTitle(palavras.getString("New Scheduler")); // NOI18N
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("imagens/Logo_iSPD_25.png")));
+        setLocation(new java.awt.Point(0, 0));
 
         jPanelPassos.setBackground(new java.awt.Color(255, 255, 255));
         jPanelPassos.setBorder(new javax.swing.border.MatteBorder(null));

@@ -44,6 +44,7 @@ public class SimulacaoSequencial extends Simulacao {
         }
         janela.print("Creating routing.");
         janela.print(" -> ");
+        janela.print("Creating failuresSS.");
         /**
          * Trecho de código que implementa o roteamento entre os mestres e os seus respectivos escravos
          */

@@ -107,6 +107,10 @@ public class CS_MaquinaCloud extends CS_Processamento implements Mensagens, Vert
 
     }
 
+   /* public CS_MaquinaCloud() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }*/
+
     @Override
     public void chegadaDeCliente(Simulacao simulacao, Tarefa cliente) {
         System.out.println("----------------------------------------------");

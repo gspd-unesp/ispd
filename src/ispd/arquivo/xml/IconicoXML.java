@@ -60,6 +60,10 @@ import org.xml.sax.SAXException;
  */
 public class IconicoXML {
 
+    public static Document newRedeDeFilas() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     private Document descricao;
     private Element system;
     private Element load;

@@ -47,6 +47,7 @@ public class RedeDeFilasCloud extends RedeDeFilas{
      * Mantem a lista de máquinas virtuais
      */
     private List<CS_VirtualMac> VMs;
+    public int length;
     /**
      * Armazena listas com a arquitetura de todo o sistema modelado, utilizado
      * para buscas das métricas e pelo motor de simulação
@@ -107,5 +108,9 @@ public class RedeDeFilasCloud extends RedeDeFilas{
             System.out.println("Falha "+falhas.get(0)+" no "+maquinasCloud.get(next).getId());
             maquinasCloud.get(next).addFalha(falhas.remove(0), recMin, recuperavel);
         }
+    }
+
+    public int length() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

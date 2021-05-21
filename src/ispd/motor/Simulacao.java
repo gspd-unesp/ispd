@@ -101,6 +101,16 @@ public abstract class Simulacao {
             
         }
     }
+    
+    public void Verificacao(){
+        for (CS_Processamento mst : redeDeFilasCloud.getMestres()){
+            CS_VMM mestre = (CS_VMM) mst;
+            System.out.println("Verificação de falhas " + mst.getId() + " Iniciando inserção de falhas " + mestre.getEscalonador().toString());
+            mestre.getEscalonador().iniciar();
+            mestre.instanciarCaminhosVMs();
+            
+        }
+    }
 
     public Metricas getMetricas() {
         janela.print("Getting Results.");
@@ -108,7 +118,10 @@ public abstract class Simulacao {
         Metricas metrica = new Metricas(redeDeFilas, getTime(null), tarefas);
         janela.incProgresso(5);
         janela.println("OK", Color.green);
+        janela.print("Falha injetada");
+        janela.println("OK", Color.red);
         return metrica;
+        
     }
     
     public Metricas getMetricasCloud() {

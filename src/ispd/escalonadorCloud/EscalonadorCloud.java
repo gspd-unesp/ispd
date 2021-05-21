@@ -48,6 +48,7 @@ public abstract class EscalonadorCloud {
     public void adicionarTarefa(Tarefa tarefa) {
         if (tarefa.getOrigem().equals(mestre)) {
             this.metricaUsuarios.incTarefasSubmetidas(tarefa);
+            System.out.println("Submeter a metrica de usuários");
         }
         this.tarefas.add(tarefa);
     }
@@ -55,6 +56,7 @@ public abstract class EscalonadorCloud {
     //Get e Set
     public List<CS_Processamento> getEscravos() {
         return escravos;
+        //System.out.println ("Retorna escravos");
     }
 
     public void setCaminhoEscravo(List<List> caminhoEscravo) {

@@ -70,6 +70,7 @@ public class SimulacaoParalela extends Simulacao {
         }
         janela.print("Creating routing.");
         janela.print(" -> ");
+        janela.print("Creating failuresSP.");
         for (CS_Processamento mst : redeDeFilas.getMestres()) {
             Mestre temp = (Mestre) mst;
             //Cede acesso ao mestre a fila de eventos futuros
@@ -86,6 +87,7 @@ public class SimulacaoParalela extends Simulacao {
                 //Encontra menor caminho entre o escravo e seu mestre
                 threadPool.execute(new determinarCaminho(maq));
             }
+            
         }
         threadPool.shutdown();
         while (!threadPool.isTerminated()) {

@@ -41,9 +41,8 @@ public abstract class CS_Processamento extends CentroServico {
         this.PoderComputacionalDisponivelPorProcessador =
                 (this.poderComputacional - (this.poderComputacional * this.Ocupacao))
                 / this.numeroProcessadores;
+        
     }
-    
-    
     
     public int getnumeroMaquina(){
         return metrica.getnumeroMaquina();

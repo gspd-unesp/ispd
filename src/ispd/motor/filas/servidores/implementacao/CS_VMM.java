@@ -320,8 +320,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     }
 
     @Override
-    public void atualizar(CS_Processamento escravo
-    ) {
+    public void atualizar(CS_Processamento escravo) {
         Mensagem msg = new Mensagem(this, 0.011444091796875, Mensagens.ATUALIZAR);
         msg.setCaminho(escalonador.escalonarRota(escravo));
         EventoFuturo evtFut = new EventoFuturo(

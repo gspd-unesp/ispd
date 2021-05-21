@@ -21,6 +21,8 @@ import ispd.gui.auxiliar.HtmlPane;
 import ispd.gui.configuracao.JPanelConfigIcon;
 import ispd.gui.iconico.grade.DesenhoGrade;
 import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.JSelecionarFalhas;
+import ispd.gui.*;
 import ispd.gui.iconico.grade.VirtualMachine;
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
@@ -62,6 +64,7 @@ import org.xml.sax.SAXException;
  *
  */
 public class JPrincipal extends javax.swing.JFrame implements KeyListener {
+
 
     private EscolherClasse ChooseClass; //janela de escolha de qual tipo de serviço irá ser modelado
     private ConfigurarVMs JanelaVM; //janela de configuração de máquinas virtuais para IaaS
@@ -148,6 +151,7 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
         jButtonConfigVM = new javax.swing.JButton();
         jButtonUsuarios = new javax.swing.JButton();
         jButtonSimular = new javax.swing.JButton();
+        jButtonInjetarFalhas = new javax.swing.JButton();
         jScrollPaneProperties = new javax.swing.JScrollPane();
         jPanelPropriedades = new ispd.gui.configuracao.JPanelSimples();
         jPanelSimples.setjLabelTexto(palavras.getString("No icon selected."));
@@ -342,6 +346,20 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
                 }
             });
             jToolBar.add(jButtonSimular);
+
+            jButtonInjetarFalhas.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ispd/gui/imagens/vermelho.png"))); // NOI18N
+            jButtonInjetarFalhas.setText("Faults Injection");
+            jButtonInjetarFalhas.setToolTipText("Select the faults");
+            jButtonInjetarFalhas.setEnabled(false);
+            jButtonInjetarFalhas.setFocusable(false);
+            jButtonInjetarFalhas.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+            jButtonInjetarFalhas.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+            jButtonInjetarFalhas.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jButtonInjetarFalhasActionPerformed(evt);
+                }
+            });
+            jToolBar.add(jButtonInjetarFalhas);
 
             jScrollPaneProperties.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Properties"))); // NOI18N
             jScrollPaneProperties.setViewportView(jPanelPropriedades);
@@ -1501,16 +1519,23 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
     private void jMenuItemGerenciarAllocationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemGerenciarAllocationActionPerformed
         jFrameGerenciadorAlloc.setLocationRelativeTo(this);
         jFrameGerenciadorAlloc.setVisible(true);
-
-
     }//GEN-LAST:event_jMenuItemGerenciarAllocationActionPerformed
 
     private void jMenuFerramentasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuFerramentasActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuFerramentasActionPerformed
 
+    private void jButtonInjetarFalhasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonInjetarFalhasActionPerformed
+        JSelecionarFalhas sf =  new JSelecionarFalhas();
+        sf.setVisible(true);
+        
+        //this.dispose();
+       
+    }//GEN-LAST:event_jButtonInjetarFalhasActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonConfigVM;
+    private javax.swing.JButton jButtonInjetarFalhas;
     private javax.swing.JButton jButtonSimular;
     private javax.swing.JButton jButtonTarefas;
     private javax.swing.JButton jButtonUsuarios;
@@ -1596,6 +1621,10 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
         jButtonUsuarios.setToolTipText(palavras.getString("Add and remove users to the model"));
         jButtonSimular.setText(palavras.getString("Simulate")); // NOI18N
         jButtonSimular.setToolTipText(palavras.getString("Starts the simulation"));
+        //by Camila - injetar falhas
+        jButtonInjetarFalhas.setText(palavras.getString("Simulate")); // NOI18N
+        jButtonInjetarFalhas.setToolTipText(palavras.getString("Select the faults"));
+        //Finished Camila
 
         jMenuArquivo.setText(palavras.getString("File")); // NOI18N
         jMenuItemNovo.setText(palavras.getString("New")); // NOI18N
@@ -1731,6 +1760,7 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
         jToggleButtonMaquina.setEnabled(opcao);
         jToggleButtonRede.setEnabled(opcao);
         jButtonSimular.setEnabled(opcao);
+        jButtonInjetarFalhas.setEnabled(opcao);
         jButtonTarefas.setEnabled(opcao);
         jButtonUsuarios.setEnabled(opcao);
         jButtonConfigVM.setEnabled(opcao);
@@ -1792,4 +1822,4 @@ public class JPrincipal extends javax.swing.JFrame implements KeyListener {
             jPanelPropriedades.setjLabelTexto("");
         }
     }
-}
+}//public class JPrincipal jForm
