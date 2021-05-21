@@ -75,60 +75,6 @@ import javax.swing.text.StyleConstants;
  */
 public class JSimulacao extends javax.swing.JDialog implements Runnable {
 
-    /**
-     * Creates new form AguardaSimulacao
-     */
-    public JSimulacao(java.awt.Frame parent, /*double PoderComputacional,*/ boolean modal, Document modelo, String modeloTexto, ResourceBundle plavras, int tipoModelo) {
-      //Camila
-       // this.PoderComputacional;
-        //Original Author
-        this.palavras = plavras;
-        this.tipoModelo = tipoModelo;
-        this.progrSim = new ProgressoSimulacao() {
-            @Override
-            public void incProgresso(int n) {
-                porcentagem += n;
-                int value = (int) porcentagem;
-                jProgressBar.setValue(value);
-            }
-
-            @Override
-            public void print(String text, Color cor) {
-                javax.swing.text.Document doc = jTextPaneNotificacao.getDocument();
-                try {
-                    if (cor != null) {
-                        StyleConstants.setForeground(configuraCor, cor);
-                    } else {
-                        StyleConstants.setForeground(configuraCor, Color.black);
-                    }
-                    if (palavras.containsKey(text)) {
-                        doc.insertString(doc.getLength(), palavras.getString(text), configuraCor);
-                    } else {
-                        doc.insertString(doc.getLength(), text, configuraCor);
-                    }
-                } catch (BadLocationException ex) {
-                    Logger.getLogger(JSimulacao.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        };
-        initComponents();
-        this.modelo = modelo;
-        this.modeloTexto = modeloTexto;
-        this.tarefas = null;
-        this.redeDeFilas = null;
-        this.redeDeFilasCloud = null;
-        this.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent e) {
-                if (threadSim != null) {
-                    //threadSim.stop();
-                    threadSim = null;
-                }
-                dispose();
-            }
-        });
-    }
-
     public JSimulacao(javax.swing.JFrame parent, Document modelo, ResourceBundle plavras, ConfiguracaoISPD configuracao) {
         super(parent, true);
         this.palavras = plavras;
@@ -179,11 +125,7 @@ public class JSimulacao extends javax.swing.JDialog implements Runnable {
     }
 
     public JSimulacao(java.awt.Frame parent, boolean modal, Document modelo, String modeloTexto, ResourceBundle plavras, int tipoModelo) {
->>>>>>> theirs
         super(parent, modal);
-        //Camila
-       // this.PoderComputacional;
-        //Original Author
         this.palavras = plavras;
         this.tipoModelo = tipoModelo;
         this.progrSim = new ProgressoSimulacao() {
