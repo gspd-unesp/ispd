@@ -43,6 +43,7 @@ package ispd.gui;
  *    tutorialcont.html
  *    vm.html
  */
+import ispd.gui.auxiliar.HtmlPane;
 import javax.swing.*;
 import java.awt.*;
 import java.net.*;
@@ -94,15 +95,7 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
         JScrollPane treeView = new JScrollPane(tree);
 
         //Create the HTML viewing pane.
-        htmlPane = new JEditorPane();
-        htmlPane.setEditable(false);
-	htmlPane.addHyperlinkListener(
-		new HyperlinkListener(){
-			public void hyperlinkUpdate(HyperlinkEvent e){
-				if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) getThePage(e.getURL().toString());
-			}
-		}
-	);
+        htmlPane = new HtmlPane();
         initHelp();
         JScrollPane htmlView = new JScrollPane(htmlPane);
 

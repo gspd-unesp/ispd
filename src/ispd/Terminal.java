@@ -1,10 +1,46 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * Terminal.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd;
 
 import ispd.arquivo.xml.IconicoXML;
+import ispd.arquivo.xml.ManipuladorXML;
 import ispd.gui.JResultados;
 import ispd.motor.ProgressoSimulacao;
 import ispd.motor.Simulacao;
@@ -38,15 +74,22 @@ import org.xml.sax.SAXException;
  * Atende aos seguintes parametros:
  * java -jar iSPD.jar [option] [model_file.imsx]
  * [option] pode ser um ou mais:
- *     -n <number>    number of simulation
- *     -th <number>   number of threads
+ *     -n  [number]   number of simulation
+ *     -th [number]   number of threads
  *     -p             Optimistic parallel simulation
- *     -o <directory> directory to save html output
- *     -help          print this help message
+ *     -o [directory] directory to save html output
+ *     -h             print this help message
+ *     -v             print the version message
  * @author denison
  */
 public class Terminal {
 
+    private final int HELP = 0;
+    private final int VERSION = 1;
+    private final int SIMULATE = 2;
+    private final int CLIENT = 3;
+    private final int SERVER = 4;
+    
     /**
      * Arquivo contendo o modelo que será simulados
      */
@@ -60,10 +103,12 @@ public class Terminal {
      */
     private File configuracao = null;
     private int opcao;
+    private int modo;
     private int numExecucoes;
     private int numThreads;
     private ProgressoSimulacao progrSim;
     private boolean paralelo = false;
+    private boolean optimisticParallel = false;
     private boolean visible = true;
     private int port = 2004;
     //Resultados
@@ -76,7 +121,11 @@ public class Terminal {
     public Terminal(String[] args) {
         if (args[0].equals("help") || args[0].equals("-help") || args[0].equals("-h")) {
             opcao = 0;
+            modo = HELP;
+        } else if (args[0].equals("version") || args[0].equals("-version") || args[0].equals("-v")) {
+            modo = VERSION;
         } else if (args[0].equals("-server")) {
+            modo = SERVER;
             if (!args[1].equals("-th")) {
                 port = Integer.parseInt(args[1]);
             } else {
@@ -100,6 +149,7 @@ public class Terminal {
             };
         } else if (args[0].equals("-client")) {
             opcao = 3;
+            modo = CLIENT;
             numThreads = 1;
             configuracao = new File(args[1]);
             arquivoIn = new File(args[2]);
@@ -119,6 +169,7 @@ public class Terminal {
             int atual = 0;
             numThreads = 1;
             numExecucoes = 1;
+            modo = SIMULATE;
             while (args[atual].charAt(0) == '-') {
                 if (args[atual].equals("-n")) {
                     numExecucoes = Integer.parseInt(args[atual + 1]);
@@ -167,8 +218,8 @@ public class Terminal {
      * Inicia atendimento de acordo com parametros
      */
     public void executar() {
-        switch (opcao) {
-            case 0:
+        switch (modo) {
+            case HELP:
                 System.out.println("Usage: java -jar iSPD.jar");
                 System.out.println("\t\t(to execute the graphical interface of the iSPD)");
                 System.out.println("\tjava -jar iSPD.jar [option] [model file.imsx]");
@@ -182,7 +233,13 @@ public class Terminal {
                 System.out.println("\t-client <> <model file.imsx>");
                 System.out.println("\t-help\tprint this help message");
                 break;
-            case 1:
+            case VERSION:
+                System.out.println("iSPD version 2.0");
+                System.out.println("iconic Simulator of Parallel and Distributed System");
+                System.out.println("(C) Copyright 2010-2014, by GSPD da Unesp.");
+                System.out.println("Project Info:  http://gspd.dcce.ibilce.unesp.br/");
+                break;
+            case SIMULATE:
                 if (arquivoIn.getName().endsWith(".imsx") && arquivoIn.exists()) {
                     if (numThreads > 1 && !paralelo) {
                         this.simularParalelo();
@@ -193,10 +250,10 @@ public class Terminal {
                     System.out.println("iSPD can not open the file: " + arquivoIn.getName());
                 }
                 break;
-            case 2:
+            case SERVER:
                 this.simularRedeServidor();
                 break;
-            case 3:
+            case CLIENT:
                 Object conf[] = lerConfiguracao(configuracao);
                 String server[] = new String[conf.length / 3];//{"localhost","localhost"};
                 int ports[] = new int[conf.length / 3];//{2005,2006};
@@ -232,6 +289,7 @@ public class Terminal {
             //criar tarefas
 
             Metricas metricas = new Metricas(IconicoXML.newListUsers(modelo));
+            resuladosGlobais = new MetricasGlobais();
             double total = 0;
 
             for (int i = 1; i <= numExecucoes; i++) {
@@ -254,6 +312,7 @@ public class Terminal {
                     System.out.println("Execução paralela da simulação");
                     sim = new SimulacaoParalela(progrSim, redeDeFilas, tarefas, numThreads);
                 }
+                sim.criarRoteamento();
                 //Realiza asimulação
                 progrSim.println("  Simulating.");
                 //recebe instante de tempo em milissegundos ao iniciar a simulação
@@ -280,6 +339,7 @@ public class Terminal {
                 progrSim.println("  Total Simulation Execution Time = " + total + "seconds");
             }
             if (arquivoOut != null) {
+                resuladosGlobais = metricas.getMetricasGlobais();
                 double t1 = System.currentTimeMillis();
                 JResultados result = new JResultados(metricas);
                 result.salvarHTML(arquivoOut);
@@ -348,7 +408,9 @@ public class Terminal {
                     metricas.addMetrica(trabalhador[i].getMetricas());
                 }
                 metricas.calculaMedia();
+                resuladosGlobais = metricas.getMetricasGlobais();
             } else {
+                resuladosGlobais = new MetricasGlobais();
                 for (int i = 0; i < numThreads; i++) {
                     resuladosGlobais.add(trabalhador[i].getMetricasGlobais());
                 }
@@ -407,6 +469,7 @@ public class Terminal {
                 RedeDeFilas redeDeFilas = IconicoXML.newRedeDeFilas(modelo);
                 List<Tarefa> tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
                 Simulacao sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
+                sim.criarRoteamento();
                 sim.simular();//[30%] --> 85%
                 Metricas temp = sim.getMetricas();
                 metricas.addMetrica(temp);
@@ -567,6 +630,7 @@ public class Terminal {
                 List<Tarefa> tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
                 //Verifica recursos do modelo e define roteamento
                 Simulacao sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
+                sim.criarRoteamento();
                 //Realiza asimulação
                 sim.simular();//[30%] --> 85%
                 if (arquivoOut == null) {

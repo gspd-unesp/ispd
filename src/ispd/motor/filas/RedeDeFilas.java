@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * RedeDeFilas.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.motor.filas;
 
@@ -10,6 +45,7 @@ import ispd.motor.filas.servidores.implementacao.CS_Maquina;
 import ispd.motor.filas.servidores.CS_Processamento;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -17,7 +53,7 @@ import java.util.Random;
  * Possui listas de todos os icones presentes no modelo utilizado para buscas e
  * para o motor de simulação
  *
- * @author denison_usuario
+ * @author denison
  */
 public class RedeDeFilas {
     /**
@@ -41,7 +77,11 @@ public class RedeDeFilas {
      * Mantem lista dos usuarios da rede de filas
      */
     private List<String> usuarios;
-    
+    /**
+     * Lista dos limites de consumo, em porcentagem, de cada usuário
+     */
+    private HashMap<String,Double> limiteConsumo;
+
     /**
      * Armazena listas com a arquitetura de todo o sistema modelado, utilizado
      * para buscas das métricas e pelo motor de simulação
@@ -56,6 +96,23 @@ public class RedeDeFilas {
         this.maquinas = maquinas;
         this.links = links;
         this.internets = internets;
+    }
+    
+    /**
+     * Armazena listas com a arquitetura de todo o sistema modelado, utilizado
+     * para buscas das métricas e pelo motor de simulação
+     *
+     * @param mestres
+     * @param maquinas
+     * @param links
+     * @param internets
+     */
+    public RedeDeFilas(List<CS_Processamento> mestres, List<CS_Maquina> maquinas, List<CS_Comunicacao> links, List<CS_Internet> internets, HashMap<String,Double> limites) {
+        this.mestres = mestres;
+        this.maquinas = maquinas;
+        this.links = links;
+        this.internets = internets;
+        this.limiteConsumo = limites;
     }
 
     public List<CS_Internet> getInternets() {
@@ -96,6 +153,10 @@ public class RedeDeFilas {
 
     public List<String> getUsuarios() {
         return this.usuarios;
+    }
+    
+    public HashMap<String,Double> getLimites(){
+        return this.limiteConsumo;
     }
 
     /**

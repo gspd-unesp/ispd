@@ -8,6 +8,7 @@
 /ispd/
 /modeloiconico
 /modelosimulavel
+/configuration.xml
 
 # Backup files
 *.bak

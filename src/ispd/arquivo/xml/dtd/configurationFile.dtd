@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ==========================================================
+ iSPD : iconic Simulator of Parallel and Distributed System
+ ==========================================================
+ 
+ (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ 
+ Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ 
+ ===============
+ configurationFile.dtd
+ ===============
+ (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ 
+ Original Author:  Denison Menezes (for GSPD);
+ Contributor(s):   -;
+ 
+ Changes
+ =============== iSPD 2.0.1 =============================================
+ 14-Out-2014 : created;
+-->
+
+<!ELEMENT ispd (chart_create, model_open)>
+<!ATTLIST ispd simulation_mode (default | optimistic | graphical) "default">
+<!ATTLIST ispd number_threads CDATA "1">
+<!ATTLIST ispd number_simulations CDATA "1">
+
+<!ELEMENT model_open EMPTY>
+<!ATTLIST model_open last_file CDATA ".">
+
+<!ELEMENT chart_create EMPTY>
+<!ATTLIST chart_create processing CDATA "true">
+<!ATTLIST chart_create communication CDATA "true">
+<!ATTLIST chart_create user_time CDATA "true">
+<!ATTLIST chart_create machine_time CDATA "false">
+<!ATTLIST chart_create task_time CDATA "false">

@@ -1,12 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
- * GerenciarEscalonador2.java
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
  *
- * Created on 05/04/2011, 09:33:05
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * GerenciarEscalonador.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * Created on 05/04/2011
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.gui;
 
@@ -36,7 +65,7 @@ import javax.swing.undo.UndoManager;
 
 /**
  *
- * @author denison_usuario
+ * @author denison
  */
 public class GerenciarEscalonador extends javax.swing.JFrame {
 
@@ -46,6 +75,8 @@ public class GerenciarEscalonador extends javax.swing.JFrame {
     public GerenciarEscalonador() {
         Locale locale = Locale.getDefault();
         palavras = ResourceBundle.getBundle("ispd.idioma.Idioma", locale);
+        //Gerenciamento dos escalonadores
+        this.escalonadores = new Escalonadores();
         //Inicia o editor
         initComponents();
         //Define a linguagem do editor
@@ -84,8 +115,6 @@ public class GerenciarEscalonador extends javax.swing.JFrame {
             public void changedUpdate(DocumentEvent e) {
             }
         });
-        //Gerenciamento dos escalonadores
-        this.escalonadores = new Escalonadores();
         atualizarEscalonadores(escalonadores.listar());
         addWindowListener(new WindowAdapter() {
             @Override
@@ -632,10 +661,10 @@ public class GerenciarEscalonador extends javax.swing.JFrame {
     private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
     private final UndoManager undo = new UndoManager();
-    private ManipularArquivos escalonadores;
+    private final ManipularArquivos escalonadores;
     private boolean modificado;//indica se arquivo atual foi modificado
     private String escalonadorAberto;
-    private ResourceBundle palavras;
+    private final ResourceBundle palavras;
 
     public void atualizarEscalonadores() {
         atualizarEscalonadores(escalonadores.listar());

@@ -1,9 +1,46 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * Escalonadores.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ * 17-Out-2014 : change the location of the iSPD directory
+ *
  */
 package ispd.arquivo;
 
+import ispd.escalonador.Carregar;
 import ispd.escalonador.ManipularArquivos;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -40,12 +77,12 @@ import javax.tools.ToolProvider;
  */
 public class Escalonadores implements ManipularArquivos {
 
-    private final String DIRETORIO = "ispd/externo/gridSchedulers";
+    private final String DIRETORIO = "ispd/externo";
     /**
      * guarda a lista de escalonadores implementados no iSPD, e que já estão
      * disponiveis para o usuario por padrão
      */
-    public final static String[] ESCALONADORES = {"---", "RoundRobin", "Workqueue", "WQR", "DynamicFPLTF", "M_OSEP", "OSEP"};
+    public final static String[] ESCALONADORES = {"---", "RoundRobin", "Workqueue", "WQR", "DynamicFPLTF", "HOSEP", "OSEP", "EHOSEP"};
     /**
      * guarda a lista de escalonadores disponiveis
      */
@@ -70,7 +107,7 @@ public class Escalonadores implements ManipularArquivos {
      * contidos nele
      */
     public Escalonadores() {
-        diretorio = new File(DIRETORIO);
+        diretorio = new File(Carregar.DIRETORIO_ISPD, DIRETORIO);
         escalonadores = new ArrayList<String>();
         adicionados = new ArrayList<String>();
         removidos = new ArrayList<String>();
@@ -210,16 +247,16 @@ public class Escalonadores implements ManipularArquivos {
                 StringBuilder errosdoComando = new StringBuilder();
                 InputStream StreamErro = processo.getErrorStream();
                 InputStreamReader inpStrAux = new InputStreamReader(StreamErro);
-                BufferedReader SaidadoProcesso = new BufferedReader(inpStrAux);
-                String linha = SaidadoProcesso.readLine();
+                BufferedReader SaidaDoProcesso = new BufferedReader(inpStrAux);
+                String linha = SaidaDoProcesso.readLine();
                 while (linha != null) {
                     errosdoComando.append(linha).append("\n");
-                    linha = SaidadoProcesso.readLine();
+                    linha = SaidaDoProcesso.readLine();
                 }
-                SaidadoProcesso.close();
+                SaidaDoProcesso.close();
                 errosStr = errosdoComando.toString();
             } catch (IOException ex) {
-                errosStr = "Não foi possível compilar";
+                errosStr = "Não foi possível compilar:\n"+ex.getMessage();
                 Logger.getLogger(Escalonadores.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {

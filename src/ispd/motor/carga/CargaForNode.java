@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * CargaForNode.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.motor.carga;
 
@@ -8,13 +43,14 @@ import NumerosAleatorios.GeracaoNumAleatorios;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
+import ispd.motor.random.Distribution;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 /**
  * Descreve como gerar tarefas para um nó escalonador
- * @author denison_usuario
+ * @author denison
  */
 public class CargaForNode extends GerarCarga {
 
@@ -67,11 +103,12 @@ public class CargaForNode extends GerarCarga {
             i++;
         }
         if (encontrou) {
-            GeracaoNumAleatorios gerador = new GeracaoNumAleatorios((int)System.currentTimeMillis());
+            Distribution gerador = new Distribution((int)System.currentTimeMillis());
             for (i = 0; i < this.getNumeroTarefas(); i++) {
                 //Random sorteio = new Random();
                 //double srt = sorteio.nextInt(this.maxComputacao.intValue()) + this.minComputacao;
-                Tarefa tarefa = new Tarefa(
+                if(proprietario.equals("NoDelay")){
+                    Tarefa tarefa = new Tarefa(
                         inicioIdentificadorTarefa,
                         proprietario,
                         aplicacao,
@@ -79,8 +116,22 @@ public class CargaForNode extends GerarCarga {
                         gerador.twoStageUniform(minComunicacao, minComunicacao + (maxComunicacao - minComunicacao) / 2, maxComunicacao, 1),
                         0.0009765625 /*arquivo recebimento*/,
                         gerador.twoStageUniform(minComputacao, minComputacao + (maxComputacao - minComputacao) / 2, maxComputacao, 1),
-                        gerador.exponencial(5));
+                        gerador.nextExponential(5)+120);
+                    tarefas.add(tarefa);
+                }
+                else{
+                    Tarefa tarefa = new Tarefa(
+                        inicioIdentificadorTarefa,
+                        proprietario,
+                        aplicacao,
+                        mestre,
+                        gerador.twoStageUniform(minComunicacao, minComunicacao + (maxComunicacao - minComunicacao) / 2, maxComunicacao, 1),
+                        0.0009765625 /*arquivo recebimento*/,
+                        gerador.twoStageUniform(minComputacao, minComputacao + (maxComputacao - minComputacao) / 2, maxComputacao, 1),
+                        gerador.nextExponential(5));
                 tarefas.add(tarefa);
+                }
+                
                 inicioIdentificadorTarefa++;
             }
         }

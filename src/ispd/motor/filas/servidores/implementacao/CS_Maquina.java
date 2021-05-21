@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * CS_Maquina.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.motor.filas.servidores.implementacao;
 
@@ -17,7 +52,7 @@ import java.util.List;
 
 /**
  *
- * @author denison_usuario
+ * @author denison
  */
 public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
 
@@ -34,6 +69,8 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     private List<Double> recuperacao = new ArrayList<Double>();
     private boolean erroRecuperavel;
     private boolean falha = false;
+    private List<Tarefa> historicoProcessamento;
+
     //TO DO: INCLUIR INFORMAÇÕES DE MEMÓRIA E DISCO
     
     /**
@@ -55,14 +92,30 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
         this.tarefaEmExecucao = new ArrayList<Tarefa>(numeroProcessadores);
     }
 
-    public CS_Maquina(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina) {
-        super(id, proprietario, PoderComputacional, numeroProcessadores, Ocupacao, numeroMaquina);
+    public CS_Maquina(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, Double energia) {
+        super(id, proprietario, PoderComputacional, numeroProcessadores, Ocupacao, 0, energia);
         this.conexoesEntrada = new ArrayList<CS_Comunicacao>();
         this.conexoesSaida = new ArrayList<CS_Comunicacao>();
         this.filaTarefas = new ArrayList<Tarefa>();
         this.mestres = new ArrayList<CS_Processamento>();
         this.processadoresDisponiveis = numeroProcessadores;
         this.tarefaEmExecucao = new ArrayList<Tarefa>(numeroProcessadores);
+    }
+
+    public CS_Maquina(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina) {
+        super(id, proprietario, PoderComputacional, numeroProcessadores, Ocupacao, numeroMaquina);
+        this.historicoProcessamento = new ArrayList<Tarefa>();
+    }
+
+    public CS_Maquina(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina, Double energia) {
+        super(id, proprietario, PoderComputacional, numeroProcessadores, Ocupacao, numeroMaquina, energia);
+        this.conexoesEntrada = new ArrayList<CS_Comunicacao>();
+        this.conexoesSaida = new ArrayList<CS_Comunicacao>();
+        this.filaTarefas = new ArrayList<Tarefa>();
+        this.mestres = new ArrayList<CS_Processamento>();
+        this.processadoresDisponiveis = numeroProcessadores;
+        this.tarefaEmExecucao = new ArrayList<Tarefa>(numeroProcessadores);
+        this.historicoProcessamento = new ArrayList<Tarefa>();
     }
 
     @Override
@@ -95,9 +148,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     @Override
     public void chegadaDeCliente(Simulacao simulacao, Tarefa cliente) {
         if (cliente.getEstado() != Tarefa.CANCELADO) {
-           cliente.iniciarEsperaProcessamento(simulacao.getTime(this));
+            cliente.iniciarEsperaProcessamento(simulacao.getTime(this));
             if (processadoresDisponiveis != 0) {
-               // indica que recurso está ocupado
+                //indica que recurso está ocupado
                 processadoresDisponiveis--;
                 //cria evento para iniciar o atendimento imediatamente
                 EventoFuturo novoEvt = new EventoFuturo(
@@ -109,6 +162,7 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             } else {
                 filaTarefas.add(cliente);
             }
+            historicoProcessamento.add(cliente);
         }
     }
 
@@ -272,6 +326,7 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
         this.getMetrica().incSegundosDeProcessamento(tempoProc);
         //Incrementa porcentagem da tarefa processada
         mensagem.getTarefa().setMflopsProcessado(mflopsProcessados);
+        mensagem.getTarefa().incMflopsDesperdicados(mflopsProcessados);
     }
 
     @Override
@@ -356,8 +411,10 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             //Incrementa o tempo de processamento
             this.getMetrica().incSegundosDeProcessamento(tempoProc);
             //Incrementa procentagem da tarefa processada
-            int numCP = (int) (mflopsProcessados / mensagem.getTarefa().getCheckPoint());
-            mensagem.getTarefa().setMflopsProcessado(numCP * mensagem.getTarefa().getCheckPoint());
+            double numCP = ((int) (mflopsProcessados / mensagem.getTarefa().getCheckPoint())) * mensagem.getTarefa().getCheckPoint();
+            mensagem.getTarefa().setMflopsProcessado(numCP);
+            //Incrementa desperdicio
+            mensagem.getTarefa().incMflopsDesperdicados(mflopsProcessados - numCP);
             tarefaEmExecucao.remove(mensagem.getTarefa());
         }
         if (remover) {
@@ -409,8 +466,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
                 //Incrementa o tempo de processamento
                 this.getMetrica().incSegundosDeProcessamento(tempoProc);
                 //Incrementa procentagem da tarefa processada
-                int numCP = (int) (mflopsProcessados / tar.getCheckPoint());
-                tar.setMflopsProcessado(numCP * tar.getCheckPoint());
+                double numCP = ((int) (mflopsProcessados / tar.getCheckPoint())) * tar.getCheckPoint();
+                tar.setMflopsProcessado(numCP);
+                tar.incMflopsDesperdicados(mflopsProcessados - numCP);
                 if (erroRecuperavel) {
                     //Reiniciar atendimento da tarefa
                     tar.iniciarEsperaProcessamento(simulacao.getTime(this));
@@ -456,5 +514,10 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     @Override
     public void atenderDesligamento(Simulacao simulacao, Mensagem mensagem) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+
+    public List<Tarefa> getHistorico() {
+        return this.historicoProcessamento;
     }
 }

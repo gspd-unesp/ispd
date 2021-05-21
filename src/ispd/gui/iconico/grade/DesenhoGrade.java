@@ -1,6 +1,41 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * DesenhoGrade.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ *
  */
 package ispd.gui.iconico.grade;
 
@@ -28,6 +63,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -70,6 +106,7 @@ public class DesenhoGrade extends AreaDesenho {
      * Lista com os usuarios/proprietarios do modelo criado
      */
     private HashSet<String> usuarios;
+    private HashMap<String,Double> perfis;
     /**
      * Objeto para Manipular as cargas
      */
@@ -113,6 +150,8 @@ public class DesenhoGrade extends AreaDesenho {
         this.tipoDeVertice = -1;
         usuarios = new HashSet<String>();
         usuarios.add("user1");
+        perfis = new HashMap<String,Double>();
+        perfis.put("user1",100.0);
         ValidaValores.removeTodosNomeIcone();
         cargasConfiguracao = null;
         imprimeNosConectados = false;
@@ -171,12 +210,12 @@ public class DesenhoGrade extends AreaDesenho {
         ItemGrade vertice = null;
         switch (tipoDeVertice) {
             case MACHINE:
-                vertice = new Machine(x, y, numVertices, numIcones);
+                vertice = new Machine(x, y, numVertices, numIcones, 0.0);
                 ValidaValores.addNomeIcone(vertice.getId().getNome());
                 this.janelaPrincipal.appendNotificacao(palavras.getString("Machine icon added."));
                 break;
             case CLUSTER:
-                vertice = new Cluster(x, y, numVertices, numIcones);
+                vertice = new Cluster(x, y, numVertices, numIcones, 0.0);
                 ValidaValores.addNomeIcone(vertice.getId().getNome());
                 this.janelaPrincipal.appendNotificacao(palavras.getString("Cluster icon added."));
                 break;
@@ -223,6 +262,14 @@ public class DesenhoGrade extends AreaDesenho {
         this.imprimeNosEscalonaveis = imprimeNosEscalonaveis;
     }
 
+    public void setPerfil(HashMap<String,Double> perfil){
+        this.perfis = perfil;
+    }
+    
+    public HashMap<String,Double> getPerfil() {
+        return perfis;
+    }
+    
     public HashSet<String> getUsuarios() {
         return usuarios;
     }
@@ -466,7 +513,7 @@ public class DesenhoGrade extends AreaDesenho {
      */
     public Document getGrade() {
         IconicoXML xml = new IconicoXML(tipoModelo);
-        xml.addUsers(usuarios);
+        xml.addUsers(usuarios,perfis);
         for (Vertice vertice : vertices) {
             if (vertice instanceof Machine) {
                 Machine I = (Machine) vertice;
@@ -510,6 +557,21 @@ public class DesenhoGrade extends AreaDesenho {
                             I.getCostpermemory(), I.getCostperdisk(),
                             I.getProprietario(), I.isMestre());
                 }
+/* TODO: Para GRID
+                xml.addMachine(I.getX(), I.getY(),
+                        I.getId().getIdLocal(), I.getId().getIdGlobal(), I.getId().getNome(),
+                        I.getPoderComputacional(), I.getTaxaOcupacao(), I.getAlgoritmo(), I.getProprietario(),
+                        I.getNucleosProcessador(), I.getMemoriaRAM(), I.getDiscoRigido(),
+                        I.isMestre(), escravos, I.getConsumoEnergia() );
+            } else if (vertice instanceof Cluster) {
+                Cluster I = (Cluster) vertice;
+                xml.addCluster(I.getX(), I.getY(),
+                        I.getId().getIdLocal(), I.getId().getIdGlobal(), I.getId().getNome(),
+                        I.getNumeroEscravos(), I.getPoderComputacional(), I.getNucleosProcessador(),
+                        I.getMemoriaRAM(), I.getDiscoRigido(),
+                        I.getBanda(), I.getLatencia(),
+                        I.getAlgoritmo(), I.getProprietario(), I.isMestre(), I.getConsumoEnergia() );
+*/
             } else if (vertice instanceof Internet) {
                 Internet I = (Internet) vertice;
                 xml.addInternet(
@@ -822,6 +884,7 @@ public class DesenhoGrade extends AreaDesenho {
             tipoModelo = EscolherClasse.IAAS;
         else if(versao.contentEquals("2.3"))
             tipoModelo = EscolherClasse.PAAS;
+        this.perfis = IconicoXML.newListPerfil(descricao);
         //Realiza leitura dos icones
         IconicoXML.newGrade(descricao, vertices, arestas);
         //Realiza leitura da configuração de carga do modelo

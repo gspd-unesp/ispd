@@ -1,5 +1,49 @@
-package ispd.gui;//GEN-LINE:variables
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * ---------------
+ * JSimulacao.java
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Denison Menezes (for GSPD);
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 
+ * 09-Set-2014 : Version 2.0;
+ * 18-Set-2014 : Retirado analise de modelo iconico e simulável
+ *
+ */
+package ispd.gui;
 
+import ispd.arquivo.xml.ConfiguracaoISPD;
+import ispd.motor.ProgressoSimulacao;
+import ispd.motor.metricas.Metricas;
+import java.awt.Color;
 import ispd.arquivo.xml.IconicoXML;
 import ispd.motor.ProgressoSimulacao;
 import ispd.motor.Simulacao;
@@ -27,7 +71,7 @@ import javax.swing.text.StyleConstants;
  * Realiza faz chamada ao motor de simulação e apresenta os passos realizados e
  * porcentagem da simulação concluida
  *
- * @author denison_usuario
+ * @author denison
  */
 public class JSimulacao extends javax.swing.JDialog implements Runnable {
 
@@ -35,6 +79,107 @@ public class JSimulacao extends javax.swing.JDialog implements Runnable {
      * Creates new form AguardaSimulacao
      */
     public JSimulacao(java.awt.Frame parent, /*double PoderComputacional,*/ boolean modal, Document modelo, String modeloTexto, ResourceBundle plavras, int tipoModelo) {
+      //Camila
+       // this.PoderComputacional;
+        //Original Author
+        this.palavras = plavras;
+        this.tipoModelo = tipoModelo;
+        this.progrSim = new ProgressoSimulacao() {
+            @Override
+            public void incProgresso(int n) {
+                porcentagem += n;
+                int value = (int) porcentagem;
+                jProgressBar.setValue(value);
+            }
+
+            @Override
+            public void print(String text, Color cor) {
+                javax.swing.text.Document doc = jTextPaneNotificacao.getDocument();
+                try {
+                    if (cor != null) {
+                        StyleConstants.setForeground(configuraCor, cor);
+                    } else {
+                        StyleConstants.setForeground(configuraCor, Color.black);
+                    }
+                    if (palavras.containsKey(text)) {
+                        doc.insertString(doc.getLength(), palavras.getString(text), configuraCor);
+                    } else {
+                        doc.insertString(doc.getLength(), text, configuraCor);
+                    }
+                } catch (BadLocationException ex) {
+                    Logger.getLogger(JSimulacao.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        };
+        initComponents();
+        this.modelo = modelo;
+        this.modeloTexto = modeloTexto;
+        this.tarefas = null;
+        this.redeDeFilas = null;
+        this.redeDeFilasCloud = null;
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (threadSim != null) {
+                    //threadSim.stop();
+                    threadSim = null;
+                }
+                dispose();
+            }
+        });
+    }
+
+    public JSimulacao(javax.swing.JFrame parent, Document modelo, ResourceBundle plavras, ConfiguracaoISPD configuracao) {
+        super(parent, true);
+        this.palavras = plavras;
+        this.configuracao = configuracao;
+        this.progrSim = new ProgressoSimulacao() {
+            @Override
+            public void incProgresso(int n) {
+                porcentagem += n;
+                int value = (int) porcentagem;
+                jProgressBar.setValue(value);
+            }
+
+            @Override
+            public void print(String text, Color cor) {
+                javax.swing.text.Document doc = jTextPaneNotificacao.getDocument();
+                try {
+                    if (cor != null) {
+                        StyleConstants.setForeground(configuraCor, cor);
+                    } else {
+                        StyleConstants.setForeground(configuraCor, Color.black);
+                    }
+                    if (palavras != null && text != null && palavras.containsKey(text)) {
+                        doc.insertString(doc.getLength(), palavras.getString(text), configuraCor);
+                    } else {
+                        doc.insertString(doc.getLength(), text, configuraCor);
+                    }
+                } catch (BadLocationException ex) {
+                    Logger.getLogger(JSimulacao.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        };
+        initComponents();
+        this.modelo = modelo;
+        this.modeloTexto = modeloTexto;
+        this.tarefas = null;
+        this.redeDeFilas = null;
+        this.redeDeFilasCloud = null;
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (threadSim != null) {
+                    //threadSim.stop();
+                    threadSim = null;
+                }
+                dispose();
+            }
+        });
+    }
+
+    public JSimulacao(java.awt.Frame parent, boolean modal, Document modelo, String modeloTexto, ResourceBundle plavras, int tipoModelo) {
+>>>>>>> theirs
         super(parent, modal);
         //Camila
        // this.PoderComputacional;
@@ -192,6 +337,8 @@ public class JSimulacao extends javax.swing.JDialog implements Runnable {
     public List<Tarefa> getTarefas() {
         return tarefas;
     }
+
+    private ConfiguracaoISPD configuracao;
 
     public void iniciarSimulacao() {
         threadSim = new Thread(this);

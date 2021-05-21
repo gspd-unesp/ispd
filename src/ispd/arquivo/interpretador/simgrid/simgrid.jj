@@ -1,26 +1,84 @@
-/*	Author: Victor Aoqui
-	Last modified: 10/10/2010
-	Universidade Estadual Paulista "Júlio de Mesquita Filho"
-	Instituto de Biociências, Letras e Ciências Exatas
-	Departamento de Ciências de Computação e Estatística
-	Grupo de Sistemas Paralelos e Distribuídos
-        Author: Denison
-	Last modified: 17/09/2013
-*/
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * ---------------
+ * simgrid.jj
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Victor Aoqui;
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 10-10-2010  : Version 1.0;
+ * 17-09-2013  : Resolvendo ordem dos atributos; Author: Denison;
+ * 09-Set-2014 : Version 2.0;
+ * 16-Set-2014 : Reconhecendo arquivos sem tag com versão do xml
+ *
+ */
 
 PARSER_BEGIN(SimGrid)
-	
-	package ispd.arquivo.interpretador.simgrid;
-	import java.io.*;
-	import java.lang.SecurityException;
-	import java.util.Formatter;
-	import java.util.FormatterClosedException;
-	import java.util.NoSuchElementException;
-	import java.util.List;
-	import java.util.ArrayList;
-	import java.util.Scanner;
-	import java.awt.*;
-	import javax.swing.*;
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Victor Aoqui;
+ *
+ */	
+package ispd.arquivo.interpretador.simgrid;
+
+import ispd.arquivo.xml.IconicoXML;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Formatter;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import javax.swing.JOptionPane;
 
 	public class SimGrid
 	{
@@ -297,6 +355,65 @@ PARSER_BEGIN(SimGrid)
 				JOptionPane.showMessageDialog(null,e.getMessage(),"Error",JOptionPane.WARNING_MESSAGE);
 			}
 		}
+
+                public IconicoXML getModelo() {
+                    IconicoXML xml = new IconicoXML();
+                    ArrayList usuarios = new ArrayList();
+                    usuarios.add("user1");
+                    xml.addUsers(usuarios);
+                    int x = 100, y = 100, local = 0, global = 0;
+                    HashMap<String, Integer> maq = new HashMap<String, Integer>();
+                    for (Server s : servers) {
+                        maq.put(s.getID(), global);
+                        xml.addMachine(
+                                x, y, local, global, s.getID(),
+                                Double.valueOf(s.getPower()), 0.0,
+                                "---", "user1",
+                                1, 0.0, 0.0,
+                                false, null);
+                        local++;
+                        global++;
+                    }
+                    for (Route r : routes) {
+                        if (r.isInternet()) {
+                            maq.put(r.getID(), global);
+                            xml.addInternet(x, y, local, global, r.getID(),
+                                    Double.valueOf(r.getBand()), 0, Double.valueOf(r.getLatency()));
+                            local++;
+                            global++;
+                        }
+                    }
+                    for (Master m : masters) {
+                        maq.put(m.getID(), global);
+                        local++;
+                        global++;
+                    }
+                    for (Master m : masters) {
+                        List<Integer> slv = new ArrayList<Integer>();
+                        for (String escravo : m.getEscravos()) {
+                            slv.add(maq.get(escravo));
+                        }
+                        xml.addMachine(
+                                x, y, maq.get(m.getID()), maq.get(m.getID()), m.getID(),
+                                (double) Double.valueOf(m.getPower()), 0.0, "RoundRobin",
+                                "user1", 1, 0.0, 0.0, true, slv);
+                    }
+                    for (Route r : routes) {
+                        if (!r.isInternet()) {
+                            xml.addLink(x, y, x, y, local, global, r.getID(),
+                                    Double.valueOf(r.getBand()), 0, Double.valueOf(r.getLatency()),
+                                    maq.get(r.getSrc()), maq.get(r.getDst()));
+                            local++;
+                            global++;
+                        }
+                    }
+                    for (Master m : masters) {
+                        xml.addLoadNo("app0", "user1", m.getID(), Integer.valueOf(m.getNumtarefas()),
+                                Double.valueOf(m.getMaxcomp()), Double.valueOf(m.getMincomp()),
+                                Double.valueOf(m.getMaxcomm()), Double.valueOf(m.getMincomm()));
+                    }
+                    return xml;
+                }
 		
 		
 		public int contaErrosSint()
@@ -612,7 +729,7 @@ String rede_ID():
 void modelo():
 {}
 {
-	xml_version() inicio_plataforma() (LOOKAHEAD(2) application_file() | plataform_file()) fim_plataforma()
+        inicio_xml_plataforma() (LOOKAHEAD(2) application_file() | plataform_file()) fim_plataforma()
 }
 
 void application_file():
@@ -633,29 +750,19 @@ void plataforma():
 	LOOKAHEAD(2) servidor() | LOOKAHEAD(2) rede() | LOOKAHEAD(2) roteamento()
 }
 
-void xml_version():
+void inicio_xml_plataforma():
 {}
 {
 	try
 	{
-		<menor> <interrogacao> 
+		<menor> (
+                <interrogacao> 
                     <XML> <VERSION> <igual> ( <apostrofo> | <aspas> ) real() ( <apostrofo> | <aspas> ) 
                     ( (<letra>|<digito>|<especiais>)* <igual> <aspas> (<letra>|<digito>|<especiais>)* <aspas> )*
                 <interrogacao> <maior>
-	}
-	catch(ParseException e)
-	{
-		Token t = getToken(1);
-		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
-	}
-}
-
-void inicio_plataforma():
-{}
-{
-	try
-	{
-		<menor> <PLATFORM_DESCRIPTION> <VERSION> <igual> <aspas> inteiro() <aspas> <maior>
+                <menor> <PLATFORM_DESCRIPTION> <VERSION> <igual> <aspas> inteiro() <aspas> <maior> |
+                <PLATFORM_DESCRIPTION> <VERSION> <igual> <aspas> inteiro() <aspas> <maior>
+                )
 	}
 	catch(ParseException e)
 	{
