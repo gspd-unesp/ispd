@@ -7,11 +7,11 @@ being stabled it should be available into branch `main`.
 Branches layout:
 
 ```
-       main ------------------------
-                       /         /
-development ---------------------
-                   /       \  /
-    merge/* -------    bug  --
+       main ---------------------------------------
+                       /         /             /
+development -----------------------------------
+                   /       \  /          \  /
+    merge/* -------    bug  --    test/*  --
                /
      code/* ---
 ```
