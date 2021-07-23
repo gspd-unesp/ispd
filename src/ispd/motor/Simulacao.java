@@ -158,7 +158,8 @@ public abstract class Simulacao {
     public void Verificacao(){
         for (CS_Processamento mst : redeDeFilasCloud.getMestres()){
             CS_VMM mestre = (CS_VMM) mst;
-            System.out.println("Verificação de falhas " + mst.getId() + " Iniciando inserção de falhas " + mestre.getEscalonador().toString());
+            System.out.println("Verificação de falhas " + mst.getId() + " Iniciando inserção de falhas " 
+                    + mestre.getEscalonador().toString());
             mestre.getEscalonador().iniciar();
             mestre.instanciarCaminhosVMs();
             
