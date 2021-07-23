@@ -21,6 +21,7 @@ import ispd.motor.*;
  *
  * @author Camila
  */
+
 public class JSelecionarFalhas extends javax.swing.JFrame {
 
 public int OmissaoHardware;
@@ -34,8 +35,13 @@ public void setOH(int OH) { this.OH = OH; }
 //}//public class JSelecionarFalhas extends javax.swing.JFrame {
 */
 
-public int getOmissaoHardware() { return OmissaoHardware; }
-public void setOmissaoHardware(int OmissaoHardware) { this.OmissaoHardware = OmissaoHardware; }
+public int getOmissaoHardware() { 
+    return OmissaoHardware; 
+}
+
+public void setOmissaoHardware(int OmissaoHardware) { 
+    this.OmissaoHardware = OmissaoHardware; 
+}
 
     /**
      * Creates new form JSelecionarFalhas
@@ -341,6 +347,12 @@ public void setOmissaoHardware(int OmissaoHardware) { this.OmissaoHardware = Omi
       if (ckbOmissao.isSelected()){
            cbkOmissaoHardware.setEnabled(true);
            cbkOmissaoSoftware.setEnabled(true);
+           JOptionPane.showMessageDialog (null, "Omission Faults.");
+           
+      }else {
+           JOptionPane.showMessageDialog (null, "Omission faults not selected.");
+      
+      }
          /* if(cbkOmissaoHardware.isSelected()){
               TrueOmissaoHardware =1;
            }
@@ -350,7 +362,7 @@ public void setOmissaoHardware(int OmissaoHardware) { this.OmissaoHardware = Omi
       } else
           
         JOptionPane.showMessageDialog (null, "Failure not selected");*/
-      }// if (ckbOmissao.isSelected()){
+      // if (ckbOmissao.isSelected()){
     }//GEN-LAST:event_ckbOmissaoActionPerformed
 
     private void cbxPrecoceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxPrecoceActionPerformed
@@ -374,7 +386,7 @@ public void setOmissaoHardware(int OmissaoHardware) { this.OmissaoHardware = Omi
             
         } else {
             OmissaoHardware=0;
-    }
+        }
         
         this.dispose();
        // gui.setVisible(true);
@@ -384,10 +396,10 @@ public void setOmissaoHardware(int OmissaoHardware) { this.OmissaoHardware = Omi
         if (cbxFalhaResposta.isSelected()){
         cbxValores.setEnabled(true);
         cbxEstado.setEnabled(true);
-        JOptionPane.showMessageDialog (null, "Development failure");
+        JOptionPane.showMessageDialog (null, "Response faults.");
         }
         else
-        JOptionPane.showMessageDialog (null, "Failure not selected");
+        JOptionPane.showMessageDialog (null, "Not response faults.");
     }//GEN-LAST:event_cbxFalhaRespostaActionPerformed
 
     private void cbxInteracaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxInteracaoActionPerformed
@@ -416,10 +428,11 @@ public void setOmissaoHardware(int OmissaoHardware) { this.OmissaoHardware = Omi
         if (cbxDiversas.isSelected()){
         cbxPrecoce.setEnabled(true);
         cbxTardia.setEnabled(true);
-        JOptionPane.showMessageDialog (null, "Development failure");
+        JOptionPane.showMessageDialog (null, "Development failure.");
         }
-        else
-        JOptionPane.showMessageDialog (null, "Failure not selected");
+        else{
+           JOptionPane.showMessageDialog (null, "Failure not selected");
+        }
     }//GEN-LAST:event_cbxTempoRespostaActionPerformed
 
     private void cbxSoftwareActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxSoftwareActionPerformed
@@ -427,10 +440,11 @@ public void setOmissaoHardware(int OmissaoHardware) { this.OmissaoHardware = Omi
         cbxTransiente.setEnabled(true);
         JOptionPane.showMessageDialog (null, "Development failure");
     }
-        else
-        JOptionPane.showMessageDialog (null, "Failure not selected");
+      else{
+        JOptionPane.showMessageDialog (null, "Failure not selected.");   
     }//GEN-LAST:event_cbxSoftwareActionPerformed
-
+    }
+    
     private void cbkOmissaoHardwareActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbkOmissaoHardwareActionPerformed
     //Verifica qual se a falha de omissão de hardware foi selecionada
     if (cbkOmissaoHardware != null){

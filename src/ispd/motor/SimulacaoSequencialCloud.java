@@ -33,6 +33,7 @@ import ispd.motor.filas.servidores.CS_Comunicacao;
 import static ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud.DESLIGADO;
 import ispd.motor.falhas.FIHardware;
 import ispd.motor.metricas.MetricasAlocacao;
+import ispd.motor.metricas.MetricasGlobais;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Random;
@@ -93,10 +94,11 @@ public class SimulacaoSequencialCloud extends Simulacao {
         //By Camila
         /*Injetando as falhas:
         verifica qual checkbox foi clicado quando escolheu a falha e executa*/
-        //Injetar falhar de Omissão de Hardware: delisgar uma máquina física
+        //Injetar falhar de Omissão de Hardware: desligar uma máquina física
         JSelecionarFalhas selecionarFalhas = new JSelecionarFalhas();
         
-       if (selecionarFalhas!=null){
+        
+       if (selecionarFalhas.isActive()){
         //-----------Injeção da Falha de Omissão de Hardware --------   
             if (selecionarFalhas.cbkOmissaoHardware != null){
                 janela.println("There are injected hardware omission failures.");
@@ -105,11 +107,11 @@ public class SimulacaoSequencialCloud extends Simulacao {
                 FIHardware fihardware = new FIHardware();
                 fihardware.FIHardware1(janela, redeDeFilas, tarefas);
         }         
-        else
+        else{
             janela.println("There aren't injected hardware omission failures.");
-        
+        }
         //-----------Injeção da  Falha de Omissão de Software --------   
-            if (selecionarFalhas.cbkOmissaoSoftware!= null){
+            if (selecionarFalhas.cbkOmissaoSoftware != null){
                 janela.println("There are injected software omission failures.");
                 janela.println("Creating software fault.");
                 janela.println("Software failure created.");
@@ -117,9 +119,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
                 FISoftware fisoftdware = new FISoftware();
                 fisoftdware.FISfotware1(janela, redeDeFilas, tarefas);
         }//if (selecionarFalhas.cbkOmissaoSoftware.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected software omission failures.");
-       
+            }
        //-----------Injeção da  Falha de Negação de serviço --------   
             if (selecionarFalhas.cbxNegacaoService!= null){
                 janela.println("There are injected denial of service failures.");
@@ -129,9 +131,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
                 FIDenialService negacaoServico = new FIDenialService();
                 
         }//if (selecionarFalhas.cbxNegacaoService.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected denial of service failures.");
-       
+        }
         //-----------Injeção da  Falha de HD Cheio --------   
         if (selecionarFalhas.cbxHDCheio!= null){
             janela.println("There are injected Full HD failures.");
@@ -141,20 +143,34 @@ public class SimulacaoSequencialCloud extends Simulacao {
             FIFullHD HDCheio = new FIFullHD();
                 
         }//if (selecionarFalhas.cbkHDCheio.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected Full HD failures.");
-       
+        }
+        
+         //-----------Injeção da  Falha de Valores -------- 
+        if (selecionarFalhas.cbxValores != null){
+            janela.println("There are injected Values failures.");
+            janela.println("Creating value fault.");
+            //ir para ispd.motor.falhas.FValue.java
+            MetricasGlobais global = new MetricasGlobais();
+            FIValue value = new FIValue();
+            value.FIValue1(janela, redeDeFilas, global);
+        }//if (selecionarFalhas.cbx.isSelected()){        
+        else{
+            janela.println("There aren't injected Value failures.");
+        }
+        
         //-----------Injeção da  Falha de Estado --------   
-        if (selecionarFalhas.cbxEstado!= null){
+        if (selecionarFalhas.cbxEstado != null){
             janela.println("There are injected State failures.");
             janela.println("Creating state fault.");
-            janela.println("Development fault.");
             //ir para ispd.motor.falhas.FState.java
             FState state = new FState();
+            state.FIState1(janela, redeDeFilas);
         }//if (selecionarFalhas.cbxEstado.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected State failures.");
-       
+        }
         //-----------Injeção da  Falha de Sobrecarga de Tempo --------   
         if (selecionarFalhas.cbxSobrecargaTempo!= null){
             janela.println("There are injected time overload failures.");
@@ -164,9 +180,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
             FIOverload overload = new FIOverload();
             
         }//if (selecionarFalhas.cbxSobrecargaTempo.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected time overload failures.");
-       
+        }
         //-----------Injeção da  Falha de Interdependencia --------   
         if (selecionarFalhas.cbxInterdependencia!= null){
             janela.println("There are injected interdependencies failures.");
@@ -176,9 +192,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
             FIInterdependencie fiInterdependencia = new FIInterdependencie();
                 
         }//if (selecionarFalhas.cbkOmissaoSoftware.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected interdependencies failures.");
-            
+        }    
         //-----------Injeção da  Falha de Incompatibilidade --------   
         if (selecionarFalhas.cbxIncompatibilidade!= null){
             janela.println("There are injected Incompatibility failures.");
@@ -187,9 +203,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
             FIIncompatibility fiIncompatibility = new FIIncompatibility();
                 
         }//if (selecionarFalhas.cbxIncompatibilidade.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected Incompatibility failures.");
-            
+        }
             //-----------Injeção de Falhas Pemanentes --------   
             if (selecionarFalhas.cbxFPermanentes!= null){
                 janela.println("There are injected permanents failures.");
@@ -199,9 +215,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
                 FIPermanent fiPermanent = new FIPermanent();
                 
         }//if (selecionarFalhas.cbxFPermanentes.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected permanents failures.");
-            
+        }
         //-----------Injeção da  Falha de Desenho incorreto --------   
         if (selecionarFalhas.cbxDesenhoIncorreto!= null){
             janela.println("There are injected bad design failures.");
@@ -211,9 +227,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
             FIBadDesign fibadesign = new FIBadDesign();
                 
         }//if (selecionarFalhas.cbxDesenhoIncorreto.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected bad design failures.");
-       
+        }
         //-----------Injeção da  Falha Precosse --------   
             if (selecionarFalhas.cbxPrecoce!= null){
                 janela.println("There are injected early failures.");
@@ -223,9 +239,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
                 FIEarly fiearly = new FIEarly();
                 
         }//if (selecionarFalhas.cbxPrecoce.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected early failures.");
-
+        }
 //-----------Injeção da  Falha de Tardia --------   
             if (selecionarFalhas.cbxTardia!= null){
                 janela.println("There are injected late failures.");
@@ -235,9 +251,10 @@ public class SimulacaoSequencialCloud extends Simulacao {
                 FILate fiTardia = new FILate();
                 
         }//if (selecionarFalhas.cbxTardia.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected late failures.");
-       
+        }
+            
         //-----------Injeção da  Falha Transiente --------   
         if (selecionarFalhas.cbxTransiente!= null){
             janela.println("There are injected transient failures.");
@@ -247,9 +264,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
             FITransient fitransient = new FITransient();
                 
         }//if (selecionarFalhas.cbkOmissaoSoftware.isSelected()){        
-        else
+        else{
             janela.println("There aren't injected transient failures.");
-      
+        }
        }//if (selecionarFalhas!=null)
        else 
             janela.println("There aren't selected faults.");

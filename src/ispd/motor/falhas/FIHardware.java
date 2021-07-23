@@ -86,10 +86,10 @@ public class FIHardware {
             //Se a redeDeFilas for diferente de nulo, então
             else if(redeDeFilas.getVMs()!=null){
                 System.out.println("---------------------------------------");
-                System.out.println("Rede de filas das PMs não é nula na classe SimulacaoSequencialCloud.java");
+                System.out.println("Rede de filas das VMs não é nula na classe SimulacaoSequencialCloud.java");
                 System.out.println("Listagem da rede de filas: ");
                 System.out.println("Rede de Filas: " +redeDeFilas);
-                System.out.println("Rede de Filas get PMs: " +redeDeFilas.getVMs());
+                System.out.println("Rede de Filas get VMs: " +redeDeFilas.getVMs());
                 System.out.println("Há máquinas alocadas no redeDeFilas");
                 System.out.println("Rede de Filas Cloud get PMs: " +redeDeFilas.getVMs());
                 System.out.println("Rede de Filas Cloud: getMaquinasCloud: "+redeDeFilas.getMaquinasCloud());
@@ -108,7 +108,7 @@ public class FIHardware {
                 //escreva o vetor redeDeFilas com a posição [draw} com status == DESLIGADO
                 for(int i=0; i<=NovoRedeDeFilas; i++){
                     System.out.println("Novo Rede de Filas: "+NovoRedeDeFilas);
-                    System.out.println("Novo Rede de Filas Cloud get PMs: " +redeDeFilas.getVMs());
+                    System.out.println("Novo Rede de Filas Cloud get VMs: " +redeDeFilas.getVMs());
                     System.out.println("Novo Rede de Filas Cloud: getMaquinasCloud: "+redeDeFilas.getMaquinasCloud());
                 }
                 //Refazer o escalonamento: Técnica: Regate do Workflow??? ou Redistribuição das tarefas??
