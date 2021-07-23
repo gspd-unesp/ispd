@@ -87,15 +87,15 @@ public class HardwareFaults {
            JOptionPane.showMessageDialog(null, "Falha de Omissão de hardware selecionada.");
            JOptionPane.showMessageDialog(null, "Mapeando máquinas da simulação");
            //acessar simulação
-             /*    Então mapear a quantidade de hardwares existentes 
+                 Então mapear a quantidade de hardwares existentes 
              (qtd_maquinas): classe CS_VMM
             sortear um deles (random) e desabilitar um deles
             simulando assim uma falha de hardware por sorteio
-            fonte:     */
-            //CS_VMM maquinasSimuladas = new CS_VMM(id, proprietario, X, X, X, X, Escalonador, Alocador);
+            fonte:     
+            CS_VMM maquinasSimuladas = new CS_VMM(id, proprietario, X, X, X, X, Escalonador, Alocador);
             
             //Acessar ArrayList já existente para mapear a quantidade de hardwares existentes
-             /*
+             
             CS_VMM maquinasVirtuais = new CS_VMM(id, proprietario, X, X, X, X, Escalonador, Alocador);
             
             
@@ -105,7 +105,7 @@ public class HardwareFaults {
             for (int i = 1; i <= maquinasSimuladas.size(); i++){
                 maquinasSimuladas.add(i); // Inicializa o arraylist com as
 
-            //Collections.shuffle(maquinasSimuladas); //Embaralha o ArrayList
+            Collections.shuffle(maquinasSimuladas); //Embaralha o ArrayList
 
             //Imprime a posição do ArryList = mS= máquina Simulada
             //(da máquina virutal a ser desligada)
@@ -138,7 +138,7 @@ public class HardwareFaults {
         else{
             JOptionPane.showMessageDialog(null, "Outra falha selecionada");
             }
-     */   
+        
         
       //  }//if (X==1)
         
@@ -147,4 +147,5 @@ public class HardwareFaults {
 
     
     
-//}
+}
+*/
