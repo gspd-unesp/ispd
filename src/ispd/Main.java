@@ -41,73 +41,124 @@ package ispd;
 
 import ispd.gui.JPrincipal;
 import ispd.gui.LogExceptions;
-import ispd.gui.SplashWindow;
+
+import javax.swing.*;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ImageIcon;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+
+import static ispd.gui.SplashWindowBuilder.visibleDefaultSplashWindow;
 
 /**
  * Classe de inicialização do iSPD. Indetifica se deve executar comando a partir
- * do termila ou carrega interface gráfica
+ * do terminal ou carrega interface gráfica
  *
  * @author denison
  */
-public class Main {
+public class Main
+{
+    private static final Locale enUsLocale = new Locale("en", "US");
+    private static final String guiLookAndFeelClassName = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
+    private static final String errorFile = "Erros/Erros_Simulador";
+    private static final String outputFile = "Erros/Saida_Simulador";
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        Locale.setDefault(new Locale("en", "US"));
-        if (args.length > 0) {
-            Terminal tel = new Terminal(args);
-            tel.executar();
-            System.exit(0);
-        } else {
-            ImageIcon image = new ImageIcon(Main.class.getResource("gui/imagens/Splash.gif"));
-            SplashWindow window = new SplashWindow(image);
-            window.setText("Copyright (c) 2010 - 2014 GSPD.  All rights reserved.");
-            window.setVisible(true);
-            //Exibir e armazenar erros durante execução:
-            LogExceptions logExceptions = new LogExceptions(null);
-            Thread.setDefaultUncaughtExceptionHandler(logExceptions);
-            // cria os novos fluxos de saida para arquivo
-            FileOutputStream fosErr = null;
-            FileOutputStream fosOut = null;
-            try {
-                fosErr = new FileOutputStream("Erros/Erros_Simulador");
-                fosOut = new FileOutputStream("Erros/Saida_Simulador");
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            // define a impresso sobre os fluxos acima
-            PrintStream psErr = new PrintStream(fosErr);
-            PrintStream psOut = new PrintStream(fosOut);
-            // redefine os fluxos na classe System
-            //System.setErr(psErr);
-            //System.setOut(psOut);
-            try {
-                UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InstantiationException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (UnsupportedLookAndFeelException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            JPrincipal gui = new JPrincipal();
-            gui.setLocationRelativeTo(null);
-            logExceptions.setParentComponent(gui);
-            window.dispose();
-            gui.setVisible(true);
+    public static void main (String[] args)
+    {
+        setDefaultLocale();
+
+        if (args.length > 0)
+        {
+            runCli(args);
+            return;
         }
+
+        runGui();
+    }
+
+    private static void setDefaultLocale ()
+    {
+        Locale.setDefault(enUsLocale);
+    }
+
+    private static void runCli (String[] args)
+    {
+        new Terminal(args).executar();
+        System.exit(0);
+    }
+
+    private static void runGui ()
+    {
+        var splashWindow = visibleDefaultSplashWindow();
+
+        JPrincipal mainWindow = prepareMainWindow();
+
+        splashWindow.dispose();
+
+        mainWindow.setVisible(true);
+    }
+
+    private static JPrincipal prepareMainWindow ()
+    {
+        LogExceptions exceptionLogger = new LogExceptions(null);
+        Thread.setDefaultUncaughtExceptionHandler(exceptionLogger);
+
+        setErrorAndOutputStreams();
+        setGuiLookAndFeel();
+
+        JPrincipal mainWindow = buildMainWindow();
+
+        // TODO: Study if exceptionLogger can be instantiated after creating the main window
+        exceptionLogger.setParentComponent(mainWindow);
+
+        return mainWindow;
+    }
+
+    private static void setErrorAndOutputStreams ()
+    {
+        FileOutputStream fosErr = null;
+        FileOutputStream fosOut = null;
+        try
+        {
+            fosErr = new FileOutputStream(errorFile);
+            fosOut = new FileOutputStream(outputFile);
+        } catch (FileNotFoundException ex)
+        {
+            logWithMainLogger(ex);
+        }
+        // define a impresso sobre os fluxos acima
+        PrintStream psErr = new PrintStream(fosErr);
+        PrintStream psOut = new PrintStream(fosOut);
+        // redefine os fluxos na classe System
+//        System.setErr(psErr);
+//        System.setOut(psOut);
+    }
+
+    private static void setGuiLookAndFeel ()
+    {
+        try
+        {
+            UIManager.setLookAndFeel(guiLookAndFeelClassName);
+        } catch (ClassNotFoundException | IllegalAccessException |
+                 InstantiationException | UnsupportedLookAndFeelException ex)
+        {
+            logWithMainLogger(ex);
+        }
+    }
+
+    private static void logWithMainLogger (Exception ex)
+    {
+        // TODO: Perhaps message instead of 'null'?
+        Logger.getLogger(Main.class.getName())
+                .log(Level.SEVERE, null, ex);
+    }
+
+    private static JPrincipal buildMainWindow ()
+    {
+        JPrincipal gui = new JPrincipal();
+        gui.setLocationRelativeTo(null);
+        return gui;
     }
 }
