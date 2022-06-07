@@ -1,0 +1,88 @@
+<!--
+ ==========================================================
+ iSPD : iconic Simulator of Parallel and Distributed System
+ ==========================================================
+ 
+ (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ 
+ Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ 
+ ===============
+ iSPD.dtd
+ ===============
+ (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ 
+ Original Author:  Denison Menezes (for GSPD);
+ Contributor(s):   -;
+ 
+ Changes
+ ===============
+ =============== iSPD 1.3 =============================================
+ 01-Jul-2014 : Add DAG tasks
+ 09-Set-2014 : Version 2.0;
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- TODO define your own vocabulary/syntax. Example follows:  -->
+<!ELEMENT system (trace|dag_task+)>
+
+<!ELEMENT trace (format,task+)>
+<!ELEMENT format EMPTY>
+<!ATTLIST format kind CDATA "iSPD" >
+
+<!ELEMENT task EMPTY>
+<!ATTLIST task id CDATA "task1">
+<!ATTLIST task arr CDATA "0.0">
+<!-- The deﬁned states are the same used by SWF and GWF
+        0 : job crash
+        1 : job successful conclusion
+        2 : job preemption
+        3 : conclusion of preempted job
+        4 : crash of preempted job
+        5 : job canceled
+-->
+<!ATTLIST task sts CDATA "1">
+<!ATTLIST task cpsz CDATA "-1">
+<!ATTLIST task cmsz CDATA "-1">
+<!ATTLIST task usr CDATA "user1">
+
+<!ELEMENT dag_task (dag_character,thread)>
+<!ATTLIST dag_task id ID #REQUIRED>
+
+<!-- character: wait | communication_size | computing | release -->
+<!ELEMENT dag_character (element_id*,send,processing,send*)>
+
+<!ELEMENT thread (processing|send|receive|loop|thread)*>
+
+<!ELEMENT loop (processing|send|receive|loop|thread)*>
+<!ATTLIST loop iteration CDATA "2">
+
+<!ELEMENT processing EMPTY>
+<!ATTLIST processing size_min CDATA #REQUIRED>
+<!ATTLIST processing size_max CDATA #REQUIRED>
+
+<!-- send: task -->
+<!ELEMENT send (element_id)>
+<!ATTLIST send port CDATA #REQUIRED>
+<!ATTLIST send size_min CDATA #REQUIRED>
+<!ATTLIST send size_max CDATA #REQUIRED>
+
+<!ELEMENT receive EMPTY>
+<!ATTLIST receive port CDATA #REQUIRED>
+
+<!ELEMENT element_id EMPTY>
+<!ATTLIST element_id id IDREF #REQUIRED>

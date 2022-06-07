@@ -1,0 +1,1226 @@
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * ---------------
+ * simgrid.jj
+ * ---------------
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Victor Aoqui;
+ * Contributor(s):   -;
+ *
+ * Changes
+ * -------
+ * 10-10-2010  : Version 1.0;
+ * 17-09-2013  : Resolvendo ordem dos atributos; Author: Denison;
+ * 09-Set-2014 : Version 2.0;
+ * 16-Set-2014 : Reconhecendo arquivos sem tag com versão do xml
+ *
+ */
+
+PARSER_BEGIN(SimGrid)
+/* ==========================================================
+ * iSPD : iconic Simulator of Parallel and Distributed System
+ * ==========================================================
+ *
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Project Info:  http://gspd.dcce.ibilce.unesp.br/
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * Other names may be trademarks of their respective owners.]
+ *
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ *
+ * Original Author:  Victor Aoqui;
+ *
+ */	
+package ispd.arquivo.interpretador.simgrid;
+
+import ispd.arquivo.xml.IconicoXML;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Formatter;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import javax.swing.JOptionPane;
+
+	public class SimGrid
+	{
+		private Formatter file;
+		private static int net;
+		private String arg;
+		private static SimGrid parser;
+		private static List<Server> servers = new ArrayList<Server>();
+		private static List<Master> masters = new ArrayList<Master>();
+		private static List<Network> networks = new ArrayList<Network>();
+		private static List<Route> routes = new ArrayList<Route>();
+		private static int contaErrosSint = 0;
+		private static int contaErrosSem = 0;
+		private static String errosSint = "Erros sintáticos:\n";
+		private static String errosSem = "Erros semânticos:\n";
+		private String erros = "";
+		
+		private static class Server
+		{
+			private String id;
+			private String power;
+			
+			public Server()
+			{
+				id = "";
+				power = "0.0";
+			}
+
+			public void setID(String id)
+			{
+				this.id = id;
+			}
+			
+			public void setPower(String power)
+			{
+				this.power = power;
+			}
+	 
+			public String getID()
+			{
+				return id;
+			}
+			
+			public String getPower()
+			{
+				return power;
+			}
+		}
+		
+		private static class Master extends Server
+		{
+			private String numtarefas;
+			private String maxcomp;
+			private String mincomp;
+			private String maxcomm;
+			private String mincomm;
+			private List<String> slaves;
+
+			public Master()
+			{
+				numtarefas = "0";
+				maxcomp = "0.0";
+				mincomp = "0.0";
+				maxcomm = "0.0";
+				mincomm = "0.0";
+				slaves = new ArrayList<String>();
+			}
+			
+			public void setSlaves(List<String> slaves)
+			{
+				this.slaves = slaves;
+			}
+
+			public void setCarga(String numtarefas, String maxcomp, String mincomp, String maxcomm, String mincomm)
+			{
+				this.numtarefas = numtarefas;
+				this.maxcomp = maxcomp;
+				this.mincomp = mincomp;
+				this.maxcomm = maxcomm;
+				this.mincomm = mincomm;
+			}
+
+			public void setCarga(String numtarefas, String maxcomp, String maxcomm)
+			{
+				this.numtarefas = numtarefas;
+				this.maxcomp = maxcomp;
+				this.maxcomm = maxcomm;
+			}
+
+			public List<String> getEscravos()
+			{
+				return slaves;
+			}
+
+			public String getNumtarefas()
+			{
+				return numtarefas;
+			}
+
+			public String getMaxcomp()
+			{
+				return maxcomp;
+			}
+
+			public String getMincomp()
+			{
+				return mincomp;
+			}
+
+			public String getMaxcomm()
+			{
+				return maxcomm;
+			}
+
+			public String getMincomm()
+			{
+				return mincomm;
+			}
+		}
+
+		private static class Network
+		{
+			private String id;
+			private String band;
+			private String latency;
+			
+			public Network()
+			{
+				id = "";
+				band = "0.0";
+				latency = "0.0";
+			}
+			
+			public void setAtributos(String id, String band, String latency)
+			{
+				this.id = id;
+				this.band = band;
+				this.latency = latency;
+			}
+
+			public String getID()
+			{
+				return id;
+			}
+
+			public String getBand()
+			{
+				return band;
+			}
+			
+			public String getLatency()
+			{
+				return latency;
+			}
+		}
+
+		private static class Route extends Network
+		{
+			private int net;
+			private String src;
+			private String dst;
+                        private boolean internet;
+
+                        public Route() {
+                            net = 0;
+                            src = "";
+                            dst = "";
+                            internet = false;
+                        }
+
+                        public boolean isInternet() {
+                            return internet;
+                        }
+
+                        public void setInternet(boolean internet) {
+                            this.internet = internet;
+                        }
+
+			public void setRoute(int net, String src, String dst)
+			{
+				this.net = net;
+				this.src = src;
+				this.dst = dst;
+			}
+
+			public int getNet()
+			{
+				return net;
+			}
+			
+			public String getSrc()
+			{
+				return src;
+			}
+			
+			public String getDst()
+			{
+				return dst;
+			}
+		}
+		
+		public static SimGrid getInstance(FileInputStream file)
+		{
+			if(parser == null)
+				parser = new SimGrid(file);
+			return parser;
+		}
+		
+		public void closeFile()
+		{
+			if(file!=null)
+				file.close();
+		}
+		
+		public boolean resultadoParser()
+		{			
+			if(token_source.contaErrosLex() > 0 || contaErrosSint() > 0 || contaErrosSem() > 0)
+			{
+				addErro("Foram encontrados "+String.valueOf(token_source.contaErrosLex())+" erros léxicos.");
+				addErro("Foram encontrados "+String.valueOf(contaErrosSint())+" erros sintáticos.");
+				addErro("Foram encontrados "+String.valueOf(contaErrosSem())+" erros semânticos.");
+				if(token_source.contaErrosLex() > 0)
+					addErro(token_source.getErrosLex());
+				if(contaErrosSint() > 0)
+					addErro(getErrosSint());
+				if(contaErrosSem() > 0)
+					addErro(getErrosSem());
+				JOptionPane.showMessageDialog(null, getErros(),"Erro!", JOptionPane.ERROR_MESSAGE);
+			}
+			else
+			{
+				JOptionPane.showOptionDialog(null,"Modelo SimGrid reconhecido com sucesso.", "Modelo SimGrid reconhecido", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+				return false;
+			}
+			return true;
+		}
+		
+		public void writefile() throws ParseException, TokenMgrError, IOException
+		{
+			List<String> escravos;
+			try
+			{
+				File arquivo = new File("modeloiconico");
+				file = new Formatter(arquivo);
+
+				for(Master m:masters)
+				{
+					escravos = m.getEscravos();
+					file.format("MAQ %s %s 0.0 MESTRE RoundRobin LMAQ", m.getID(), m.getPower());
+					for(String e:escravos)
+						file.format(" %s", e);
+					file.format("\n");
+				}
+			
+				for(Server s:servers)
+					file.format("MAQ %s %s 0.0 ESCRAVO\n", s.getID(), s.getPower());
+				
+				for(Route r:routes)
+                                    if(r.isInternet())
+                                        file.format("INET %s %s %s 0.0\u005cn", r.getID(), r.getBand(), r.getLatency());
+                                
+                                for(Route r:routes)
+                                    if(!r.isInternet())
+                                        file.format("REDE %sT%d %s %s 0.0 CONECTA %s %s\u005cn", r.getID(), r.getNet(), r.getBand(), r.getLatency(), r.getSrc(), r.getDst());
+
+                                for(Master m:masters)
+					file.format("CARGA MAQUINA %s %s %s %s %s %s", m.getID(), m.getNumtarefas(), m.getMaxcomp(), m.getMincomp(), m.getMaxcomm(), m.getMincomm());
+				
+				closeFile();
+				//JOptionPane.showMessageDialog(null,"File successfully opened\n"+arquivo.getAbsolutePath(),"Completed",JOptionPane.INFORMATION_MESSAGE);
+			}
+			catch(Exception e)
+			{
+				JOptionPane.showMessageDialog(null,e.getMessage(),"Error",JOptionPane.WARNING_MESSAGE);
+			}
+		}
+
+                public IconicoXML getModelo() {
+                    IconicoXML xml = new IconicoXML();
+                    ArrayList usuarios = new ArrayList();
+                    usuarios.add("user1");
+                    xml.addUsers(usuarios);
+                    int x = 100, y = 100, local = 0, global = 0;
+                    HashMap<String, Integer> maq = new HashMap<String, Integer>();
+                    for (Server s : servers) {
+                        maq.put(s.getID(), global);
+                        xml.addMachine(
+                                x, y, local, global, s.getID(),
+                                Double.valueOf(s.getPower()), 0.0,
+                                "---", "user1",
+                                1, 0.0, 0.0,
+                                false, null);
+                        local++;
+                        global++;
+                    }
+                    for (Route r : routes) {
+                        if (r.isInternet()) {
+                            maq.put(r.getID(), global);
+                            xml.addInternet(x, y, local, global, r.getID(),
+                                    Double.valueOf(r.getBand()), 0, Double.valueOf(r.getLatency()));
+                            local++;
+                            global++;
+                        }
+                    }
+                    for (Master m : masters) {
+                        maq.put(m.getID(), global);
+                        local++;
+                        global++;
+                    }
+                    for (Master m : masters) {
+                        List<Integer> slv = new ArrayList<Integer>();
+                        for (String escravo : m.getEscravos()) {
+                            slv.add(maq.get(escravo));
+                        }
+                        xml.addMachine(
+                                x, y, maq.get(m.getID()), maq.get(m.getID()), m.getID(),
+                                (double) Double.valueOf(m.getPower()), 0.0, "RoundRobin",
+                                "user1", 1, 0.0, 0.0, true, slv);
+                    }
+                    for (Route r : routes) {
+                        if (!r.isInternet()) {
+                            xml.addLink(x, y, x, y, local, global, r.getID(),
+                                    Double.valueOf(r.getBand()), 0, Double.valueOf(r.getLatency()),
+                                    maq.get(r.getSrc()), maq.get(r.getDst()));
+                            local++;
+                            global++;
+                        }
+                    }
+                    for (Master m : masters) {
+                        xml.addLoadNo("app0", "user1", m.getID(), Integer.valueOf(m.getNumtarefas()),
+                                Double.valueOf(m.getMaxcomp()), Double.valueOf(m.getMincomp()),
+                                Double.valueOf(m.getMaxcomm()), Double.valueOf(m.getMincomm()));
+                    }
+                    return xml;
+                }
+		
+		
+		public int contaErrosSint()
+		{
+			return contaErrosSint;
+		}
+		
+		public int contaErrosSem()
+		{
+			return contaErrosSem;
+		}
+		
+		public void addErro(String msg)
+		{
+			erros = erros + msg + "\n";
+		}
+
+		public static void addErroSint(String msg)
+		{
+			errosSint = errosSint + "\n" + msg;
+			contaErrosSint++;
+		}
+		
+		public static void addErroSem(String msg)
+		{
+			errosSem = errosSem + "\n" + msg;
+			contaErrosSem++;
+		}
+		
+		public String getErros()
+		{
+			return erros;
+		}
+		
+		public String getErrosSint()
+		{
+			return errosSint+"\n";
+		}
+		
+		public String getErrosSem()
+		{
+			return errosSem+"\n";
+		}
+		
+		public void reset()
+		{
+			file = null;
+			net = 0;
+			arg = "";
+			contaErrosSint = 0;
+			contaErrosSem = 0;
+			errosSint = "\nErros sintáticos:\n";
+			errosSem = "\nErros semânticos:\n";
+			erros = "";
+			masters = new ArrayList<Master>();
+			servers = new ArrayList<Server>();
+			networks = new ArrayList<Network>();
+			routes = new ArrayList<Route>();
+			token_source.reset();
+		}
+	}
+PARSER_END(SimGrid)
+
+TOKEN_MGR_DECLS:
+{
+	private static int contaErrosLex = 0;
+	private static String errosLex = "\nErros léxicos:\n";
+	
+	public static int contaErrosLex()
+	{
+		return contaErrosLex;
+	}
+	
+	public static void addErroLex(String msg)
+	{
+		errosLex = errosLex + "\n" + msg;
+		contaErrosLex++;
+	}
+	
+	public static String getErrosLex()
+	{
+		return errosLex+"\n";
+	}
+	
+	public static void reset()
+	{
+		contaErrosLex = 0;
+		errosLex = "\nErros léxicos:\n";
+	}
+}
+
+TOKEN:
+{
+	< XML: "xml" > |
+	< CPU: "cpu" > |
+	< NAME: "name" > |
+	< BANDWIDTH: "bandwidth" > |
+	< LATENCY: "latency" > |
+	< ROUTE: "route" > |
+	< SRC: "src" > |
+	< DST: "dst" > |
+	< ROUTE_ELEMENT: "route_element"> |
+	< PROCESS: "process" > |
+	< NETWORK_LINK: "network_link" > |
+	< HOST: "host" > |
+	< FUNCTION: "function" > |
+	< ARGUMENT: "argument" > |
+	< VALUE: "value" > |
+	< POWER: "power" > |
+	< MASTER: "master" > |
+	< SLAVE: "slave" > |
+	< TASKSOURCE: "tasksource" > |
+	< SLAVECOMM: "slavecomm" > |
+	< RELOADHOST: "reloadhost" > |
+	< FORWARDERSCHEDULER: "forwarderscheduler" > |
+	< FORWARDERNODE: "forwardernode" > |
+	< FORWARDERCOMM: "forwardercomm" > |
+	< PLATFORM_DESCRIPTION: "platform_description" > |
+	< VERSION: "version" >
+}
+
+TOKEN: {< letra: (["A"-"Z","a"-"z"]) >}
+TOKEN: {< digito: (["0"-"9"]) >}
+TOKEN: {< ponto: "." >}
+TOKEN: {< barra: "/" >}
+TOKEN: {< exclamacao: "!" >}
+TOKEN: {< interrogacao: "?" >}
+TOKEN: {< menor: "<" >}
+TOKEN: {< maior: ">" >}
+TOKEN: {< igual: "=" >}
+TOKEN: {< apostrofo: "'" >}
+TOKEN: {< aspas: "\"" >}
+TOKEN: {< especiais: "-" | "_" | "." | "!" | "@" | "#" | "$" | "%" | "&" | "(" | ")" | "+" | "=" | "{" | "}" | "[" | "]" | "~" | "^" | ";" | "," | "|" | ":" | "/" >}
+
+SPECIAL_TOKEN:
+{
+	<invalido: (~["A"-"Z", "a"-"z", "0"-"9", "<", ">", "'", "\"", "!" , "@" , "#" , "$" , "%" , "&" , "(" , ")" , "-" , "_" , "+" , "=" , "{" , "}" , "[" , "]" , "~" , "^" , ";" , "." , "," , "|" , ":" , "\\" , "/", "\n" , " " , "\t" , "\b" , "\f" , "\r" ]) >
+	{
+		addErroLex(InterpretadorSimGrid.getFileName() + ": Erro na linha "+input_stream.getEndLine()+", coluna "+input_stream.getEndColumn()+". Caracter \""+image+"\" não é aceito.");
+	}
+}
+
+SKIP: { " " | "\t" | "\n" | "\r" | "\f" }
+SKIP:
+{
+  "<!": WithinComment
+}
+
+<WithinComment> SKIP:
+{
+  ">": DEFAULT
+  | <~[]>
+}
+
+String inteiro():
+{
+	String t = "";
+}
+{
+	try
+	{
+		(<digito> {t += token.image;})+ {return t;}
+	}
+	catch(ParseException e)
+	{
+		Token t1 = getToken(1);
+		addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+t1.endLine+", coluna "+t1.endColumn+". Valor atribuído inválido.");
+	}
+}
+
+String real():
+{
+	String t1, t2;
+}
+{
+	try
+	{
+		t1 = inteiro() <ponto> {t1 += token.image;} t2 = inteiro() {t1 += t2; return t1;}
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+t.endLine+", coluna "+t.endColumn+". Valor atribuído inválido.");
+	}
+}
+
+String num_tarefas():
+{
+	String t;
+}
+{
+	t = inteiro() {return t;}
+}
+
+String max_comp_tam_tarefa():
+{
+	String t;
+}
+{
+	LOOKAHEAD(real()) t = real() {return t;} | LOOKAHEAD(inteiro()) t = inteiro() {t += ".0"; return t;}
+}
+
+String min_comp_tam_tarefa():
+{
+	String t;
+}
+{
+	LOOKAHEAD(real()) t = real() {return t;} | LOOKAHEAD(inteiro()) t = inteiro() {t += ".0"; return t;}
+}
+
+String max_comm_tam_tarefa():
+{
+	String t;
+}
+{
+	LOOKAHEAD(real()) t = real() {return t;} | LOOKAHEAD(inteiro()) t = inteiro() {t += ".0"; return t;}
+}
+
+String min_comm_tam_tarefa():
+{
+	String t;
+}
+{
+	LOOKAHEAD(real()) t = real() {return t;} | LOOKAHEAD(inteiro()) t = inteiro() {t += ".0"; return t;}
+}
+
+String capacidade_processamento():
+{
+	String t;
+}
+{
+	LOOKAHEAD(real()) t = real() {return t;} | LOOKAHEAD(inteiro()) t = inteiro() {t += ".0"; return t;}
+}
+
+String largura_banda():
+{
+	String t;
+}
+{
+	LOOKAHEAD(real()) t = real() {return t;} | LOOKAHEAD(inteiro()) t = inteiro() {t += ".0"; return t;}
+}
+
+String latencia():
+{
+	String t;
+}
+{
+	LOOKAHEAD(real()) t = real() {return t;} | LOOKAHEAD(inteiro()) t = inteiro() {t += ".0"; return t;}
+}
+
+String identificador():
+{
+	String t = "";
+	Token t1;
+	boolean erro = false;
+}
+{
+	try
+	{
+		((<letra> {t1 = getToken(1); t += token.image;} | 
+		<digito> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<especiais> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<ponto> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<barra> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<exclamacao> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<interrogacao> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<menor> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<maior> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<igual> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<apostrofo> {t1 = getToken(1); t += token.image; erro = true;})
+		(<letra> {t1 = getToken(1); t += token.image;} | 
+		<digito> {t1 = getToken(1); t += token.image;} | 
+		<especiais> {t1 = getToken(1); t += token.image;} |
+		<ponto> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<barra> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<exclamacao> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<interrogacao> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<menor> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<maior> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<igual> {t1 = getToken(1); t += token.image; erro = true;} | 
+		<apostrofo> {t1 = getToken(1); t += token.image; erro = true;})*)
+		{
+			if(erro == true) 
+			{
+				token_source.addErroLex(InterpretadorSimGrid.getFileName() + ": Erro na linha "+t1.endLine+", coluna "+t1.endColumn+". Identificador " + t +" declarado incorretamente.");
+			}
+			return t;
+		}
+	}
+	catch(ParseException e)
+	{
+		Token t2 = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t2.endLine+", coluna "+t2.endColumn+".");
+	}
+}
+
+String servidor_ID():
+{
+	String t;
+}
+{
+	t = identificador() {return t;}
+}
+
+String rede_ID():
+{
+	String t;
+}
+{
+	t = identificador() {return t;}
+}
+
+void modelo():
+{}
+{
+        inicio_xml_plataforma() (LOOKAHEAD(2) application_file() | plataform_file()) fim_plataforma()
+}
+
+void application_file():
+{}
+{
+	(LOOKAHEAD(2) processos())+
+}
+
+void plataform_file():
+{}
+{
+	(LOOKAHEAD(2) plataforma())+
+}
+
+void plataforma():
+{}
+{
+	LOOKAHEAD(2) servidor() | LOOKAHEAD(2) rede() | LOOKAHEAD(2) roteamento()
+}
+
+void inicio_xml_plataforma():
+{}
+{
+	try
+	{
+		<menor> (
+                <interrogacao> 
+                    <XML> <VERSION> <igual> ( <apostrofo> | <aspas> ) real() ( <apostrofo> | <aspas> ) 
+                    ( (<letra>|<digito>|<especiais>)* <igual> <aspas> (<letra>|<digito>|<especiais>)* <aspas> )*
+                <interrogacao> <maior>
+                <menor> <PLATFORM_DESCRIPTION> <VERSION> <igual> <aspas> inteiro() <aspas> <maior> |
+                <PLATFORM_DESCRIPTION> <VERSION> <igual> <aspas> inteiro() <aspas> <maior>
+                )
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
+
+void fim_plataforma():
+{}
+{
+	try
+	{
+		<menor> <barra> <PLATFORM_DESCRIPTION> <maior>
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
+
+void processos():
+{}
+{
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <MASTER>) master() |
+        LOOKAHEAD(<menor> <PROCESS> <FUNCTION> <igual> <aspas> <MASTER>) master() |
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <SLAVE>) slave() |
+        LOOKAHEAD(<menor> <PROCESS> <FUNCTION> <igual> <aspas> <SLAVE>) slave() |
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> (<TASKSOURCE> | <SLAVECOMM> | <RELOADHOST> | < FORWARDERSCHEDULER> | <FORWARDERNODE> | <FORWARDERCOMM>)) outros()
+}
+
+void master():
+{
+	String t1, t2, t3, t4, t5, t6, t7;
+	Master m = new Master();
+	boolean found = false;
+	List<String> slaves = new ArrayList<String>();
+}
+{
+	try
+	{
+		<menor> <PROCESS> 
+                    ( ( <HOST> <igual> <aspas> t1 = servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <MASTER> <aspas> ) |
+                    ( <FUNCTION> <igual> <aspas> <MASTER> <aspas> <HOST> <igual> <aspas> t1 = servidor_ID() <aspas> ) )
+                <maior>
+		
+		{
+			Token t = getToken(1);
+			for(Master testem:masters)
+				if(t1.equals(testem.getID()))
+				{
+					addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+t.endLine+", coluna "+t.endColumn+". Servidor \""+t1+"\" já foi declarado.");
+					found = true;
+				}
+		}
+		
+		<menor> <ARGUMENT> <VALUE> <igual> <aspas> t2 = num_tarefas() <aspas> <barra> <maior>
+		(LOOKAHEAD(<menor> <ARGUMENT> <VALUE> <igual> <aspas> max_comp_tam_tarefa() <aspas> <barra> <maior>
+		<menor> <ARGUMENT> <VALUE> <igual> <aspas> min_comp_tam_tarefa() <aspas> <barra> <maior>
+		<menor> <ARGUMENT> <VALUE> <igual> <aspas> max_comm_tam_tarefa() <aspas> <barra> <maior>
+		<menor> <ARGUMENT> <VALUE> <igual> <aspas> min_comm_tam_tarefa() <aspas> <barra> <maior>)
+		(<menor> <ARGUMENT> <VALUE> <igual> <aspas> t3 = max_comp_tam_tarefa() <aspas> <barra> <maior>
+		<menor> <ARGUMENT> <VALUE> <igual> <aspas> t4 = min_comp_tam_tarefa() <aspas> <barra> <maior>
+		<menor> <ARGUMENT> <VALUE> <igual> <aspas> t5 = max_comm_tam_tarefa() <aspas> <barra> <maior>
+		<menor> <ARGUMENT> <VALUE> <igual> <aspas> t6 = min_comm_tam_tarefa() <aspas> <barra> <maior> {m.setCarga(t2, t3, t4, t5, t6);}) |
+		(<menor> <ARGUMENT> <VALUE> <igual> <aspas> t3 = max_comp_tam_tarefa() <aspas> <barra> <maior>
+		<menor> <ARGUMENT> <VALUE> <igual> <aspas> t4 = max_comm_tam_tarefa() <aspas> <barra> <maior> {m.setCarga(t2, t3, t4);}))
+		(LOOKAHEAD(2) <menor> <ARGUMENT> <VALUE> <igual> <aspas> t7 = servidor_ID()
+		{
+			Token tt = getToken(1);
+			if(slaves.contains(t7))
+			{
+				addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+tt.endLine+", coluna "+tt.endColumn+". Servidor \""+t7+"\" já foi declarado.");
+				found = true;
+			}
+			else
+				slaves.add(t7);
+		}
+		<aspas> <barra> <maior>)+ <menor> <barra> <PROCESS> <maior>
+		{	
+			if(!found)
+			{
+				m.setID(t1);
+				m.setSlaves(slaves);
+				masters.add(m);
+			}
+		}
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
+
+void slave():
+{
+	String t;
+	boolean found = false;
+	Server s = new Server();
+}
+{
+	try
+	{
+		<menor> <PROCESS> 
+                    ( ( <HOST> <igual> <aspas> t = servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <SLAVE> <aspas> ) |
+                    ( <FUNCTION> <igual> <aspas> <SLAVE> <aspas> <HOST> <igual> <aspas> t = servidor_ID() <aspas> ) )
+                <barra> <maior>
+		{
+			Token t1 = getToken(1);
+			for(Server testes:servers)
+				if(t.equals(testes.getID()))
+				{
+					addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+t1.endLine+", coluna "+t1.endColumn+". Servidor \""+t+"\" já foi declarado.");
+					found = true;
+				}
+			if(found == false)
+			{
+				s.setID(t);
+				servers.add(s);
+			}
+		}
+	}
+	catch(ParseException e)
+	{
+		Token t2 = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t2.endLine+", coluna "+t2.endColumn+".");
+	}
+}
+
+void outros():
+{}
+{
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <TASKSOURCE>) tasksource() |
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <SLAVECOMM>) slavecomm() |
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <RELOADHOST>) reloadhost() |
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <FORWARDERSCHEDULER>) forwarderscheduler() |
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <FORWARDERNODE>) forwardernode() |
+	LOOKAHEAD(<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <FORWARDERCOMM>) forwardercomm()
+}
+
+void servidor():
+{
+	String t1, t2;
+	boolean found = false;
+}
+{
+	try
+	{
+		{Token t = getToken(1);}
+                <menor> <CPU> 
+                    ( ( <NAME> <igual> <aspas> t1 = servidor_ID() <aspas> 
+                    <POWER> <igual> <aspas> t2 = capacidade_processamento() <aspas> ) |
+                    ( <POWER> <igual> <aspas> t2 = capacidade_processamento() <aspas> 
+                    <NAME> <igual> <aspas> t1 = servidor_ID() <aspas> ) )
+                <barra> <maior>
+		{
+			for(Server s:servers)
+				if(t1.equals(s.getID()))
+				{
+					s.setPower(t2);
+					found = true;
+				}
+			if(!found)
+				for(Master m:masters)
+					if(t1.equals(m.getID()))
+					{
+						m.setPower(t2);
+						found = true;
+					}
+			if(!found)
+			{
+				addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+t.endLine+", coluna "+t.endColumn+". Servidor \""+t1+"\" não foi declarado.");
+			}
+		}
+	}
+	catch(ParseException e)
+	{
+		Token t3 = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t3.endLine+", coluna "+t3.endColumn+".");
+	}
+}
+
+void rede():
+{
+	String t1, t2, t3;
+	Network n = new Network();
+	boolean found = false;
+}
+{
+	try
+	{
+		{Token t = getToken(1);}
+		
+                <menor> <NETWORK_LINK>
+                ( (
+                    <NAME> <igual> <aspas> t1 = rede_ID() <aspas>
+                    ( (
+                    <BANDWIDTH> <igual> <aspas> t2 = largura_banda() <aspas>
+                    <LATENCY> <igual> <aspas> t3 = latencia() <aspas>
+                    ) | (
+                    <LATENCY> <igual> <aspas> t3 = latencia() <aspas>
+                    <BANDWIDTH> <igual> <aspas> t2 = largura_banda() <aspas>
+                    ) )
+                ) | (
+                    <LATENCY> <igual> <aspas> t3 = latencia() <aspas>
+                    ( (
+                    <BANDWIDTH> <igual> <aspas> t2 = largura_banda() <aspas>
+                    <NAME> <igual> <aspas> t1 = rede_ID() <aspas>
+                    ) | (
+                    <NAME> <igual> <aspas> t1 = rede_ID() <aspas>
+                    <BANDWIDTH> <igual> <aspas> t2 = largura_banda() <aspas>
+                    ) )
+                ) | (
+                    <BANDWIDTH> <igual> <aspas> t2 = largura_banda() <aspas>
+                    ( (
+                    <NAME> <igual> <aspas> t1 = rede_ID() <aspas>
+                    <LATENCY> <igual> <aspas> t3 = latencia() <aspas>
+                    ) | (
+                    <LATENCY> <igual> <aspas> t3 = latencia() <aspas>
+                    <NAME> <igual> <aspas> t1 = rede_ID() <aspas>
+                    ) )
+                ) )
+                <barra> <maior>
+		{
+			for(Network testen:networks)
+				if(t1.equals(testen.getID()))
+				{
+					addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+t.endLine+", coluna "+t.endColumn+". Link \""+t1+"\" já foi declarado.");
+					found = true;
+				}
+			if(!found)
+			{
+				n.setAtributos(t1, t2, t3);
+				networks.add(n);
+			}
+		}
+	}
+	catch(ParseException e)
+	{
+		Token t4 = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t4.endLine+", coluna "+t4.endColumn+".");
+	}
+}
+
+void roteamento():
+{
+	String t1, t2, t3;
+	boolean found = false;
+}
+{
+	try
+	{
+		<menor> <ROUTE> 
+                ( ( <SRC> <igual> <aspas> t1 = servidor_ID() <aspas> <DST> <igual> <aspas> t2 = servidor_ID() <aspas> ) |
+                ( <DST> <igual> <aspas> t2 = servidor_ID() <aspas> <SRC> <igual> <aspas> t1 = servidor_ID() <aspas> ) )
+		{
+			Token t = getToken(1);
+			for(Server s:servers)
+				if(t1.equals(s.getID()))
+					found = true;
+			if(!found)
+				for(Master m:masters)
+					if(t1.equals(m.getID()))
+						found = true;
+			if(!found)
+			{
+				addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+t.endLine+", coluna "+t.endColumn+". Servidor \""+t1+"\" não foi declarado.");
+			}
+			found = false;
+		}
+		{
+			Token tt = getToken(1);
+			for(Master m:masters)
+				if(t2.equals(m.getID()))
+					found = true;
+			for(Server s:servers)
+				if(t2.equals(s.getID()))
+					found = true;
+			if(!found)
+			{
+				addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+tt.endLine+", coluna "+tt.endColumn+". Servidor \""+t2+"\" não foi declarado.");
+			}
+			found = false;
+		}
+                {Token ttt = getToken(1);
+                String inicio = t1;}
+		<maior> 
+                    (LOOKAHEAD(2) <menor> <ROUTE_ELEMENT> <NAME> <igual> <aspas> t3 = rede_ID() 
+                {
+			for(Network n: networks)
+				if(t3.equals(n.getID()))
+				{
+                                    Route achou = null;
+                                    for (Route rot : routes) {
+                                        if (rot.getID().equals(t3)) {
+                                            achou = rot;
+                                        }
+                                    }
+                                    if (achou != null) {
+                                        if (achou.getSrc().equals(inicio)) {
+                                            achou.setRoute(achou.getNet(), inicio, t2);
+                                        } else if (achou.getDst().equals(inicio)) {
+                                            net++;
+                                            Route novo = new Route();
+                                            novo.setAtributos(t3, n.getBand(), n.getLatency());
+                                            novo.setRoute(net, inicio, t2);
+                                            routes.add(novo);
+                                        } else {
+                                            achou.setInternet(true);
+                                        }
+                                    } else {
+                                        net++;
+                                        Route novo = new Route();
+                                        novo.setAtributos(t3, n.getBand(), n.getLatency());
+                                        novo.setRoute(net, inicio, t2);
+                                        routes.add(novo);
+                                    }
+                                    for (Route rot : routes) {
+                                        if (rot.getID().equals(inicio)) {
+                                            rot.setRoute(rot.getNet(), rot.getSrc(), t3);
+                                        }
+                                    }
+                                    inicio = t3;
+                                    found = true;
+				}
+			if(!found)
+			{
+				addErroSem(InterpretadorSimGrid.getFileName() + ": Erro na linha "+ttt.endLine+", coluna "+ttt.endColumn+". Link \""+t3+"\" não foi declarado.");
+			}
+		} 
+                   <aspas> <barra> <maior> )+
+                <menor> <barra> <ROUTE> <maior>
+                {
+                    ArrayList<String> itemRede = new ArrayList<String>();
+                    for (Network net : networks) {
+                        itemRede.add(net.getID());
+                    }
+                    for (Route net : routes) {
+                        //Testando se origem é uma máquina
+                        if(!itemRede.contains(net.getSrc()) && itemRede.contains(net.getDst())){
+                            for(Route destino : routes) {
+                                if(destino.getID().equals(net.getDst())){
+                                    destino.setInternet(true);
+                                }
+                            }
+                        }
+                        //Testando se destino é uma máquina
+                        if(itemRede.contains(net.getSrc()) && !itemRede.contains(net.getDst())){
+                            for(Route origem : routes) {
+                                if(origem.getID().equals(net.getSrc())){
+                                    origem.setInternet(true);
+                                }
+                            }
+                        }
+                    }
+                    for (Route net : routes) {
+                        for (Route linkOrigem : routes) {
+                            if(!linkOrigem.isInternet() && net.getSrc().equals(linkOrigem.getID())){
+                                for (Route linkDestino : routes) {
+                                    if(!linkDestino.isInternet() && net.getDst().equals(linkDestino.getID())){
+                                        net.setInternet(true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+	}
+	catch(ParseException e)
+	{
+		Token t4 = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t4.endLine+", coluna "+t4.endColumn+".");
+	}
+}
+
+void tasksource():
+{}
+{
+	try
+	{
+		<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <TASKSOURCE> <aspas> <maior> <menor> <ARGUMENT> <VALUE> <igual> <aspas> inteiro() <aspas> <barra> <maior> <menor> <barra> <PROCESS> <maior>
+	}	
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
+
+void slavecomm():
+{}
+{
+	try
+	{
+		<menor> <PROCESS> 
+                <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <SLAVECOMM> <aspas> <barra> <maior>
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
+
+void reloadhost():
+{}
+{
+	try
+	{
+		<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <RELOADHOST> <aspas> <barra> <maior>
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
+
+void forwarderscheduler():
+{}
+{
+	try
+	{
+		<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <FORWARDERSCHEDULER> <aspas> <maior> <menor> <ARGUMENT> <VALUE> <igual> <aspas> servidor_ID() <aspas> <barra> <maior> <menor> <barra> <PROCESS> <maior>
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
+
+void forwardernode():
+{}
+{
+	try
+	{
+		<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <FORWARDERNODE> <aspas> <maior> (LOOKAHEAD(2) <menor> <ARGUMENT> <VALUE> <igual> <aspas> servidor_ID() <aspas> <barra> <maior>)+ <menor> <barra> <PROCESS> <maior>
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
+
+void forwardercomm():
+{}
+{
+	try
+	{
+		<menor> <PROCESS> <HOST> <igual> <aspas> servidor_ID() <aspas> <FUNCTION> <igual> <aspas> <FORWARDERCOMM> <aspas> <maior> (LOOKAHEAD(2) <menor> <ARGUMENT> <VALUE> <igual> <aspas> servidor_ID() <aspas> <barra> <maior>)+ <menor> <barra> <PROCESS> <maior>
+	}
+	catch(ParseException e)
+	{
+		Token t = getToken(1);
+		addErroSint(InterpretadorSimGrid.getFileName() + ": Erro sintático na linha "+t.endLine+", coluna "+t.endColumn+".");
+	}
+}
