@@ -10,17 +10,17 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
  *
  * ---------------
@@ -33,14 +33,13 @@
  *
  * Changes
  * -------
- * 
+ *
  * 09-Set-2014 : Version 2.0;
  *
  */
 package ispd;
 
 import ispd.arquivo.xml.IconicoXML;
-import ispd.arquivo.xml.ManipuladorXML;
 import ispd.gui.JResultados;
 import ispd.motor.ProgressoSimulacao;
 import ispd.motor.Simulacao;
@@ -82,14 +81,15 @@ import org.xml.sax.SAXException;
  *     -v             print the version message
  * @author denison
  */
-public class Terminal {
+public class TerminalApplication extends Application
+{
 
     private final int HELP = 0;
     private final int VERSION = 1;
     private final int SIMULATE = 2;
     private final int CLIENT = 3;
     private final int SERVER = 4;
-    
+
     /**
      * Arquivo contendo o modelo que será simulados
      */
@@ -116,9 +116,10 @@ public class Terminal {
 
     /**
      * Argumentos do main devem ser repassados para o construtor configurar execução
-     * @param args 
+     * @param args
      */
-    public Terminal(String[] args) {
+    public TerminalApplication (String[] args) {
+        super(args);
         if (args[0].equals("help") || args[0].equals("-help") || args[0].equals("-h")) {
             opcao = 0;
             modo = HELP;
@@ -217,6 +218,7 @@ public class Terminal {
     /**
      * Inicia atendimento de acordo com parametros
      */
+    @Override
     public void executar() {
         switch (modo) {
             case HELP:
@@ -269,6 +271,7 @@ public class Terminal {
                 this.simularRedeCliente(server, ports, numSim);
                 break;
         }
+        System.exit(0);
     }
 
     /**
@@ -459,7 +462,7 @@ public class Terminal {
             System.out.println("Closing connection");
             providerSocket.close();
         } catch (Exception ex) {
-            Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
         //Executando simulação
         if (numThreads <= 1) {
@@ -495,7 +498,7 @@ public class Terminal {
             System.out.println("Closing connection");
             requestSocket.close();
         } catch (Exception ex) {
-            Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -511,11 +514,11 @@ public class Terminal {
         try {
             modelo = IconicoXML.ler(arquivoIn);
         } catch (ParserConfigurationException ex) {
-            Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SAXException ex) {
-            Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
         progrSim.println("OK", Color.green);
         //Verifica se foi construido modelo corretamente
@@ -537,7 +540,7 @@ public class Terminal {
                 System.out.println("Closing connection");
                 requestSocket.close();
             } catch (Exception ex) {
-                Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         Metricas metricas = new Metricas(IconicoXML.newListUsers(modelo));
@@ -557,7 +560,7 @@ public class Terminal {
             System.out.println("Closing connection");
             providerSocket.close();
         } catch (Exception ex) {
-            Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
         //Apresentando Resultados
         System.out.println("Realizados " + metricas.getNumeroDeSimulacoes() + " simulações");
@@ -581,12 +584,12 @@ public class Terminal {
                 linha = lerArq.readLine();
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 arq.close();
             } catch (IOException ex) {
-                Logger.getLogger(Terminal.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
             }
             return config.toArray();
         }
