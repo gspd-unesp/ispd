@@ -47,6 +47,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.Locale;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -105,7 +106,7 @@ public class Main
         LogExceptions exceptionLogger = new LogExceptions(null);
         Thread.setDefaultUncaughtExceptionHandler(exceptionLogger);
 
-        setErrorAndOutputStreams();
+        redirectSystemStreams();
         setGuiLookAndFeel();
 
         JPrincipal mainWindow = buildMainWindow();
@@ -116,24 +117,33 @@ public class Main
         return mainWindow;
     }
 
-    private static void setErrorAndOutputStreams ()
+    private static void redirectSystemStreams ()
     {
-        FileOutputStream fosErr = null;
-        FileOutputStream fosOut = null;
+        redirectSystemStreamToFile(System::setErr, errorFile);
+        redirectSystemStreamToFile(System::setOut, outputFile);
+    }
+
+    private static void redirectSystemStreamToFile (Consumer<PrintStream> redirection, String pathToFile)
+    {
+        var fileStream = getFileStreamOrNull(pathToFile);
+
+        if (fileStream == null)
+            return;
+
+        var printStream = new PrintStream(fileStream);
+        redirection.accept(printStream);
+    }
+
+    private static FileOutputStream getFileStreamOrNull (String pathToFile)
+    {
         try
         {
-            fosErr = new FileOutputStream(errorFile);
-            fosOut = new FileOutputStream(outputFile);
+            return new FileOutputStream(pathToFile);
         } catch (FileNotFoundException ex)
         {
             logWithMainLogger(ex);
+            return null;
         }
-        // define a impresso sobre os fluxos acima
-        PrintStream psErr = new PrintStream(fosErr);
-        PrintStream psOut = new PrintStream(fosOut);
-        // redefine os fluxos na classe System
-//        System.setErr(psErr);
-//        System.setOut(psOut);
     }
 
     private static void setGuiLookAndFeel ()
