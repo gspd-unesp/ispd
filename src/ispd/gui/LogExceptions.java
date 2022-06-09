@@ -63,6 +63,8 @@ import javax.swing.JTextArea;
 
 public class LogExceptions implements Thread.UncaughtExceptionHandler
 {
+    private static final int SCROLL_PREFERRED_WIDTH = 500;
+    private static final int SCROLL_PREFERRED_HEIGHT = 300;
     private final JTextArea area;
     private final JScrollPane scroll;
     private Component parentComponent;
@@ -76,10 +78,22 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
             aux.mkdir();
         }
         //iniciar parte grafica
-        area = new JTextArea();
+        this.area = uneditableTextArea();
+        this.scroll = scrollPaneWithPreferredSizes();
+    }
+
+    private JTextArea uneditableTextArea ()
+    {
+        final JTextArea area = new JTextArea();
         area.setEditable(false);
-        scroll = new JScrollPane(area);
-        scroll.setPreferredSize(new Dimension(500, 300));
+        return area;
+    }
+
+    private JScrollPane scrollPaneWithPreferredSizes ()
+    {
+        final JScrollPane scroll = new JScrollPane(area);
+        scroll.setPreferredSize(new Dimension(SCROLL_PREFERRED_WIDTH, SCROLL_PREFERRED_HEIGHT));
+        return scroll;
     }
 
     public void setParentComponent (Component parentComponent)
