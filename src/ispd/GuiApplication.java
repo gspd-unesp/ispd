@@ -25,6 +25,17 @@ public class GuiApplication extends Application
         super(args);
     }
 
+    private static void run ()
+    {
+        var splashWindow = visibleDefaultSplashWindow();
+
+        JPrincipal mainWindow = initializeApplication();
+
+        splashWindow.dispose();
+
+        mainWindow.setVisible(true);
+    }
+
     private static JPrincipal initializeApplication ()
     {
         LogExceptions exceptionLogger = new LogExceptions(null);
@@ -101,12 +112,6 @@ public class GuiApplication extends Application
     @Override
     public void executar ()
     {
-        var splashWindow = visibleDefaultSplashWindow();
-
-        JPrincipal mainWindow = initializeApplication();
-
-        splashWindow.dispose();
-
-        mainWindow.setVisible(true);
+        GuiApplication.run();
     }
 }
