@@ -39,9 +39,9 @@
  */
 package ispd;
 
-// TODO: Check permission to delete docs
-
 import java.util.Locale;
+
+// TODO: Check permission to delete docs
 
 /**
  * Classe de inicialização do iSPD. Indetifica se deve executar comando a partir
