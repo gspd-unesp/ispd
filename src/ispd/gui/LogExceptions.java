@@ -56,13 +56,13 @@ import java.util.Date;
 
 public class LogExceptions implements Thread.UncaughtExceptionHandler
 {
-    public static final String ERROR_FOLDER_PATH = "Erros";
-    public static final String ERROR_FILE_PREFIX = "Error_ISPD";
-    public static final String ERROR_MESSAGE_TEMPLATE = "\n" +
-                                                        "---------- error description ----------\n" +
-                                                        "%s\n" +
-                                                        "---------- error description ----------\n";
-    public static final String ERROR_CODE_DATE_FORMAT = "yyyyMMddHHmmss";
+    private static final String ERROR_FOLDER_PATH = "Erros";
+    private static final String ERROR_FILE_PREFIX = "Error_ISPD";
+    private static final String ERROR_MESSAGE_TEMPLATE = "\n" +
+                                                         "---------- error description ----------\n" +
+                                                         "%s\n" +
+                                                         "---------- error description ----------\n";
+    private static final String ERROR_CODE_DATE_FORMAT = "yyyyMMddHHmmss";
     private static final int SCROLL_PANE_PREF_WIDTH = 500;
     private static final int SCROLL_PANE_PREF_HEIGHT = 300;
     private final JTextArea textArea;
@@ -107,7 +107,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         return scroll;
     }
 
-    private static String generateErrorFile (final String errorMessage) throws IOException
+    private static String printToErrorFile (final String errorMessage) throws IOException
     {
         final var errorCode = buildErrorCode(new Date());
         final var filePath = String.format("%s%s%s_%s",
@@ -154,7 +154,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
             final var errorMessage = String.format(ERROR_MESSAGE_TEMPLATE, errorStream);
 
-            final var filePath = generateErrorFile(errorMessage);
+            final var filePath = printToErrorFile(errorMessage);
 
             displayErrorInGui(errorMessage, filePath);
 
