@@ -58,6 +58,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 {
     private static final int SCROLL_PREFERRED_WIDTH = 500;
     private static final int SCROLL_PREFERRED_HEIGHT = 300;
+    public static final String ERROR_FOLDER_PATH = "Erros";
     private final JTextArea area;
     private final JScrollPane scroll;
     private Component parentComponent;
@@ -65,15 +66,22 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
     public LogExceptions (Component gui)
     {
         this.parentComponent = gui;
-        File aux = new File("Erros");
-        if (!aux.exists())
-        {
-            aux.mkdir();
-        }
+
+        createErrorFolder();
 
         // Initialize Graphical section
         this.area = uneditableTextArea();
         this.scroll = scrollPaneWithPreferredSizes();
+    }
+
+    private void createErrorFolder ()
+    {
+        final var aux = new File(ERROR_FOLDER_PATH);
+
+        if (aux.exists())
+            return;
+
+        aux.mkdir();
     }
 
     private JTextArea uneditableTextArea ()
