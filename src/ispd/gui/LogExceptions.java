@@ -77,7 +77,8 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         {
             aux.mkdir();
         }
-        //iniciar parte grafica
+
+        // Initialize Graphical section
         this.area = uneditableTextArea();
         this.scroll = scrollPaneWithPreferredSizes();
     }
