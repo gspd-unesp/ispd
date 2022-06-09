@@ -86,10 +86,12 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
     {
         final var aux = new File(ERROR_FOLDER_PATH);
 
+        // TODO: Handle SecurityException
+
         if (aux.exists())
             return;
 
-        aux.mkdir();
+        var created = aux.mkdir();
     }
 
     private static String generateErrorFile (final String errorMessage) throws IOException
@@ -99,6 +101,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
                 ERROR_FOLDER_PATH, ERROR_FILE_PREFIX, errorCode);
 
         final var file = new File(filePath);
+
         final var writer = new FileWriter(file);
         final var output = new PrintWriter(writer, true);
         output.print(errorMessage);
