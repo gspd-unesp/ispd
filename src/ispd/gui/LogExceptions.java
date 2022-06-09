@@ -45,20 +45,23 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.text.DateFormat;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class LogExceptions implements Thread.UncaughtExceptionHandler
 {
     public static final String ERROR_FOLDER_PATH = "Erros";
-    private static final int SCROLL_PREFERRED_WIDTH = 500;
-    private static final int SCROLL_PREFERRED_HEIGHT = 300;
+    public static final String ERROR_FILE_PREFIX = "Error_ISPD";
+    public static final String ERROR_MESSAGE_TEMPLATE = """
+                                        
+            ---------- error description ----------
+            %s
+            ---------- error description ----------
+            """;
+    public static final String ERROR_CODE_DATE_FORMAT = "yyyyMMddHHmmss";
+    private static final int SCROLL_AREA_PREFERRED_WIDTH = 500;
+    private static final int SCROLL_AREA_PREFERRED_HEIGHT = 300;
     private final JTextArea area;
     private final JScrollPane scroll;
     private Component parentComponent;
@@ -74,7 +77,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         this.scroll = scrollPaneWithPreferredSizes();
     }
 
-    private void createErrorFolder ()
+    private static void createErrorFolder ()
     {
         final var aux = new File(ERROR_FOLDER_PATH);
 
@@ -82,6 +85,28 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
             return;
 
         aux.mkdir();
+    }
+
+    private static String generateErrorFile (String errorMessage) throws IOException
+    {
+        final var errorCode = buildErrorCode(new Date());
+        final var filePath = String.format("%s/%s_%s",
+                ERROR_FOLDER_PATH, ERROR_FILE_PREFIX, errorCode);
+
+        final var file = new File(filePath);
+        final var writer = new FileWriter(file);
+        final var output = new PrintWriter(writer, true);
+        output.print(errorMessage);
+        output.close();
+        writer.close();
+
+        return file.getAbsolutePath();
+    }
+
+    private static String buildErrorCode (final Date date)
+    {
+        final var dateFormat = new SimpleDateFormat(ERROR_CODE_DATE_FORMAT);
+        return dateFormat.format(date);
     }
 
     private JTextArea uneditableTextArea ()
@@ -94,7 +119,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
     private JScrollPane scrollPaneWithPreferredSizes ()
     {
         final JScrollPane scroll = new JScrollPane(area);
-        scroll.setPreferredSize(new Dimension(SCROLL_PREFERRED_WIDTH, SCROLL_PREFERRED_HEIGHT));
+        scroll.setPreferredSize(new Dimension(SCROLL_AREA_PREFERRED_WIDTH, SCROLL_AREA_PREFERRED_HEIGHT));
         return scroll;
     }
 
@@ -121,31 +146,33 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
             if (errorStream.size() <= 0)
                 return;
 
-            String errorMessage = "";
-            errorMessage += "\n---------- error description ----------\n";
-            errorMessage += errorStream.toString();
-            errorMessage += "\n---------- error description ----------\n";
+            final var errorMessage = String.format(ERROR_MESSAGE_TEMPLATE, errorStream);
 
-            final var dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-            final var date = new Date();
-            String errorCode = dateFormat.format(date);
-            final var file = new File("Erros/Error_iSPD_" + errorCode);
-            final var writer = new FileWriter(file);
-            final var output = new PrintWriter(writer, true);
-            output.print(errorMessage);
-            output.close();
-            writer.close();
-            String outputString = "";
-            outputString += "Error encountered during system operation.\n";
-            outputString += "Error saved in the file: " + file.getAbsolutePath() + "\n";
-            outputString += "Please send the error to the developers.\n";
-            outputString += errorMessage;
-            area.setText(outputString);
-            JOptionPane.showMessageDialog(parentComponent, scroll, "System Error", JOptionPane.ERROR_MESSAGE);
+            final var filePath = generateErrorFile(errorMessage);
+
+            displayErrorInGui(errorMessage, filePath);
+
             errorStream.reset();
+
         } catch (Exception e)
         {
             JOptionPane.showMessageDialog(parentComponent, e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
         }
+    }
+
+    private void displayErrorInGui (String errorMessage, String filePath)
+    {
+        final var outputString = String.format(
+                """
+                        Error encountered during system operation.
+                        Error saved in the file: %s
+                        Please send the error to the developers.
+                        %s
+                        """,
+                filePath, errorMessage);
+
+        this.area.setText(outputString);
+
+        JOptionPane.showMessageDialog(parentComponent, scroll, "System Error", JOptionPane.ERROR_MESSAGE);
     }
 }
