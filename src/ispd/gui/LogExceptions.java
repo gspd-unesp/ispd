@@ -75,7 +75,6 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
         createErrorFolderIfNonExistent();
 
-        // Initialize Graphical section
         this.textArea = uneditableTextArea();
         this.scrollPane = resizedScrollPaneOf(this.textArea);
     }
