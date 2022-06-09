@@ -3,9 +3,11 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/ispd.externo.cloudSchedulers" isTestSource="false" packagePrefix="ispd.externo" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/ispd.externo.cloudSchedulers" />
+      <excludeFolder url="file://$MODULE_DIR$/ispd" />
+      <excludeFolder url="file://$MODULE_DIR$/Erros" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
