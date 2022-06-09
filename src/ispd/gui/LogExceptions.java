@@ -10,17 +10,17 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
  *
  * ---------------
@@ -33,7 +33,7 @@
  *
  * Changes
  * -------
- * 
+ *
  * 09-Set-2014 : Version 2.0;
  * 16-Out-2014 : change the location of the iSPD base directory;
  *
@@ -42,6 +42,7 @@ package ispd.gui;
 
 import ispd.Main;
 import ispd.escalonador.Carregar;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.io.ByteArrayOutputStream;
@@ -60,20 +61,18 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-public class LogExceptions implements Thread.UncaughtExceptionHandler {
-
-    private Component parentComponent;
+public class LogExceptions implements Thread.UncaughtExceptionHandler
+{
     private final JTextArea area;
     private final JScrollPane scroll;
+    private Component parentComponent;
 
-    public void setParentComponent(Component parentComponent) {
-        this.parentComponent = parentComponent;
-    }
-
-    public LogExceptions(Component gui) {
+    public LogExceptions (Component gui)
+    {
         this.parentComponent = gui;
         File aux = new File("Erros");
-        if (!aux.exists()) {
+        if (!aux.exists())
+        {
             aux.mkdir();
         }
         //iniciar parte grafica
@@ -83,17 +82,26 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler {
         scroll.setPreferredSize(new Dimension(500, 300));
     }
 
+    public void setParentComponent (Component parentComponent)
+    {
+        this.parentComponent = parentComponent;
+    }
+
     @Override
-    public void uncaughtException(Thread t, Throwable e) {
+    public void uncaughtException (Thread t, Throwable e)
+    {
         ByteArrayOutputStream fosErr = new ByteArrayOutputStream();
         PrintStream psErr = new PrintStream(fosErr);
         e.printStackTrace(psErr);
         mostrarErro(fosErr);
     }
 
-    private void mostrarErro(ByteArrayOutputStream objErr) {
-        try {
-            if (objErr.size() > 0) {
+    private void mostrarErro (ByteArrayOutputStream objErr)
+    {
+        try
+        {
+            if (objErr.size() > 0)
+            {
                 String erro = "";
                 erro += "\n---------- error description ----------\n";
                 erro += objErr.toString();
@@ -116,7 +124,8 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler {
                 JOptionPane.showMessageDialog(parentComponent, scroll, "System Error", JOptionPane.ERROR_MESSAGE);
                 objErr.reset();
             }
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             JOptionPane.showMessageDialog(parentComponent, e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
@@ -124,20 +133,24 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler {
     /**
      * Define arquivos para gerar salvar a saída de erros
      */
-    public void setErrosLog() {
+    public void setErrosLog ()
+    {
         //Define diretório padrão de erros
         File diretorio = new File(Carregar.DIRETORIO_ISPD, "Erros");
         //Cria diretório padrão de erros
-        if (!diretorio.exists()) {
+        if (!diretorio.exists())
+        {
             diretorio.mkdir();
         }
         // cria os novos fluxos de saida para arquivo
         FileOutputStream fosErr = null;
         FileOutputStream fosOut = null;
-        try {
+        try
+        {
             fosErr = new FileOutputStream(new File(diretorio, "Erros_Simulador"));
             fosOut = new FileOutputStream(new File(diretorio, "Saida_Simulador"));
-        } catch (FileNotFoundException ex) {
+        } catch (FileNotFoundException ex)
+        {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
         // define a impresso sobre os fluxos acima
