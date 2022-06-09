@@ -2,11 +2,8 @@ package ispd;
 
 public abstract class Application
 {
-    final String[] args;
-
-    public Application (String[] args)
+    public Application ()
     {
-        this.args = args;
     }
 
     public abstract void executar ();

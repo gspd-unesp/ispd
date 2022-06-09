@@ -59,7 +59,7 @@ public class Main
 
         final var app = (args.length > 0)
                 ? new TerminalApplication(args)
-                : new GuiApplication(args);
+                : new GuiApplication();
 
         app.executar();
     }

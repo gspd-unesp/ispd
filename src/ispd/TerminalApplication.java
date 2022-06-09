@@ -119,7 +119,6 @@ public class TerminalApplication extends Application
      * @param args
      */
     public TerminalApplication (String[] args) {
-        super(args);
         if (args[0].equals("help") || args[0].equals("-help") || args[0].equals("-h")) {
             opcao = 0;
             modo = HELP;

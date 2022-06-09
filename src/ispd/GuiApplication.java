@@ -20,11 +20,6 @@ public class GuiApplication extends Application
     private static final String errorFile = "Erros/Erros_Simulador";
     private static final String outputFile = "Erros/Saida_Simulador";
 
-    public GuiApplication (String[] args)
-    {
-        super(args);
-    }
-
     private static void run ()
     {
         var splashWindow = visibleDefaultSplashWindow();
