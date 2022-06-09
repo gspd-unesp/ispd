@@ -58,12 +58,10 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 {
     public static final String ERROR_FOLDER_PATH = "Erros";
     public static final String ERROR_FILE_PREFIX = "Error_ISPD";
-    public static final String ERROR_MESSAGE_TEMPLATE = """
-                                        
-            ---------- error description ----------
-            %s
-            ---------- error description ----------
-            """;
+    public static final String ERROR_MESSAGE_TEMPLATE = "\n" +
+                                                        "---------- error description ----------\n" +
+                                                        "%s\n" +
+                                                        "---------- error description ----------\n";
     public static final String ERROR_CODE_DATE_FORMAT = "yyyyMMddHHmmss";
     private static final int SCROLL_AREA_PREFERRED_WIDTH = 500;
     private static final int SCROLL_AREA_PREFERRED_HEIGHT = 300;
@@ -170,12 +168,10 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
     private void displayErrorInGui (String errorMessage, String filePath)
     {
         final var outputString = String.format(
-                """
-                        Error encountered during system operation.
-                        Error saved in the file: %s
-                        Please send the error to the developers.
-                        %s
-                        """,
+                "Error encountered during system operation.\n" +
+                "Error saved in the file: %s\n" +
+                "Please send the error to the developers.\n" +
+                "%s\n",
                 filePath, errorMessage);
 
         this.area.setText(outputString);
