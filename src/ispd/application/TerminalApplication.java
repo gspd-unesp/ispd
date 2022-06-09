@@ -218,7 +218,7 @@ public class TerminalApplication implements Application
      * Inicia atendimento de acordo com parametros
      */
     @Override
-    public void executar() {
+    public void run () {
         switch (modo) {
             case HELP:
                 System.out.println("Usage: java -jar iSPD.jar");

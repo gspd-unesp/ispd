@@ -61,7 +61,7 @@ public class Main
                 ? new TerminalApplication(args)
                 : new GuiApplication();
 
-        app.executar();
+        app.run();
     }
 
     private static void setDefaultLocale ()

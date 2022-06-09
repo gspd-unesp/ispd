@@ -21,7 +21,7 @@ public class GuiApplication implements Application
     private static final String errorFile = "Erros/Erros_Simulador";
     private static final String outputFile = "Erros/Saida_Simulador";
 
-    private static void run ()
+    private static void openGui ()
     {
         final var splashWindow = visibleDefaultSplashWindow();
         final var mainWindow = initializeApplication();
@@ -105,8 +105,8 @@ public class GuiApplication implements Application
     }
 
     @Override
-    public void executar ()
+    public void run ()
     {
-        GuiApplication.run();
+        GuiApplication.openGui();
     }
 }
