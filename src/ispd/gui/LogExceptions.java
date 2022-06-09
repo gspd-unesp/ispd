@@ -100,12 +100,10 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
         final var file = new File(filePath);
 
-        try (var writer = new FileWriter(file))
+        try (var fw = new FileWriter(file);
+             var pw = new PrintWriter(fw, true))
         {
-            try (var output = new PrintWriter(writer, true))
-            {
-                output.print(errorMessage);
-            }
+            pw.print(errorMessage);
         }
 
         return file.getAbsolutePath();
