@@ -39,14 +39,14 @@
  */
 package ispd;
 
+import ispd.application.GuiApplication;
+import ispd.application.TerminalApplication;
+
 import java.util.Locale;
 
 // TODO: Check permission to delete docs
 
 /**
- * Classe de inicialização do iSPD. Indetifica se deve executar comando a partir
- * do terminal ou carrega interface gráfica
- *
  * @author denison
  */
 public class Main

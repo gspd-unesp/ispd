@@ -1,5 +1,6 @@
-package ispd;
+package ispd.application;
 
+import ispd.Main;
 import ispd.gui.JPrincipal;
 import ispd.gui.LogExceptions;
 
@@ -14,7 +15,7 @@ import java.util.logging.Logger;
 
 import static ispd.gui.SplashWindowBuilder.visibleDefaultSplashWindow;
 
-public class GuiApplication extends Application
+public class GuiApplication implements Application
 {
     private static final String guiLookAndFeelClassName = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
     private static final String errorFile = "Erros/Erros_Simulador";
@@ -33,7 +34,7 @@ public class GuiApplication extends Application
 
     private static JPrincipal initializeApplication ()
     {
-        LogExceptions exceptionLogger = new LogExceptions(null);
+        var exceptionLogger = new LogExceptions(null);
         Thread.setDefaultUncaughtExceptionHandler(exceptionLogger);
 
         redirectSystemStreams();

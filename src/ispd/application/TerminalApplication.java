@@ -37,7 +37,7 @@
  * 09-Set-2014 : Version 2.0;
  *
  */
-package ispd;
+package ispd.application;
 
 import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.JResultados;
@@ -81,7 +81,7 @@ import org.xml.sax.SAXException;
  *     -v             print the version message
  * @author denison
  */
-public class TerminalApplication extends Application
+public class TerminalApplication implements Application
 {
 
     private final int HELP = 0;
