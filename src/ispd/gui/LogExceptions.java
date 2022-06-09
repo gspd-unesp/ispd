@@ -63,24 +63,24 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
                                                         "%s\n" +
                                                         "---------- error description ----------\n";
     public static final String ERROR_CODE_DATE_FORMAT = "yyyyMMddHHmmss";
-    private static final int SCROLL_AREA_PREFERRED_WIDTH = 500;
-    private static final int SCROLL_AREA_PREFERRED_HEIGHT = 300;
-    private final JTextArea area;
-    private final JScrollPane scroll;
+    private static final int SCROLL_PANE_PREF_WIDTH = 500;
+    private static final int SCROLL_PANE_PREF_HEIGHT = 300;
+    private final JTextArea textArea;
+    private final JScrollPane scrollPane;
     private Component parentComponent;
 
     public LogExceptions (final Component gui)
     {
         this.parentComponent = gui;
 
-        createErrorFolder();
+        createErrorFolderIfNonExistent();
 
         // Initialize Graphical section
-        this.area = uneditableTextArea();
-        this.scroll = scrollPaneWithPreferredSizes();
+        this.textArea = uneditableTextArea();
+        this.scrollPane = resizedScrollPaneOf(this.textArea);
     }
 
-    private static void createErrorFolder ()
+    private static void createErrorFolderIfNonExistent ()
     {
         final var aux = new File(ERROR_FOLDER_PATH);
 
@@ -92,11 +92,27 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         var created = aux.mkdir();
     }
 
+    private static JTextArea uneditableTextArea ()
+    {
+        final JTextArea area = new JTextArea();
+        area.setEditable(false);
+        return area;
+    }
+
+    private static JScrollPane resizedScrollPaneOf (final JTextArea textArea)
+    {
+        final JScrollPane scroll = new JScrollPane(textArea);
+        scroll.setPreferredSize(new Dimension(
+                SCROLL_PANE_PREF_WIDTH,
+                SCROLL_PANE_PREF_HEIGHT));
+        return scroll;
+    }
+
     private static String generateErrorFile (final String errorMessage) throws IOException
     {
         final var errorCode = buildErrorCode(new Date());
-        final var filePath = String.format("%s/%s_%s",
-                ERROR_FOLDER_PATH, ERROR_FILE_PREFIX, errorCode);
+        final var filePath = String.format("%s%s%s_%s",
+                ERROR_FOLDER_PATH, File.separator, ERROR_FILE_PREFIX, errorCode);
 
         final var file = new File(filePath);
 
@@ -115,25 +131,6 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         return dateFormat.format(date);
     }
 
-    private JTextArea uneditableTextArea ()
-    {
-        final JTextArea area = new JTextArea();
-        area.setEditable(false);
-        return area;
-    }
-
-    private JScrollPane scrollPaneWithPreferredSizes ()
-    {
-        final JScrollPane scroll = new JScrollPane(area);
-        scroll.setPreferredSize(new Dimension(SCROLL_AREA_PREFERRED_WIDTH, SCROLL_AREA_PREFERRED_HEIGHT));
-        return scroll;
-    }
-
-    public void setParentComponent (final Component parentComponent)
-    {
-        this.parentComponent = parentComponent;
-    }
-
     @Override
     public void uncaughtException (final Thread t, final Throwable e)
     {
@@ -142,6 +139,11 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         e.printStackTrace(new PrintStream(errStream));
 
         processError(errStream);
+    }
+
+    public void setParentComponent (final Component parentComponent)
+    {
+        this.parentComponent = parentComponent;
     }
 
     private void processError (final ByteArrayOutputStream errorStream)
@@ -161,7 +163,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
         } catch (Exception e) // TODO: Maybe IOException only?
         {
-            JOptionPane.showMessageDialog(parentComponent, e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this.parentComponent, e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -174,8 +176,8 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
                 "%s\n",
                 filePath, errorMessage);
 
-        this.area.setText(outputString);
+        this.textArea.setText(outputString);
 
-        JOptionPane.showMessageDialog(parentComponent, scroll, "System Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this.parentComponent, this.scrollPane, "System Error", JOptionPane.ERROR_MESSAGE);
     }
 }
