@@ -92,7 +92,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         aux.mkdir();
     }
 
-    private static String generateErrorFile (String errorMessage) throws IOException
+    private static String generateErrorFile (final String errorMessage) throws IOException
     {
         final var errorCode = buildErrorCode(new Date());
         final var filePath = String.format("%s/%s_%s",
@@ -136,15 +136,14 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
     @Override
     public void uncaughtException (final Thread t, final Throwable e)
     {
-        final var outStream = new ByteArrayOutputStream();
-        final var printStream = new PrintStream(outStream);
+        final var errStream = new ByteArrayOutputStream();
 
-        e.printStackTrace(printStream);
+        e.printStackTrace(new PrintStream(errStream));
 
-        displayError(outStream);
+        processError(errStream);
     }
 
-    private void displayError (final ByteArrayOutputStream errorStream)
+    private void processError (final ByteArrayOutputStream errorStream)
     {
         try
         {
@@ -159,7 +158,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
             errorStream.reset();
 
-        } catch (Exception e)
+        } catch (Exception e) // TODO: Maybe IOException only?
         {
             JOptionPane.showMessageDialog(parentComponent, e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
         }
