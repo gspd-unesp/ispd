@@ -58,16 +58,20 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 {
     private static final String ERROR_FOLDER_PATH = "Erros";
     private static final String ERROR_FILE_PREFIX = "Error_ISPD";
-    private static final String ERROR_MESSAGE_TEMPLATE = "\n" +
-                                                         "---------- error description ----------\n" +
-                                                         "%s\n" +
-                                                         "---------- error description ----------\n";
     private static final String ERROR_CODE_DATE_FORMAT = "yyyyMMddHHmmss";
-    private static final int SCROLL_PANE_PREF_WIDTH = 500;
-    private static final int SCROLL_PANE_PREF_HEIGHT = 300;
+    private static final String ERROR_FILE_MESSAGE_FORMAT = "\n" +
+                                                            "---------- error description ----------\n" +
+                                                            "%s\n" +
+                                                            "---------- error description ----------\n";
+    private static final String ERROR_GUI_MESSAGE_FORMAT = "Error encountered during system operation.\n" +
+                                                           "Error saved in the file: %s\n" +
+                                                           "Please send the error to the developers.\n" +
+                                                           "%s\n";
+    private static final int SCROLL_PANE_PREFERRED_WIDTH = 500;
+    private static final int SCROLL_PANE_PREFERRED_HEIGHT = 300;
     private final JTextArea textArea;
-    private final JScrollPane scrollPane;
-    private Component parentComponent;
+    private final JScrollPane scrollPane; // TODO: Create specialized ErrorScrollPane
+    private Component parentComponent; // TODO: Can we make this final?
 
     public LogExceptions (final Component gui)
     {
@@ -75,8 +79,8 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
         createErrorFolderIfNonExistent();
 
-        this.textArea = uneditableTextArea();
-        this.scrollPane = resizedScrollPaneOf(this.textArea);
+        this.textArea = readonlyTextArea();
+        this.scrollPane = resizedScrollPaneFrom(this.textArea);
     }
 
     private static void createErrorFolderIfNonExistent ()
@@ -91,40 +95,39 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         var created = aux.mkdir();
     }
 
-    private static JTextArea uneditableTextArea ()
+    private static JTextArea readonlyTextArea ()
     {
         final JTextArea area = new JTextArea();
         area.setEditable(false);
         return area;
     }
 
-    private static JScrollPane resizedScrollPaneOf (final JTextArea textArea)
+    private static JScrollPane resizedScrollPaneFrom (final JTextArea textArea)
     {
         final JScrollPane scroll = new JScrollPane(textArea);
         scroll.setPreferredSize(new Dimension(
-                SCROLL_PANE_PREF_WIDTH,
-                SCROLL_PANE_PREF_HEIGHT));
+                SCROLL_PANE_PREFERRED_WIDTH,
+                SCROLL_PANE_PREFERRED_HEIGHT));
         return scroll;
     }
 
-    private static String printToErrorFile (final String errorMessage) throws IOException
+    private static void printErrorToFile (final String errorMessage, final File file) throws IOException
     {
-        final var errorCode = buildErrorCode(new Date());
-        final var filePath = String.format("%s%s%s_%s",
-                ERROR_FOLDER_PATH, File.separator, ERROR_FILE_PREFIX, errorCode);
-
-        final var file = new File(filePath);
-
         try (var fw = new FileWriter(file);
              var pw = new PrintWriter(fw, true))
         {
             pw.print(errorMessage);
         }
-
-        return file.getAbsolutePath();
     }
 
-    private static String buildErrorCode (final Date date)
+    private static String buildErrorFilePath (final Date date)
+    {
+        final var errorCode = buildErrorFileTimestamp(date);
+        return String.format("%s%s%s_%s",
+                ERROR_FOLDER_PATH, File.separator, ERROR_FILE_PREFIX, errorCode);
+    }
+
+    private static String buildErrorFileTimestamp (final Date date)
     {
         final var dateFormat = new SimpleDateFormat(ERROR_CODE_DATE_FORMAT);
         return dateFormat.format(date);
@@ -133,7 +136,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
     @Override
     public void uncaughtException (final Thread t, final Throwable e)
     {
-        final var errStream = new ByteArrayOutputStream();
+        final var errStream = new ByteArrayOutputStream(); // TODO: Is this necessary?
 
         e.printStackTrace(new PrintStream(errStream));
 
@@ -147,18 +150,15 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
     private void processError (final ByteArrayOutputStream errorStream)
     {
+        if (errorStream.size() <= 0) // TODO: can it be < 0 ?
+            return;
+
         try
         {
-            if (errorStream.size() <= 0)
-                return;
+            final var errorMessage = String.format(ERROR_FILE_MESSAGE_FORMAT, errorStream);
+            displayError(errorMessage);
 
-            final var errorMessage = String.format(ERROR_MESSAGE_TEMPLATE, errorStream);
-
-            final var filePath = printToErrorFile(errorMessage);
-
-            displayErrorInGui(errorMessage, filePath);
-
-            errorStream.reset();
+            errorStream.reset(); // TODO: Maybe in a finally block?
 
         } catch (Exception e) // TODO: Maybe IOException only?
         {
@@ -166,17 +166,24 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         }
     }
 
-    private void displayErrorInGui (String errorMessage, String filePath)
+    private void displayError (final String errorMessage) throws IOException
     {
-        final var outputString = String.format(
-                "Error encountered during system operation.\n" +
-                "Error saved in the file: %s\n" +
-                "Please send the error to the developers.\n" +
-                "%s\n",
-                filePath, errorMessage);
+        final var errorFile = new File(buildErrorFilePath(new Date()));
 
-        this.textArea.setText(outputString);
+        printErrorToFile(errorMessage, errorFile);
+        displayErrorInGui(errorMessage, errorFile);
+    }
 
+    private void displayErrorInGui (final String errorMessage, final File file)
+    {
+        final var path = file.getAbsolutePath();
+        final var formattedMessage = String.format(
+                ERROR_GUI_MESSAGE_FORMAT, path, errorMessage);
+
+        this.textArea.setText(formattedMessage);
+
+        // TODO: scrollPane.toString()?
         JOptionPane.showMessageDialog(this.parentComponent, this.scrollPane, "System Error", JOptionPane.ERROR_MESSAGE);
     }
+
 }
