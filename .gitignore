@@ -6,6 +6,7 @@
 # iSPD
 /Erros/
 /ispd/
+/ispd.externo.cloudSchedulers/
 /modeloiconico
 /modelosimulavel
 /configuration.xml
@@ -36,5 +37,3 @@
 # Git
 !.gitignore
 !.gitmodules
-
-
