@@ -23,24 +23,22 @@ public class GuiApplication implements Application
 
     private static void run ()
     {
-        var splashWindow = visibleDefaultSplashWindow();
-
-        JPrincipal mainWindow = initializeApplication();
+        final var splashWindow = visibleDefaultSplashWindow();
+        final var mainWindow = initializeApplication();
 
         splashWindow.dispose();
-
         mainWindow.setVisible(true);
     }
 
     private static JPrincipal initializeApplication ()
     {
-        var exceptionLogger = new LogExceptions(null);
+        final var exceptionLogger = new LogExceptions(null);
         Thread.setDefaultUncaughtExceptionHandler(exceptionLogger);
 
         redirectSystemStreams();
         setGuiLookAndFeel();
 
-        JPrincipal mainWindow = buildMainWindow();
+        final var mainWindow = buildMainWindow();
 
         // TODO: Study if exceptionLogger can be instantiated after creating the main window
         exceptionLogger.setParentComponent(mainWindow);
@@ -50,11 +48,12 @@ public class GuiApplication implements Application
 
     private static void redirectSystemStreams ()
     {
-        redirectSystemStreamToFile(System::setErr, errorFile);
-        redirectSystemStreamToFile(System::setOut, outputFile);
+        redirectStreamToFile(System::setErr, errorFile);
+        redirectStreamToFile(System::setOut, outputFile);
     }
 
-    private static void redirectSystemStreamToFile (Consumer<PrintStream> redirection, String pathToFile)
+    private static void redirectStreamToFile (
+            final Consumer<PrintStream> streamRedirect, final String pathToFile)
     {
         var fileStream = getFileStreamOrNull(pathToFile);
 
@@ -64,10 +63,10 @@ public class GuiApplication implements Application
 
         var printStream = new PrintStream(fileStream);
         // TODO: Uncomment once behaviour has been validated
-//        redirection.accept(printStream);
+//        streamRedirect.accept(printStream);
     }
 
-    private static FileOutputStream getFileStreamOrNull (String pathToFile)
+    private static FileOutputStream getFileStreamOrNull (final String pathToFile)
     {
         try
         {
@@ -91,7 +90,7 @@ public class GuiApplication implements Application
         }
     }
 
-    private static void logWithMainLogger (Exception ex)
+    private static void logWithMainLogger (final Exception ex)
     {
         // TODO: Perhaps message instead of 'null'?
         Logger.getLogger(Main.class.getName())
