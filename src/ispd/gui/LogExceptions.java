@@ -56,9 +56,9 @@ import java.util.Date;
 
 public class LogExceptions implements Thread.UncaughtExceptionHandler
 {
+    public static final String ERROR_FOLDER_PATH = "Erros";
     private static final int SCROLL_PREFERRED_WIDTH = 500;
     private static final int SCROLL_PREFERRED_HEIGHT = 300;
-    public static final String ERROR_FOLDER_PATH = "Erros";
     private final JTextArea area;
     private final JScrollPane scroll;
     private Component parentComponent;
@@ -114,34 +114,35 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         displayError(outStream);
     }
 
-    private void displayError (final ByteArrayOutputStream objErr)
+    private void displayError (final ByteArrayOutputStream errorStream)
     {
         try
         {
-            if (objErr.size() > 0)
-            {
-                String erro = "";
-                erro += "\n---------- error description ----------\n";
-                erro += objErr.toString();
-                erro += "\n---------- error description ----------\n";
-                DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-                Date date = new Date();
-                String codigo = dateFormat.format(date);
-                File file = new File("Erros/Error_iSPD_" + codigo);
-                FileWriter writer = new FileWriter(file);
-                PrintWriter saida = new PrintWriter(writer, true);
-                saida.print(erro);
-                saida.close();
-                writer.close();
-                String saidaString = "";
-                saidaString += "Error encountered during system operation.\n";
-                saidaString += "Error saved in the file: " + file.getAbsolutePath() + "\n";
-                saidaString += "Please send the error to the developers.\n";
-                saidaString += erro;
-                area.setText(saidaString);
-                JOptionPane.showMessageDialog(parentComponent, scroll, "System Error", JOptionPane.ERROR_MESSAGE);
-                objErr.reset();
-            }
+            if (errorStream.size() <= 0)
+                return;
+
+            String errorMessage = "";
+            errorMessage += "\n---------- error description ----------\n";
+            errorMessage += errorStream.toString();
+            errorMessage += "\n---------- error description ----------\n";
+
+            final var dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+            final var date = new Date();
+            String errorCode = dateFormat.format(date);
+            final var file = new File("Erros/Error_iSPD_" + errorCode);
+            final var writer = new FileWriter(file);
+            final var output = new PrintWriter(writer, true);
+            output.print(errorMessage);
+            output.close();
+            writer.close();
+            String outputString = "";
+            outputString += "Error encountered during system operation.\n";
+            outputString += "Error saved in the file: " + file.getAbsolutePath() + "\n";
+            outputString += "Please send the error to the developers.\n";
+            outputString += errorMessage;
+            area.setText(outputString);
+            JOptionPane.showMessageDialog(parentComponent, scroll, "System Error", JOptionPane.ERROR_MESSAGE);
+            errorStream.reset();
         } catch (Exception e)
         {
             JOptionPane.showMessageDialog(parentComponent, e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
