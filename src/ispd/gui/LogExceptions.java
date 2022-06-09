@@ -63,7 +63,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
     private final JScrollPane scroll;
     private Component parentComponent;
 
-    public LogExceptions (Component gui)
+    public LogExceptions (final Component gui)
     {
         this.parentComponent = gui;
 
@@ -98,21 +98,23 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         return scroll;
     }
 
-    public void setParentComponent (Component parentComponent)
+    public void setParentComponent (final Component parentComponent)
     {
         this.parentComponent = parentComponent;
     }
 
     @Override
-    public void uncaughtException (Thread t, Throwable e)
+    public void uncaughtException (final Thread t, final Throwable e)
     {
-        ByteArrayOutputStream fosErr = new ByteArrayOutputStream();
-        PrintStream psErr = new PrintStream(fosErr);
-        e.printStackTrace(psErr);
-        mostrarErro(fosErr);
+        final var outStream = new ByteArrayOutputStream();
+        final var printStream = new PrintStream(outStream);
+
+        e.printStackTrace(printStream);
+
+        displayError(outStream);
     }
 
-    private void mostrarErro (ByteArrayOutputStream objErr)
+    private void displayError (final ByteArrayOutputStream objErr)
     {
         try
         {
