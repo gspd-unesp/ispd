@@ -144,35 +144,4 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
             JOptionPane.showMessageDialog(parentComponent, e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
-
-    /**
-     * Define arquivos para gerar salvar a saída de erros
-     */
-    public void setErrosLog ()
-    {
-        //Define diretório padrão de erros
-        File diretorio = new File(Carregar.DIRETORIO_ISPD, "Erros");
-        //Cria diretório padrão de erros
-        if (!diretorio.exists())
-        {
-            diretorio.mkdir();
-        }
-        // cria os novos fluxos de saida para arquivo
-        FileOutputStream fosErr = null;
-        FileOutputStream fosOut = null;
-        try
-        {
-            fosErr = new FileOutputStream(new File(diretorio, "Erros_Simulador"));
-            fosOut = new FileOutputStream(new File(diretorio, "Saida_Simulador"));
-        } catch (FileNotFoundException ex)
-        {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        // define a impresso sobre os fluxos acima
-        PrintStream psErr = new PrintStream(fosErr);
-        PrintStream psOut = new PrintStream(fosOut);
-        // redefine os fluxos na classe System
-        System.setErr(psErr);
-        System.setOut(psOut);
-    }
 }
