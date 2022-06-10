@@ -59,7 +59,7 @@ public class GuiApplication implements Application
 
     private static JPrincipal buildMainWindow ()
     {
-        JPrincipal gui = new JPrincipal();
+        final var gui = new JPrincipal();
         gui.setLocationRelativeTo(null);
         return gui;
     }
