@@ -57,9 +57,9 @@ public class Main
     {
         Main.setDefaultLocale();
 
-        final var app = (args.length > 0)
-                ? new TerminalApplication(args)
-                : new GuiApplication();
+        final var app = (args.length == 0)
+                ? new GuiApplication()
+                : new TerminalApplication(args);
 
         app.run();
     }
