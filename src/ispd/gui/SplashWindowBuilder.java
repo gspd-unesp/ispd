@@ -10,7 +10,7 @@ public class SplashWindowBuilder
 {
     // TODO: Perhaps over-engineering?
     private static final String defaultImagePath = "gui/imagens/Splash.gif";
-    private static final String defaultText = "Copyright (c) 2010 - 2014 GSPD.  All rights reserved.";
+    private static final String defaultText = "Copyright (c) 2010 - 2014 GSPD.  All rights reserved."; // TODO: 2 spaces?
     private String imagePath = "";
     private String text = "";
     private boolean shouldBeVisible = false;
@@ -18,7 +18,7 @@ public class SplashWindowBuilder
     public static SplashWindow visibleDefaultSplashWindow ()
     {
         return aSplashWindow()
-                .withGif(defaultImagePath)
+                .withImage(defaultImagePath)
                 .withText(defaultText)
                 .visible()
                 .build();
@@ -29,7 +29,7 @@ public class SplashWindowBuilder
         return new SplashWindowBuilder();
     }
 
-    public SplashWindowBuilder withGif (String imagePath)
+    public SplashWindowBuilder withImage (String imagePath)
     {
         this.imagePath = imagePath;
         return this;
