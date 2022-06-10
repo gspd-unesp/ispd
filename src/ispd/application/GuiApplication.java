@@ -7,6 +7,7 @@ import ispd.gui.SplashWindowBuilder;
 
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -17,8 +18,8 @@ import java.util.logging.Logger;
 public class GuiApplication implements Application
 {
     private static final String GUI_LOOK_AND_FEEL_CLASS_NAME = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
-    private static final String ERROR_FILE = "Erros/Erros_Simulador";
-    private static final String OUTPUT_FILE = "Erros/Saida_Simulador";
+    private static final String ERROR_FILE = String.join(File.separator, "Erros", "Erros_Simulador");
+    private static final String OUTPUT_FILE = String.join(File.separator, "Erros", "Saida_Simulador");
 
     private static void openGui ()
     {
