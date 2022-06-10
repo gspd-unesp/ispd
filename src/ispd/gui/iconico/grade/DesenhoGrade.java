@@ -39,7 +39,7 @@
  */
 package ispd.gui.iconico.grade;
 
-import ispd.ValidaValores;
+import ispd.utils.ValidaValores;
 import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.EscolherClasse;
 import ispd.gui.JPrincipal;
@@ -73,8 +73,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  *

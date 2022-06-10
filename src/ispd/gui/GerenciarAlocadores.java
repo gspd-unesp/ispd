@@ -10,7 +10,7 @@
  */
 package ispd.gui;
 
-import ispd.ValidaValores;
+import ispd.utils.ValidaValores;
 import ispd.alocacaoVM.ManipularArquivosAlloc;
 import ispd.gui.auxiliar.FiltroDeArquivos;
 import ispd.gui.auxiliar.DocumentColor;
@@ -22,8 +22,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;

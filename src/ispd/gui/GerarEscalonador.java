@@ -39,9 +39,8 @@
  */
 package ispd.gui;
 
-import ispd.ValidaValores;
+import ispd.utils.ValidaValores;
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
-import ispd.arquivo.Alocadores;
 import ispd.alocacaoVM.ManipularArquivosAlloc;
 import ispd.escalonador.ManipularArquivos;
 import ispd.escalonadorCloud.ManipularArquivosCloud;

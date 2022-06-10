@@ -37,7 +37,7 @@
  * 09-Set-2014 : Version 2.0;
  *
  */
-package ispd;
+package ispd.utils;
 
 import java.util.Collection;
 import java.util.HashSet;

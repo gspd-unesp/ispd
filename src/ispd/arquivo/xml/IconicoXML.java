@@ -39,7 +39,7 @@
  */
 package ispd.arquivo.xml;
 
-import ispd.ValidaValores;
+import ispd.utils.ValidaValores;
 import ispd.gui.EscolherClasse;
 import ispd.gui.iconico.Aresta;
 import ispd.gui.iconico.grade.Cluster;
@@ -76,7 +76,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.swing.text.html.CSS;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
