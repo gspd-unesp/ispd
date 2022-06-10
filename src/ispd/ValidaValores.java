@@ -39,18 +39,16 @@
  */
 package ispd;
 
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
 
 /**
- * Classe para validação e controle de nomes e valores da interface gráfica do iSPD
- *
  * @author Aldo
  */
 public class ValidaValores
 {
-    private static final List<String> palavrasReservadasJava = Arrays.asList(
+    private static final Collection<String> palavrasReservadasJava = Set.of(
             "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
             "default", "do", "double", "else", "enum", "extends", "false", "final", "finally", "float", "for", "goto",
             "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "null",
@@ -58,29 +56,28 @@ public class ValidaValores
             "short", "static", "strictfp", "super", "switch", "synchronized",
             "this", "throw", "throws", "transient", "true", "try", "void", "volatile", "while"
     ); // TODO: Add var? Any other keywords?
-    private static HashSet<String> listaNos = new HashSet<>();
+    private static Collection<String> nodes = new HashSet<>(); // TODO: updated, but not queried. Useless?
 
-    public static void addNomeIcone (String temp)
+    public static void addNomeIcone (String s)
     {
-        listaNos.add(temp);
+        ValidaValores.nodes.add(s);
     }
 
-    public static void removeNomeIcone (String temp)
+    public static void removeNomeIcone (String s)
     {
-        listaNos.remove(temp);
+        ValidaValores.nodes.remove(s);
     }
 
     public static void removeTodosNomeIcone ()
     {
-        listaNos = new HashSet<>();
+        ValidaValores.nodes = new HashSet<>();
     }
 
-    public static boolean validaNomeClasse (String temp)
+    public static boolean validaNomeClasse (String name)
     {
-        if (!temp.matches("[a-zA-Z$_][a-zA-Z\\d$_]*"))
+        if (!name.matches("[a-zA-Z$_][a-zA-Z\\d$_]*"))
             return false;
 
-        return !palavrasReservadasJava.contains(temp);
+        return !palavrasReservadasJava.contains(name);
     }
-
 }
