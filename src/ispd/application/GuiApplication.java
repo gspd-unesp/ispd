@@ -17,9 +17,9 @@ import static ispd.gui.SplashWindowBuilder.visibleDefaultSplashWindow;
 
 public class GuiApplication implements Application
 {
-    private static final String guiLookAndFeelClassName = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
-    private static final String errorFile = "Erros/Erros_Simulador";
-    private static final String outputFile = "Erros/Saida_Simulador";
+    private static final String GUI_LOOK_AND_FEEL_CLASS_NAME = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
+    private static final String ERROR_FILE = "Erros/Erros_Simulador";
+    private static final String OUTPUT_FILE = "Erros/Saida_Simulador";
 
     private static void openGui ()
     {
@@ -48,8 +48,8 @@ public class GuiApplication implements Application
 
     private static void redirectSystemStreams ()
     {
-        redirectStreamToFile(System::setErr, errorFile);
-        redirectStreamToFile(System::setOut, outputFile);
+        redirectStreamToFile(System::setErr, ERROR_FILE);
+        redirectStreamToFile(System::setOut, OUTPUT_FILE);
     }
 
     private static void redirectStreamToFile (
@@ -82,7 +82,7 @@ public class GuiApplication implements Application
     {
         try
         {
-            UIManager.setLookAndFeel(guiLookAndFeelClassName);
+            UIManager.setLookAndFeel(GUI_LOOK_AND_FEEL_CLASS_NAME);
         } catch (ClassNotFoundException | IllegalAccessException |
                  InstantiationException | UnsupportedLookAndFeelException ex)
         {
