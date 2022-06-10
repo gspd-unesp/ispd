@@ -3,6 +3,7 @@ package ispd.application;
 import ispd.Main;
 import ispd.gui.JPrincipal;
 import ispd.gui.LogExceptions;
+import ispd.gui.SplashWindowBuilder;
 
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -13,8 +14,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static ispd.gui.SplashWindowBuilder.visibleDefaultSplashWindow;
-
 public class GuiApplication implements Application
 {
     private static final String GUI_LOOK_AND_FEEL_CLASS_NAME = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
@@ -23,8 +22,8 @@ public class GuiApplication implements Application
 
     private static void openGui ()
     {
-        final var splashWindow = visibleDefaultSplashWindow();
-        final var mainWindow = initializeApplication();
+        final var splashWindow = SplashWindowBuilder.visibleDefaultSplashWindow();
+        final var mainWindow = GuiApplication.initializeApplication();
 
         splashWindow.dispose();
         mainWindow.setVisible(true);
@@ -35,10 +34,10 @@ public class GuiApplication implements Application
         final var exceptionLogger = new LogExceptions(null);
         Thread.setDefaultUncaughtExceptionHandler(exceptionLogger);
 
-        redirectSystemStreams();
-        setGuiLookAndFeel();
+        GuiApplication.redirectSystemStreams();
+        GuiApplication.setGuiLookAndFeel();
 
-        final var mainWindow = buildMainWindow();
+        final var mainWindow = GuiApplication.buildMainWindow();
 
         // TODO: Study if exceptionLogger can be instantiated after creating the main window
         exceptionLogger.setParentComponent(mainWindow);
@@ -55,7 +54,7 @@ public class GuiApplication implements Application
     private static void redirectStreamToFile (
             final Consumer<PrintStream> streamRedirect, final String pathToFile)
     {
-        var fileStream = getFileStreamOrNull(pathToFile);
+        var fileStream = GuiApplication.getFileStreamOrNull(pathToFile);
 
         // TODO: Maybe optional?
         if (fileStream == null)
@@ -73,7 +72,7 @@ public class GuiApplication implements Application
             return new FileOutputStream(pathToFile);
         } catch (FileNotFoundException ex)
         {
-            logWithMainLogger(ex);
+            GuiApplication.logWithMainLogger(ex);
             return null;
         }
     }
@@ -86,7 +85,7 @@ public class GuiApplication implements Application
         } catch (ClassNotFoundException | IllegalAccessException |
                  InstantiationException | UnsupportedLookAndFeelException ex)
         {
-            logWithMainLogger(ex);
+            GuiApplication.logWithMainLogger(ex);
         }
     }
 
