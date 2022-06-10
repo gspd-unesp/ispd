@@ -70,24 +70,24 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
     private static final int SCROLL_PANE_PREFERRED_WIDTH = 500;
     private static final int SCROLL_PANE_PREFERRED_HEIGHT = 300;
     private final JTextArea textArea;
-    private final JScrollPane scrollPane; // TODO: Create specialized ErrorScrollPane
+    private final JScrollPane scrollPane; // TODO: Create specialized error window
     private Component parentComponent; // TODO: Can we make this final?
 
     public LogExceptions (final Component gui)
     {
         this.parentComponent = gui;
 
-        createErrorFolderIfNonExistent();
+        LogExceptions.createErrorFolderIfNonExistent();
 
-        this.textArea = readonlyTextArea();
-        this.scrollPane = resizedScrollPaneFrom(this.textArea);
+        this.textArea = LogExceptions.readonlyTextArea();
+        this.scrollPane = LogExceptions.resizedScrollPaneFrom(this.textArea);
     }
 
     private static void createErrorFolderIfNonExistent ()
     {
         final var aux = new File(ERROR_FOLDER_PATH);
 
-        // TODO: Handle SecurityException
+        // TODO: Throw if directory can't be created
 
         if (aux.exists())
             return;
@@ -111,7 +111,8 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         return scroll;
     }
 
-    private static void printErrorToFile (final String errorMessage, final File file) throws IOException
+    private static void printErrorToFile (
+            final String errorMessage, final File file) throws IOException
     {
         try (var fw = new FileWriter(file);
              var pw = new PrintWriter(fw, true))
@@ -122,7 +123,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
     private static String buildErrorFilePath (final Date date)
     {
-        final var errorCode = buildErrorFileTimestamp(date);
+        final var errorCode = LogExceptions.buildErrorFileTimestamp(date);
         return String.format("%s%s%s_%s",
                 ERROR_FOLDER_PATH, File.separator, ERROR_FILE_PREFIX, errorCode);
     }
@@ -133,6 +134,11 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         return dateFormat.format(date);
     }
 
+    public void setParentComponent (final Component parentComponent)
+    {
+        this.parentComponent = parentComponent;
+    }
+
     @Override
     public void uncaughtException (final Thread t, final Throwable e)
     {
@@ -140,12 +146,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
         e.printStackTrace(new PrintStream(errStream));
 
-        processError(errStream);
-    }
-
-    public void setParentComponent (final Component parentComponent)
-    {
-        this.parentComponent = parentComponent;
+        this.processError(errStream);
     }
 
     private void processError (final ByteArrayOutputStream errorStream)
@@ -156,7 +157,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
         try
         {
             final var errorMessage = String.format(ERROR_FILE_MESSAGE_FORMAT, errorStream);
-            displayError(errorMessage);
+            this.displayError(errorMessage);
 
             errorStream.reset(); // TODO: Maybe in a finally block?
 
@@ -168,10 +169,11 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler
 
     private void displayError (final String errorMessage) throws IOException
     {
-        final var errorFile = new File(buildErrorFilePath(new Date()));
+        final var errorFile = new File(
+                LogExceptions.buildErrorFilePath(new Date()));
 
-        printErrorToFile(errorMessage, errorFile);
-        displayErrorInGui(errorMessage, errorFile);
+        LogExceptions.printErrorToFile(errorMessage, errorFile);
+        this.displayErrorInGui(errorMessage, errorFile);
     }
 
     private void displayErrorInGui (final String errorMessage, final File file)
