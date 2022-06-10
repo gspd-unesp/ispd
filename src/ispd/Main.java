@@ -51,11 +51,11 @@ import java.util.Locale;
  */
 public class Main
 {
-    private static final Locale enUsLocale = new Locale("en", "US");
+    private static final Locale EN_US_LOCALE = new Locale("en", "US");
 
     public static void main (String[] args)
     {
-        setDefaultLocale();
+        Main.setDefaultLocale();
 
         final var app = (args.length > 0)
                 ? new TerminalApplication(args)
@@ -66,6 +66,6 @@ public class Main
 
     private static void setDefaultLocale ()
     {
-        Locale.setDefault(enUsLocale);
+        Locale.setDefault(EN_US_LOCALE);
     }
 }
