@@ -53,11 +53,11 @@ public class Main
 {
     private static final Locale EN_US_LOCALE = new Locale("en", "US");
 
-    public static void main (String[] args)
+    public static void main (final String[] args)
     {
         Main.setDefaultLocale();
 
-        final var app = (args.length == 0)
+        final var app = (0 == args.length)
                 ? new GuiApplication()
                 : new TerminalApplication(args);
 
@@ -66,6 +66,6 @@ public class Main
 
     private static void setDefaultLocale ()
     {
-        Locale.setDefault(EN_US_LOCALE);
+        Locale.setDefault(Main.EN_US_LOCALE);
     }
 }
