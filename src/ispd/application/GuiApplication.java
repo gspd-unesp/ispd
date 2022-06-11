@@ -1,6 +1,5 @@
 package ispd.application;
 
-import ispd.Main;
 import ispd.gui.JPrincipal;
 import ispd.gui.LogExceptions;
 import ispd.gui.SplashWindowBuilder;
@@ -42,9 +41,9 @@ public class GuiApplication implements Application
     {
         try
         {
-            UIManager.setLookAndFeel(GUI_LOOK_AND_FEEL_CLASS_NAME);
-        } catch (ClassNotFoundException | IllegalAccessException |
-                 InstantiationException | UnsupportedLookAndFeelException ex)
+            UIManager.setLookAndFeel(GuiApplication.GUI_LOOK_AND_FEEL_CLASS_NAME);
+        } catch (final ClassNotFoundException | IllegalAccessException |
+                       InstantiationException | UnsupportedLookAndFeelException ex)
         {
             GuiApplication.logWithMainLogger(ex);
         }
@@ -53,7 +52,7 @@ public class GuiApplication implements Application
     private static void logWithMainLogger (final Exception ex)
     {
         // TODO: Perhaps message instead of 'null'?
-        Logger.getLogger(Main.class.getName())
+        Logger.getLogger(GuiApplication.class.getName())
                 .log(Level.SEVERE, null, ex);
     }
 
