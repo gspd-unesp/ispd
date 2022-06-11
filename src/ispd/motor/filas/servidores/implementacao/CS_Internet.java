@@ -40,7 +40,7 @@
 package ispd.motor.filas.servidores.implementacao;
 
 import ispd.motor.Simulacao;
-import ispd.motor.EventoFuturo;
+import ispd.motor.FutureEvent;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Comunicacao;
@@ -85,9 +85,9 @@ public class CS_Internet extends CS_Comunicacao implements Vertice {
     @Override
     public void chegadaDeCliente(Simulacao simulacao, Tarefa cliente) {
         //cria evento para iniciar o atendimento imediatamente
-        EventoFuturo novoEvt = new EventoFuturo(
+        FutureEvent novoEvt = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.ATENDIMENTO,
+                FutureEvent.ATENDIMENTO,
                 this,
                 cliente);
         simulacao.addEventoFuturo(novoEvt);
@@ -98,9 +98,9 @@ public class CS_Internet extends CS_Comunicacao implements Vertice {
         pacotes++;
         cliente.iniciarAtendimentoComunicacao(simulacao.getTime(this));
         //Gera evento para atender proximo cliente da lista
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this) + tempoTransmitir(cliente.getTamComunicacao()),
-                EventoFuturo.SAÍDA,
+                FutureEvent.SAIDA,
                 this, cliente);
         //Event adicionado a lista de evntos futuros
         simulacao.addEventoFuturo(evtFut);
@@ -117,9 +117,9 @@ public class CS_Internet extends CS_Comunicacao implements Vertice {
         //Incrementa o tempo de transmissão no pacote
         cliente.finalizarAtendimentoComunicacao(simulacao.getTime(this));
         //Gera evento para chegada da tarefa no proximo servidor
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.CHEGADA,
+                FutureEvent.CHEGADA,
                 cliente.getCaminho().remove(0), cliente);
         //Event adicionado a lista de evntos futuros
         simulacao.addEventoFuturo(evtFut);
@@ -133,9 +133,9 @@ public class CS_Internet extends CS_Comunicacao implements Vertice {
         double tempoTrans = this.tempoTransmitir(cliente.getTamComunicacao());
         this.getMetrica().incSegundosDeTransmissao(tempoTrans);
         //Gera evento para chegada da tarefa no proximo servidor
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this) + tempoTrans,
-                EventoFuturo.MENSAGEM,
+                FutureEvent.MENSAGEM,
                 cliente.getCaminho().remove(0), cliente);
         //Event adicionado a lista de evntos futuros
         simulacao.addEventoFuturo(evtFut);

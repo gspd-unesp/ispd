@@ -5,24 +5,6 @@
  */
 package ispd.motor;
 
-import ispd.alocacaoVM.VMM;
-import ispd.escalonadorCloud.MestreCloud;
-import ispd.gui.JPrincipal;
-import ispd.gui.JSelecionarFalhas;
-import javax.swing.JOptionPane;
-import ispd.gui.JSelecionarFalhas;
-import ispd.gui.JSimulacao;
-import ispd.gui.iconico.grade.DesenhoGrade;
-import ispd.motor.filas.Cliente;
-import ispd.motor.filas.Mensagem;
-import ispd.motor.filas.RedeDeFilasCloud;
-import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.filas.servidores.implementacao.CS_VMM;
-import java.util.ArrayList;
-import java.util.List;
-import ispd.motor.filas.servidores.*;
-import ispd.motor.filas.servidores.implementacao.*;
 import java.util.PriorityQueue;
 
 /** @author Camila
@@ -33,7 +15,7 @@ public class HardwareFaults {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     private double time = 0;
-    private PriorityQueue<EventoFuturo> eventos;
+    private PriorityQueue<FutureEvent> eventos;
 }
     //Recebe as informações do botão "Simular do JPrincipal"
     

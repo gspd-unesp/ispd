@@ -39,7 +39,7 @@
  */
 package ispd.motor.filas.servidores.implementacao;
 
-import ispd.motor.EventoFuturo;
+import ispd.motor.FutureEvent;
 import ispd.motor.Mensagens;
 import ispd.motor.Simulacao;
 import ispd.motor.filas.Mensagem;
@@ -153,9 +153,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
                 //indica que recurso está ocupado
                 processadoresDisponiveis--;
                 //cria evento para iniciar o atendimento imediatamente
-                EventoFuturo novoEvt = new EventoFuturo(
+                FutureEvent novoEvt = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this,
                         cliente);
                 simulacao.addEventoFuturo(novoEvt);
@@ -178,18 +178,18 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
                 tFalha = simulacao.getTime(this);
             }
             Mensagem msg = new Mensagem(this, Mensagens.FALHAR, cliente);
-            EventoFuturo evt = new EventoFuturo(
+            FutureEvent evt = new FutureEvent(
                     tFalha,
-                    EventoFuturo.MENSAGEM,
+                    FutureEvent.MENSAGEM,
                     this,
                     msg);
             simulacao.addEventoFuturo(evt);
         } else {
             falha = false;
             //Gera evento para atender proximo cliente da lista
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     next,
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this, cliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addEventoFuturo(evtFut);
@@ -214,9 +214,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             List<CentroServico> caminho = new ArrayList<CentroServico>((List<CentroServico>) caminhoMestre.get(index));
             cliente.setCaminho(caminho);
             //Gera evento para chegada da tarefa no proximo servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     cliente.getCaminho().remove(0),
                     cliente);
             //Event adicionado a lista de evntos futuros
@@ -230,9 +230,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             this.caminhoMestre.add(caminho);
             cliente.setCaminho(new ArrayList<CentroServico>(caminho));
             //Gera evento para chegada da tarefa no proximo servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     cliente.getCaminho().remove(0),
                     cliente);
             //Event adicionado a lista de evntos futuros
@@ -244,9 +244,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
         } else {
             //Gera evento para atender proximo cliente da lista
             Tarefa proxCliente = filaTarefas.remove(0);
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.ATENDIMENTO,
+                    FutureEvent.ATENDIMENTO,
                     this, proxCliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addEventoFuturo(evtFut);
@@ -300,7 +300,7 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     public void atenderCancelamento(Simulacao simulacao, Mensagem mensagem) {
         if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
-            simulacao.removeEventoFuturo(EventoFuturo.SAÍDA, this, mensagem.getTarefa());
+            simulacao.removeEventoFuturo(FutureEvent.SAIDA, this, mensagem.getTarefa());
             tarefaEmExecucao.remove(mensagem.getTarefa());
             //gerar evento para atender proximo cliente
             if (filaTarefas.isEmpty()) {
@@ -309,9 +309,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
                 simulacao.addEventoFuturo(evtFut);
@@ -334,7 +334,7 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
         if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
             boolean remover = simulacao.removeEventoFuturo(
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this,
                     mensagem.getTarefa());
             //gerar evento para atender proximo cliente
@@ -344,9 +344,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
                 simulacao.addEventoFuturo(evtFut);
@@ -369,9 +369,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     public void atenderDevolucao(Simulacao simulacao, Mensagem mensagem) {
         boolean remover = filaTarefas.remove(mensagem.getTarefa());
         if (remover) {
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     mensagem.getTarefa().getOrigem(),
                     mensagem.getTarefa());
             //Event adicionado a lista de evntos futuros
@@ -386,7 +386,7 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             remover = filaTarefas.remove(mensagem.getTarefa());
         } else if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             remover = simulacao.removeEventoFuturo(
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this,
                     mensagem.getTarefa());
             //gerar evento para atender proximo cliente
@@ -396,9 +396,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
                 simulacao.addEventoFuturo(evtFut);
@@ -418,9 +418,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             tarefaEmExecucao.remove(mensagem.getTarefa());
         }
         if (remover) {
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     mensagem.getTarefa().getOrigem(),
                     mensagem.getTarefa());
             //Event adicionado a lista de evntos futuros
@@ -438,9 +438,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
         novaMensagem.setProcessadorEscravo(new ArrayList<Tarefa>(tarefaEmExecucao));
         novaMensagem.setFilaEscravo(new ArrayList<Tarefa>(filaTarefas));
         novaMensagem.setCaminho(caminho);
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.MENSAGEM,
+                FutureEvent.MENSAGEM,
                 novaMensagem.getCaminho().remove(0),
                 novaMensagem);
         //Event adicionado a lista de evntos futuros
@@ -473,9 +473,9 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
                     //Reiniciar atendimento da tarefa
                     tar.iniciarEsperaProcessamento(simulacao.getTime(this));
                     //cria evento para iniciar o atendimento imediatamente
-                    EventoFuturo novoEvt = new EventoFuturo(
+                    FutureEvent novoEvt = new FutureEvent(
                             simulacao.getTime(this) + tempoRec,
-                            EventoFuturo.ATENDIMENTO,
+                            FutureEvent.ATENDIMENTO,
                             this,
                             tar);
                     simulacao.addEventoFuturo(novoEvt);

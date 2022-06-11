@@ -5,10 +5,10 @@
  */
 package ispd.motor.filas.servidores.implementacao;
 
-import ispd.motor.EventoFuturo;
+import ispd.motor.FutureEvent;
 import ispd.motor.Mensagens;
 import ispd.motor.Simulacao;
-import ispd.motor.filas.Cliente;
+import ispd.motor.filas.Client;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Diogo Tavares
  */
-public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagens {
+public class CS_VirtualMac extends CS_Processamento implements Client, Mensagens {
     
     public static final int LIVRE = 1;
     public static final int ALOCADA = 2;
@@ -93,9 +93,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
                 //indica que recurso está ocupado
                 processadoresDisponiveis--;
                 //cria evento para iniciar o atendimento imediatamente
-                EventoFuturo novoEvt = new EventoFuturo(
+                FutureEvent novoEvt = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this,
                         cliente);
                 simulacao.addEventoFuturo(novoEvt);
@@ -121,18 +121,18 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
                 tFalha = simulacao.getTime(this);
             }
             Mensagem msg = new Mensagem(this, Mensagens.FALHAR, cliente);
-            EventoFuturo evt = new EventoFuturo(
+            FutureEvent evt = new FutureEvent(
                     tFalha,
-                    EventoFuturo.MENSAGEM,
+                    FutureEvent.MENSAGEM,
                     this,
                     msg);
             simulacao.addEventoFuturo(evt);
         } else {
             falha = false;
             //Gera evento para atender proximo cliente da lista
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     next,
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this, cliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addEventoFuturo(evtFut);
@@ -177,9 +177,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
             System.out.println("Saida -"+ this.getId() +"- caminho size:" + caminho.size());
            
             //Gera evento para chegada da tarefa no proximo servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     cliente.getCaminho().remove(0),
                     cliente);
             //Event adicionado a lista de evntos futuros
@@ -191,9 +191,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
         } else {
             //Gera evento para atender proximo cliente da lista
             Tarefa proxCliente = filaTarefas.remove(0);
-            EventoFuturo NovoEvt = new EventoFuturo(
+            FutureEvent NovoEvt = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.ATENDIMENTO,
+                    FutureEvent.ATENDIMENTO,
                     this, proxCliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addEventoFuturo(NovoEvt);
@@ -231,7 +231,7 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
     public void atenderCancelamento(Simulacao simulacao, Mensagem mensagem) {
          if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
-            simulacao.removeEventoFuturo(EventoFuturo.SAÍDA, this, mensagem.getTarefa());
+            simulacao.removeEventoFuturo(FutureEvent.SAIDA, this, mensagem.getTarefa());
             tarefaEmExecucao.remove(mensagem.getTarefa());
             //gerar evento para atender proximo cliente
             if (filaTarefas.isEmpty()) {
@@ -240,9 +240,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
                 simulacao.addEventoFuturo(evtFut);
@@ -264,7 +264,7 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
            if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
             boolean remover = simulacao.removeEventoFuturo(
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this,
                     mensagem.getTarefa());
             //gerar evento para atender proximo cliente
@@ -274,9 +274,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
                 simulacao.addEventoFuturo(evtFut);
@@ -299,9 +299,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
     public void atenderDevolucao(Simulacao simulacao, Mensagem mensagem) {
         boolean remover = filaTarefas.remove(mensagem.getTarefa());
         if (remover) {
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     mensagem.getTarefa().getOrigem(),
                     mensagem.getTarefa());
             //Event adicionado a lista de evntos futuros
@@ -316,7 +316,7 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
             remover = filaTarefas.remove(mensagem.getTarefa());
         } else if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             remover = simulacao.removeEventoFuturo(
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this,
                     mensagem.getTarefa());
             //gerar evento para atender proximo cliente
@@ -326,9 +326,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
                 simulacao.addEventoFuturo(evtFut);
@@ -346,9 +346,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
             tarefaEmExecucao.remove(mensagem.getTarefa());
         }
         if (remover) {
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     mensagem.getTarefa().getOrigem(),
                     mensagem.getTarefa());
             //Event adicionado a lista de evntos futuros
@@ -366,9 +366,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
         novaMensagem.setProcessadorEscravo(new ArrayList<Tarefa>(tarefaEmExecucao));
         novaMensagem.setFilaEscravo(new ArrayList<Tarefa>(filaTarefas));
         novaMensagem.setCaminho(caminho);
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.MENSAGEM,
+                FutureEvent.MENSAGEM,
                 novaMensagem.getCaminho().remove(0),
                 novaMensagem);
         //Event adicionado a lista de evntos futuros
@@ -400,9 +400,9 @@ public class CS_VirtualMac extends CS_Processamento implements Cliente, Mensagen
                     //Reiniciar atendimento da tarefa
                     tar.iniciarEsperaProcessamento(simulacao.getTime(this));
                     //cria evento para iniciar o atendimento imediatamente
-                    EventoFuturo novoEvt = new EventoFuturo(
+                    FutureEvent novoEvt = new FutureEvent(
                             simulacao.getTime(this) + tempoRec,
-                            EventoFuturo.ATENDIMENTO,
+                            FutureEvent.ATENDIMENTO,
                             this,
                             tar);
                     simulacao.addEventoFuturo(novoEvt);

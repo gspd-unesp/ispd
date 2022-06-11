@@ -40,7 +40,7 @@
 package ispd.motor;
 
 import ispd.escalonador.Mestre;
-import ispd.motor.filas.Cliente;
+import ispd.motor.filas.Client;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.Tarefa;
@@ -96,9 +96,9 @@ public abstract class Simulacao {
 
     public abstract double getTime(Object origem);
     
-    public abstract void addEventoFuturo(EventoFuturo ev);
+    public abstract void addEventoFuturo(FutureEvent ev);
     
-    public abstract boolean removeEventoFuturo(int tipoEv, CentroServico servidorEv, Cliente clienteEv);
+    public abstract boolean removeEventoFuturo(int tipoEv, CentroServico servidorEv, Client clientEv);
 
     public void addTarefa(Tarefa tarefa) {
         tarefas.add(tarefa);

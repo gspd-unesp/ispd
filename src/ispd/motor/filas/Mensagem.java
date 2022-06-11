@@ -48,7 +48,7 @@ import java.util.List;
  *
  * @author denison
  */
-public class Mensagem implements Cliente {
+public class Mensagem implements Client {
     
     private int tipo;
     private Tarefa tarefa;

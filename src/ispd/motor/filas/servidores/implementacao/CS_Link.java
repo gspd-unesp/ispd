@@ -39,7 +39,7 @@
  */
 package ispd.motor.filas.servidores.implementacao;
 
-import ispd.motor.EventoFuturo;
+import ispd.motor.FutureEvent;
 import ispd.motor.Simulacao;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
@@ -97,9 +97,9 @@ public class CS_Link extends CS_Comunicacao {
             //indica que recurso está ocupado
             linkDisponivel = false;
             //cria evento para iniciar o atendimento imediatamente
-            EventoFuturo novoEvt = new EventoFuturo(
+            FutureEvent novoEvt = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.ATENDIMENTO,
+                    FutureEvent.ATENDIMENTO,
                     this,
                     cliente);
             simulacao.addEventoFuturo(novoEvt);
@@ -117,9 +117,9 @@ public class CS_Link extends CS_Comunicacao {
             cliente.finalizarEsperaComunicacao(simulacao.getTime(this));
             cliente.iniciarAtendimentoComunicacao(simulacao.getTime(this));
             //Gera evento para atender proximo cliente da lista
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this) + tempoTransmitir(cliente.getTamComunicacao()),
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this, cliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addEventoFuturo(evtFut);
@@ -136,9 +136,9 @@ public class CS_Link extends CS_Comunicacao {
         //Incrementa o tempo de transmissão no pacote
         cliente.finalizarAtendimentoComunicacao(simulacao.getTime(this));
         //Gera evento para chegada da tarefa no proximo servidor
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.CHEGADA,
+                FutureEvent.CHEGADA,
                 cliente.getCaminho().remove(0), cliente);
         //Event adicionado a lista de evntos futuros
         simulacao.addEventoFuturo(evtFut);
@@ -148,9 +148,9 @@ public class CS_Link extends CS_Comunicacao {
         } else {
             //Gera evento para atender proximo cliente da lista
             Tarefa proxCliente = filaPacotes.remove(0);
-            evtFut = new EventoFuturo(
+            evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.ATENDIMENTO,
+                    FutureEvent.ATENDIMENTO,
                     this, proxCliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addEventoFuturo(evtFut);
@@ -159,7 +159,7 @@ public class CS_Link extends CS_Comunicacao {
 
     @Override
     public void requisicao(Simulacao simulacao, Mensagem cliente, int tipo) {
-        if (tipo == EventoFuturo.SAIDA_MENSAGEM) {
+        if (tipo == FutureEvent.SAIDA_MENSAGEM) {
             tempoTransmitirMensagem += tempoTransmitir(cliente.getTamComunicacao());
             //Incrementa o número de Mbits transmitido por este link
             this.getMetrica().incMbitsTransmitidos(cliente.getTamComunicacao());
@@ -167,17 +167,17 @@ public class CS_Link extends CS_Comunicacao {
             double tempoTrans = this.tempoTransmitir(cliente.getTamComunicacao());
             this.getMetrica().incSegundosDeTransmissao(tempoTrans);
             //Gera evento para chegada da mensagem no proximo servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this) + tempoTrans,
-                    EventoFuturo.MENSAGEM,
+                    FutureEvent.MENSAGEM,
                     cliente.getCaminho().remove(0), cliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addEventoFuturo(evtFut);
             if (!filaMensagens.isEmpty()) {
                 //Gera evento para chegada da mensagem no proximo servidor
-                evtFut = new EventoFuturo(
+                evtFut = new FutureEvent(
                         simulacao.getTime(this) + tempoTrans,
-                        EventoFuturo.SAIDA_MENSAGEM,
+                        FutureEvent.SAIDA_MENSAGEM,
                         this, filaMensagens.remove(0));
                 //Event adicionado a lista de evntos futuros
                 simulacao.addEventoFuturo(evtFut);
@@ -187,9 +187,9 @@ public class CS_Link extends CS_Comunicacao {
         } else if (linkDisponivelMensagem) {
             linkDisponivelMensagem = false;
             //Gera evento para chegada da mensagem no proximo servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.SAIDA_MENSAGEM,
+                    FutureEvent.SAIDA_MENSAGEM,
                     this, cliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addEventoFuturo(evtFut);

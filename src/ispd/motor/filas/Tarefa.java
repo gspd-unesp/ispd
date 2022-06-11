@@ -51,7 +51,7 @@ import java.util.List;
  *
  * @author denison
  */
-public class Tarefa implements Cliente {
+public class Tarefa implements Client {
     //Estados que a tarefa pode estar
 
     public static final int PARADO = 1;
