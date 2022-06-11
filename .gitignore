@@ -37,6 +37,3 @@
 # Git
 !.gitignore
 !.gitmodules
-
-# Classes
-*.class
