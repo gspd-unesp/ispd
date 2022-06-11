@@ -42,7 +42,7 @@ package ispd.gui.iconico.simulacao;
 import ispd.gui.iconico.AreaDesenho;
 import ispd.gui.iconico.Icone;
 import ispd.gui.iconico.Vertice;
-import ispd.motor.SimulacaoGrafica;
+import ispd.motor.GraphicSimulation;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
@@ -65,11 +65,11 @@ public class DesenhoSimulacao extends AreaDesenho {
 
     private final int INCREMENTO = 100;
     private Font fonte;
-    private SimulacaoGrafica sim;
+    private GraphicSimulation sim;
     private int setas = 5;
     private int setaCont = 0;
 
-    public DesenhoSimulacao(SimulacaoGrafica sim) {
+    public DesenhoSimulacao(GraphicSimulation sim) {
         super(false, false, true, true);
         this.setUnits(INCREMENTO);
         this.sim = sim;
@@ -168,7 +168,7 @@ public class DesenhoSimulacao extends AreaDesenho {
         setaCont++;
         g.setFont(fonte);
         super.paintComponent(g);
-        if (!sim.isParar()) {
+        if (!sim.shouldStop()) {
             this.repaint();
         }
     }
