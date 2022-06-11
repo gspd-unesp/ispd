@@ -121,7 +121,7 @@ import java.util.logging.Logger;
  * @author denison
  */
 public class JPrincipal extends JFrame implements KeyListener {
-    public static final int DRAWING_GRID_START_SIZE = 1500;
+    private static final int DRAWING_GRID_START_SIZE = 1500;
     private static final char FILE_EXTENSION_SEPARATOR = '.';
     private static final int LOADING_SCREEN_WIDTH = 200;
     private static final int LOADING_SCREEN_HEIGHT = 100;
@@ -557,7 +557,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jButtonInjectFaults.setFocusable(false);
         this.jButtonInjectFaults.setHorizontalTextPosition(SwingConstants.CENTER);
         this.jButtonInjectFaults.setVerticalTextPosition(SwingConstants.BOTTOM);
-        this.jButtonInjectFaults.addActionListener(this::jButtonInjectFaultsActionPerformed);
+        this.jButtonInjectFaults.addActionListener(JPrincipal::jButtonInjectFaultsActionPerformed);
         this.jToolBar.add(this.jButtonInjectFaults);
 
         this.jButtonInjectFaults.setText("Faults Injection");
@@ -1241,8 +1241,8 @@ public class JPrincipal extends JFrame implements KeyListener {
     private void jMenuItemGridSimActionPerformed(final ActionEvent evt) {
         this.configureFileFilterAndChooser("Java Source Files (. java)", new String[]{".java"}, true);
 
-        int returnVal = this.jFileChooser.showOpenDialog(this);
-        if (returnVal != JFileChooser.APPROVE_OPTION)
+        final int returnVal = this.jFileChooser.showOpenDialog(this);
+        if (JFileChooser.APPROVE_OPTION != returnVal)
             return;
 
         final var loadingScreen = this.LoadingScreen();
@@ -1251,7 +1251,7 @@ public class JPrincipal extends JFrame implements KeyListener {
 
         try {
             this.interpretFileAndUpdateDrawing();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             JOptionPane.showMessageDialog(null, this.translate("Error opening file.") + "\n" + e.getMessage(), this.translate("WARNING"), JOptionPane.PLAIN_MESSAGE);
         }
 
@@ -1280,7 +1280,7 @@ public class JPrincipal extends JFrame implements KeyListener {
 
         interpreter.interpreta(file);
 
-        final int gridSize = Math.max(interpreter.getW(), DRAWING_GRID_START_SIZE);
+        final int gridSize = Math.max(interpreter.getW(), JPrincipal.DRAWING_GRID_START_SIZE);
         this.drawingArea = new DesenhoGrade(gridSize, gridSize);
         this.drawingArea.setGrade(interpreter.getDescricao());
         this.updateGuiWithOpenFile("model opened", null);
@@ -1288,10 +1288,10 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void jMenuItemSortActionPerformed(final ActionEvent evt) {
-        if (this.drawingArea == null)
+        if (null == this.drawingArea)
             return;
 
-        if (this.jMenuItemSort.getDisplayedMnemonicIndex() == 2) {
+        if (2 == this.jMenuItemSort.getDisplayedMnemonicIndex()) {
             this.jMenuItemSort.setDisplayedMnemonicIndex(1);
             this.drawingArea.iconArrangeType();
         } else {
@@ -1309,7 +1309,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     private void exportToFileType(final String description, final String extension) {
         this.configureFileFilterAndChooser(description, new String[]{extension}, false);
 
-        if (this.jFileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
+        if (JFileChooser.APPROVE_OPTION != this.jFileChooser.showSaveDialog(this))
             return;
 
         final var file = this.getFileWithExtension(extension);
@@ -1317,7 +1317,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         try {
             new Exportador(this.drawingArea.getGrade()).toGridSim(file);
             JOptionPane.showMessageDialog(this, this.translate("model saved"), "Done", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), this.translate("WARNING"), JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -1329,7 +1329,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void openResultInternal() {
-        if (this.jFileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+        if (JFileChooser.APPROVE_OPTION != this.jFileChooser.showOpenDialog(this))
             return;
 
         final var dir = this.jFileChooser.getSelectedFile();
@@ -1340,7 +1340,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         try {
             final var path = String.format("file://%s/result.html", dir.getAbsolutePath());
             HtmlPane.openDefaultBrowser(new URL(path));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             final var message = String.format("%s\n%s", this.translate("Error opening file."), e.getMessage());
             JOptionPane.showMessageDialog(null, message, this.translate("WARNING"), JOptionPane.PLAIN_MESSAGE);
         }
@@ -1410,7 +1410,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     private void jMenuToolsActionPerformed(final ActionEvent evt) {
     }
 
-    private void jButtonInjectFaultsActionPerformed(final ActionEvent evt) {
+    private static void jButtonInjectFaultsActionPerformed(final ActionEvent evt) {
         new JSelecionarFalhas().setVisible(true);
     }
 
@@ -1503,7 +1503,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.currentFileHasUnsavedChanges = true;
     }
 
-    public void refreshEdits() {
+    private void refreshEdits() {
         final var newTitle = String.format("%s - %s",
                 this.getOpenFileNameOrDefault(), this.translate("nomePrograma"));
 
@@ -1514,7 +1514,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     private int saveChanges() {
         final int choice = this.getChoiceForSavingChanges();
 
-        if (choice == JOptionPane.YES_OPTION) {
+        if (JOptionPane.YES_OPTION == choice) {
             this.jMenuItemSaveActionPerformed(null);
             this.refreshEdits();
         }
@@ -1530,7 +1530,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private String getOpenFileNameOrDefault() {
-        return (this.openFile == null)
+        return (null == this.openFile)
                 ? "New_Model.ims"
                 : this.openFile.getName();
     }
@@ -1566,9 +1566,9 @@ public class JPrincipal extends JFrame implements KeyListener {
     private void closeDrawingArea() {
         this.jScrollPaneDrawingArea.setColumnHeaderView(null);
         this.jScrollPaneDrawingArea.setRowHeaderView(null);
-        this.jScrollPaneDrawingArea.setCorner(JScrollPane.UPPER_LEFT_CORNER, null);
-        this.jScrollPaneDrawingArea.setCorner(JScrollPane.LOWER_LEFT_CORNER, null);
-        this.jScrollPaneDrawingArea.setCorner(JScrollPane.UPPER_RIGHT_CORNER, null);
+        this.jScrollPaneDrawingArea.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER, null);
+        this.jScrollPaneDrawingArea.setCorner(ScrollPaneConstants.LOWER_LEFT_CORNER, null);
+        this.jScrollPaneDrawingArea.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, null);
     }
 
     private void disableInteractables() {
@@ -1576,35 +1576,35 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void setInteractablesEnabled(final boolean enabled) {
-        for (var i : this.interactables)
-            i.setEnabled(enabled);
+        for (final var interactable : this.interactables)
+            interactable.setEnabled(enabled);
     }
 
     @Override
-    public void keyTyped(final KeyEvent e) {
+    public void keyTyped(final KeyEvent keyEvent) {
     }
 
     @Override
-    public void keyPressed(final KeyEvent evt) {
-        if (this.drawingArea == null)
+    public void keyPressed(final KeyEvent keyEvent) {
+        if (null == this.drawingArea)
             return;
 
-        if (evt.getKeyCode() == KeyEvent.VK_DELETE)
+        if (KeyEvent.VK_DELETE == keyEvent.getKeyCode())
             this.drawingArea.botaoIconeActionPerformed(null);
 
-        if (evt.isControlDown() && evt.getKeyCode() == KeyEvent.VK_C)
+        if (keyEvent.isControlDown() && KeyEvent.VK_C == keyEvent.getKeyCode())
             this.drawingArea.botaoVerticeActionPerformed(null);
 
-        if (evt.isControlDown() && evt.getKeyCode() == KeyEvent.VK_V)
+        if (keyEvent.isControlDown() && KeyEvent.VK_V == keyEvent.getKeyCode())
             this.drawingArea.botaoPainelActionPerformed(null);
     }
 
     @Override
-    public void keyReleased(final KeyEvent e) {
+    public void keyReleased(final KeyEvent keyEvent) {
     }
 
     public void setSelectedIcon(final ItemGrade icon, final String text) {
-        if (icon == null) {
+        if (null == icon) {
             this.jScrollPaneSideBar.setViewportView(this.jPanelSimple);
             this.jPanelProperties.setjLabelTexto("");
             return;
@@ -1622,9 +1622,9 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private static class IspdFileView extends FileView {
         private static ImageIcon getIconForFileExtension(final File file) {
-            final var ext = getFileExtension(file);
+            final var ext = IspdFileView.getFileExtension(file);
 
-            if (ext.isEmpty() || !isIspdFileExtension(ext))
+            if (ext.isEmpty() || !IspdFileView.isIspdFileExtension(ext))
                 return null;
 
             final var imgURL = JPrincipal.class.getResource(JPrincipal.ISPD_LOGO_FILE_PATH);
@@ -1653,21 +1653,21 @@ public class JPrincipal extends JFrame implements KeyListener {
         }
 
         @Override
-        public Icon getIcon(final File file) {
-            return getIconForFileExtension(file);
+        public Icon getIcon(final File f) {
+            return IspdFileView.getIconForFileExtension(f);
         }
     }
 
     private static class IspdWindowAdapter extends WindowAdapter {
         private final JPrincipal mainWindow;
 
-        private IspdWindowAdapter(final JPrincipal mainWindow) {
-            this.mainWindow = mainWindow;
+        private IspdWindowAdapter(final JPrincipal mw) {
+            this.mainWindow = mw;
         }
 
         @Override
-        public void windowClosing(final WindowEvent evt) {
-            mainWindow.formWindowClosing();
+        public void windowClosing(final WindowEvent e) {
+            this.mainWindow.formWindowClosing();
         }
     }
 }
