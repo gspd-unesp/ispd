@@ -10,17 +10,17 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
  *
  * ---------------
@@ -33,7 +33,7 @@
  *
  * Changes
  * -------
- * 
+ *
  * 09-Set-2014 : Version 2.0;
  *
  */
@@ -44,27 +44,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author denison
  */
-public interface ManipularArquivos {
+public interface ManipularArquivos
+{
+    ArrayList<String> listar ();
 
-    public ArrayList<String> listar();
+    File getDiretorio ();
 
-    public File getDiretorio();
+    boolean escrever (String nome, String codigo);
 
-    public boolean escrever(String nome, String codigo);
+    String compilar (String nome);
 
-    public String compilar(String nome);
+    String ler (String escalonador);
 
-    public String ler(String escalonador);
+    boolean remover (String escalonador);
 
-    public boolean remover(String escalonador);
+    boolean importarEscalonadorJava (File arquivo);
 
-    public boolean importarEscalonadorJava(File arquivo);
-    
-    public List listarAdicionados();
-    
-    public List listarRemovidos();
-    
+    List listarAdicionados ();
+
+    List listarRemovidos ();
 }

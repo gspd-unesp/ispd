@@ -9,27 +9,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author denison_usuario
  */
-public interface ManipularArquivosCloud {
+public interface ManipularArquivosCloud
+{
+    ArrayList<String> listar();
 
-    public ArrayList<String> listar();
+    File getDiretorio();
 
-    public File getDiretorio();
+    boolean escrever(String nome, String codigo);
 
-    public boolean escrever(String nome, String codigo);
+    String compilar(String nome);
 
-    public String compilar(String nome);
+    String ler(String escalonador);
 
-    public String ler(String escalonador);
+    boolean remover(String escalonador);
 
-    public boolean remover(String escalonador);
-
-    public boolean importarEscalonadorJava(File arquivo);
+    boolean importarEscalonadorJava(File arquivo);
     
-    public List listarAdicionados();
+    List listarAdicionados();
     
-    public List listarRemovidos();
-    
+    List listarRemovidos();
 }
