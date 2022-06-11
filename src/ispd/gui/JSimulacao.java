@@ -45,15 +45,13 @@ import ispd.motor.ProgressoSimulacao;
 import ispd.motor.metricas.Metricas;
 import java.awt.Color;
 import ispd.arquivo.xml.IconicoXML;
-import ispd.motor.ProgressoSimulacao;
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.SimulacaoSequencial;
 import ispd.motor.SimulacaoSequencialCloud;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.Tarefa;
-import ispd.motor.metricas.Metricas;
-import java.awt.Color;
+
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -325,20 +323,20 @@ public class JSimulacao extends javax.swing.JDialog implements Runnable {
                 incProgresso(10);//[10%] --> 45%
                 progrSim.println("OK", Color.green);
                 //Verifica recursos do modelo e define roteamento
-                Simulacao sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
+                Simulation sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
                 //Realiza asimulação
                 progrSim.println("Simulating.");
                 //recebe instante de tempo em milissegundos ao iniciar a simulação
                 double t1 = System.currentTimeMillis();
 
-                sim.simular();//[30%] --> 85%
+                sim.simulate();//[30%] --> 85%
 
                 //Recebe instnte de tempo em milissegundos ao fim da execução da simulação
                 double t2 = System.currentTimeMillis();
                 //Calcula tempo de simulação em segundos
                 double tempototal = (t2 - t1) / 1000;
                 //Obter Resultados
-                Metricas metrica = sim.getMetricas();
+                Metricas metrica = sim.getMetrics();
                 //[5%] --> 90%
                 //Apresentar resultados
                 progrSim.print("Showing results.");
@@ -361,20 +359,20 @@ public class JSimulacao extends javax.swing.JDialog implements Runnable {
                 incProgresso(10);//[10%] --> 45%
                 progrSim.println("OK", Color.green);
                 //Verifica recursos do modelo e define roteamento
-                Simulacao sim = new SimulacaoSequencialCloud(progrSim, redeDeFilasCloud, tarefas);//[10%] --> 55 %
+                Simulation sim = new SimulacaoSequencialCloud(progrSim, redeDeFilasCloud, tarefas);//[10%] --> 55 %
                 //Realiza asimulação
                 progrSim.println("Simulating.");
                 //recebe instante de tempo em milissegundos ao iniciar a simulação
                 double t1 = System.currentTimeMillis();
 
-                sim.simular();//[30%] --> 85%
+                sim.simulate();//[30%] --> 85%
 
                 //Recebe instnte de tempo em milissegundos ao fim da execução da simulação
                 double t2 = System.currentTimeMillis();
                 //Calcula tempo de simulação em segundos
                 double tempototal = (t2 - t1) / 1000;
                 //Obter Resultados
-                Metricas metrica = sim.getMetricasCloud();
+                Metricas metrica = sim.getCloudMetrics();
                 //[5%] --> 90%
                 //Apresentar resultados
                 progrSim.print("Showing results.");

@@ -39,7 +39,7 @@
  */
 package ispd.motor.filas.servidores.implementacao;
 
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.FutureEvent;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
@@ -83,18 +83,18 @@ public class CS_Internet extends CS_Comunicacao implements Vertice {
     }
 
     @Override
-    public void chegadaDeCliente(Simulacao simulacao, Tarefa cliente) {
+    public void chegadaDeCliente(Simulation simulacao, Tarefa cliente) {
         //cria evento para iniciar o atendimento imediatamente
         FutureEvent novoEvt = new FutureEvent(
                 simulacao.getTime(this),
                 FutureEvent.ATENDIMENTO,
                 this,
                 cliente);
-        simulacao.addEventoFuturo(novoEvt);
+        simulacao.addFutureEvent(novoEvt);
     }
 
     @Override
-    public void atendimento(Simulacao simulacao, Tarefa cliente) {
+    public void atendimento(Simulation simulacao, Tarefa cliente) {
         pacotes++;
         cliente.iniciarAtendimentoComunicacao(simulacao.getTime(this));
         //Gera evento para atender proximo cliente da lista
@@ -103,11 +103,11 @@ public class CS_Internet extends CS_Comunicacao implements Vertice {
                 FutureEvent.SAIDA,
                 this, cliente);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
-    public void saidaDeCliente(Simulacao simulacao, Tarefa cliente) {
+    public void saidaDeCliente(Simulation simulacao, Tarefa cliente) {
         pacotes--;
         //Incrementa o número de Mbits transmitido por este link
         this.getMetrica().incMbitsTransmitidos(cliente.getTamComunicacao());
@@ -122,11 +122,11 @@ public class CS_Internet extends CS_Comunicacao implements Vertice {
                 FutureEvent.CHEGADA,
                 cliente.getCaminho().remove(0), cliente);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
-    public void requisicao(Simulacao simulacao, Mensagem cliente, int tipo) {
+    public void requisicao(Simulation simulacao, Mensagem cliente, int tipo) {
         //Incrementa o número de Mbits transmitido por este link
         this.getMetrica().incMbitsTransmitidos(cliente.getTamComunicacao());
         //Incrementa o tempo de transmissão
@@ -138,7 +138,7 @@ public class CS_Internet extends CS_Comunicacao implements Vertice {
                 FutureEvent.MENSAGEM,
                 cliente.getCaminho().remove(0), cliente);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
     
     @Override

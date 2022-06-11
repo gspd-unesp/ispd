@@ -90,7 +90,7 @@ public class DesenhoGrade extends AreaDesenho {
     public static final int CLUSTER = 3;
     public static final int INTERNET = 4;
     private ResourceBundle palavras;
-    private int tipoModelo; //tipo de serviço que o modelo vai simular (GRID, IAAS ou PAAS)
+    private int tipoModelo; //tipo de serviço que o modelo vai simulate (GRID, IAAS ou PAAS)
 
     public int getTipoModelo() {
         return tipoModelo;

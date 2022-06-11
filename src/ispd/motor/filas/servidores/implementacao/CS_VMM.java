@@ -11,7 +11,7 @@ import ispd.escalonadorCloud.EscalonadorCloud;
 import ispd.escalonadorCloud.MestreCloud;
 import ispd.motor.FutureEvent;
 import ispd.motor.Mensagens;
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Comunicacao;
@@ -45,7 +45,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
    */
   private List<List> caminhoEscravo;
   private List<List> caminhoVMs;
-  private Simulacao simulacao;
+  private Simulation simulacao;
 
   public CS_VMM(String id, String proprietario, double PoderComputacional, double memoria, double disco,
       double Ocupacao, String Escalonador, String Alocador) {
@@ -69,7 +69,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
 
   // Métodos do centro de serviços
   @Override
-  public void chegadaDeCliente(Simulacao simulacao, Tarefa cliente) {
+  public void chegadaDeCliente(Simulation simulacao, Tarefa cliente) {
     System.out.println("------------------------------------------");
     System.out.println("Evento de chegada no vmm " + this.getId());
     if (cliente instanceof TarefaVM) {
@@ -99,7 +99,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
         System.out.println(this.getId() + ": sou VMM intermediario, encamininhando " + vm.getId());
         FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.CHEGADA,
             cliente.getCaminho().remove(0), cliente);
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
       }
     } else { // cliente é tarefa comum
       System.out.println("cliente é a tarefa " + cliente.getIdentificador() + " com status " + cliente.getEstado());
@@ -115,7 +115,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
             FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.CHEGADA,
                 cliente.getCaminho().remove(0), cliente);
             // Adicionar na lista de eventos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
           }
           // caso seja este o centro de serviço de origem
           System.out.println("Tarefa " + cliente.getIdentificador() + " adicionada na lista de concluídas");
@@ -133,7 +133,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
           if (!(cliente.getCaminho() == null)) {
             FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.CHEGADA,
                 cliente.getCaminho().remove(0), cliente);
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
           } else {
             if (escDisponivel) {
               System.out.println("Tarefa " + cliente.getIdentificador() + " chegando para ser escalonada");
@@ -154,12 +154,12 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
 
   // o VMM não irá processar tarefas... apenas irá escaloná-las..
   @Override
-  public void atendimento(Simulacao simulacao, Tarefa cliente) {
+  public void atendimento(Simulation simulacao, Tarefa cliente) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void saidaDeCliente(Simulacao simulacao, Tarefa cliente) {
+  public void saidaDeCliente(Simulation simulacao, Tarefa cliente) {
     // trecho de debbuging
     System.out.println("Evento de Saída: VMM " + this.getId());
     if (cliente instanceof TarefaVM) {
@@ -168,7 +168,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
       FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.CHEGADA,
           cliente.getCaminho().remove(0), cliente);
       // Event adicionado a lista de evntos futuros
-      simulacao.addEventoFuturo(evtFut);
+      simulacao.addFutureEvent(evtFut);
       if (tipoAlocacao == ENQUANTO_HOUVER_VMS || tipoAlocacao == DOISCASOS) {
         if (!alocadorVM.getMaquinasVirtuais().isEmpty()) {
           executarAlocacao();
@@ -181,7 +181,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
       FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.CHEGADA,
           cliente.getCaminho().remove(0), cliente);
       // Event adicionado a lista de evntos futuros
-      simulacao.addEventoFuturo(evtFut);
+      simulacao.addFutureEvent(evtFut);
       if (tipoEscalonamento == ENQUANTO_HOUVER_TAREFAS || tipoEscalonamento == AMBOS) {
         // se fila de tarefas do servidor não estiver vazia escalona proxima tarefa
         if (!escalonador.getFilaTarefas().isEmpty()) {
@@ -194,7 +194,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
-  public void requisicao(Simulacao simulacao, Mensagem mensagem, int tipo) {
+  public void requisicao(Simulation simulacao, Mensagem mensagem, int tipo) {
     if (tipo == FutureEvent.ESCALONAR) {
       System.out.println("Iniciando escalonamento...");
       escalonador.escalonar();
@@ -242,7 +242,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
         "Tarefa:" + tarefa.getIdentificador() + "escalonada para vm:" + tarefa.getLocalProcessamento().getId());
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.SAIDA, this, tarefa);
     // Event adicionado a lista de evntos futuros
-    simulacao.addEventoFuturo(evtFut);
+    simulacao.addFutureEvent(evtFut);
   }
 
   @Override
@@ -256,7 +256,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     System.out.println(this.getId() + " solicitando escalonamento");
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.ESCALONAR, this, null);
     // Event adicionado a lista de evntos futuros
-    simulacao.addEventoFuturo(evtFut);
+    simulacao.addFutureEvent(evtFut);
   }
 
   @Override
@@ -267,14 +267,14 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     tarefa.setCaminho(vm.getCaminho());
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.SAIDA, this, tarefa);
     // Event adicionado a lista de evntos futuros
-    simulacao.addEventoFuturo(evtFut);
+    simulacao.addFutureEvent(evtFut);
   }
 
   @Override
   public void executarAlocacao() {
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.ALOCAR_VMS, this, null);
     // Event adicionado a lista de evntos futuros
-    simulacao.addEventoFuturo(evtFut);
+    simulacao.addFutureEvent(evtFut);
   }
 
   @Override
@@ -284,7 +284,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.MENSAGEM, msg.getCaminho().remove(0),
         msg);
     // Event adicionado a lista de evntos futuros
-    simulacao.addEventoFuturo(evtFut);
+    simulacao.addFutureEvent(evtFut);
   }
 
   @Override
@@ -294,7 +294,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.MENSAGEM, msg.getCaminho().remove(0),
         msg);
     // Event adicionado a lista de evntos futuros
-    simulacao.addEventoFuturo(evtFut);
+    simulacao.addFutureEvent(evtFut);
   }
 
   public void atualizar(CS_Processamento escravo, Double time) {
@@ -302,11 +302,11 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     msg.setCaminho(escalonador.escalonarRota(escravo));
     FutureEvent evtFut = new FutureEvent(time, FutureEvent.MENSAGEM, msg.getCaminho().remove(0), msg);
     // Event adicionado a lista de evntos futuros
-    simulacao.addEventoFuturo(evtFut);
+    simulacao.addFutureEvent(evtFut);
   }
 
   @Override
-  public void setSimulacao(Simulacao simulacao) {
+  public void setSimulacao(Simulation simulacao) {
     this.simulacao = simulacao;
   }
 
@@ -389,37 +389,37 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   @Override
   public Tarefa criarCopia(Tarefa get) {
     Tarefa tarefa = new Tarefa(get);
-    simulacao.addTarefa(tarefa);
+    simulacao.addJob(tarefa);
     return tarefa;
   }
 
   @Override
-  public Simulacao getSimulacao() {
+  public Simulation getSimulacao() {
     return simulacao;
   }
 
   @Override
-  public void atenderCancelamento(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderCancelamento(Simulation simulacao, Mensagem mensagem) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void atenderParada(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderParada(Simulation simulacao, Mensagem mensagem) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void atenderDevolucao(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderDevolucao(Simulation simulacao, Mensagem mensagem) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void atenderDevolucaoPreemptiva(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderDevolucaoPreemptiva(Simulation simulacao, Mensagem mensagem) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void atenderAtualizacao(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderAtualizacao(Simulation simulacao, Mensagem mensagem) {
     // atualiza metricas dos usuarios globais
     // simulacao.getRedeDeFilas().getMetricasUsuarios().addMetricasUsuarios(escalonador.getMetricaUsuarios());
     // enviar resultados
@@ -434,16 +434,16 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.MENSAGEM,
         novaMensagem.getCaminho().remove(0), novaMensagem);
     // Event adicionado a lista de evntos futuros
-    simulacao.addEventoFuturo(evtFut);
+    simulacao.addFutureEvent(evtFut);
   }
 
   @Override
-  public void atenderRetornoAtualizacao(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderRetornoAtualizacao(Simulation simulacao, Mensagem mensagem) {
     escalonador.resultadoAtualizar(mensagem);
   }
 
   @Override
-  public void atenderFalha(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderFalha(Simulation simulacao, Mensagem mensagem) {
     throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose Tools
                                                                    // | Templates.
   }
@@ -466,7 +466,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
-  public void setSimulacaoAlloc(Simulacao simulacao) {
+  public void setSimulacaoAlloc(Simulation simulacao) {
     this.simulacao = simulacao;
   }
 
@@ -481,7 +481,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
-  public Simulacao getSimulacaoAlloc() {
+  public Simulation getSimulacaoAlloc() {
     return this.simulacao;
   }
 
@@ -517,7 +517,7 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
-  public void atenderAckAlocacao(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderAckAlocacao(Simulation simulacao, Mensagem mensagem) {
     // se este VMM for o de origem ele deve atender senão deve encaminhar a mensagem
     // para frente
     System.out.println("--------------------------------------");
@@ -562,12 +562,12 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
       }
       FutureEvent evt = new FutureEvent(simulacao.getTime(this), FutureEvent.MENSAGEM,
           mensagem.getCaminho().remove(0), mensagem);
-      simulacao.addEventoFuturo(evt);
+      simulacao.addFutureEvent(evt);
     }
   }
 
   @Override
-  public void atenderDesligamento(Simulacao simulacao, Mensagem mensagem) {
+  public void atenderDesligamento(Simulation simulacao, Mensagem mensagem) {
     throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose Tools
                                                                    // | Templates.
   }

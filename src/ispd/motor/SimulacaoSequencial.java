@@ -57,7 +57,7 @@ import java.util.PriorityQueue;
  *
  * @author denison
  */
-public class SimulacaoSequencial extends Simulacao {
+public class SimulacaoSequencial extends Simulation {
 
     private double time = 0;
     private PriorityQueue<FutureEvent> eventos;
@@ -107,18 +107,18 @@ public class SimulacaoSequencial extends Simulacao {
     }
 
     @Override
-    public void simular() {
+    public void simulate() {
         //inicia os escalonadores
-        iniciarEscalonadores();
+        initSchedulers();
         //adiciona chegada das tarefas na lista de eventos futuros
-        addEventos(getTarefas());
+        addEventos(getJobs());
         if (atualizarEscalonadores()) {
             realizarSimulacaoAtualizaTime();
         } else {
             realizarSimulacao();
         }
-        getJanela().incProgresso(30);
-        getJanela().println("Simulation completed.", Color.green);
+        getWindow().incProgresso(30);
+        getWindow().println("Simulation completed.", Color.green);
         //Centralizando métricas de usuários
         //for (CS_Processamento mestre : redeDeFilas.getMestres()) {
             //CS_Mestre mst = (CS_Mestre) mestre;
@@ -137,19 +137,19 @@ public class SimulacaoSequencial extends Simulacao {
     }
 
     @Override
-    public void addEventoFuturo(FutureEvent ev) {
+    public void addFutureEvent(FutureEvent ev) {
         eventos.offer(ev);
     }
 
     @Override
-    public boolean removeEventoFuturo(int tipoEv, CentroServico servidorEv, Client clientEv) {
+    public boolean removeFutureEvent(int eventType, CentroServico eventServer, Client eventClient) {
         //remover evento de saida do cliente do servidor
         java.util.Iterator<FutureEvent> interator = this.eventos.iterator();
         while (interator.hasNext()) {
             FutureEvent ev = interator.next();
-            if (ev.getType() == tipoEv
-                    && ev.getServidor().equals(servidorEv)
-                    && ev.getClient().equals(clientEv)) {
+            if (ev.getType() == eventType
+                    && ev.getServidor().equals(eventServer)
+                    && ev.getClient().equals(eventClient)) {
                 this.eventos.remove(ev);
                 return true;
             }
@@ -158,12 +158,12 @@ public class SimulacaoSequencial extends Simulacao {
     }
 
     @Override
-    public double getTime(Object origem) {
+    public double getTime(Object origin) {
         return time;
     }
 
     private boolean atualizarEscalonadores() {
-        for (CS_Processamento mst : getRedeDeFilas().getMestres()) {
+        for (CS_Processamento mst : getQueueNetwork().getMestres()) {
             CS_Mestre mestre = (CS_Mestre) mst;
             if (mestre.getEscalonador().getTempoAtualizar() != null) {
                 return true;
@@ -206,7 +206,7 @@ public class SimulacaoSequencial extends Simulacao {
      */
     private void realizarSimulacaoAtualizaTime() {
         List<Object[]> Arrayatualizar = new ArrayList<Object[]>();
-        for (CS_Processamento mst : getRedeDeFilas().getMestres()) {
+        for (CS_Processamento mst : getQueueNetwork().getMestres()) {
             CS_Mestre mestre = (CS_Mestre) mst;
             if (mestre.getEscalonador().getTempoAtualizar() != null) {
                 Object[] item = new Object[3];

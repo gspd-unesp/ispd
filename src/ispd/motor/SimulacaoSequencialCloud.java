@@ -33,7 +33,7 @@ import java.util.LinkedList;
  *
  * @author denison_usuario
  */
-public class SimulacaoSequencialCloud extends Simulacao {
+public class SimulacaoSequencialCloud extends Simulation {
 
     private double time = 0;
     private EscalonadorCloud escalonador;//Camila
@@ -277,15 +277,15 @@ public class SimulacaoSequencialCloud extends Simulacao {
     }
     
     @Override
-    public void simular() {
+    public void simulate() {
         //inicia os escalonadores
          System.out.println("---------------------------------------");
-        iniciarEscalonadoresCloud();
+        initCloudSchedulers();
          System.out.println("---------------------------------------");
         
-        iniciarAlocadoresCloud();
+        initCloudAllocators();
          System.out.println("---------------------------------------");
-        addEventos(this.getTarefas());
+        addEventos(this.getJobs());
          System.out.println("---------------------------------------");
         
         
@@ -295,9 +295,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
             realizarSimulacao();
         }
         
-        desligarMaquinas(this, this.getRedeDeFilasCloud());
-        getJanela().incProgresso(30);
-        getJanela().println("Simulation completed.", Color.green);
+        desligarMaquinas(this, this.getCloudQueueNetwork());
+        getWindow().incProgresso(30);
+        getWindow().println("Simulation completed.", Color.green);
     }
     
     public void addEventos(List<Tarefa> tarefas) {
@@ -313,19 +313,19 @@ public class SimulacaoSequencialCloud extends Simulacao {
     }
 
     @Override
-    public void addEventoFuturo(FutureEvent ev) {
+    public void addFutureEvent(FutureEvent ev) {
         eventos.offer(ev);
     }
 
     @Override
-    public boolean removeEventoFuturo(int tipoEv, CentroServico servidorEv, Client clientEv) {
+    public boolean removeFutureEvent(int eventType, CentroServico eventServer, Client eventClient) {
         //remover evento de saida do cliente do servidor
         java.util.Iterator<FutureEvent> interator = this.eventos.iterator();
         while (interator.hasNext()) {
             FutureEvent ev = interator.next();
-            if (ev.getType() == tipoEv
-                    && ev.getServidor().equals(servidorEv)
-                    && ev.getClient().equals(clientEv)) {
+            if (ev.getType() == eventType
+                    && ev.getServidor().equals(eventServer)
+                    && ev.getClient().equals(eventClient)) {
                 this.eventos.remove(ev);
                 return true;
             }
@@ -334,12 +334,12 @@ public class SimulacaoSequencialCloud extends Simulacao {
     }
 
     @Override
-    public double getTime(Object origem) {
+    public double getTime(Object origin) {
         return time;
     }
 
     private boolean atualizarEscalonadores() {
-        for (CS_Processamento mst : getRedeDeFilasCloud().getMestres()) {
+        for (CS_Processamento mst : getCloudQueueNetwork().getMestres()) {
             CS_VMM mestre = (CS_VMM) mst;
             if (mestre.getEscalonador().getTempoAtualizar() != null) {
                 return true;
@@ -386,7 +386,7 @@ public class SimulacaoSequencialCloud extends Simulacao {
      */
     private void realizarSimulacaoAtualizaTime() {
         List<Object[]> Arrayatualizar = new ArrayList<Object[]>();
-        for (CS_Processamento mst : getRedeDeFilas().getMestres()) {
+        for (CS_Processamento mst : getQueueNetwork().getMestres()) {
             CS_Mestre mestre = (CS_Mestre) mst;
             if (mestre.getEscalonador().getTempoAtualizar() != null) {
                 Object[] item = new Object[3];
@@ -437,7 +437,7 @@ public class SimulacaoSequencialCloud extends Simulacao {
         
     }
 
-    private void desligarMaquinas(Simulacao simulacao, RedeDeFilasCloud rdfCloud) {
+    private void desligarMaquinas(Simulation simulacao, RedeDeFilasCloud rdfCloud) {
         for(CS_MaquinaCloud aux : rdfCloud.getMaquinasCloud()){
             aux.desligar(simulacao);
             

@@ -60,7 +60,7 @@ import java.util.concurrent.PriorityBlockingQueue;
  *
  * @author denison
  */
-public class SimulacaoParalela extends Simulacao {
+public class SimulacaoParalela extends Simulation {
 
     private int numThreads;
     private ExecutorService threadPool;
@@ -93,11 +93,11 @@ public class SimulacaoParalela extends Simulacao {
         }
         recursos.addAll(redeDeFilas.getMestres());
         this.numThreads = numThreads;
-        if (getRedeDeFilas() == null) {
+        if (getQueueNetwork() == null) {
             throw new IllegalArgumentException("The model has no icons.");
-        } else if (getRedeDeFilas().getMestres() == null || getRedeDeFilas().getMestres().isEmpty()) {
+        } else if (getQueueNetwork().getMestres() == null || getQueueNetwork().getMestres().isEmpty()) {
             throw new IllegalArgumentException("The model has no Masters.");
-        } else if (getRedeDeFilas().getLinks() == null || getRedeDeFilas().getLinks().isEmpty()) {
+        } else if (getQueueNetwork().getLinks() == null || getQueueNetwork().getLinks().isEmpty()) {
             janela.println("The model has no Networks.", Color.orange);
         }
         if (tarefas == null || tarefas.isEmpty()) {
@@ -106,18 +106,18 @@ public class SimulacaoParalela extends Simulacao {
     }
 
     @Override
-    public void criarRoteamento() {
-        for (CS_Processamento mst : getRedeDeFilas().getMestres()) {
+    public void createRouting() {
+        for (CS_Processamento mst : getQueueNetwork().getMestres()) {
             Mestre temp = (Mestre) mst;
             //Cede acesso ao mestre a fila de eventos futuros
             temp.setSimulacao(this);
             //Encontra menor caminho entre o mestre e seus escravos
             threadPool.execute(new determinarCaminho(mst));
         }
-        if (getRedeDeFilas().getMaquinas() == null || getRedeDeFilas().getMaquinas().isEmpty()) {
-            getJanela().println("The model has no processing slaves.", Color.orange);
+        if (getQueueNetwork().getMaquinas() == null || getQueueNetwork().getMaquinas().isEmpty()) {
+            getWindow().println("The model has no processing slaves.", Color.orange);
         } else {
-            for (CS_Maquina maq : getRedeDeFilas().getMaquinas()) {
+            for (CS_Maquina maq : getQueueNetwork().getMaquinas()) {
                 //Encontra menor caminho entre o escravo e seu mestre
                 threadPool.execute(new determinarCaminho(maq));
             }
@@ -129,12 +129,12 @@ public class SimulacaoParalela extends Simulacao {
     }
 
     @Override
-    public void simular() {
+    public void simulate() {
         System.out.println("Iniciando: " + numThreads + " threads");
         threadPool = Executors.newFixedThreadPool(numThreads);
-        iniciarEscalonadores();
+        initSchedulers();
         //Adiciona tarefas iniciais
-        for (CentroServico mestre : getRedeDeFilas().getMestres()) {
+        for (CentroServico mestre : getQueueNetwork().getMestres()) {
             threadPool.execute(new tarefasIniciais(mestre));
         }
         threadPool.shutdown();
@@ -171,14 +171,14 @@ public class SimulacaoParalela extends Simulacao {
         //    System.out.println("Rec: " + rec.getId() + " " + threadFilaEventos.get(rec).size());
         //}
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
-        getJanela().incProgresso(30);
-        getJanela().println("Simulation completed.", Color.green);
+        getWindow().incProgresso(30);
+        getWindow().println("Simulation completed.", Color.green);
     }
 
     @Override
-    public double getTime(Object origem) {
-        if (origem != null) {
-            return threadTrabalhador.get(origem).getRelogioLocal();
+    public double getTime(Object origin) {
+        if (origin != null) {
+            return threadTrabalhador.get(origin).getRelogioLocal();
         } else {
             double val = 0;
             for (CentroServico rec : recursos) {
@@ -191,7 +191,7 @@ public class SimulacaoParalela extends Simulacao {
     }
 
     @Override
-    public void addEventoFuturo(FutureEvent ev) {
+    public void addFutureEvent(FutureEvent ev) {
         if (ev.getType() == FutureEvent.CHEGADA) {
             threadFilaEventos.get(ev.getServidor()).offer(ev);
         } else {
@@ -200,15 +200,15 @@ public class SimulacaoParalela extends Simulacao {
     }
 
     @Override
-    public boolean removeEventoFuturo(int tipoEv, CentroServico servidorEv, Client clientEv) {
+    public boolean removeFutureEvent(int eventType, CentroServico eventServer, Client eventClient) {
         //remover evento de saida do cliente do servidor
-        java.util.Iterator<FutureEvent> interator = this.threadFilaEventos.get(servidorEv).iterator();
+        java.util.Iterator<FutureEvent> interator = this.threadFilaEventos.get(eventServer).iterator();
         while (interator.hasNext()) {
             FutureEvent ev = interator.next();
-            if (ev.getType() == tipoEv
-                    && ev.getServidor().equals(servidorEv)
-                    && ev.getClient().equals(clientEv)) {
-                this.threadFilaEventos.get(servidorEv).remove(ev);
+            if (ev.getType() == eventType
+                    && ev.getServidor().equals(eventServer)
+                    && ev.getClient().equals(eventClient)) {
+                this.threadFilaEventos.get(eventServer).remove(ev);
                 return true;
             }
         }
@@ -219,10 +219,10 @@ public class SimulacaoParalela extends Simulacao {
 
         private double relogioLocal;
         private CentroServico recurso;
-        private Simulacao simulacao;
+        private Simulation simulacao;
         private boolean executando;
 
-        public ThreadTrabalhador(CentroServico rec, Simulacao sim) {
+        public ThreadTrabalhador(CentroServico rec, Simulation sim) {
             this.recurso = rec;
             this.simulacao = sim;
             this.relogioLocal = 0.0;
@@ -233,7 +233,7 @@ public class SimulacaoParalela extends Simulacao {
             return relogioLocal;
         }
 
-        public Simulacao getSimulacao() {
+        public Simulation getSimulacao() {
             return simulacao;
         }
 
@@ -307,7 +307,7 @@ public class SimulacaoParalela extends Simulacao {
          */
         private Object[] item;
 
-        public ThreadTrabalhadorDinamico(CentroServico rec, Simulacao sim) {
+        public ThreadTrabalhadorDinamico(CentroServico rec, Simulation sim) {
             super(rec, sim);
             if (rec instanceof CS_Mestre) {
                 CS_Mestre mestre = (CS_Mestre) rec;
@@ -385,7 +385,7 @@ public class SimulacaoParalela extends Simulacao {
         public void run() {
             synchronized (threadFilaEventos.get(mestre)) {
                 System.out.println("Nome: " + Thread.currentThread().getName() + " Vou criar tarefas do " + mestre.getId());
-                for (Tarefa tarefa : getTarefas()) {
+                for (Tarefa tarefa : getJobs()) {
                     if (tarefa.getOrigem() == mestre) {
                         //criar evento...
                         FutureEvent evt = new FutureEvent(tarefa.getTimeCriacao(), FutureEvent.CHEGADA, tarefa.getOrigem(), tarefa);

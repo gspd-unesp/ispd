@@ -4,25 +4,6 @@
  * and open the template in the editor.
  */
 package ispd.motor.falhas;
-import ispd.alocacaoVM.Alocacao;
-import ispd.alocacaoVM.VMM;
-import ispd.escalonadorCloud.EscalonadorCloud;
-import ispd.escalonadorCloud.MestreCloud;
-import ispd.motor.Mensagens;
-import ispd.motor.Simulacao;
-import ispd.motor.filas.Mensagem;
-import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.*;
-import ispd.motor.filas.servidores.implementacao.CS_Internet;
-import ispd.motor.filas.servidores.implementacao.CS_Maquina;
-import ispd.motor.filas.servidores.implementacao.CS_VMM;
-import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import ispd.motor.filas.servidores.implementacao.Vertice;
-import ispd.motor.metricas.MetricasProcessamento;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
 
 /**
  *

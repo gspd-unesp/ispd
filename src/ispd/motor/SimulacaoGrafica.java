@@ -59,7 +59,7 @@ import javax.swing.JLabel;
  * permitindo acompanhar cada passo da simulação de forma interativa
  * @author denison
  */
-public class SimulacaoGrafica extends Simulacao {
+public class SimulacaoGrafica extends Simulation {
 
     private double time;
     private double incremento;
@@ -95,9 +95,9 @@ public class SimulacaoGrafica extends Simulacao {
     }
 
     @Override
-    public void simular() {
+    public void simulate() {
         //inicia os escalonadores
-        iniciarEscalonadores();
+        initSchedulers();
         //adiciona chegada das tarefas na lista de eventos futuros
         addEventos(tarefas);
         if (atualizarEscalonadores()) {
@@ -105,8 +105,8 @@ public class SimulacaoGrafica extends Simulacao {
         } else {
             realizarSimulacao();
         }
-        getJanela().incProgresso(35);
-        getJanela().println("Simulation completed.", Color.green);
+        getWindow().incProgresso(35);
+        getWindow().println("Simulation completed.", Color.green);
     }
 
     public void addEventos(List<Tarefa> tarefas) {
@@ -117,19 +117,19 @@ public class SimulacaoGrafica extends Simulacao {
     }
 
     @Override
-    public void addEventoFuturo(FutureEvent ev) {
+    public void addFutureEvent(FutureEvent ev) {
         eventos.offer(ev);
     }
 
     @Override
-    public boolean removeEventoFuturo(int tipoEv, CentroServico servidorEv, Client clientEv) {
+    public boolean removeFutureEvent(int eventType, CentroServico eventServer, Client eventClient) {
         //remover evento de saida do cliente do servidor
         java.util.Iterator<FutureEvent> interator = this.eventos.iterator();
         while (interator.hasNext()) {
             FutureEvent ev = interator.next();
-            if (ev.getType() == tipoEv
-                    && ev.getServidor().equals(servidorEv)
-                    && ev.getClient().equals(clientEv)) {
+            if (ev.getType() == eventType
+                    && ev.getServidor().equals(eventServer)
+                    && ev.getClient().equals(eventClient)) {
                 this.eventos.remove(ev);
                 return true;
             }
@@ -138,7 +138,7 @@ public class SimulacaoGrafica extends Simulacao {
     }
 
     @Override
-    public double getTime(Object origem) {
+    public double getTime(Object origin) {
         return time;
     }
 

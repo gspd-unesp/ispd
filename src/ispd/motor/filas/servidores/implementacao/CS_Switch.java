@@ -40,7 +40,7 @@
 package ispd.motor.filas.servidores.implementacao;
 
 import ispd.motor.FutureEvent;
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Comunicacao;
@@ -82,7 +82,7 @@ public class CS_Switch extends CS_Comunicacao implements Vertice {
     }
 
     @Override
-    public void chegadaDeCliente(Simulacao simulacao, Tarefa cliente) {
+    public void chegadaDeCliente(Simulation simulacao, Tarefa cliente) {
         cliente.iniciarEsperaComunicacao(simulacao.getTime(this));
         if (linkDisponivel) {
             //indica que recurso está ocupado
@@ -93,14 +93,14 @@ public class CS_Switch extends CS_Comunicacao implements Vertice {
                     FutureEvent.ATENDIMENTO,
                     this,
                     cliente);
-            simulacao.addEventoFuturo(novoEvt);
+            simulacao.addFutureEvent(novoEvt);
         } else {
             filaPacotes.add(cliente);
         }
     }
 
     @Override
-    public void atendimento(Simulacao simulacao, Tarefa cliente) {
+    public void atendimento(Simulation simulacao, Tarefa cliente) {
         cliente.finalizarEsperaComunicacao(simulacao.getTime(this));
         cliente.iniciarAtendimentoComunicacao(simulacao.getTime(this));
         //Gera evento para atender proximo cliente da lista
@@ -109,11 +109,11 @@ public class CS_Switch extends CS_Comunicacao implements Vertice {
                 FutureEvent.SAIDA,
                 this, cliente);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
-    public void saidaDeCliente(Simulacao simulacao, Tarefa cliente) {
+    public void saidaDeCliente(Simulation simulacao, Tarefa cliente) {
         //Incrementa o número de Mbits transmitido por este link
         this.getMetrica().incMbitsTransmitidos(cliente.getTamComunicacao());
         //Incrementa o tempo de transmissão
@@ -127,7 +127,7 @@ public class CS_Switch extends CS_Comunicacao implements Vertice {
                 FutureEvent.CHEGADA,
                 cliente.getCaminho().remove(0), cliente);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
         if (filaPacotes.isEmpty()) {
             //Indica que está livre
             this.linkDisponivel = true;
@@ -139,12 +139,12 @@ public class CS_Switch extends CS_Comunicacao implements Vertice {
                     FutureEvent.ATENDIMENTO,
                     this, proxCliente);
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         }
     }
 
     @Override
-    public void requisicao(Simulacao simulacao, Mensagem cliente, int tipo) {
+    public void requisicao(Simulation simulacao, Mensagem cliente, int tipo) {
         if (tipo == FutureEvent.SAIDA_MENSAGEM) {
             tempoTransmitirMensagem += tempoTransmitir(cliente.getTamComunicacao());
             //Incrementa o número de Mbits transmitido por este link
@@ -158,7 +158,7 @@ public class CS_Switch extends CS_Comunicacao implements Vertice {
                     FutureEvent.MENSAGEM,
                     cliente.getCaminho().remove(0), cliente);
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
             if (!filaMensagens.isEmpty()) {
                 //Gera evento para chegada da mensagem no proximo servidor
                 evtFut = new FutureEvent(
@@ -166,7 +166,7 @@ public class CS_Switch extends CS_Comunicacao implements Vertice {
                         FutureEvent.SAIDA_MENSAGEM,
                         this, filaMensagens.remove(0));
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
             }else{
                 linkDisponivelMensagem = true;
             }
@@ -178,7 +178,7 @@ public class CS_Switch extends CS_Comunicacao implements Vertice {
                         FutureEvent.SAIDA_MENSAGEM,
                         this, cliente);
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
         }else{
             filaMensagens.add(cliente);
         }
