@@ -161,18 +161,18 @@ public abstract class ProgressoSimulacao {
         incProgresso(10);//[10%] --> 15%
         this.println("OK", Color.green);
         //Verifica recursos do modelo e define roteamento
-        Simulacao sim = new SimulacaoSequencial(this, redeDeFilas, tarefas);
+        Simulation sim = new SimulacaoSequencial(this, redeDeFilas, tarefas);
         incProgresso(5);//[5%] --> 20 %
         this.print("Creating routing.");
         this.print(" -> ");
-        sim.criarRoteamento();
+        sim.createRouting();
         incProgresso(15);//[15%] --> 35 %
         this.println("OK", Color.green);
         //Realiza asimulação
         this.println("Simulating.");
         //recebe instante de tempo em milissegundos ao iniciar a simulação
         double t1 = System.currentTimeMillis();
-        sim.simular();
+        sim.simulate();
         incProgresso(30);//[30%] --> 65%
         this.println("OK", Color.green);
         //Recebe instnte de tempo em milissegundos ao fim da execução da simulação
@@ -183,7 +183,7 @@ public abstract class ProgressoSimulacao {
         //Obter Resultados
         this.print("Getting Results.");
         this.print(" -> ");
-        Metricas metrica = sim.getMetricas();
+        Metricas metrica = sim.getMetrics();
         incProgresso(10);//[10%] --> 75%
         this.println("OK", Color.green);
         metrica.setRedeDeFilas(redeDeFilas);
@@ -212,9 +212,9 @@ public abstract class ProgressoSimulacao {
             //criar tarefas
             tarefas = IconicoXML.newGerarCarga(doc).toTarefaList(redeDeFilas);
             //Verifica recursos do modelo e define roteamento
-            Simulacao sim = new SimulacaoSequencial(this, redeDeFilas, tarefas);//[10%] --> 40 %
+            Simulation sim = new SimulacaoSequencial(this, redeDeFilas, tarefas);//[10%] --> 40 %
             //Define roteamento
-            sim.criarRoteamento();
+            sim.createRouting();
             //Recebe instante de tempo em milissegundos ao fim da execução da simulação
             double t2 = System.currentTimeMillis();
             this.print("OK", Color.green);
@@ -224,7 +224,7 @@ public abstract class ProgressoSimulacao {
             this.print("Simulating");
             this.print(" -> ");
             temp1 = System.currentTimeMillis();
-            sim.simular();//[30%] --> 70%
+            sim.simulate();//[30%] --> 70%
             t2 = System.currentTimeMillis();
             this.print("OK", Color.green);
             this.println(" time " + (t2 - temp1) + " ms");
@@ -233,7 +233,7 @@ public abstract class ProgressoSimulacao {
             this.print(" -> ");
             //Obter Resultados
             temp1 = System.currentTimeMillis();
-            Metricas metrica = sim.getMetricas();
+            Metricas metrica = sim.getMetrics();
             metricas.addMetrica(metrica);
             t2 = System.currentTimeMillis();
             incProgresso(progresso);
@@ -278,9 +278,9 @@ public abstract class ProgressoSimulacao {
             redeDeFilas = IconicoXML.newRedeDeFilas(doc);
             tarefas = IconicoXML.newGerarCarga(doc).toTarefaList(redeDeFilas);
             //Verifica recursos do modelo e define roteamento
-            Simulacao sim = new SimulacaoParalela(this, redeDeFilas, tarefas, threads);
+            Simulation sim = new SimulacaoParalela(this, redeDeFilas, tarefas, threads);
             //Define roteamento
-            sim.criarRoteamento();
+            sim.createRouting();
             //Recebe instante de tempo em milissegundos ao fim da execução da simulação
             double t2 = System.currentTimeMillis();
             this.print("OK", Color.green);
@@ -290,7 +290,7 @@ public abstract class ProgressoSimulacao {
             this.print("Simulating");
             this.print(" -> ");
             temp1 = System.currentTimeMillis();
-            sim.simular();
+            sim.simulate();
             t2 = System.currentTimeMillis();
             this.print("OK", Color.green);
             this.println(" time " + (t2 - temp1) + " ms");
@@ -298,7 +298,7 @@ public abstract class ProgressoSimulacao {
             this.print("Getting Results.");
             this.print(" -> ");
             //Obter Resultados
-            Metricas temp = sim.getMetricas();
+            Metricas temp = sim.getMetrics();
             metricas.addMetrica(temp);
             t2 = System.currentTimeMillis();
             incProgresso(progresso);
@@ -417,12 +417,12 @@ public abstract class ProgressoSimulacao {
                 redeDeFilas = IconicoXML.newRedeDeFilas(modelo);
                 tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
                 //Verifica recursos do modelo e define roteamento
-                Simulacao sim = new SimulacaoSequencial(progSim, redeDeFilas, tarefas);
+                Simulation sim = new SimulacaoSequencial(progSim, redeDeFilas, tarefas);
                 //Define roteamento
-                sim.criarRoteamento();
+                sim.createRouting();
                 //Realiza asimulação
-                sim.simular();
-                Metricas temp = sim.getMetricas();
+                sim.simulate();
+                Metricas temp = sim.getMetrics();
                 metricas.addMetrica(temp);
             }
             metricas.setRedeDeFilas(redeDeFilas);

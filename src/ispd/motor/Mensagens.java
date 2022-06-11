@@ -57,13 +57,13 @@ public interface Mensagens {
     public static final int ALOCAR_ACK = 8;
     public static final int DESLIGAR = 9; 
 
-    public void atenderCancelamento(Simulacao simulacao, Mensagem mensagem);
-    public void atenderParada(Simulacao simulacao, Mensagem mensagem);
-    public void atenderDevolucao(Simulacao simulacao, Mensagem mensagem);
-    public void atenderDevolucaoPreemptiva(Simulacao simulacao, Mensagem mensagem);
-    public void atenderAtualizacao(Simulacao simulacao, Mensagem mensagem);
-    public void atenderRetornoAtualizacao(Simulacao simulacao, Mensagem mensagem);
-    public void atenderFalha(Simulacao simulacao, Mensagem mensagem);
-    public void atenderAckAlocacao(Simulacao simulacao, Mensagem mensagem);
-    public void atenderDesligamento(Simulacao simulacao, Mensagem mensagem);
+    public void atenderCancelamento(Simulation simulacao, Mensagem mensagem);
+    public void atenderParada(Simulation simulacao, Mensagem mensagem);
+    public void atenderDevolucao(Simulation simulacao, Mensagem mensagem);
+    public void atenderDevolucaoPreemptiva(Simulation simulacao, Mensagem mensagem);
+    public void atenderAtualizacao(Simulation simulacao, Mensagem mensagem);
+    public void atenderRetornoAtualizacao(Simulation simulacao, Mensagem mensagem);
+    public void atenderFalha(Simulation simulacao, Mensagem mensagem);
+    public void atenderAckAlocacao(Simulation simulacao, Mensagem mensagem);
+    public void atenderDesligamento(Simulation simulacao, Mensagem mensagem);
 }
