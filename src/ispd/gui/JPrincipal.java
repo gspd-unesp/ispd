@@ -40,7 +40,7 @@
  */
 package ispd.gui;
 
-import DescreveSistema.DescreveSistema; // TODO: Remove this dependency
+import DescreveSistema.DescreveSistema;
 import ispd.arquivo.exportador.Exportador;
 import ispd.arquivo.interpretador.gridsim.InterpretadorGridSim;
 import ispd.arquivo.interpretador.simgrid.InterpretadorSimGrid;
@@ -120,14 +120,14 @@ import java.util.logging.Logger;
  * @author denison
  */
 public class JPrincipal extends JFrame implements KeyListener {
+    public static final char FILE_EXTENSION_SEPARATOR = '.';
+    public static final int LOADING_SCREEN_WIDTH = 200;
+    public static final int LOADING_SCREEN_HEIGHT = 100;
     private static final String[] ISPD_FILE_EXTENSIONS = {".ims", ".imsx"};
     private static final String[] ALL_FILE_EXTENSIONS = {".ims", ".imsx", ".wmsx"};
     private static final Locale LOCALE_EN_US = new Locale("en", "US");
     private static final Locale LOCALE_PT_BR = new Locale("pt", "BR");
     private static final String ISPD_LOGO_FILE_PATH = "imagens/Logo_iSPD_25.png";
-    public static final char FILE_EXTENSION_SEPARATOR = '.';
-    public static final int LOADING_SCREEN_WIDTH = 200;
-    public static final int LOADING_SCREEN_HEIGHT = 100;
     private final JSobre jAbout = new JSobre(this, true);
     private final ConfiguracaoISPD configure = new ConfiguracaoISPD();
     private final JFileChooser jFileChooser = new JFileChooser();
@@ -268,27 +268,6 @@ public class JPrincipal extends JFrame implements KeyListener {
             return "";
 
         return fileName.substring(i + 1).toLowerCase();
-    }
-
-    private static JProgressBar newIndeterminateProgressBar() {
-        final var progressBar = new JProgressBar();
-        progressBar.setIndeterminate(true);
-        return progressBar;
-    }
-
-    private static Thread threadForLoadingScreen(final JDialog window) {
-        return new Thread(() -> {
-            window.setSize(JPrincipal.LOADING_SCREEN_WIDTH, JPrincipal.LOADING_SCREEN_HEIGHT);
-            window.add(
-                    new JLabel("Carregando..."),
-                    BorderLayout.CENTER
-            );
-            window.add(
-                    JPrincipal.newIndeterminateProgressBar(),
-                    BorderLayout.SOUTH
-            );
-            window.setVisible(true);
-        });
     }
 
     private static URL getResourceOrThrow(final String resourcePath) {
@@ -1293,10 +1272,9 @@ public class JPrincipal extends JFrame implements KeyListener {
         if (returnVal != JFileChooser.APPROVE_OPTION)
             return;
 
-        final var window = new JDialog(this, "Carregando");
-        final var thread = JPrincipal.threadForLoadingScreen(window);
-        window.setLocationRelativeTo(this);
-        thread.start();
+        final var loadingScreen = this.LoadingScreen();
+
+        new Thread(() -> this.showSubWindow(loadingScreen)).start();
 
         try {
             this.interpretFileAndUpdateDrawing();
@@ -1304,7 +1282,17 @@ public class JPrincipal extends JFrame implements KeyListener {
             JOptionPane.showMessageDialog(null, translate("Error opening file.") + "\n" + e.getMessage(), translate("WARNING"), JOptionPane.PLAIN_MESSAGE);
         }
 
-        window.dispose();
+        loadingScreen.dispose();
+    }
+
+    private JDialog LoadingScreen() {
+        final var window = new JDialog(this, "Carregando");
+        window.setSize(JPrincipal.LOADING_SCREEN_WIDTH, JPrincipal.LOADING_SCREEN_HEIGHT);
+        window.add(new JLabel("Carregando..."), BorderLayout.CENTER);
+        final var progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true);
+        window.add(progressBar, BorderLayout.SOUTH);
+        return window;
     }
 
     private void interpretFileAndUpdateDrawing() {
