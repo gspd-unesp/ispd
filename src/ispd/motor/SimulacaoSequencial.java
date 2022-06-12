@@ -40,7 +40,7 @@
 package ispd.motor;
 
 import ispd.escalonador.Mestre;
-import ispd.motor.filas.Cliente;
+import ispd.motor.filas.Client;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
@@ -57,15 +57,15 @@ import java.util.PriorityQueue;
  *
  * @author denison
  */
-public class SimulacaoSequencial extends Simulacao {
+public class SimulacaoSequencial extends Simulation {
 
     private double time = 0;
-    private PriorityQueue<EventoFuturo> eventos;
+    private PriorityQueue<FutureEvent> eventos;
     
     public SimulacaoSequencial(ProgressoSimulacao janela, RedeDeFilas redeDeFilas, List<Tarefa> tarefas) throws IllegalArgumentException {
         super(janela, redeDeFilas,tarefas);
         this.time = 0;
-        this.eventos = new PriorityQueue<EventoFuturo>();
+        this.eventos = new PriorityQueue<FutureEvent>();
 
         if (redeDeFilas == null) {
             throw new IllegalArgumentException("The model has no icons.");
@@ -107,18 +107,18 @@ public class SimulacaoSequencial extends Simulacao {
     }
 
     @Override
-    public void simular() {
+    public void simulate() {
         //inicia os escalonadores
-        iniciarEscalonadores();
+        initSchedulers();
         //adiciona chegada das tarefas na lista de eventos futuros
-        addEventos(getTarefas());
+        addEventos(getJobs());
         if (atualizarEscalonadores()) {
             realizarSimulacaoAtualizaTime();
         } else {
             realizarSimulacao();
         }
-        getJanela().incProgresso(30);
-        getJanela().println("Simulation completed.", Color.green);
+        getWindow().incProgresso(30);
+        getWindow().println("Simulation completed.", Color.green);
         //Centralizando métricas de usuários
         //for (CS_Processamento mestre : redeDeFilas.getMestres()) {
             //CS_Mestre mst = (CS_Mestre) mestre;
@@ -131,25 +131,25 @@ public class SimulacaoSequencial extends Simulacao {
 
     public void addEventos(List<Tarefa> tarefas) {
         for (Tarefa tarefa : tarefas) {
-            EventoFuturo evt = new EventoFuturo(tarefa.getTimeCriacao(), EventoFuturo.CHEGADA, tarefa.getOrigem(), tarefa);
+            FutureEvent evt = new FutureEvent(tarefa.getTimeCriacao(), FutureEvent.CHEGADA, tarefa.getOrigem(), tarefa);
             eventos.add(evt);
         }
     }
 
     @Override
-    public void addEventoFuturo(EventoFuturo ev) {
+    public void addFutureEvent(FutureEvent ev) {
         eventos.offer(ev);
     }
 
     @Override
-    public boolean removeEventoFuturo(int tipoEv, CentroServico servidorEv, Cliente clienteEv) {
+    public boolean removeFutureEvent(int eventType, CentroServico eventServer, Client eventClient) {
         //remover evento de saida do cliente do servidor
-        java.util.Iterator<EventoFuturo> interator = this.eventos.iterator();
+        java.util.Iterator<FutureEvent> interator = this.eventos.iterator();
         while (interator.hasNext()) {
-            EventoFuturo ev = interator.next();
-            if (ev.getTipo() == tipoEv
-                    && ev.getServidor().equals(servidorEv)
-                    && ev.getCliente().equals(clienteEv)) {
+            FutureEvent ev = interator.next();
+            if (ev.getType() == eventType
+                    && ev.getServidor().equals(eventServer)
+                    && ev.getClient().equals(eventClient)) {
                 this.eventos.remove(ev);
                 return true;
             }
@@ -158,12 +158,12 @@ public class SimulacaoSequencial extends Simulacao {
     }
 
     @Override
-    public double getTime(Object origem) {
+    public double getTime(Object origin) {
         return time;
     }
 
     private boolean atualizarEscalonadores() {
-        for (CS_Processamento mst : getRedeDeFilas().getMestres()) {
+        for (CS_Processamento mst : getQueueNetwork().getMestres()) {
             CS_Mestre mestre = (CS_Mestre) mst;
             if (mestre.getEscalonador().getTempoAtualizar() != null) {
                 return true;
@@ -178,23 +178,23 @@ public class SimulacaoSequencial extends Simulacao {
             //executa estes eventos de acordo com sua ordem de chegada
             //de forma a evitar a execução de um evento antes de outro
             //que seria criado anteriormente
-            EventoFuturo eventoAtual = eventos.poll();
-            time = eventoAtual.getTempoOcorrencia();
-            switch (eventoAtual.getTipo()) {
-                case EventoFuturo.CHEGADA:
-                    eventoAtual.getServidor().chegadaDeCliente(this, (Tarefa) eventoAtual.getCliente());
+            FutureEvent eventoAtual = eventos.poll();
+            time = eventoAtual.getCreationTime();
+            switch (eventoAtual.getType()) {
+                case FutureEvent.CHEGADA:
+                    eventoAtual.getServidor().chegadaDeCliente(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.ATENDIMENTO:
-                    eventoAtual.getServidor().atendimento(this, (Tarefa) eventoAtual.getCliente());
+                case FutureEvent.ATENDIMENTO:
+                    eventoAtual.getServidor().atendimento(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.SAÍDA:
-                    eventoAtual.getServidor().saidaDeCliente(this, (Tarefa) eventoAtual.getCliente());
+                case FutureEvent.SAIDA:
+                    eventoAtual.getServidor().saidaDeCliente(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.ESCALONAR:
-                    eventoAtual.getServidor().requisicao(this, null, EventoFuturo.ESCALONAR);
+                case FutureEvent.ESCALONAR:
+                    eventoAtual.getServidor().requisicao(this, null, FutureEvent.ESCALONAR);
                     break;
                 default:
-                    eventoAtual.getServidor().requisicao(this, (Mensagem) eventoAtual.getCliente(), eventoAtual.getTipo());
+                    eventoAtual.getServidor().requisicao(this, (Mensagem) eventoAtual.getClient(), eventoAtual.getType());
                     break;
             }
         }
@@ -206,7 +206,7 @@ public class SimulacaoSequencial extends Simulacao {
      */
     private void realizarSimulacaoAtualizaTime() {
         List<Object[]> Arrayatualizar = new ArrayList<Object[]>();
-        for (CS_Processamento mst : getRedeDeFilas().getMestres()) {
+        for (CS_Processamento mst : getQueueNetwork().getMestres()) {
             CS_Mestre mestre = (CS_Mestre) mst;
             if (mestre.getEscalonador().getTempoAtualizar() != null) {
                 Object[] item = new Object[3];
@@ -222,7 +222,7 @@ public class SimulacaoSequencial extends Simulacao {
             //de forma a evitar a execução de um evento antes de outro
             //que seria criado anteriormente
             for (Object[] ob : Arrayatualizar) {
-                if ((Double) ob[2] < eventos.peek().getTempoOcorrencia()) {
+                if ((Double) ob[2] < eventos.peek().getCreationTime()) {
                     CS_Mestre mestre = (CS_Mestre) ob[0];
                     for (CS_Processamento maq : mestre.getEscalonador().getEscravos()) {
                         mestre.atualizar(maq, (Double) ob[2]);
@@ -230,23 +230,23 @@ public class SimulacaoSequencial extends Simulacao {
                     ob[2] = (Double) ob[2] + (Double) ob[1];
                 }
             }
-            EventoFuturo eventoAtual = eventos.poll();
-            time = eventoAtual.getTempoOcorrencia();
-            switch (eventoAtual.getTipo()) {
-                case EventoFuturo.CHEGADA:
-                    eventoAtual.getServidor().chegadaDeCliente(this, (Tarefa) eventoAtual.getCliente());
+            FutureEvent eventoAtual = eventos.poll();
+            time = eventoAtual.getCreationTime();
+            switch (eventoAtual.getType()) {
+                case FutureEvent.CHEGADA:
+                    eventoAtual.getServidor().chegadaDeCliente(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.ATENDIMENTO:
-                    eventoAtual.getServidor().atendimento(this, (Tarefa) eventoAtual.getCliente());
+                case FutureEvent.ATENDIMENTO:
+                    eventoAtual.getServidor().atendimento(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.SAÍDA:
-                    eventoAtual.getServidor().saidaDeCliente(this, (Tarefa) eventoAtual.getCliente());
+                case FutureEvent.SAIDA:
+                    eventoAtual.getServidor().saidaDeCliente(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.ESCALONAR:
-                    eventoAtual.getServidor().requisicao(this, null, EventoFuturo.ESCALONAR);
+                case FutureEvent.ESCALONAR:
+                    eventoAtual.getServidor().requisicao(this, null, FutureEvent.ESCALONAR);
                     break;
                 default:
-                    eventoAtual.getServidor().requisicao(this, (Mensagem) eventoAtual.getCliente(), eventoAtual.getTipo());
+                    eventoAtual.getServidor().requisicao(this, (Mensagem) eventoAtual.getClient(), eventoAtual.getType());
                     break;
             }
         }

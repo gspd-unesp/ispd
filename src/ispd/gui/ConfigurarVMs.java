@@ -68,7 +68,7 @@ public class ConfigurarVMs extends javax.swing.JDialog {
         this.usuarios = usuarios;
     }
 
-    public HashSet atualizaUsuarios(){
+    public HashSet<String> atualizaUsuarios(){
         HashSet<String> users = new HashSet<String>();
         for(String aux : usuarios){
             users.add(aux);

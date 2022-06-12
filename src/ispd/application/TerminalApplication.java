@@ -42,7 +42,7 @@ package ispd.application;
 import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.JResultados;
 import ispd.motor.ProgressoSimulacao;
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.SimulacaoParalela;
 import ispd.motor.SimulacaoSequencial;
 import ispd.motor.filas.RedeDeFilas;
@@ -307,22 +307,22 @@ public class TerminalApplication implements Application
                 List<Tarefa> tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
                 progrSim.print("OK\n  ", Color.green);
                 //Verifica recursos do modelo e define roteamento
-                Simulacao sim;
+                Simulation sim;
                 if (!paralelo) {
                     sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
                 } else {
                     System.out.println("Execução paralela da simulação");
                     sim = new SimulacaoParalela(progrSim, redeDeFilas, tarefas, numThreads);
                 }
-                sim.criarRoteamento();
+                sim.createRouting();
                 //Realiza asimulação
                 progrSim.println("  Simulating.");
                 //recebe instante de tempo em milissegundos ao iniciar a simulação
-                sim.simular();//[30%] --> 85%
+                sim.simulate();//[30%] --> 85%
                 if (arquivoOut == null) {
                     resuladosGlobais.add(new MetricasGlobais(redeDeFilas, sim.getTime(null), tarefas));
                 } else {
-                    Metricas temp = sim.getMetricas();
+                    Metricas temp = sim.getMetrics();
                     metricas.addMetrica(temp);
                 }
                 //Recebe instante de tempo em milissegundos ao fim da execução da simulação
@@ -470,10 +470,10 @@ public class TerminalApplication implements Application
             for (int i = 1; i <= numExecucoes; i++) {
                 RedeDeFilas redeDeFilas = IconicoXML.newRedeDeFilas(modelo);
                 List<Tarefa> tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
-                Simulacao sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
-                sim.criarRoteamento();
-                sim.simular();//[30%] --> 85%
-                Metricas temp = sim.getMetricas();
+                Simulation sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
+                sim.createRouting();
+                sim.simulate();//[30%] --> 85%
+                Metricas temp = sim.getMetrics();
                 metricas.addMetrica(temp);
             }
             double t2 = System.currentTimeMillis();
@@ -631,10 +631,10 @@ public class TerminalApplication implements Application
                 redeDeFilas = IconicoXML.newRedeDeFilas(modelo);
                 List<Tarefa> tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
                 //Verifica recursos do modelo e define roteamento
-                Simulacao sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
-                sim.criarRoteamento();
+                Simulation sim = new SimulacaoSequencial(progrSim, redeDeFilas, tarefas);//[10%] --> 55 %
+                sim.createRouting();
                 //Realiza asimulação
-                sim.simular();//[30%] --> 85%
+                sim.simulate();//[30%] --> 85%
                 if (arquivoOut == null) {
                     MetricasGlobais global = new MetricasGlobais(redeDeFilas, sim.getTime(null), tarefas);
                     metricasGlobais.setTempoSimulacao(metricasGlobais.getTempoSimulacao() + global.getTempoSimulacao());
@@ -643,7 +643,7 @@ public class TerminalApplication implements Application
                     metricasGlobais.setOciosidadeComunicacao(metricasGlobais.getOciosidadeComunicacao() + global.getOciosidadeComunicacao());
                     metricasGlobais.setEficiencia(metricasGlobais.getEficiencia() + global.getEficiencia());
                 } else {
-                    Metricas temp = sim.getMetricas();
+                    Metricas temp = sim.getMetrics();
                     metricas.addMetrica(temp);
                     MetricasGlobais global = temp.getMetricasGlobais();
                     metricasGlobais.setTempoSimulacao(metricasGlobais.getTempoSimulacao() + global.getTempoSimulacao());

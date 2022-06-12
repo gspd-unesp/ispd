@@ -268,13 +268,13 @@ public class JSimulacaoGrafica extends javax.swing.JDialog implements Runnable {
             progrSim.print("OK\n  ", Color.green);
             //Verifica recursos do modelo e define roteamento
             sim = new SimulacaoGrafica(progrSim, jLabelTime, redeDeFilas, tarefas, 0.1);//[30%] --> 40 %
-            sim.criarRoteamento();
+            sim.createRouting();
             //Realiza asimulação
             progrSim.println("  Simulating.");
             //recebe instante de tempo em milissegundos ao iniciar a simulação
-            sim.simular();
+            sim.simulate();
             if (!sim.isFinalizar()) {
-                Metricas metrica = sim.getMetricas();
+                Metricas metrica = sim.getMetrics();
                 //Recebe instante de tempo em milissegundos ao fim da execução da simulação
                 double t2 = System.currentTimeMillis();
                 //Calcula tempo de simulação em segundos

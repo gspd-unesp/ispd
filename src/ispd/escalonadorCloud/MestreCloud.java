@@ -5,8 +5,7 @@
 
 package ispd.escalonadorCloud;
 
-import ispd.escalonadorCloud.EscalonadorCloud;
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 
@@ -29,10 +28,10 @@ public interface MestreCloud {
     
     //Get e Set
     public void liberarEscalonador();
-    public void setSimulacao(Simulacao simulacao);
+    public void setSimulacao(Simulation simulacao);
     public int getTipoEscalonamento();
     public void setTipoEscalonamento(int tipo);
 
     public Tarefa criarCopia(Tarefa get);
-    public Simulacao getSimulacao();
+    public Simulation getSimulacao();
 }

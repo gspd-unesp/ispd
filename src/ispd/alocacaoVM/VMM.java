@@ -5,8 +5,7 @@
 
 package ispd.alocacaoVM;
 
-import ispd.escalonador.*;
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
@@ -28,9 +27,9 @@ public interface VMM {
     public void enviarMensagemAlloc(Tarefa tarefa, CS_Processamento maquina, int tipo); //tarefa com VM encapsulada
     public void atualizarAlloc(CS_Processamento maquina);    
     //Get e Set
-    public void setSimulacaoAlloc(Simulacao simulacao);
+    public void setSimulacaoAlloc(Simulation simulacao);
     public int getTipoAlocacao();
     public void setTipoAlocacao(int tipo);
 
-    public Simulacao getSimulacaoAlloc();
+    public Simulation getSimulacaoAlloc();
 }

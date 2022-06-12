@@ -79,10 +79,10 @@ public class DesenhoSimulacao extends AreaDesenho {
         int linha = INCREMENTO;
         int pos_coluna = 0;
         int num_coluna = ((int) Math.sqrt(
-                sim.getRedeDeFilas().getMaquinas().size()
-                + sim.getRedeDeFilas().getMestres().size()
-                + sim.getRedeDeFilas().getInternets().size())) + 1;
-        for (CS_Maquina icone : sim.getRedeDeFilas().getMaquinas()) {
+                sim.getQueueNetwork().getMaquinas().size()
+                + sim.getQueueNetwork().getMestres().size()
+                + sim.getQueueNetwork().getInternets().size())) + 1;
+        for (CS_Maquina icone : sim.getQueueNetwork().getMaquinas()) {
             Maquina maq = new Maquina(coluna, linha, icone);
             vertices.add(maq);
             posicoes.put(icone, maq);
@@ -94,7 +94,7 @@ public class DesenhoSimulacao extends AreaDesenho {
                 linha += INCREMENTO;
             }
         }
-        for (CS_Processamento icone : sim.getRedeDeFilas().getMestres()) {
+        for (CS_Processamento icone : sim.getQueueNetwork().getMestres()) {
             Maquina maq = new Maquina(coluna, linha, icone);
             vertices.add(maq);
             posicoes.put(icone, maq);
@@ -106,7 +106,7 @@ public class DesenhoSimulacao extends AreaDesenho {
                 linha += INCREMENTO;
             }
         }
-        for (CS_Internet icone : sim.getRedeDeFilas().getInternets()) {
+        for (CS_Internet icone : sim.getQueueNetwork().getInternets()) {
             Roteador rot = new Roteador(coluna, linha, icone);
             vertices.add(rot);
             posicoes.put(icone, rot);
@@ -118,7 +118,7 @@ public class DesenhoSimulacao extends AreaDesenho {
                 linha += INCREMENTO;
             }
         }
-        for (CS_Comunicacao icone : sim.getRedeDeFilas().getLinks()) {
+        for (CS_Comunicacao icone : sim.getQueueNetwork().getLinks()) {
             if (!(icone instanceof CS_Link)) {
                 Switch sw = new Switch(coluna, linha, (CS_Switch) icone);
                 vertices.add(sw);
@@ -132,7 +132,7 @@ public class DesenhoSimulacao extends AreaDesenho {
                 }
             }
         }
-        for (CS_Comunicacao cs_link : sim.getRedeDeFilas().getLinks()) {
+        for (CS_Comunicacao cs_link : sim.getQueueNetwork().getLinks()) {
             if (cs_link instanceof CS_Link) {
                 CS_Link link = (CS_Link) cs_link;
                 Link lk = new Link(posicoes.get(link.getConexoesEntrada()), posicoes.get(link.getConexoesSaida()), link, this);

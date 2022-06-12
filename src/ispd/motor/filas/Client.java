@@ -46,7 +46,7 @@ import java.util.List;
  *
  * @author denison
  */
-public interface Cliente {
+public interface Client {
     public double getTamComunicacao();
     public double getTamProcessamento();
     public double getTimeCriacao();

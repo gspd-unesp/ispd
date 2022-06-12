@@ -39,9 +39,9 @@
  */
 package ispd.motor.filas.servidores.implementacao;
 
-import ispd.motor.EventoFuturo;
+import ispd.motor.FutureEvent;
 import ispd.motor.Mensagens;
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Comunicacao;
@@ -146,19 +146,19 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     }
 
     @Override
-    public void chegadaDeCliente(Simulacao simulacao, Tarefa cliente) {
+    public void chegadaDeCliente(Simulation simulacao, Tarefa cliente) {
         if (cliente.getEstado() != Tarefa.CANCELADO) {
             cliente.iniciarEsperaProcessamento(simulacao.getTime(this));
             if (processadoresDisponiveis != 0) {
                 //indica que recurso está ocupado
                 processadoresDisponiveis--;
                 //cria evento para iniciar o atendimento imediatamente
-                EventoFuturo novoEvt = new EventoFuturo(
+                FutureEvent novoEvt = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this,
                         cliente);
-                simulacao.addEventoFuturo(novoEvt);
+                simulacao.addFutureEvent(novoEvt);
             } else {
                 filaTarefas.add(cliente);
             }
@@ -167,7 +167,7 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     }
 
     @Override
-    public void atendimento(Simulacao simulacao, Tarefa cliente) {
+    public void atendimento(Simulation simulacao, Tarefa cliente) {
         cliente.finalizarEsperaProcessamento(simulacao.getTime(this));
         cliente.iniciarAtendimentoProcessamento(simulacao.getTime(this));
         tarefaEmExecucao.add(cliente);
@@ -178,26 +178,26 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
                 tFalha = simulacao.getTime(this);
             }
             Mensagem msg = new Mensagem(this, Mensagens.FALHAR, cliente);
-            EventoFuturo evt = new EventoFuturo(
+            FutureEvent evt = new FutureEvent(
                     tFalha,
-                    EventoFuturo.MENSAGEM,
+                    FutureEvent.MENSAGEM,
                     this,
                     msg);
-            simulacao.addEventoFuturo(evt);
+            simulacao.addFutureEvent(evt);
         } else {
             falha = false;
             //Gera evento para atender proximo cliente da lista
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     next,
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this, cliente);
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         }
     }
 
     @Override
-    public void saidaDeCliente(Simulacao simulacao, Tarefa cliente) {
+    public void saidaDeCliente(Simulation simulacao, Tarefa cliente) {
         //Incrementa o número de Mbits transmitido por este link
         this.getMetrica().incMflopsProcessados(cliente.getTamProcessamento() - cliente.getMflopsProcessado());
         //Incrementa o tempo de processamento
@@ -214,13 +214,13 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             List<CentroServico> caminho = new ArrayList<CentroServico>((List<CentroServico>) caminhoMestre.get(index));
             cliente.setCaminho(caminho);
             //Gera evento para chegada da tarefa no proximo servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     cliente.getCaminho().remove(0),
                     cliente);
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         } else {
             //buscar menor caminho!!!
             CS_Processamento novoMestre = (CS_Processamento) cliente.getOrigem();
@@ -230,13 +230,13 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             this.caminhoMestre.add(caminho);
             cliente.setCaminho(new ArrayList<CentroServico>(caminho));
             //Gera evento para chegada da tarefa no proximo servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     cliente.getCaminho().remove(0),
                     cliente);
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         }
         if (filaTarefas.isEmpty()) {
             //Indica que está livre
@@ -244,17 +244,17 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
         } else {
             //Gera evento para atender proximo cliente da lista
             Tarefa proxCliente = filaTarefas.remove(0);
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.ATENDIMENTO,
+                    FutureEvent.ATENDIMENTO,
                     this, proxCliente);
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         }
     }
 
     @Override
-    public void requisicao(Simulacao simulacao, Mensagem mensagem, int tipo) {
+    public void requisicao(Simulation simulacao, Mensagem mensagem, int tipo) {
         if (mensagem != null) {
             if (mensagem.getTipo() == Mensagens.ATUALIZAR) {
                 atenderAtualizacao(simulacao, mensagem);
@@ -297,10 +297,10 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     }
 
     @Override
-    public void atenderCancelamento(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderCancelamento(Simulation simulacao, Mensagem mensagem) {
         if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
-            simulacao.removeEventoFuturo(EventoFuturo.SAÍDA, this, mensagem.getTarefa());
+            simulacao.removeFutureEvent(FutureEvent.SAIDA, this, mensagem.getTarefa());
             tarefaEmExecucao.remove(mensagem.getTarefa());
             //gerar evento para atender proximo cliente
             if (filaTarefas.isEmpty()) {
@@ -309,12 +309,12 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
             }
         }
         double inicioAtendimento = mensagem.getTarefa().cancelar(simulacao.getTime(this));
@@ -330,11 +330,11 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     }
 
     @Override
-    public void atenderParada(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderParada(Simulation simulacao, Mensagem mensagem) {
         if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
-            boolean remover = simulacao.removeEventoFuturo(
-                    EventoFuturo.SAÍDA,
+            boolean remover = simulacao.removeFutureEvent(
+                    FutureEvent.SAIDA,
                     this,
                     mensagem.getTarefa());
             //gerar evento para atender proximo cliente
@@ -344,12 +344,12 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
             }
             double inicioAtendimento = mensagem.getTarefa().parar(simulacao.getTime(this));
             double tempoProc = simulacao.getTime(this) - inicioAtendimento;
@@ -366,27 +366,27 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     }
 
     @Override
-    public void atenderDevolucao(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderDevolucao(Simulation simulacao, Mensagem mensagem) {
         boolean remover = filaTarefas.remove(mensagem.getTarefa());
         if (remover) {
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     mensagem.getTarefa().getOrigem(),
                     mensagem.getTarefa());
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         }
     }
 
     @Override
-    public void atenderDevolucaoPreemptiva(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderDevolucaoPreemptiva(Simulation simulacao, Mensagem mensagem) {
         boolean remover = false;
         if (mensagem.getTarefa().getEstado() == Tarefa.PARADO) {
             remover = filaTarefas.remove(mensagem.getTarefa());
         } else if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
-            remover = simulacao.removeEventoFuturo(
-                    EventoFuturo.SAÍDA,
+            remover = simulacao.removeFutureEvent(
+                    FutureEvent.SAIDA,
                     this,
                     mensagem.getTarefa());
             //gerar evento para atender proximo cliente
@@ -396,12 +396,12 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
             }
             double inicioAtendimento = mensagem.getTarefa().parar(simulacao.getTime(this));
             double tempoProc = simulacao.getTime(this) - inicioAtendimento;
@@ -418,18 +418,18 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
             tarefaEmExecucao.remove(mensagem.getTarefa());
         }
         if (remover) {
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     mensagem.getTarefa().getOrigem(),
                     mensagem.getTarefa());
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         }
     }
 
     @Override
-    public void atenderAtualizacao(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderAtualizacao(Simulation simulacao, Mensagem mensagem) {
         //enviar resultados
         int index = mestres.indexOf(mensagem.getOrigem());
         List<CentroServico> caminho = new ArrayList<CentroServico>((List<CentroServico>) caminhoMestre.get(index));
@@ -438,22 +438,22 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
         novaMensagem.setProcessadorEscravo(new ArrayList<Tarefa>(tarefaEmExecucao));
         novaMensagem.setFilaEscravo(new ArrayList<Tarefa>(filaTarefas));
         novaMensagem.setCaminho(caminho);
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.MENSAGEM,
+                FutureEvent.MENSAGEM,
                 novaMensagem.getCaminho().remove(0),
                 novaMensagem);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
-    public void atenderRetornoAtualizacao(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderRetornoAtualizacao(Simulation simulacao, Mensagem mensagem) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void atenderFalha(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderFalha(Simulation simulacao, Mensagem mensagem) {
         double tempoRec = recuperacao.remove(0);
         for (Tarefa tar : tarefaEmExecucao) {
             if (tar.getEstado() == Tarefa.PROCESSANDO) {
@@ -473,12 +473,12 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
                     //Reiniciar atendimento da tarefa
                     tar.iniciarEsperaProcessamento(simulacao.getTime(this));
                     //cria evento para iniciar o atendimento imediatamente
-                    EventoFuturo novoEvt = new EventoFuturo(
+                    FutureEvent novoEvt = new FutureEvent(
                             simulacao.getTime(this) + tempoRec,
-                            EventoFuturo.ATENDIMENTO,
+                            FutureEvent.ATENDIMENTO,
                             this,
                             tar);
-                    simulacao.addEventoFuturo(novoEvt);
+                    simulacao.addFutureEvent(novoEvt);
                 } else {
                     tar.setEstado(Tarefa.FALHA);
                 }
@@ -507,12 +507,12 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     }
 
     @Override
-    public void atenderAckAlocacao(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderAckAlocacao(Simulation simulacao, Mensagem mensagem) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void atenderDesligamento(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderDesligamento(Simulation simulacao, Mensagem mensagem) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

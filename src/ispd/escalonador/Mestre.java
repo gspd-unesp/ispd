@@ -39,7 +39,7 @@
  */
 package ispd.escalonador;
 
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 
@@ -60,10 +60,10 @@ public interface Mestre {
     public void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo);
     public void atualizar(CS_Processamento escravo);    
     //Get e Set
-    public void setSimulacao(Simulacao simulacao);
+    public void setSimulacao(Simulation simulacao);
     public int getTipoEscalonamento();
     public void setTipoEscalonamento(int tipo);
 
     public Tarefa criarCopia(Tarefa get);
-    public Simulacao getSimulacao();
+    public Simulation getSimulacao();
 }
