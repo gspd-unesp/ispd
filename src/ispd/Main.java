@@ -2,7 +2,8 @@
  * iSPD : iconic Simulator of Parallel and Distributed System
  * ==========================================================
  *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Project Info:  http://gspd.dcce.ibilce.unesp.br/
  *
@@ -18,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ *  USA.
  *
  * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
@@ -26,7 +28,8 @@
  * ---------------
  * Main.java
  * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Original Author:  Denison Menezes (for GSPD);
  * Contributor(s):   -;
@@ -49,12 +52,10 @@ import java.util.Locale;
 /**
  * @author denison
  */
-public class Main
-{
+public class Main {
     private static final Locale EN_US_LOCALE = new Locale("en", "US");
 
-    public static void main (final String[] args)
-    {
+    public static void main(final String[] args) {
         Main.setDefaultLocale();
 
         final var app = (0 == args.length)
@@ -64,8 +65,7 @@ public class Main
         app.run();
     }
 
-    private static void setDefaultLocale ()
-    {
+    private static void setDefaultLocale() {
         Locale.setDefault(Main.EN_US_LOCALE);
     }
 }
