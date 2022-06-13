@@ -64,12 +64,12 @@ public class SplashWindow extends JWindow
     private final BufferedImage splash;
     private final ImageIcon image;
     private String text; // TODO: Make this final
-    public SplashWindow (final ImageIcon image)
+    SplashWindow (final ImageIcon image)
     {
         // TODO: Fluent interface for drawing this window
-        final int width = image.getIconWidth() + IMAGE_WIDTH * 2;
-        final int height = image.getIconHeight() + IMAGE_HEIGHT * 2;
-        this.textPosition = new Point(TEXT_OFFSET_X, width - TEXT_OFFSET_Y);
+        final int width = image.getIconWidth() + SplashWindow.IMAGE_WIDTH * 2;
+        final int height = image.getIconHeight() + SplashWindow.IMAGE_HEIGHT * 2;
+        this.textPosition = new Point(SplashWindow.TEXT_OFFSET_X, width - SplashWindow.TEXT_OFFSET_Y);
         this.text = "";
         this.setSize(new Dimension(width, height));
 
@@ -81,9 +81,9 @@ public class SplashWindow extends JWindow
         {
             final var g = (Graphics2D) this.splash.getGraphics();
             this.captureAndDrawDesktopBackground(g);
-            this.drawTransparentOverlay(g, width, height);
+            SplashWindow.drawTransparentOverlay(g, width, height);
             g.dispose();
-        } catch (AWTException ignored)
+        } catch (final AWTException ignored)
         {
         }
     }
@@ -97,7 +97,7 @@ public class SplashWindow extends JWindow
         g.drawImage(capture, 0, 0, null);
     }
 
-    private void drawTransparentOverlay (final Graphics2D g, final int width, final int height)
+    private static void drawTransparentOverlay (final Graphics2D g, final int width, final int height)
     {
         g.setColor(new Color(0, 0, 0, TransparentOverlay.ALPHA));
         g.fillRoundRect(
@@ -115,7 +115,7 @@ public class SplashWindow extends JWindow
         final var offscreenGraphics = offscreen.getGraphics();
         // Do normal redraw
         offscreenGraphics.drawImage(this.splash, 0, 0, null);
-        this.image.paintIcon(this, offscreenGraphics, IMAGE_WIDTH, IMAGE_HEIGHT);
+        this.image.paintIcon(this, offscreenGraphics, SplashWindow.IMAGE_WIDTH, SplashWindow.IMAGE_HEIGHT);
         offscreenGraphics.drawString(this.text, this.textPosition.x, this.textPosition.y);
         // Transfer offscreen to window
         g.drawImage(offscreen, 0, 0, this);
