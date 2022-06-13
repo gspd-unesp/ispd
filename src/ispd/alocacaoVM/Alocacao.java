@@ -41,10 +41,6 @@ public abstract class Alocacao {
         return this.maquinasFisicas;
     }
 
-    public void setMaquinasFisicas(final List<CS_Processamento> maquinasFisicas) {
-        this.maquinasFisicas = maquinasFisicas;
-    }
-
     public void addMaquinaFisica(final CS_Processamento maq) {
         this.maquinasFisicas.add(maq);
     }
