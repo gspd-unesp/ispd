@@ -7,9 +7,6 @@ import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 
 import java.util.List;
 
-/**
- * @author Diogo Tavares
- */
 public abstract class Alocacao {
     protected List<CS_Processamento> maquinasFisicas; //lista de "escravos"
     protected List<List> infoMaquinas; // lista de informações armazenada
