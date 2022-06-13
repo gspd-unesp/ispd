@@ -47,11 +47,6 @@ import ispd.application.TerminalApplication;
 
 import java.util.Locale;
 
-// TODO: Check permission to delete docs
-
-/**
- * @author denison
- */
 public class Main {
     private static final Locale EN_US_LOCALE = new Locale("en", "US");
 
