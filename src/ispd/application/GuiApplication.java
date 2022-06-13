@@ -13,6 +13,12 @@ public class GuiApplication implements Application
 {
     private static final String GUI_LOOK_AND_FEEL_CLASS_NAME = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
 
+    @Override
+    public void run ()
+    {
+        GuiApplication.openGui();
+    }
+
     private static void openGui ()
     {
         final var splashWindow = SplashWindowBuilder.visibleDefaultSplashWindow();
@@ -49,13 +55,6 @@ public class GuiApplication implements Application
         }
     }
 
-    private static void logWithMainLogger (final Exception ex)
-    {
-        // TODO: Perhaps message instead of 'null'?
-        Logger.getLogger(GuiApplication.class.getName())
-                .log(Level.SEVERE, null, ex);
-    }
-
     private static JPrincipal buildMainWindow ()
     {
         final var gui = new JPrincipal();
@@ -63,9 +62,10 @@ public class GuiApplication implements Application
         return gui;
     }
 
-    @Override
-    public void run ()
+    private static void logWithMainLogger (final Exception ex)
     {
-        GuiApplication.openGui();
+        // TODO: Perhaps message instead of 'null'?
+        Logger.getLogger(GuiApplication.class.getName())
+                .log(Level.SEVERE, null, ex);
     }
 }
