@@ -133,7 +133,6 @@ public class JPrincipal extends JFrame implements KeyListener
     private static final String ISPD_LOGO_FILE_PATH = "imagens/Logo_iSPD_25.png";
     private static final int NOTIFICATION_AREA_COLS = 20;
     private static final int NOTIFICATION_AREA_ROWS = 5;
-    private final JSobre jAbout = new JSobre(this, true);
     private final ConfiguracaoISPD configure = new ConfiguracaoISPD();
     private final JFileChooser jFileChooser = new JFileChooser();
     private final GerenciarEscalonador jFrameManager = new GerenciarEscalonador();
@@ -709,7 +708,7 @@ public class JPrincipal extends JFrame implements KeyListener
 
     private void jMenuItemAboutActionPerformed (final ActionEvent evt)
     {
-        this.showSubWindow(this.jAbout);
+        this.showSubWindow(new JSobre(this, true));
     }
 
     private void jMenuItemEnglishActionPerformed (final ActionEvent evt)
