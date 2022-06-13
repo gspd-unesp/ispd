@@ -61,10 +61,6 @@ public abstract class Alocacao {
         this.VMM = hypervisor;
     }
 
-    public List<List> getCaminhoMaquinas() {
-        return this.caminhoMaquina;
-    }
-
     public void setCaminhoMaquinas(final List<List> caminhoMaquinas) {
         this.caminhoMaquina = caminhoMaquinas;
     }
