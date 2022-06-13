@@ -40,7 +40,7 @@
 package ispd.gui.iconico.simulacao;
 
 import ispd.arquivo.xml.ConfiguracaoISPD;
-import ispd.motor.SimulacaoGrafica;
+import ispd.motor.GraphicSimulation;
 import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.JResultados;
 import ispd.gui.JSimulacao;
@@ -70,7 +70,7 @@ public class JSimulacaoGrafica extends javax.swing.JDialog implements Runnable {
     private ProgressoSimulacao progrSim;
     private SimpleAttributeSet configuraCor = new SimpleAttributeSet();
     private Thread threadSim;
-    private SimulacaoGrafica sim = null;
+    private GraphicSimulation sim = null;
     JResultados janelaResultados = null;
     private boolean error;
     private ConfiguracaoISPD configuracao;
@@ -112,7 +112,7 @@ public class JSimulacaoGrafica extends javax.swing.JDialog implements Runnable {
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 if (sim != null) {
-                    sim.setFinalizar(true);
+                    sim.setShouldEnd(true);
                 }
             }
         });
@@ -215,17 +215,17 @@ public class JSimulacaoGrafica extends javax.swing.JDialog implements Runnable {
     private void jSliderVelocidadeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderVelocidadeStateChanged
         if (sim != null) {
             double velocidade = jSliderVelocidade.getValue() / 10;
-            sim.setIncremento(velocidade);
+            sim.setIncrement(velocidade);
         }
     }//GEN-LAST:event_jSliderVelocidadeStateChanged
 
     private void jButtonPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlayActionPerformed
-        if (sim != null && !sim.isParar()) {
-            sim.setParar(true);
+        if (sim != null && !sim.shouldStop()) {
+            sim.setShouldStop(true);
 
             jButtonPlay.setText("Play ▶");
         } else {
-            sim.setParar(false);
+            sim.setShouldStop(false);
             jButtonPlay.setText("Pause ▮▮");
         }
     }//GEN-LAST:event_jButtonPlayActionPerformed
@@ -267,13 +267,13 @@ public class JSimulacaoGrafica extends javax.swing.JDialog implements Runnable {
             List<Tarefa> tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
             progrSim.print("OK\n  ", Color.green);
             //Verifica recursos do modelo e define roteamento
-            sim = new SimulacaoGrafica(progrSim, jLabelTime, redeDeFilas, tarefas, 0.1);//[30%] --> 40 %
+            sim = new GraphicSimulation(progrSim, jLabelTime, redeDeFilas, tarefas, 0.1);//[30%] --> 40 %
             sim.createRouting();
             //Realiza asimulação
             progrSim.println("  Simulating.");
             //recebe instante de tempo em milissegundos ao iniciar a simulação
             sim.simulate();
-            if (!sim.isFinalizar()) {
+            if (!sim.shouldEnd()) {
                 Metricas metrica = sim.getMetrics();
                 //Recebe instante de tempo em milissegundos ao fim da execução da simulação
                 double t2 = System.currentTimeMillis();
