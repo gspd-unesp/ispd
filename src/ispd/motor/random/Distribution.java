@@ -55,25 +55,21 @@ public class Distribution extends Random {
         super(seed);
     }
 
-    public double nextExponential(final double b) {
-        return -1 * b * Math.log(this.nextDouble());
+    public double nextExponential(final double beta) {
+        return -1 * beta * Math.log(this.nextDouble());
     }
 
     // http://www.cs.huji.ac.il/labs/parallel/workload/m_lublin99/m_lublin99.c
     public double twoStageUniform(final double low, final double med,
                                   final double hi, final double prob) {
-        final double a;
-        final double b;
-
-        if (this.nextDouble() <= prob) { /* uniform(low , med) */
-            a = low;
-            b = med;
-        } else { /* uniform(med , hi) */
-            a = med;
-            b = hi;
+        if (this.nextDouble() <= prob) {
+            return this.getUniform(low, med);
+        } else {
+            return this.getUniform(med, hi);
         }
+    }
 
-        //generate a value of a random variable from distribution uniform(a,b)
-        return (this.nextDouble() * (b - a)) + a;
+    private double getUniform(final double lb, final double hb) {
+        return (this.nextDouble() * (hb - lb)) + lb;
     }
 }
