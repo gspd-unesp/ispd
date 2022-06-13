@@ -48,7 +48,7 @@ import java.util.Set;
  */
 public class ValidaValores
 {
-    private static final Collection<String> palavrasReservadasJava = Set.of(
+    private static final Collection<String> JAVA_RESERVED_KEYWORDS = Set.of(
             "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
             "default", "do", "double", "else", "enum", "extends", "false", "final", "finally", "float", "for", "goto",
             "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "null",
@@ -56,28 +56,28 @@ public class ValidaValores
             "short", "static", "strictfp", "super", "switch", "synchronized",
             "this", "throw", "throws", "transient", "true", "try", "void", "volatile", "while"
     ); // TODO: Add var? Any other keywords?
-    private static Collection<String> nodes = new HashSet<>(); // TODO: updated, but not queried. Useless?
+    private static Collection<String> nodes = new HashSet<>(0); // TODO: updated, but not queried. Useless?
 
-    public static void addNomeIcone (String s)
+    public static void addNomeIcone (final String s)
     {
         ValidaValores.nodes.add(s);
     }
 
-    public static void removeNomeIcone (String s)
+    public static void removeNomeIcone (final String s)
     {
         ValidaValores.nodes.remove(s);
     }
 
     public static void removeTodosNomeIcone ()
     {
-        ValidaValores.nodes = new HashSet<>();
+        ValidaValores.nodes = new HashSet<>(0);
     }
 
-    public static boolean validaNomeClasse (String name)
+    public static boolean validaNomeClasse (final String name)
     {
         if (!name.matches("[a-zA-Z$_][a-zA-Z\\d$_]*"))
             return false;
 
-        return !palavrasReservadasJava.contains(name);
+        return !ValidaValores.JAVA_RESERVED_KEYWORDS.contains(name);
     }
 }
