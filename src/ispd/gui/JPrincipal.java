@@ -52,67 +52,19 @@ import ispd.gui.auxiliar.HtmlPane;
 import ispd.gui.auxiliar.Stalemate;
 import ispd.gui.configuracao.JPanelConfigIcon;
 import ispd.gui.configuracao.JPanelSimples;
-import ispd.gui.iconico.grade.Cluster;
-import ispd.gui.iconico.grade.DesenhoGrade;
-import ispd.gui.iconico.grade.ItemGrade;
-import ispd.gui.iconico.grade.Machine;
-import ispd.gui.iconico.grade.VirtualMachine;
+import ispd.gui.iconico.grade.*;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
-import javax.swing.GroupLayout;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
-import javax.swing.LayoutStyle;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.filechooser.FileView;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.PrintWriter;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -273,7 +225,7 @@ public class JPrincipal extends JFrame implements KeyListener
         return file.getName().endsWith(".ims") || file.getName().endsWith(".imsx");
     }
 
-    private static DescreveSistema getSystemDescription (final File file) throws IOException, ClassNotFoundException
+    private static DescreveSistema getSystemDescription (final File file) throws ClassNotFoundException, IOException
     {
         try (final var input = new ObjectInputStream(new FileInputStream(file)))
         {
@@ -284,6 +236,11 @@ public class JPrincipal extends JFrame implements KeyListener
     private static void jButtonInjectFaultsActionPerformed (final ActionEvent evt)
     {
         new JSelecionarFalhas().setVisible(true);
+    }
+
+    private static DesenhoGrade emptyDrawingArea ()
+    {
+        return new DesenhoGrade(JPrincipal.DRAWING_GRID_START_SIZE, JPrincipal.DRAWING_GRID_START_SIZE);
     }
 
     private String translate (final String s)
@@ -845,7 +802,7 @@ public class JPrincipal extends JFrame implements KeyListener
         final var classPickWindow = new EscolherClasse(this, true);
         this.showSubWindow(classPickWindow);
 
-        this.drawingArea = new DesenhoGrade(JPrincipal.DRAWING_GRID_START_SIZE, JPrincipal.DRAWING_GRID_START_SIZE);
+        this.drawingArea = JPrincipal.emptyDrawingArea();
         this.updateGuiWithOpenFile("New model opened", null);
         this.modificar();
         this.onModelTypeChange(classPickWindow);
@@ -942,14 +899,19 @@ public class JPrincipal extends JFrame implements KeyListener
     {
         final var description = JPrincipal.getSystemDescription(file);
 
-        this.drawingArea = new DesenhoGrade(JPrincipal.DRAWING_GRID_START_SIZE, JPrincipal.DRAWING_GRID_START_SIZE);
-        this.drawingArea.setGrade(description);
+        this.startNewDrawingOld(description);
         return null;
+    }
+
+    private void startNewDrawingOld (final DescreveSistema description)
+    {
+        this.drawingArea = JPrincipal.emptyDrawingArea();
+        this.drawingArea.setGrade(description);
     }
 
     private void startNewDrawing (final Document doc)
     {
-        this.drawingArea = new DesenhoGrade(JPrincipal.DRAWING_GRID_START_SIZE, JPrincipal.DRAWING_GRID_START_SIZE);
+        this.drawingArea = JPrincipal.emptyDrawingArea();
         this.drawingArea.setGrade(doc);
     }
 
@@ -1020,7 +982,7 @@ public class JPrincipal extends JFrame implements KeyListener
 
             this.openModel(model);
 
-        } catch (final Exception e)
+        } catch (final HeadlessException e)
         {
             final var message = String.format("%s\n%s", this.translate("Error opening file."), e.getMessage());
             JOptionPane.showMessageDialog(null, message, this.translate("WARNING"), JOptionPane.PLAIN_MESSAGE);
