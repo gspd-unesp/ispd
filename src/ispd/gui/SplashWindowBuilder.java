@@ -30,9 +30,7 @@ public class SplashWindowBuilder
         window.setText(this.text);
 
         if (this.shouldBeVisible)
-        {
             window.setVisible(true);
-        }
 
         return window;
     }
@@ -49,9 +47,9 @@ public class SplashWindowBuilder
         return this;
     }
 
-    SplashWindowBuilder withImage (final String imagePath)
+    SplashWindowBuilder withImage (final String path)
     {
-        this.imagePath = imagePath;
+        this.imagePath = path;
         return this;
     }
 
