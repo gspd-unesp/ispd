@@ -33,48 +33,48 @@ public abstract class Alocacao {
 
     public abstract void migrarVM();
 
-    public void addVM(CS_VirtualMac vm) {
-        maquinasVirtuais.add(vm);
+    public void addVM(final CS_VirtualMac vm) {
+        this.maquinasVirtuais.add(vm);
     }
 
     public List<CS_Processamento> getMaquinasFisicas() {
-        return maquinasFisicas;
+        return this.maquinasFisicas;
     }
 
-    public void setMaquinasFisicas(List<CS_Processamento> maquinasFisicas) {
+    public void setMaquinasFisicas(final List<CS_Processamento> maquinasFisicas) {
         this.maquinasFisicas = maquinasFisicas;
     }
 
-    public void addMaquinaFisica(CS_Processamento maq) {
+    public void addMaquinaFisica(final CS_Processamento maq) {
         this.maquinasFisicas.add(maq);
     }
 
     public List<CS_VirtualMac> getMaquinasVirtuais() {
-        return maquinasVirtuais;
+        return this.maquinasVirtuais;
     }
 
-    public void setMaquinasVirtuais(List<CS_VirtualMac> maquinasVirtuais) {
+    public void setMaquinasVirtuais(final List<CS_VirtualMac> maquinasVirtuais) {
         this.maquinasVirtuais = maquinasVirtuais;
     }
 
     public VMM getVMM() {
-        return VMM;
+        return this.VMM;
     }
 
-    public void setVMM(CS_VMM hypervisor) {
-        this.VMM = (ispd.alocacaoVM.VMM) hypervisor;
+    public void setVMM(final CS_VMM hypervisor) {
+        this.VMM = hypervisor;
     }
 
     public List<List> getCaminhoMaquinas() {
-        return caminhoMaquina;
+        return this.caminhoMaquina;
     }
 
-    public void setCaminhoMaquinas(List<List> caminhoMaquinas) {
+    public void setCaminhoMaquinas(final List<List> caminhoMaquinas) {
         this.caminhoMaquina = caminhoMaquinas;
     }
 
     public List<CS_VirtualMac> getVMsRejeitadas() {
-        return VMsRejeitadas;
+        return this.VMsRejeitadas;
     }
 
 
