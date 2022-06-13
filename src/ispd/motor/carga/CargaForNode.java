@@ -2,7 +2,8 @@
  * iSPD : iconic Simulator of Parallel and Distributed System
  * ==========================================================
  *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Project Info:  http://gspd.dcce.ibilce.unesp.br/
  *
@@ -10,156 +11,195 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ *  USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
  *
  * ---------------
  * CargaForNode.java
  * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Original Author:  Denison Menezes (for GSPD);
  * Contributor(s):   -;
  *
  * Changes
  * -------
- * 
+ *
  * 09-Set-2014 : Version 2.0;
  *
  */
 package ispd.motor.carga;
 
-import NumerosAleatorios.GeracaoNumAleatorios;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.random.Distribution;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Vector;
 
 /**
  * Descreve como gerar tarefas para um nó escalonador
- * @author denison
  */
 public class CargaForNode extends GerarCarga {
 
-    private String aplicacao;
-    private String proprietario;
-    private String escalonador;
-    private int numeroTarefas;
-    private Double minComputacao;
-    private Double maxComputacao;
-    private Double minComunicacao;
-    private Double maxComunicacao;
-    private int inicioIdentificadorTarefa;
+    private static final double ARQUIVO_RECEBIMENTO = 0.0009765625;
+    private final String application;
+    private final int taskCount;
+    private final Double minComputation;
+    private final Double maxComputation;
+    private final Double minCommunication;
+    private final Double maxCommunication;
+    private String owner;
+    private String scheduler;
+    private int taskIdentifierStart = 0;
 
-    public CargaForNode(String aplicacao, String proprietario, String escalonador, int numeroTarefas, double maxComputacao, double minComputacao, double maxComunicacao, double minComunicacao) {
-        this.inicioIdentificadorTarefa = 0;
-        this.aplicacao = aplicacao;
-        this.proprietario = proprietario;
-        this.escalonador = escalonador;
-        this.numeroTarefas = numeroTarefas;
-        this.minComputacao = minComputacao;
-        this.maxComputacao = maxComputacao;
-        this.minComunicacao = minComunicacao;
-        this.maxComunicacao = maxComunicacao;
+    public CargaForNode(final String application, final String owner,
+                        final String scheduler, final int taskCount,
+                        final double maxComputation,
+                        final double minComputation,
+                        final double maxCommunication,
+                        final double minCommunication) {
+        this.application = application;
+        this.owner = owner;
+        this.scheduler = scheduler;
+        this.taskCount = taskCount;
+        this.minComputation = minComputation;
+        this.maxComputation = maxComputation;
+        this.minCommunication = minCommunication;
+        this.maxCommunication = maxCommunication;
+    }
+
+    static GerarCarga newGerarCarga(final String s) {
+        final String[] values = s.split(" ");
+        final String scheduler = values[0];
+        final int taskCount = Integer.parseInt(values[1]);
+        // TODO: flip max, min order
+        final double maxComputation = Double.parseDouble(values[2]);
+        final double minComputation = Double.parseDouble(values[3]);
+        final double maxCommunication = Double.parseDouble(values[4]);
+        final double minCommunication = Double.parseDouble(values[5]);
+        return new CargaForNode(
+                "application0",
+                "user1",
+                scheduler,
+                taskCount,
+                maxComputation,
+                minComputation,
+                maxCommunication,
+                minCommunication
+        );
     }
 
     public Vector toVector() {
-        Vector temp = new Vector<Integer>(8);
-        temp.add(0, aplicacao);
-        temp.add(1, proprietario);
-        temp.add(2, escalonador);
-        temp.add(3, numeroTarefas);
-        temp.add(4, maxComputacao);
-        temp.add(5, minComputacao);
-        temp.add(6, maxComunicacao);
-        temp.add(7, minComunicacao);
+        final Vector temp = new Vector<Integer>(8);
+        temp.add(0, this.application);
+        temp.add(1, this.owner);
+        temp.add(2, this.scheduler);
+        temp.add(3, this.taskCount);
+        temp.add(4, this.maxComputation);
+        temp.add(5, this.minComputation);
+        temp.add(6, this.maxCommunication);
+        temp.add(7, this.minCommunication);
         return temp;
     }
 
     @Override
-    public List<Tarefa> toTarefaList(RedeDeFilas rdf) {
-        List<Tarefa> tarefas = new ArrayList<Tarefa>();
-        CS_Processamento mestre = null;
+    public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
+        final List<Tarefa> tasks = new ArrayList<>(0);
+        this.findMaster(rdf)
+                .ifPresent(master -> this.addTasksToList(tasks, master));
+        return tasks;
+    }
+
+    private Optional<CS_Processamento> findMaster(final RedeDeFilas rdf) {
         int i = 0;
-        boolean encontrou = false;
-        while (!encontrou && i < rdf.getMestres().size()) {
-            if (rdf.getMestres().get(i).getId().equals(this.escalonador)) {
-                encontrou = true;
-                mestre = rdf.getMestres().get(i);
+        while (i < rdf.getMestres().size()) {
+            if (rdf.getMestres().get(i).getId().equals(this.scheduler)) {
+                return Optional.of(rdf.getMestres().get(i));
             }
             i++;
         }
-        if (encontrou) {
-            Distribution gerador = new Distribution((int)System.currentTimeMillis());
-            for (i = 0; i < this.getNumeroTarefas(); i++) {
-                //Random sorteio = new Random();
-                //double srt = sorteio.nextInt(this.maxComputacao.intValue()) + this.minComputacao;
-                if(proprietario.equals("NoDelay")){
-                    Tarefa tarefa = new Tarefa(
-                        inicioIdentificadorTarefa,
-                        proprietario,
-                        aplicacao,
-                        mestre,
-                        gerador.twoStageUniform(minComunicacao, minComunicacao + (maxComunicacao - minComunicacao) / 2, maxComunicacao, 1),
-                        0.0009765625 /*arquivo recebimento*/,
-                        gerador.twoStageUniform(minComputacao, minComputacao + (maxComputacao - minComputacao) / 2, maxComputacao, 1),
-                        gerador.nextExponential(5)+120);
-                    tarefas.add(tarefa);
-                }
-                else{
-                    Tarefa tarefa = new Tarefa(
-                        inicioIdentificadorTarefa,
-                        proprietario,
-                        aplicacao,
-                        mestre,
-                        gerador.twoStageUniform(minComunicacao, minComunicacao + (maxComunicacao - minComunicacao) / 2, maxComunicacao, 1),
-                        0.0009765625 /*arquivo recebimento*/,
-                        gerador.twoStageUniform(minComputacao, minComputacao + (maxComputacao - minComputacao) / 2, maxComputacao, 1),
-                        gerador.nextExponential(5));
-                tarefas.add(tarefa);
-                }
-                
-                inicioIdentificadorTarefa++;
+        return Optional.empty();
+    }
+
+    private void addTasksToList(
+            final Collection<? super Tarefa> tasks,
+            final CS_Processamento master) {
+
+        final Distribution random =
+                new Distribution(System.currentTimeMillis());
+
+        for (int i = 0; i < this.getNumeroTarefas(); i++) {
+            if ("NoDelay".equals(this.owner)) {
+                tasks.add(this.noDelayOwner(master, random, 120));
+            } else {
+                tasks.add(this.noDelayOwner(master, random, 0));
             }
+
+            this.taskIdentifierStart++;
         }
-        return tarefas;
+    }
+
+    public Integer getNumeroTarefas() {
+        return this.taskCount;
+    }
+
+    private Tarefa noDelayOwner(
+            final CS_Processamento master,
+            final Distribution random,
+            final int delay) {
+
+        return new Tarefa(
+                this.taskIdentifierStart,
+                this.owner,
+                this.application,
+                master,
+                CargaForNode.fromTwoStageUniform(
+                        random,
+                        this.minCommunication,
+                        this.maxCommunication
+                ),
+                CargaForNode.ARQUIVO_RECEBIMENTO,
+                CargaForNode.fromTwoStageUniform(
+                        random,
+                        this.minComputation,
+                        this.maxComputation
+                ),
+                random.nextExponential(5) + delay
+        );
+    }
+
+    private static double fromTwoStageUniform(
+            final Distribution random,
+            final Double min,
+            final Double max) {
+
+        return random.twoStageUniform(min, min + (max - min) / 2, max, 1);
     }
 
     @Override
     public String toString() {
         return String.format("%s %d %f %f %f %f",
-                this.escalonador, this.numeroTarefas,
-                this.maxComputacao, this.minComputacao,
-                this.maxComunicacao, this.minComunicacao);
-    }
-
-    public static GerarCarga newGerarCarga(String entrada) {
-        CargaForNode newObj = null;
-        String[] valores = entrada.split(" ");
-        String aplicacao = "application0";
-        String proprietario = "user1";
-        String escalonador = valores[0];
-        int numeroTarefas = Integer.parseInt(valores[1]);
-        double maxComputacao = Double.parseDouble(valores[2]);
-        double minComputacao = Double.parseDouble(valores[3]);
-        double maxComunicacao = Double.parseDouble(valores[4]);
-        double minComunicacao = Double.parseDouble(valores[5]);
-        newObj = new CargaForNode(aplicacao, proprietario, escalonador,
-                numeroTarefas, maxComputacao, minComputacao, maxComunicacao, minComunicacao);
-        return newObj;
+                this.scheduler, this.taskCount,
+                this.maxComputation, this.minComputation,
+                this.maxCommunication, this.minCommunication
+        );
     }
 
     @Override
@@ -167,73 +207,43 @@ public class CargaForNode extends GerarCarga {
         return GerarCarga.FORNODE;
     }
 
-    //Gets e Sets
-    
-    public void setInicioIdentificadorTarefa(int inicioIdentificadorTarefa) {
-        this.inicioIdentificadorTarefa = inicioIdentificadorTarefa;
-    }
-    
-    public String getEscalonador() {
-        return escalonador;
+    void setInicioIdentificadorTarefa(final int taskIdentifierStart) {
+        this.taskIdentifierStart = taskIdentifierStart;
     }
 
-    public void setEscalonador(String escalonador) {
-        this.escalonador = escalonador;
+    public String getEscalonador() {
+        return this.scheduler;
+    }
+
+    public void setEscalonador(final String scheduler) {
+        this.scheduler = scheduler;
     }
 
     public String getAplicacao() {
-        return aplicacao;
-    }
-
-    public void setAplicacao(String aplicacao) {
-        this.aplicacao = aplicacao;
+        return this.application;
     }
 
     public Double getMaxComputacao() {
-        return maxComputacao;
-    }
-
-    public void setMaxComputacao(double maxComputacao) {
-        this.maxComputacao = maxComputacao;
+        return this.maxComputation;
     }
 
     public Double getMaxComunicacao() {
-        return maxComunicacao;
-    }
-
-    public void setMaxComunicacao(double maxComunicacao) {
-        this.maxComunicacao = maxComunicacao;
+        return this.maxCommunication;
     }
 
     public Double getMinComputacao() {
-        return minComputacao;
-    }
-
-    public void setMinComputacao(double minComputacao) {
-        this.minComputacao = minComputacao;
+        return this.minComputation;
     }
 
     public Double getMinComunicacao() {
-        return minComunicacao;
-    }
-
-    public void setMinComunicacao(double minComunicacao) {
-        this.minComunicacao = minComunicacao;
-    }
-
-    public Integer getNumeroTarefas() {
-        return numeroTarefas;
-    }
-
-    public void setNumeroTarefas(int numeroTarefas) {
-        this.numeroTarefas = numeroTarefas;
+        return this.minCommunication;
     }
 
     public String getProprietario() {
-        return proprietario;
+        return this.owner;
     }
 
-    public void setProprietario(String proprietario) {
-        this.proprietario = proprietario;
+    public void setProprietario(final String owner) {
+        this.owner = owner;
     }
 }
