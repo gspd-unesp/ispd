@@ -48,6 +48,54 @@ public final class AuxiliaryFileFilter extends FileFilter {
     }
 
     /**
+     * Constructor of {@link AuxiliaryFileFilter} specifying the file
+     * filter description, a extension and whether file filter must
+     * filter directories as well.
+     *
+     * @param description the description
+     * @param extension a file extension
+     * @param filterDirectory whether or not directories must be
+     *                        filtered
+     */
+    public AuxiliaryFileFilter(final String description,
+                               final String extension,
+                               final boolean filterDirectory) {
+        this(description, Collections.singletonList(extension), filterDirectory);
+    }
+
+    /**
+     * Constructor of {@link AuxiliaryFileFilter} specifying the file
+     * filter description and extensions. Further, in this case the
+     * directories will not be filtered.
+     *
+     * @param description the description
+     * @param extensions the file extensions
+     *
+     * @see #AuxiliaryFileFilter(String, List, boolean) for filtering
+     *                                                  option
+     */
+    public AuxiliaryFileFilter(final String description,
+                               final List<String> extensions) {
+        this(description, extensions, false);
+    }
+
+    /**
+     * Constructor of {@link AuxiliaryFileFilter} specifying the file
+     * filter description and extension. Further, in this case the
+     * directories will not be filtered.
+     *
+     * @param description the description
+     * @param extension a file extension
+     *
+     * @see #AuxiliaryFileFilter(String, String, boolean) for filtering
+     *                                                    option
+     */
+    public AuxiliaryFileFilter(final String description,
+                               final String extension) {
+        this(description, extension, false);
+    }
+
+    /**
      * Whether the given file must be accepted by this filter.
      *
      * @param file the file to be accepted
