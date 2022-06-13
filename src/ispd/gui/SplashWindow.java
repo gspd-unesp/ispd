@@ -56,9 +56,6 @@ import java.awt.image.BufferedImage;
  */
 public class SplashWindow extends JWindow
 {
-    private static final int TRANSPARENT_OVERLAY_ALPHA = 90;
-    private static final int TRANSPARENT_OVERLAY_BORDER_SIZE = 6;
-    private static final int TRANSPARENT_OVERLAY_CORNER_ROUNDNESS = 12;
     private static final int TEXT_OFFSET_X = 40;
     private static final int TEXT_OFFSET_Y = 50;
     private static final int IMAGE_WIDTH = 40;
@@ -67,7 +64,6 @@ public class SplashWindow extends JWindow
     private final BufferedImage splash;
     private final ImageIcon image;
     private String text; // TODO: Make this final
-
     public SplashWindow (final ImageIcon image)
     {
         // TODO: Fluent interface for drawing this window
@@ -103,11 +99,11 @@ public class SplashWindow extends JWindow
 
     private void drawTransparentOverlay (final Graphics2D g, final int width, final int height)
     {
-        g.setColor(new Color(0, 0, 0, TRANSPARENT_OVERLAY_ALPHA));
+        g.setColor(new Color(0, 0, 0, TransparentOverlay.ALPHA));
         g.fillRoundRect(
-                TRANSPARENT_OVERLAY_BORDER_SIZE, TRANSPARENT_OVERLAY_BORDER_SIZE,
-                width - TRANSPARENT_OVERLAY_BORDER_SIZE, height - TRANSPARENT_OVERLAY_BORDER_SIZE, // TODO: 2 * BORDER_SIZE ?
-                TRANSPARENT_OVERLAY_CORNER_ROUNDNESS, TRANSPARENT_OVERLAY_CORNER_ROUNDNESS);
+                TransparentOverlay.BORDER_SIZE, TransparentOverlay.BORDER_SIZE,
+                width - TransparentOverlay.BORDER_SIZE, height - TransparentOverlay.BORDER_SIZE, // TODO: 2 * BORDER_SIZE ?
+                TransparentOverlay.ARC_SIZE, TransparentOverlay.ARC_SIZE);
     }
 
     @Override
@@ -128,5 +124,12 @@ public class SplashWindow extends JWindow
     public void setText (final String text)
     {
         this.text = text;
+    }
+
+    private static class TransparentOverlay
+    {
+        private static final int ALPHA = 90;
+        private static final int BORDER_SIZE = 6;
+        private static final int ARC_SIZE = 12;
     }
 }
