@@ -40,7 +40,7 @@
 package ispd.gui.iconico.simulacao;
 
 import ispd.gui.iconico.AreaDesenho;
-import ispd.gui.iconico.Icone;
+import ispd.gui.iconico.Icon;
 import ispd.gui.iconico.Vertice;
 import ispd.motor.SimulacaoGrafica;
 import ispd.motor.filas.servidores.CS_Comunicacao;
@@ -186,7 +186,7 @@ public class DesenhoSimulacao extends AreaDesenho {
     }
 
     @Override
-    public void showActionIcon(MouseEvent me, Icone icon) {
+    public void showActionIcon(MouseEvent me, Icon icon) {
     }
 
     @Override
@@ -216,5 +216,5 @@ public class DesenhoSimulacao extends AreaDesenho {
     }
 
     @Override
-    public void showSelectionIcon(MouseEvent me, Icone icon) {}
+    public void showSelectionIcon(MouseEvent me, Icon icon) {}
 }

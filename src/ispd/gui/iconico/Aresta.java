@@ -43,7 +43,7 @@ package ispd.gui.iconico;
  *
  * @author denison
  */
-public abstract class Aresta implements Icone {
+public abstract class Aresta implements Icon {
 
     private Vertice origem;
     private Vertice destino;

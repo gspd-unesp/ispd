@@ -45,7 +45,7 @@ import ispd.gui.EscolherClasse;
 import ispd.gui.JPrincipal;
 import ispd.gui.iconico.AreaDesenho;
 import ispd.gui.iconico.Aresta;
-import ispd.gui.iconico.Icone;
+import ispd.gui.iconico.Icon;
 import ispd.gui.iconico.Vertice;
 import ispd.motor.carga.CargaList;
 import ispd.motor.carga.CargaRandom;
@@ -193,7 +193,7 @@ public class DesenhoGrade extends AreaDesenho {
         numIcones++;
         ValidaValores.addNomeIcone(link.getId().getNome());
         arestas.add(link);
-        for (Icone icon : selecionados) {
+        for (Icon icon : selecionados) {
             icon.setSelected(false);
         }
         selecionados.clear();
@@ -227,7 +227,7 @@ public class DesenhoGrade extends AreaDesenho {
             vertices.add((Vertice) vertice);
             numVertices++;
             numIcones++;
-            selecionados.add((Icone) vertice);
+            selecionados.add((Icon) vertice);
             this.janelaPrincipal.modificar();
             this.setLabelAtributos(vertice);
         }
@@ -307,7 +307,7 @@ public class DesenhoGrade extends AreaDesenho {
         } else {
             int opcao = JOptionPane.showConfirmDialog(null, palavras.getString("Remove this icon?"), palavras.getString("Remove"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (opcao == JOptionPane.YES_OPTION) {
-                for (Icone iconeRemover : selecionados) {
+                for (Icon iconeRemover : selecionados) {
                     if (iconeRemover instanceof Aresta) {
                         ItemGrade or = (ItemGrade) ((Aresta) iconeRemover).getOrigem();
                         or.getConexoesSaida().remove((ItemGrade) iconeRemover);
@@ -346,7 +346,7 @@ public class DesenhoGrade extends AreaDesenho {
         if (selecionados.isEmpty()) {
             JOptionPane.showMessageDialog(null, palavras.getString("No icon selected."), palavras.getString("WARNING"), JOptionPane.WARNING_MESSAGE);
         } else if (selecionados.size() == 1) {
-            Icone item = selecionados.iterator().next();
+            Icon item = selecionados.iterator().next();
             if (item instanceof Vertice) {
                 iconeCopiado = (Vertice) item;
                 this.popupGeral.getComponent(0).setEnabled(true);
@@ -367,7 +367,7 @@ public class DesenhoGrade extends AreaDesenho {
             ValidaValores.addNomeIcone(copy.getId().getNome());
             numIcones++;
             numVertices++;
-            selecionados.add((Icone) copy);
+            selecionados.add((Icon) copy);
             this.janelaPrincipal.modificar();
             this.setLabelAtributos(copy);
             repaint();
@@ -398,7 +398,7 @@ public class DesenhoGrade extends AreaDesenho {
     @Override
     public String toString() {
         StringBuilder saida = new StringBuilder();
-        for (Icone icon : vertices) {
+        for (Icon icon : vertices) {
             if (icon instanceof Machine) {
                 Machine I = (Machine) icon;
                 saida.append(String.format("MAQ %s %f %f ", I.getId().getNome(), I.getPoderComputacional(), I.getTaxaOcupacao()));
@@ -416,13 +416,13 @@ public class DesenhoGrade extends AreaDesenho {
                 saida.append("\n");
             }
         }
-        for (Icone icon : vertices) {
+        for (Icon icon : vertices) {
             if (icon instanceof Cluster) {
                 Cluster I = (Cluster) icon;
                 saida.append(String.format("CLUSTER %s %d %f %f %f %s\n", I.getId().getNome(), I.getNumeroEscravos(), I.getPoderComputacional(), I.getBanda(), I.getLatencia(), I.getAlgoritmo()));
             }
         }
-        for (Icone icon : vertices) {
+        for (Icon icon : vertices) {
             if (icon instanceof Internet) {
                 Internet I = (Internet) icon;
                 saida.append(String.format("INET %s %f %f %f\n", I.getId().getNome(), I.getBanda(), I.getLatencia(), I.getTaxaOcupacao()));
@@ -619,7 +619,7 @@ public class DesenhoGrade extends AreaDesenho {
     public BufferedImage createImage() {
         int maiorx = 0;
         int maiory = 0;
-        for (Icone I : vertices) {
+        for (Icon I : vertices) {
             if (I.getX() > maiorx) {
                 maiorx = I.getX();
             }
@@ -646,10 +646,10 @@ public class DesenhoGrade extends AreaDesenho {
             }
         }
         // Desenhamos todos os icones
-        for (Icone I : arestas) {
+        for (Icon I : arestas) {
             I.draw(gc);
         }
-        for (Icone I : vertices) {
+        for (Icon I : vertices) {
             I.draw(gc);
         }
         return image;
@@ -810,7 +810,7 @@ public class DesenhoGrade extends AreaDesenho {
 
     public List<String> getNosEscalonadores() {
         List<String> maquinas = new ArrayList<String>();
-        for (Icone icon : vertices) {
+        for (Icon icon : vertices) {
             if (icon instanceof Machine && ((Machine) icon).isMestre()) {
                 maquinas.add(((ItemGrade) icon).getId().getNome());
             }
@@ -822,12 +822,12 @@ public class DesenhoGrade extends AreaDesenho {
     }
 
     @Override
-    public void showSelectionIcon(MouseEvent me, Icone icon) {
+    public void showSelectionIcon(MouseEvent me, Icon icon) {
         this.setLabelAtributos((ItemGrade) icon);
     }
 
     @Override
-    public void showActionIcon(MouseEvent me, ispd.gui.iconico.Icone icon) {
+    public void showActionIcon(MouseEvent me, Icon icon) {
         this.janelaPrincipal.modificar();
         if (icon instanceof Machine || icon instanceof Cluster) {
             this.janelaPrincipal.getjPanelConfiguracao().setIcone((ItemGrade) icon, usuarios, tipoModelo);
@@ -888,7 +888,7 @@ public class DesenhoGrade extends AreaDesenho {
         //Realiza leitura da configuração de carga do modelo
         this.cargasConfiguracao = IconicoXML.newGerarCarga(descricao);
         //Atuasliza número de vertices e arestas
-        for (Icone icone : arestas) {
+        for (Icon icone : arestas) {
             Link link = (Link) icone;
             if (this.numArestas < link.getId().getIdLocal()) {
                 this.numArestas = link.getId().getIdLocal();
@@ -897,7 +897,7 @@ public class DesenhoGrade extends AreaDesenho {
                 this.numIcones = link.getId().getIdGlobal();
             }
         }
-        for (Icone icone : vertices) {
+        for (Icon icone : vertices) {
             ItemGrade vertc = (ItemGrade) icone;
             if (this.numVertices < vertc.getId().getIdLocal()) {
                 this.numVertices = vertc.getId().getIdLocal();

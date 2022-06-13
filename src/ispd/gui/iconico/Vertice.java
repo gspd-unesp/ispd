@@ -45,7 +45,7 @@ import java.awt.event.ActionEvent;
  *
  * @author denison
  */
-public abstract class Vertice implements Icone {
+public abstract class Vertice implements Icon {
 
     private String exclusiveItem;
     private boolean selected;
