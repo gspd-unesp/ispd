@@ -46,7 +46,7 @@ import ispd.arquivo.xml.TraceXML;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.filas.servidores.implementacao.CS_Maquina;
+import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.random.Distribution;
 
@@ -55,14 +55,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CargaTrace extends GerarCarga {
 
-    private static final int HEADER_SIZE = 5;
     private final String type;
     private final File file;
     private final String filePath;
@@ -82,153 +81,7 @@ public class CargaTrace extends GerarCarga {
 
     @Override
     public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
-        final List<Tarefa> tasks = new ArrayList<>(0);
-        final List<String> users = new ArrayList<>(0);
-        final List<Double> pcomp = new ArrayList<>(0);
-        final List<Double> profile = new ArrayList<>(0);
-        final int quantityPerMaster = this.taskCount / rdf.getMestres().size();
-        final int remainder = this.taskCount % rdf.getMestres().size();
-        final var random = new Distribution(System.currentTimeMillis());
-        final var mediaCap =
-                CargaTrace.averageGridProcessingCapacity(rdf.getMaquinas());
-
-        try (final var bf = new BufferedReader(new FileReader(this.filePath))) {
-
-            CargaTrace.skipHeader(bf);
-
-            if ("SWF".equals(this.type) || "GWF".equals(this.type)) {
-
-                for (final var master : rdf.getMestres()) {
-                    for (int i = 0; i < quantityPerMaster; i++) {
-                        this.addSomeTask(rdf, tasks, users, pcomp, profile,
-                                random, mediaCap, bf, master);
-                    }
-                }
-
-                for (int i = 0; i < remainder; i++) {
-                    this.addSomeTask(rdf, tasks, users, pcomp, profile,
-                            random, mediaCap, bf, rdf.getMestres().get(0)
-                    );
-                }
-
-            } else if ("iSPD".equals(this.type)) {
-
-                for (final CS_Processamento mestre : rdf.getMestres()) {
-                    for (int i = 0; i < quantityPerMaster; i++) {
-                        this.addSomeOtherTask(rdf, tasks, users, pcomp,
-                                profile, bf, mestre);
-                    }
-                }
-
-                for (int i = 0; i < remainder; i++) {
-                    this.addSomeOtherTask(rdf, tasks, users, pcomp, profile,
-                            bf, rdf.getMestres().get(0));
-                }
-
-            }
-
-            for (final var master : rdf.getMestres()) {
-                ((CS_Mestre) master).getEscalonador().getMetricaUsuarios().addAllUsuarios(users, pcomp, profile);
-            }
-
-            rdf.getUsuarios().addAll(users);
-            return tasks;
-
-        } catch (final IOException ex) {
-            Logger.getLogger(CargaTrace.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
-
-        return null;
-    }
-
-    private static double averageGridProcessingCapacity(
-            final Iterable<? extends CS_Maquina> machines) {
-
-        double media = 0;
-        int i = 0;
-
-        for (final var machine : machines) {
-            media += machine.getPoderComputacional();
-            i++;
-        }
-
-        return media / i;
-    }
-
-    private static void skipHeader(final BufferedReader bf) throws IOException {
-        int i = 0;
-        while (bf.ready() && i < CargaTrace.HEADER_SIZE) {
-            bf.readLine();
-            i++;
-        }
-    }
-
-    private void addSomeTask(
-            final RedeDeFilas rdf,
-            final Collection<? super Tarefa> tasks,
-            final Collection<? super String> users,
-            final Collection<? super Double> pcomp,
-            final Collection<? super Double> profile,
-            final Distribution random,
-            final double mediaCap,
-            final BufferedReader bf,
-            final CS_Processamento mestre) throws IOException {
-
-        final String[] campos = parseFields(rdf, users, pcomp, profile, bf);
-        final Tarefa tarefa = makeTask(campos, mestre,
-                random.twoStageUniform(200, 5000, 25000,
-                        0.5), Double.parseDouble(campos[7]) * mediaCap);
-        tasks.add(tarefa);
-        if (campos[5].contains("0") || campos[5].contains("5")) {
-            tarefa.setLocalProcessamento(mestre);
-            tarefa.cancelar(0);
-        }
-    }
-
-    private String[] parseFields(RedeDeFilas rdf,
-                                Collection<? super String> users, Collection<
-            ? super Double> pcomp, Collection<? super Double> profile,
-                                BufferedReader bf) throws IOException {
-        final String[] campos = bf.readLine().split("\"");
-        if (!rdf.getUsuarios().contains(campos[11]) && !users.contains(campos[11])) {
-            users.add(campos[11]);
-            profile.add(100.0);
-            pcomp.add(0.0);
-        }
-        return campos;
-    }
-
-    private void addSomeOtherTask(final RedeDeFilas rdf,
-                                  final List<Tarefa> tasks,
-                                  final List<String> users,
-                                  final List<Double> pcomp,
-                                  final List<Double> profile,
-                                  final BufferedReader bf,
-                                  final CS_Processamento mestre) throws IOException {
-        final String[] campos = bf.readLine().split("\"");
-        if (!rdf.getUsuarios().contains(campos[11]) && !users.contains(campos[11])) {
-            users.add(campos[11]);
-            profile.add(100.0);
-            pcomp.add(0.0);
-        }
-        final Tarefa tarefa = makeTask(campos, mestre,
-                Double.parseDouble(campos[9]), Double.parseDouble(campos[7]));
-        tasks.add(tarefa);
-    }
-
-    private Tarefa makeTask(String[] campos, CS_Processamento mestre,
-                            double random, double campos1) {
-        return new Tarefa(
-                Integer.parseInt(campos[1]),
-                campos[11],
-                "application1",
-                mestre,
-                random,
-                0.0009765625,
-                campos1,
-                Double.parseDouble(campos[3])
-        );
+        return new TraceLoadHelper(rdf, this.type, this.taskCount).toTaskList(this.filePath);
     }
 
     @Override
@@ -242,15 +95,194 @@ public class CargaTrace extends GerarCarga {
         return GerarCarga.TRACE;
     }
 
-    public File getFile() {
-        return this.file;
-    }
-
     public String getTraceType() {
         return this.type;
     }
 
+    public File getFile() {
+        return this.file;
+    }
+
     public Integer getNumberTasks() {
         return this.taskCount;
+    }
+
+    private static class TraceLoadHelper {
+
+        private static final int USER_FIELD_INDEX = 11;
+        private static final int HEADER_SIZE = 5;
+        private static final double RECEIVING_FILE_SIZE = 0.0009765625;
+        private final List<Tarefa> tasks = new ArrayList<>(0);
+        private final List<String> users = new ArrayList<>(0);
+        private final List<Double> pComps = new ArrayList<>(0);
+        private final List<Double> profiles = new ArrayList<>(0);
+        private final int taskCount;
+        private final String traceType;
+        private final RedeDeFilas queueNetwork;
+        private final Distribution random =
+                new Distribution(System.currentTimeMillis());
+
+        TraceLoadHelper(
+                final RedeDeFilas rdf,
+                final String traceType,
+                final int taskCount) {
+            this.queueNetwork = rdf;
+            this.traceType = traceType;
+            this.taskCount = taskCount;
+        }
+
+        static void skipHeader(final BufferedReader bf) throws IOException {
+            int i = 0;
+            while (bf.ready() && i < TraceLoadHelper.HEADER_SIZE) {
+                bf.readLine();
+                i++;
+            }
+        }
+
+        static void afterAdd(
+                final String[] fields,
+                final Tarefa tarefa,
+                final CentroServico master) {
+            if (fields[5].contains("0") || fields[5].contains("5")) {
+                tarefa.setLocalProcessamento(master);
+                tarefa.cancelar(0);
+            }
+        }
+
+        static Tarefa makeTask(
+                final String[] fields,
+                final CS_Processamento master,
+                final double sentFileSize,
+                final double processingTime
+        ) {
+            return new Tarefa(
+                    Integer.parseInt(fields[1]),
+                    fields[TraceLoadHelper.USER_FIELD_INDEX],
+                    "application1",
+                    master,
+                    sentFileSize,
+                    TraceLoadHelper.RECEIVING_FILE_SIZE,
+                    processingTime,
+                    Double.parseDouble(fields[3])
+            );
+        }
+
+        String[] parseFields(final BufferedReader bf) throws IOException {
+            final String[] fields = bf.readLine().split("\"");
+
+            if (!this.queueNetwork.getUsuarios().contains(fields[TraceLoadHelper.USER_FIELD_INDEX])
+                    && !this.users.contains(fields[TraceLoadHelper.USER_FIELD_INDEX])) {
+                this.users.add(fields[TraceLoadHelper.USER_FIELD_INDEX]);
+                this.profiles.add(100.0);
+                this.pComps.add(0.0);
+            }
+
+            return fields;
+        }
+
+        Tarefa addTaskToList(
+                final CS_Processamento master,
+                final Function<String[], Double> sentFileSize,
+                final Function<String[], Double> processingTime,
+                final String[] fields) {
+            final Tarefa tarefa = TraceLoadHelper.makeTask(fields, master,
+                    sentFileSize.apply(fields),
+                    processingTime.apply(fields));
+
+            this.tasks.add(tarefa);
+
+            return tarefa;
+        }
+
+        void addTaskIspdType(
+                final BufferedReader bf,
+                final CS_Processamento master) throws IOException {
+            final String[] fields = this.parseFields(bf);
+
+            this.addTaskToList(master,
+                    fs -> Double.parseDouble(fs[9]),
+                    fs -> Double.parseDouble(fs[7]),
+                    fields);
+        }
+
+        void addTaskSwfType(
+                final BufferedReader bf,
+                final CS_Processamento master) throws IOException {
+
+            final String[] fields = this.parseFields(bf);
+
+            final Tarefa tarefa = this.addTaskToList(
+                    master,
+                    fs -> this.random.twoStageUniform(200, 5000, 25000, 0.5),
+                    fs -> Double.parseDouble(fs[7]) * this.calculateAverageCapacity(),
+                    fields);
+
+            TraceLoadHelper.afterAdd(fields, tarefa, master);
+        }
+
+        private List<Tarefa> toTaskList(final String path) {
+            final int tasksPerMaster =
+                    this.taskCount / this.queueNetwork.getMestres().size();
+            final int remainder =
+                    this.taskCount % this.queueNetwork.getMestres().size();
+
+            try (final var bf = new BufferedReader(new FileReader(path))) {
+
+                TraceLoadHelper.skipHeader(bf);
+
+                if ("SWF".equals(this.traceType) || "GWF".equals(this.traceType)) {
+
+                    for (final var master : this.queueNetwork.getMestres()) {
+                        for (int i = 0; i < tasksPerMaster; i++) {
+                            this.addTaskSwfType(bf, master);
+                        }
+                    }
+
+                    for (int i = 0; i < remainder; i++) {
+                        final var first = this.queueNetwork.getMestres().get(0);
+                        this.addTaskSwfType(bf, first);
+                    }
+
+                } else if ("iSPD".equals(this.traceType)) {
+
+                    for (final var master : this.queueNetwork.getMestres()) {
+                        for (int i = 0; i < tasksPerMaster; i++) {
+                            this.addTaskIspdType(bf, master);
+                        }
+                    }
+
+                    for (int i = 0; i < remainder; i++) {
+                        final var first = this.queueNetwork.getMestres().get(0);
+                        this.addTaskIspdType(bf, first);
+                    }
+                }
+
+                for (final var master : this.queueNetwork.getMestres()) {
+                    ((CS_Mestre) master).getEscalonador().getMetricaUsuarios().addAllUsuarios(this.users, this.pComps, this.profiles);
+                }
+
+                this.queueNetwork.getUsuarios().addAll(this.users);
+                return this.tasks;
+
+            } catch (final IOException ex) {
+                Logger.getLogger(CargaTrace.class.getName())
+                        .log(Level.SEVERE, null, ex);
+            }
+
+            return null;
+        }
+
+        private double calculateAverageCapacity() {
+
+            double media = 0;
+            int i = 0;
+
+            for (final var machine : this.queueNetwork.getMaquinas()) {
+                media += machine.getPoderComputacional();
+                i++;
+            }
+
+            return media / i;
+        }
     }
 }
