@@ -118,9 +118,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @author denison
- */
 public class JPrincipal extends JFrame implements KeyListener {
     private static final int DRAWING_GRID_START_SIZE = 1500;
     private static final char FILE_EXTENSION_SEPARATOR = '.';
