@@ -2,7 +2,8 @@
  * iSPD : iconic Simulator of Parallel and Distributed System
  * ==========================================================
  *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Project Info:  http://gspd.dcce.ibilce.unesp.br/
  *
@@ -18,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ *  USA.
  *
  * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
@@ -26,7 +28,8 @@
  * ---------------
  * ValidaValores.java
  * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Original Author:  Aldo Ianelo Guerra;
  * Contributor(s):   Denison Menezes;
@@ -43,41 +46,36 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Aldo
- */
-public class ValidaValores
-{
+public class ValidaValores {
     private static final Collection<String> JAVA_RESERVED_KEYWORDS = Set.of(
-            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
-            "default", "do", "double", "else", "enum", "extends", "false", "final", "finally", "float", "for", "goto",
-            "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "null",
+            "abstract", "assert", "boolean", "break", "byte", "case", "catch"
+            , "char", "class", "const", "continue",
+            "default", "do", "double", "else", "enum", "extends", "false",
+            "final", "finally", "float", "for", "goto",
+            "if", "implements", "import", "instanceof", "int", "interface",
+            "long", "native", "new", "null",
             "package", "private", "protected", "public", "return",
             "short", "static", "strictfp", "super", "switch", "synchronized",
-            "this", "throw", "throws", "transient", "true", "try", "void", "volatile", "while"
+            "this", "throw", "throws", "transient", "true", "try", "void",
+            "volatile", "while"
     ); // TODO: Add var? Any other keywords?
-    private static Collection<String> nodes = new HashSet<>(0); // TODO: updated, but not queried. Useless?
+    private static Collection<String> nodes = new HashSet<>(0); // TODO:
+    // updated, but not queried. Useless?
 
-    public static void addNomeIcone (final String s)
-    {
+    public static void addNomeIcone(final String s) {
         ValidaValores.nodes.add(s);
     }
 
-    public static void removeNomeIcone (final String s)
-    {
+    public static void removeNomeIcone(final String s) {
         ValidaValores.nodes.remove(s);
     }
 
-    public static void removeTodosNomeIcone ()
-    {
+    public static void removeTodosNomeIcone() {
         ValidaValores.nodes = new HashSet<>(0);
     }
 
-    public static boolean validaNomeClasse (final String name)
-    {
-        if (!name.matches("[a-zA-Z$_][a-zA-Z\\d$_]*"))
-            return false;
-
-        return !ValidaValores.JAVA_RESERVED_KEYWORDS.contains(name);
+    public static boolean validaNomeClasse(final String name) {
+        return name.matches("[a-zA-Z$_][a-zA-Z\\d$_]*")
+                && !ValidaValores.JAVA_RESERVED_KEYWORDS.contains(name);
     }
 }
