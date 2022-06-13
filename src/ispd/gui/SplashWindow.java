@@ -39,6 +39,8 @@
  */
 package ispd.gui;
 
+import javax.swing.ImageIcon;
+import javax.swing.JWindow;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -48,8 +50,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
-import javax.swing.ImageIcon;
-import javax.swing.JWindow;
 
 /**
  * @author denison
