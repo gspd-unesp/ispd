@@ -84,8 +84,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     private int INCH;
     private int units;
     private boolean gridOn;
-    private Rule columnView;
-    private Rule rowView;
+    private Ruler columnView;
+    private Ruler rowView;
     private JPanel corner;
     private boolean metric;
     //Objetos para desenhar Retângulo de seleção
@@ -175,11 +175,11 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         this.origemAresta = null;
     }
 
-    public Rule getColumnView() {
+    public Ruler getColumnView() {
         return columnView;
     }
 
-    public Rule getRowView() {
+    public Ruler getRowView() {
         return rowView;
     }
 
@@ -433,8 +433,10 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
 
     private void iniciarRegua() {
         //Create the row and column headers.
-        columnView = new Rule(Rule.HORIZONTAL, true);
-        rowView = new Rule(Rule.VERTICAL, true);
+        columnView = new Ruler(Ruler.RulerOrientation.HORIZONTAL,
+                Ruler.RulerUnit.CENTIMETERS);
+        rowView = new Ruler(Ruler.RulerOrientation.VERTICAL,
+                Ruler.RulerUnit.CENTIMETERS);
 
         columnView.setPreferredWidth(this.getWidth());
         rowView.setPreferredHeight(this.getHeight());
@@ -444,24 +446,21 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         JButton isMetric = new JButton("cm");
         corner.add(isMetric);
         setMetric(true);
-        isMetric.addActionListener(new java.awt.event.ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                setMetric(!isMetric());
-                if (isMetric()) {
-                    //Turn it to metric.
-                    ((JButton) evt.getSource()).setText("cm");
-                    rowView.setIsMetric(true);
-                    columnView.setIsMetric(true);
-                } else {
-                    //Turn it to inches.
-                    ((JButton) evt.getSource()).setText(" in ");
-                    rowView.setIsMetric(false);
-                    columnView.setIsMetric(false);
-                }
-                if (isGridOn()) {
-                    repaint();
-                }
+        isMetric.addActionListener(evt -> {
+            setMetric(!isMetric());
+            if (isMetric()) {
+                //Turn it to metric.
+                ((JButton) evt.getSource()).setText("cm");
+                rowView.updateUnitTo(Ruler.RulerUnit.CENTIMETERS);
+                columnView.updateUnitTo(Ruler.RulerUnit.CENTIMETERS);
+            } else {
+                //Turn it to inches.
+                ((JButton) evt.getSource()).setText(" in ");
+                rowView.updateUnitTo(Ruler.RulerUnit.INCHES);
+                columnView.updateUnitTo(Ruler.RulerUnit.INCHES);
+            }
+            if (isGridOn()) {
+                repaint();
             }
         });
     }
