@@ -27,7 +27,7 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */ 
+ */
 
 package ispd.gui.iconico;
 
@@ -84,7 +84,7 @@ public final class Ruler extends JComponent {
      * orientation and the ruler unit.
      *
      * @param orientation the orientation
-     * @param unit the unit
+     * @param unit        the unit
      */
     public Ruler(final RulerOrientation orientation,
                  final RulerUnit unit) {
@@ -97,9 +97,8 @@ public final class Ruler extends JComponent {
      * orientation. Further, the ruler is set to centimeters as default.
      *
      * @param orientation the orientation
-     *
      * @see #Ruler(RulerOrientation, RulerUnit) for specify the ruler
-     *                                          unit
+     * unit
      */
     public Ruler(final RulerOrientation orientation) {
         this(orientation, RulerUnit.CENTIMETERS);
@@ -112,7 +111,7 @@ public final class Ruler extends JComponent {
         final Rectangle drawHere = g.getClipBounds();
 
         // Fill clipping area with dirty brown/orange.
-	    g.setColor(RULER_BACKGROUND_COLOR);
+        g.setColor(RULER_BACKGROUND_COLOR);
         g.fillRect(drawHere.x, drawHere.y, drawHere.width, drawHere.height);
 
         // Set the color and font for marking the ruler's labels.
@@ -130,11 +129,11 @@ public final class Ruler extends JComponent {
         if (isHorizontalOrientated) {
             start = (drawHere.x / increment) * increment;
             end = (((drawHere.x + drawHere.width) / increment) + 1)
-                  * increment;
+                    * increment;
         } else {
             start = (drawHere.y / increment) * increment;
             end = (((drawHere.y + drawHere.height) / increment) + 1)
-                  * increment;
+                    * increment;
         }
 
         // Make a special case of 0 to display the number
@@ -143,11 +142,11 @@ public final class Ruler extends JComponent {
             final var text = "0 " + this.unit.getSymbol();
 
             if (isHorizontalOrientated) {
-                g.drawLine(0, SIZE-1,
+                g.drawLine(0, SIZE - 1,
                         0, SIZE - RULER_TICK_LENGTH - 1);
                 g.drawString(text, 2, 21);
             } else {
-                g.drawLine(SIZE-1, 0,
+                g.drawLine(SIZE - 1, 0,
                         SIZE - RULER_TICK_LENGTH - 1, 0);
                 g.drawString(text, 9, 10);
             }
@@ -159,22 +158,22 @@ public final class Ruler extends JComponent {
             final String text;
             final int tickLength;
 
-            if (i % units == 0)  {
+            if (i % units == 0) {
                 tickLength = RULER_TICK_LENGTH;
-                text = Integer.toString(i/units);
+                text = Integer.toString(i / units);
             } else {
                 tickLength = RULER_PRE_TICK_LENGTH;
                 text = null;
             }
 
             if (isHorizontalOrientated) {
-                g.drawLine(i, SIZE-1, i, SIZE - tickLength - 1);
+                g.drawLine(i, SIZE - 1, i, SIZE - tickLength - 1);
                 if (text != null)
-                    g.drawString(text, i-3, 21);
+                    g.drawString(text, i - 3, 21);
             } else {
-                g.drawLine(SIZE-1, i, SIZE - tickLength - 1, i);
+                g.drawLine(SIZE - 1, i, SIZE - tickLength - 1, i);
                 if (text != null)
-                    g.drawString(text, 9, i+3);
+                    g.drawString(text, 9, i + 3);
             }
         }
     }
@@ -226,7 +225,6 @@ public final class Ruler extends JComponent {
      */
     public enum RulerUnit {
         CENTIMETERS("cm") {
-
             /**
              * Returns the unit in centimeters unit.
              * @return the unit in centimeters unit
@@ -247,7 +245,6 @@ public final class Ruler extends JComponent {
             }
         },
         INCHES("in") {
-
             /**
              * Returns the unit in inches unit.
              * @return the unit in inches unit
@@ -269,15 +266,14 @@ public final class Ruler extends JComponent {
 
         /**
          * It represents the screen resolution in dots-per-inch.
-         *
-         * @implSpec
-         * Systems running in <em>Windows Operational System</em> with
-         * <em>multiple monitors</em> has this value equal for all
-         * monitors.
          */
         private static final int INCH = Toolkit.getDefaultToolkit()
                 .getScreenResolution();
 
+        /**
+         * It stores the unit symbol. Every symbol must be
+         * in English and singular form.
+         */
         private final String symbol;
 
         /**
@@ -292,18 +288,21 @@ public final class Ruler extends JComponent {
 
         /**
          * Returns the ruler unit.
+         *
          * @return the ruler unit
          */
         public abstract int getUnit();
 
         /**
          * Returns the ruler increment.
+         *
          * @return the ruler increment
          */
         public abstract int getIncrement();
 
         /**
          * Returns the unit symbol.
+         *
          * @return the unit symbol
          */
         public String getSymbol() {
