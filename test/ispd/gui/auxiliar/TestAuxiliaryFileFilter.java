@@ -12,10 +12,21 @@ import java.util.stream.Collectors;
 
 public final class TestAuxiliaryFileFilter {
 
+    /**
+     * Random-purpose character array.
+     */
     private static final char[] CHARS =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
+    /**
+     * It represents the quantity of file extensions to be randomly
+     * generated.
+     */
     private static final int EXTENSION_LIST_QUANTITY = 100;
+
+    /**
+     * It represents the quantity of file name to be randomly generated.
+     */
     private static final int FILENAME_LIST_QUANTITY = 200;
 
     @Test
