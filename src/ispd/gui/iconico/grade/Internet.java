@@ -39,7 +39,7 @@
  */
 package ispd.gui.iconico.grade;
 
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.HashSet;
@@ -50,7 +50,7 @@ import java.util.Set;
  *
  * @author denison
  */
-public class Internet extends Vertice implements ItemGrade {
+public class Internet extends Vertex implements ItemGrade {
     
     private IdentificadorItemGrade id;
     private HashSet<ItemGrade> conexoesEntrada;

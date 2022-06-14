@@ -40,7 +40,7 @@
 package ispd.gui.iconico.simulacao;
 
 import ispd.gui.iconico.Aresta;
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
 import ispd.motor.filas.servidores.implementacao.CS_Link;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -54,7 +54,7 @@ public class Link extends Aresta {
     public CS_Link link;
     private DesenhoSimulacao aDesenho;
 
-    public Link(Vertice origem, Vertice destino, CS_Link link, DesenhoSimulacao aDesenho) {
+    public Link(Vertex origem, Vertex destino, CS_Link link, DesenhoSimulacao aDesenho) {
         super(origem, destino);
         this.aDesenho = aDesenho;
         this.link = link;

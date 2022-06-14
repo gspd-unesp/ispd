@@ -40,7 +40,7 @@
 package ispd.gui.iconico.grade;
 
 import ispd.gui.iconico.Aresta;
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Polygon;
@@ -62,7 +62,7 @@ public class Link extends Aresta implements ItemGrade {
     private double latencia;
     private boolean configurado;
 
-    public Link(Vertice origem, Vertice destino, int idLocal, int idGlobal) {
+    public Link(Vertex origem, Vertex destino, int idLocal, int idGlobal) {
         super(origem, destino);
         this.selected = true;
         this.areaSeta = new Polygon();

@@ -46,7 +46,7 @@ import ispd.gui.JPrincipal;
 import ispd.gui.iconico.AreaDesenho;
 import ispd.gui.iconico.Aresta;
 import ispd.gui.iconico.Icon;
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
 import ispd.motor.carga.CargaList;
 import ispd.motor.carga.CargaRandom;
 import ispd.motor.carga.CargaForNode;
@@ -131,7 +131,7 @@ public class DesenhoGrade extends AreaDesenho {
     private boolean imprimeNosIndiretos;
     private boolean imprimeNosEscalonaveis;
     //Obejtos para copiar um icone
-    private Vertice iconeCopiado;
+    private Vertex iconeCopiado;
     private int tipoDeVertice;
     private HashSet<VirtualMachine> maquinasVirtuais;
 
@@ -185,7 +185,7 @@ public class DesenhoGrade extends AreaDesenho {
     }
 
     @Override
-    public void adicionarAresta(Vertice origem, Vertice destino) {
+    public void adicionarAresta(Vertex origem, Vertex destino) {
         Link link = new Link(origem, destino, numArestas, numIcones);
         ((ItemGrade) origem).getConexoesSaida().add(link);
         ((ItemGrade) destino).getConexoesEntrada().add(link);
@@ -224,7 +224,7 @@ public class DesenhoGrade extends AreaDesenho {
                 break;
         }
         if (vertice != null) {
-            vertices.add((Vertice) vertice);
+            vertices.add((Vertex) vertice);
             numVertices++;
             numIcones++;
             selecionados.add((Icon) vertice);
@@ -331,7 +331,7 @@ public class DesenhoGrade extends AreaDesenho {
                             ValidaValores.removeNomeIcone(I.getId().getNome());
                         }
                         ValidaValores.removeNomeIcone(((ItemGrade) iconeRemover).getId().getNome());
-                        vertices.remove((Vertice) iconeRemover);
+                        vertices.remove((Vertex) iconeRemover);
                         this.janelaPrincipal.modificar();
                     }
                 }
@@ -347,8 +347,8 @@ public class DesenhoGrade extends AreaDesenho {
             JOptionPane.showMessageDialog(null, palavras.getString("No icon selected."), palavras.getString("WARNING"), JOptionPane.WARNING_MESSAGE);
         } else if (selecionados.size() == 1) {
             Icon item = selecionados.iterator().next();
-            if (item instanceof Vertice) {
-                iconeCopiado = (Vertice) item;
+            if (item instanceof Vertex) {
+                iconeCopiado = (Vertex) item;
                 this.popupGeral.getComponent(0).setEnabled(true);
             } else {
                 iconeCopiado = null;
@@ -363,7 +363,7 @@ public class DesenhoGrade extends AreaDesenho {
     public void botaoPainelActionPerformed(java.awt.event.ActionEvent evt) {
         if (iconeCopiado != null) {
             ItemGrade copy = ((ItemGrade) iconeCopiado).criarCopia(getPosicaoMouseX(), getPosicaoMouseY(), numIcones, numVertices);
-            vertices.add((Vertice) copy);
+            vertices.add((Vertex) copy);
             ValidaValores.addNomeIcone(copy.getId().getNome());
             numIcones++;
             numVertices++;
@@ -406,7 +406,7 @@ public class DesenhoGrade extends AreaDesenho {
                     saida.append(String.format("MESTRE " + I.getAlgoritmo() + " LMAQ"));
                     List<ItemGrade> lista = ((Machine) icon).getEscravos();
                     for (ItemGrade slv : lista) {
-                        if (vertices.contains((Vertice) slv)) {
+                        if (vertices.contains((Vertex) slv)) {
                             saida.append(" ").append(slv.getId().getNome());
                         }
                     }
@@ -455,7 +455,7 @@ public class DesenhoGrade extends AreaDesenho {
     public void setLabelAtributos(ItemGrade icon) {
         String Texto = "<html>";
         Texto += icon.getAtributos(palavras);
-        if (imprimeNosConectados && icon instanceof Vertice) {
+        if (imprimeNosConectados && icon instanceof Vertex) {
             Texto = Texto + "<br>" + palavras.getString("Output Connection:");
             for (ItemGrade i : icon.getConexoesSaida()) {
                 ItemGrade saida = (ItemGrade) ((Link) i).getDestino();
@@ -512,12 +512,12 @@ public class DesenhoGrade extends AreaDesenho {
     public Document getGrade() {
         IconicoXML xml = new IconicoXML(tipoModelo);
         xml.addUsers(usuarios,perfis);
-        for (Vertice vertice : vertices) {
+        for (Vertex vertice : vertices) {
             if (vertice instanceof Machine) {
                 Machine I = (Machine) vertice;
                 ArrayList<Integer> escravos = new ArrayList<Integer>();
                 for (ItemGrade slv : I.getEscravos()) {
-                    if (vertices.contains((Vertice) slv)) {
+                    if (vertices.contains((Vertex) slv)) {
                         escravos.add(slv.getId().getIdGlobal());
                     }
                 }
@@ -689,7 +689,7 @@ public class DesenhoGrade extends AreaDesenho {
         //número de elementos por linha
         int num_coluna = ((int) Math.sqrt(totalVertice)) + 1;
         //Organiza os icones na tela
-        for (Vertice icone : vertices) {
+        for (Vertex icone : vertices) {
             icone.setPosition(coluna, linha);
             //busca por arestas conectadas ao vertice
             coluna += TAMANHO;
@@ -927,7 +927,7 @@ public class DesenhoGrade extends AreaDesenho {
         }
     }
 
-    public Set<Vertice> getVertices() {
+    public Set<Vertex> getVertices() {
         return vertices;
     }
 }

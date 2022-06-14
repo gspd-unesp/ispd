@@ -45,23 +45,23 @@ package ispd.gui.iconico;
  */
 public abstract class Aresta implements Icon {
 
-    private Vertice origem;
-    private Vertice destino;
+    private Vertex origem;
+    private Vertex destino;
 
-    public Aresta(Vertice origem, Vertice destino) {
+    public Aresta(Vertex origem, Vertex destino) {
         this.origem = origem;
         this.destino = destino;
     }
 
-    public Vertice getOrigem() {
+    public Vertex getOrigem() {
         return origem;
     }
 
-    public Vertice getDestino() {
+    public Vertex getDestino() {
         return destino;
     }
     
-    public void setPosition(Vertice origem, Vertice destino) {
+    public void setPosition(Vertex origem, Vertex destino) {
         this.origem = origem;
         this.destino = destino;
     }

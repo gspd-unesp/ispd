@@ -102,19 +102,19 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     /**
      * Lista com os vertices presentes na area de desenho
      */
-    protected Set<Vertice> vertices;
+    protected Set<Vertex> vertices;
     protected Set<Aresta> arestas;
     //controle para adicionar icones
     private boolean addVertice;
     private boolean addAresta;
-    private Vertice origemAresta;
+    private Vertex origemAresta;
     private int posicaoMouseX;
     private int posicaoMouseY;
     private String erroMensagem;
     private String erroTitulo;
 
     public AreaDesenho(boolean popupOn, boolean gridOn, boolean rectOn, boolean posicaoFixa) {
-        vertices = new HashSet<Vertice>();
+        vertices = new HashSet<Vertex>();
         arestas = new HashSet<Aresta>();
         selecionados = new HashSet<Icon>();
         this.popupOn = popupOn;
@@ -212,8 +212,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     public void setUnits(int units) {
         this.units = units;
         if (posicaoFixa && vertices != null) {
-            for (Vertice icone : vertices) {
-                ((Vertice) icone).setPosition(getPosFixaX(icone.getX()), getPosFixaY(icone.getY()));
+            for (Vertex icone : vertices) {
+                ((Vertex) icone).setPosition(getPosFixaX(icone.getX()), getPosFixaY(icone.getY()));
             }
         }
     }
@@ -223,16 +223,16 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         if (addAresta) {
             if (origemAresta != null) {
                 Icon destinoAresta = getSelecionado(me.getX(), me.getY());
-                if (destinoAresta != null && destinoAresta instanceof Vertice && !origemAresta.equals(destinoAresta)) {
-                    adicionarAresta(origemAresta, (Vertice) destinoAresta);
+                if (destinoAresta != null && destinoAresta instanceof Vertex && !origemAresta.equals(destinoAresta)) {
+                    adicionarAresta(origemAresta, (Vertex) destinoAresta);
                     origemAresta = null;
                 } else {
                     JOptionPane.showMessageDialog(null, erroMensagem, erroTitulo, JOptionPane.WARNING_MESSAGE);
                 }
             } else {
                 Icon icon = getSelecionado(me.getX(), me.getY());
-                if (icon != null && icon instanceof Vertice) {
-                    origemAresta = (Vertice) icon;
+                if (icon != null && icon instanceof Vertex) {
+                    origemAresta = (Vertex) icon;
                 } else {
                     JOptionPane.showMessageDialog(null, erroMensagem, erroTitulo, JOptionPane.WARNING_MESSAGE);
                 }
@@ -268,8 +268,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         //Verifica se algum icone foi selecionado
         Icon icon = getSelecionado(me.getX(), me.getY());
         if (icon != null) {
-            if (icon instanceof Vertice) {
-                ((Vertice) icon).setBase(0, 0);
+            if (icon instanceof Vertex) {
+                ((Vertex) icon).setBase(0, 0);
             }
             if (!selecionados.contains(icon)) {
                 if (me.getButton() != MouseEvent.BUTTON2 && selecionados.size() >= 1) {
@@ -283,8 +283,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
             }
             if (selecionados.size() > 1) {
                 for (Icon icone : selecionados) {
-                    if (icone instanceof Vertice) {
-                        ((Vertice) icone).setBase(icone.getX() - me.getX(), icone.getY() - me.getY());
+                    if (icone instanceof Vertex) {
+                        ((Vertex) icone).setBase(icone.getX() - me.getX(), icone.getY() - me.getY());
                     }
                 }
             }
@@ -305,8 +305,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         //Arruma ícone na tela
         if (posicaoFixa && !selecionados.isEmpty()) {
             for (Icon icone : selecionados) {
-                if (icone instanceof Vertice) {
-                    ((Vertice) icone).setPosition(getPosFixaX(icone.getX()), getPosFixaY(icone.getY()));
+                if (icone instanceof Vertex) {
+                    ((Vertex) icone).setPosition(getPosFixaX(icone.getX()), getPosFixaY(icone.getY()));
                 }
             }
         }
@@ -322,7 +322,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
             }
             //Adiciona icone na lista de selecionados
             if (selecionados.isEmpty()) {
-                for (Vertice icone : vertices) {
+                for (Vertex icone : vertices) {
                     if (retanguloX < icone.getX()
                             && icone.getX() < (retanguloX + retanguloLag)
                             && retanguloY < icone.getY()
@@ -360,10 +360,10 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         //Arrasta icones selecionados pelo retangulo
         if (!selecionados.isEmpty()) {
             for (Icon icone : selecionados) {
-                if (icone instanceof Vertice) {
+                if (icone instanceof Vertex) {
                     int posX = me.getX();
                     int posY = me.getY();
-                    ((Vertice) icone).setPosition(posX + ((Vertice) icone).getBaseX(), posY + ((Vertice) icone).getBaseY());
+                    ((Vertex) icone).setPosition(posX + ((Vertex) icone).getBaseX(), posY + ((Vertex) icone).getBaseY());
                 }
             }
         } else if (rect && rectOn) {
@@ -536,10 +536,6 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     }
 
     private void botaoExclusiveVerticeActionPerformed(ActionEvent evt) {
-        Vertice icon = (Vertice) getSelecionado(getPosicaoMouseX(), getPosicaoMouseY());
-        if (icon != null) {
-            icon.exclusiveItemActionPerformed(evt);
-        }
     }
 
     public void setErrorText(String mensagem, String titulo) {
@@ -642,7 +638,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     }
 
     protected Icon getSelecionado(int x, int y) {
-        for (Vertice vertice : vertices) {
+        for (Vertex vertice : vertices) {
             if (vertice.contains(x, y)) {
                 return vertice;
             }
@@ -677,7 +673,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
      * @param Origem Vertice de origem da aresta
      * @param Destino Vertice de destino da aresta
      */
-    public abstract void adicionarAresta(Vertice Origem, Vertice Destino);
+    public abstract void adicionarAresta(Vertex Origem, Vertex Destino);
 
     public abstract void showActionIcon(MouseEvent me, Icon icon);
 
@@ -692,15 +688,9 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     public abstract void botaoIconeActionPerformed(ActionEvent evt);
 
     public void showPopupIcon(MouseEvent me, Icon icon) {
-        if (icon instanceof Vertice) {
+        if (icon instanceof Vertex) {
             if (jMenuVertice1.isEnabled()) {
                 jMenuVertice1.setVisible(true);
-            }
-            if (((Vertice) icon).getExclusiveItem() != null) {
-                jMenuVertice0.setText(((Vertice) icon).getExclusiveItem());
-                jMenuVertice0.setVisible(true);
-            } else {
-                jMenuVertice0.setVisible(false);
             }
             popupVertice.show(me.getComponent(), me.getX(), me.getY());
         } else if (icon instanceof Aresta) {

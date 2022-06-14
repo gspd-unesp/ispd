@@ -41,7 +41,7 @@ package ispd.gui.iconico.simulacao;
 
 import ispd.gui.iconico.AreaDesenho;
 import ispd.gui.iconico.Icon;
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
 import ispd.motor.SimulacaoGrafica;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -74,7 +74,7 @@ public class DesenhoSimulacao extends AreaDesenho {
         this.setUnits(INCREMENTO);
         this.sim = sim;
         this.fonte = new Font(Font.SANS_SERIF, Font.BOLD, 12);
-        HashMap<Object, Vertice> posicoes = new HashMap<Object, Vertice>();
+        HashMap<Object, Vertex> posicoes = new HashMap<Object, Vertex>();
         int coluna = INCREMENTO;
         int linha = INCREMENTO;
         int pos_coluna = 0;
@@ -138,9 +138,9 @@ public class DesenhoSimulacao extends AreaDesenho {
                 Link lk = new Link(posicoes.get(link.getConexoesEntrada()), posicoes.get(link.getConexoesSaida()), link, this);
                 arestas.add(lk);
             } else {
-                Vertice origm = posicoes.get(cs_link);
+                Vertex origm = posicoes.get(cs_link);
                 for (CentroServico destino : ((CS_Switch) cs_link).getConexoesSaida()) {
-                    Vertice destn = posicoes.get(destino);
+                    Vertex destn = posicoes.get(destino);
                     if (destn != null) {
                         Link lk = new Link(origm, destn, null, this);
                         arestas.add(lk);
@@ -182,7 +182,7 @@ public class DesenhoSimulacao extends AreaDesenho {
     }
 
     @Override
-    public void adicionarAresta(Vertice verticeOrigem, Vertice verticeDestino) {
+    public void adicionarAresta(Vertex verticeOrigem, Vertex verticeDestino) {
     }
 
     @Override
