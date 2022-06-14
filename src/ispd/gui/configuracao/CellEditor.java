@@ -60,22 +60,22 @@ public class CellEditor extends AbstractCellEditor
 
     @Override
     public Component getTableCellEditorComponent(
-            final JTable jTable,
-            final Object o,
-            final boolean b,
-            final int i,
-            final int i1) {
+            final JTable table,
+            final Object value,
+            final boolean isSelected,
+            final int row,
+            final int column) {
         return this.item;
     }
 
     @Override
     public Component getTableCellRendererComponent(
-            final JTable jTable,
-            final Object o,
-            final boolean b,
-            final boolean b1,
-            final int i,
-            final int i1) {
+            final JTable table,
+            final Object value,
+            final boolean isSelected,
+            final boolean hasFocus,
+            final int row,
+            final int column) {
         return this.item;
     }
 
