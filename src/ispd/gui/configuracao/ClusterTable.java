@@ -54,7 +54,8 @@ public class ClusterTable extends AbstractTableModel {
     private static final int COLUMN_COUNT = 2;
     private static final int TYPE = 0;
     private static final int VALUE = 1;
-    private final JComboBox<Object> scheduler = new JComboBox<>(Escalonadores.ESCALONADORES);
+    private final JComboBox<Object> schedulers =
+            new JComboBox<>(Escalonadores.ESCALONADORES);
     private final JComboBox<Object> users = new JComboBox<>();
     private Cluster cluster = null;
     private ResourceBundle words;
@@ -65,7 +66,7 @@ public class ClusterTable extends AbstractTableModel {
 
     void setCluster(final Cluster cluster, final Iterable<?> users) {
         this.cluster = cluster;
-        this.scheduler.setSelectedItem(this.cluster.getAlgoritmo());
+        this.schedulers.setSelectedItem(this.cluster.getAlgoritmo());
         this.users.removeAllItems();
         for (final var o : users) {
             this.users.addItem(o);
@@ -83,6 +84,15 @@ public class ClusterTable extends AbstractTableModel {
         return ClusterTable.COLUMN_COUNT;
     }
 
+    /**
+     * Return {@code Object} (either a String, Integer, Double, Boolean, or
+     * JComboBox) in table at (rowIndex, columnIndex). Throws {@code
+     * IndexOutOfBoundsException} if either index is invalid.
+     *
+     * @param rowIndex    Row to get value from.
+     * @param columnIndex Column to get value from.
+     * @return Object in table at specified row and column.
+     */
     @Override
     public Object getValueAt(final int rowIndex, final int columnIndex) {
         switch (columnIndex) {
@@ -92,35 +102,35 @@ public class ClusterTable extends AbstractTableModel {
             case ClusterTable.VALUE:
                 if (this.cluster != null) {
                     switch (rowIndex) {
-                        case TableColumns.LABEL:
+                        case TableRows.LABEL:
                             return this.cluster.getId().getNome();
-                        case TableColumns.OWNER:
+                        case TableRows.OWNER:
                             return this.users;
-                        case TableColumns.NODES:
+                        case TableRows.NODES:
                             return this.cluster.getNumeroEscravos();
-                        case TableColumns.PROCESSORS:
+                        case TableRows.PROCESSORS:
                             return this.cluster.getPoderComputacional();
-                        case TableColumns.RAM:
+                        case TableRows.RAM:
                             return this.cluster.getMemoriaRAM();
-                        case TableColumns.HARD_DISK:
+                        case TableRows.HARD_DISK:
                             return this.cluster.getDiscoRigido();
-                        case TableColumns.CORES:
+                        case TableRows.CORES:
                             return this.cluster.getNucleosProcessador();
-                        case TableColumns.BANDWIDTH:
+                        case TableRows.BANDWIDTH:
                             return this.cluster.getBanda();
-                        case TableColumns.LATENCY:
+                        case TableRows.LATENCY:
                             return this.cluster.getLatencia();
-                        case TableColumns.MASTER:
+                        case TableRows.MASTER:
                             return this.cluster.isMestre();
-                        case TableColumns.SCHEDULER:
-                            return this.scheduler;
-                        case TableColumns.ENERGY:
+                        case TableRows.SCHEDULER:
+                            return this.schedulers;
+                        case TableRows.ENERGY:
                             return this.cluster.getConsumoEnergia();
                     }
                 } else {
                     return switch (rowIndex) {
-                        case TableColumns.OWNER -> this.users;
-                        case TableColumns.SCHEDULER -> this.scheduler;
+                        case TableRows.OWNER -> this.users;
+                        case TableRows.SCHEDULER -> this.schedulers;
                         default -> "null";
                     };
                 }
@@ -133,20 +143,20 @@ public class ClusterTable extends AbstractTableModel {
 
     private String getColumnTypeName(final int rowIndex) {
         return switch (rowIndex) {
-            case TableColumns.LABEL -> this.words.getString("Label");
-            case TableColumns.OWNER -> this.words.getString("Owner");
-            case TableColumns.NODES -> this.words.getString("Number of nodes");
-            case TableColumns.PROCESSORS ->
+            case TableRows.LABEL -> this.words.getString("Label");
+            case TableRows.OWNER -> this.words.getString("Owner");
+            case TableRows.NODES -> this.words.getString("Number of nodes");
+            case TableRows.PROCESSORS ->
                     this.words.getString("Computing power");
-            case TableColumns.RAM -> "Primary Storage";
-            case TableColumns.HARD_DISK -> "Secondary Storage";
-            case TableColumns.CORES -> "Cores";
-            case TableColumns.BANDWIDTH -> this.words.getString("Bandwidth");
-            case TableColumns.LATENCY -> this.words.getString("Latency");
-            case TableColumns.MASTER -> this.words.getString("Master");
-            case TableColumns.SCHEDULER ->
+            case TableRows.RAM -> "Primary Storage";
+            case TableRows.HARD_DISK -> "Secondary Storage";
+            case TableRows.CORES -> "Cores";
+            case TableRows.BANDWIDTH -> this.words.getString("Bandwidth");
+            case TableRows.LATENCY -> this.words.getString("Latency");
+            case TableRows.MASTER -> this.words.getString("Master");
+            case TableRows.SCHEDULER ->
                     this.words.getString("Scheduling algorithm");
-            case TableColumns.ENERGY -> "Energy consumption Per Node";
+            case TableRows.ENERGY -> "Energy consumption Per Node";
             default -> null;
         };
     }
@@ -175,45 +185,45 @@ public class ClusterTable extends AbstractTableModel {
         }
 
         switch (rowIndex) {
-            case TableColumns.LABEL ->
+            case TableRows.LABEL ->
                     this.cluster.getId().setNome(aValue.toString());
-            case TableColumns.OWNER ->
+            case TableRows.OWNER ->
                     this.cluster.setProprietario(this.users.getSelectedItem().toString());
-            case TableColumns.NODES ->
+            case TableRows.NODES ->
                     this.cluster.setNumeroEscravos(Integer.valueOf(aValue.toString()));
-            case TableColumns.PROCESSORS ->
+            case TableRows.PROCESSORS ->
                     this.cluster.setPoderComputacional(Double.valueOf(aValue.toString()));
-            case TableColumns.RAM ->
+            case TableRows.RAM ->
                     this.cluster.setMemoriaRAM(Double.valueOf(aValue.toString()));
-            case TableColumns.HARD_DISK ->
+            case TableRows.HARD_DISK ->
                     this.cluster.setDiscoRigido(Double.valueOf(aValue.toString()));
-            case TableColumns.CORES ->
+            case TableRows.CORES ->
                     this.cluster.setNucleosProcessador(Integer.valueOf(aValue.toString()));
-            case TableColumns.BANDWIDTH ->
+            case TableRows.BANDWIDTH ->
                     this.cluster.setBanda(Double.valueOf(aValue.toString()));
-            case TableColumns.LATENCY ->
+            case TableRows.LATENCY ->
                     this.cluster.setLatencia(Double.valueOf(aValue.toString()));
-            case TableColumns.ENERGY ->
+            case TableRows.ENERGY ->
                     this.cluster.setConsumoEnergia(Double.valueOf(aValue.toString()));
-            case TableColumns.MASTER ->
+            case TableRows.MASTER ->
                     this.cluster.setMestre(Boolean.valueOf(aValue.toString()));
-            case TableColumns.SCHEDULER ->
-                    this.cluster.setAlgoritmo(this.scheduler.getSelectedItem().toString());
+            case TableRows.SCHEDULER ->
+                    this.cluster.setAlgoritmo(this.schedulers.getSelectedItem().toString());
         }
 
         this.fireTableCellUpdated(rowIndex, ClusterTable.VALUE);
     }
 
     public JComboBox<Object> getEscalonadores() {
-        return this.scheduler;
+        return this.schedulers;
     }
 
-    public void setPalavras(final ResourceBundle palavras) {
-        this.words = palavras;
+    public void setPalavras(final ResourceBundle words) {
+        this.words = words;
         this.fireTableStructureChanged();
     }
 
-    private static class TableColumns {
+    private static class TableRows {
         private static final int LABEL = 0;
         private static final int OWNER = 1;
         private static final int NODES = 2;
