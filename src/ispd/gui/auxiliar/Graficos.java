@@ -74,6 +74,8 @@ import java.util.Map;
  */
 public class Graficos {
 
+    public static final Dimension PREFERRED_CHART_SIZE = new Dimension(600,
+            300);
     private final ChartPanel communicationBarChart = null;
     public ChartPanel PreemptionPerUser = null;
     public RedeDeFilas rede = null;
@@ -175,7 +177,7 @@ public class Graficos {
         }
 
         final var panel = new ChartPanel(chart);
-        panel.setPreferredSize(new Dimension(600, 300));
+        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         return panel;
     }
 
@@ -188,7 +190,7 @@ public class Graficos {
                 false
         );
         final var v = new ChartPanel(jfc2);
-        v.setPreferredSize(new Dimension(600, 300));
+        v.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         return v;
     }
 
@@ -228,7 +230,7 @@ public class Graficos {
                 dadosGraficoPizzaComunicacao, // Dados para o grafico
                 true, false, false);
         this.communicationPieChart = new ChartPanel(jfc);
-        this.communicationPieChart.setPreferredSize(new Dimension(600, 300));
+        this.communicationPieChart.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
     }
 
     public void criarProcessamentoTempoTarefa(final List<Tarefa> tarefas) {
@@ -330,7 +332,7 @@ public class Graficos {
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
         this.machineThroughTime = new ChartPanel(jfc);
-        this.machineThroughTime.setPreferredSize(new Dimension(600, 300));
+        this.machineThroughTime.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
     }
 
     public void criarProcessamentoTempoUser(final List<Tarefa> tarefas,
@@ -430,9 +432,9 @@ public class Graficos {
         xyplot.setRenderer(xysteparearenderer);
 
         this.userThroughTime1 = new ChartPanel(user1);
-        this.userThroughTime1.setPreferredSize(new Dimension(600, 300));
+        this.userThroughTime1.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         this.UserThroughTime2 = new ChartPanel(user2);
-        this.UserThroughTime2.setPreferredSize(new Dimension(600, 300));
+        this.UserThroughTime2.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
     }
 
     public ChartPanel criarGraficoPorTarefa(final List<Tarefa> tarefas,
@@ -471,7 +473,7 @@ public class Graficos {
                         PlotOrientation.VERTICAL, //Orientacao do grafico
                         true, true, false); // exibir: legendas, tooltips, url
                 final ChartPanel graficoPorTarefa = new ChartPanel(jfc);
-                graficoPorTarefa.setPreferredSize(new Dimension(600, 300));
+                graficoPorTarefa.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
                 return graficoPorTarefa;
             } else {
                 return null;
@@ -511,8 +513,7 @@ public class Graficos {
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
         final ChartPanel graficoAproveitamentoPorcentagem = new ChartPanel(jfc);
-        graficoAproveitamentoPorcentagem.setPreferredSize(new Dimension(600,
-                300));
+        graficoAproveitamentoPorcentagem.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         return graficoAproveitamentoPorcentagem;
     }
 
@@ -553,7 +554,7 @@ public class Graficos {
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
         final ChartPanel graficoAproveitamentoNumero = new ChartPanel(jfc);
-        graficoAproveitamentoNumero.setPreferredSize(new Dimension(600, 300));
+        graficoAproveitamentoNumero.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         return graficoAproveitamentoNumero;
 
     }
@@ -603,7 +604,7 @@ public class Graficos {
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
         this.PreemptionPerUser = new ChartPanel(jfc);
-        this.PreemptionPerUser.setPreferredSize(new Dimension(600, 300));
+        this.PreemptionPerUser.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
     }
 
     public ChartPanel gerarGraficoPorMaquina(final List<Tarefa> tarefas,
@@ -677,8 +678,7 @@ public class Graficos {
                     PlotOrientation.VERTICAL, //Orientacao do grafico
                     true, true, false); // exibir: legendas, tooltips, url
             final ChartPanel graficoAproveitamentoMaquina = new ChartPanel(jfc);
-            graficoAproveitamentoMaquina.setPreferredSize(new Dimension(600,
-                    300));
+            graficoAproveitamentoMaquina.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
             return graficoAproveitamentoMaquina;
         }
 
