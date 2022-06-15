@@ -54,7 +54,7 @@ import ispd.gui.auxiliar.FiltroDeArquivos;
 import ispd.gui.auxiliar.HtmlPane;
 import ispd.gui.auxiliar.Stalemate;
 import ispd.gui.configuracao.JPanelConfigIcon;
-import ispd.gui.configuracao.JPanelSimples;
+import ispd.gui.configuracao.SimplePanel;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.DesenhoGrade;
 import ispd.gui.iconico.grade.ItemGrade;
@@ -145,7 +145,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     private final GerenciarEscalonadorCloud jFrameCloudManager =
             new GerenciarEscalonadorCloud();
     private final JPanelConfigIcon jPanelSettings = new JPanelConfigIcon();
-    private final JPanelSimples jPanelSimple = new JPanelSimples();
+    private final SimplePanel jPanelSimple = new SimplePanel();
     private final JScrollPane jScrollPaneDrawingArea = new JScrollPane();
     private final JScrollPane jScrollPaneSideBar = new JScrollPane();
     private final JScrollPane jScrollPaneNotificationBar = new JScrollPane();
@@ -232,7 +232,7 @@ public class JPrincipal extends JFrame implements KeyListener {
             this.jCheckBoxMenuConnectedItem,
             this.jCheckBoxMenuSchedulableItem,
     };
-    private final JPanelSimples jPanelProperties = new JPanelSimples();
+    private final SimplePanel jPanelProperties = new SimplePanel();
     private final JScrollPane jScrollPaneProperties = new JScrollPane();
     private final JMenuItem jMenuItemOpenResult = new JMenuItem();
     private final JMenuItem jMenuItemGridSim = new JMenuItem();
@@ -325,7 +325,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jPanelSettings.setEscalonadores(this.jFrameManager.getEscalonadores());
         this.jPanelSettings.setEscalonadoresCloud(this.jFrameCloudManager.getEscalonadores());
         this.jPanelSettings.setAlocadores(this.jFrameAllocManager.getAlocadores());
-        this.jPanelSimple.setjLabelTexto(this.translate("No icon selected."));
+        this.jPanelSimple.setText(this.translate("No icon selected."));
 
         this.jScrollPaneSideBar.setBorder(BorderFactory.createTitledBorder(
                 "Settings"));
@@ -959,7 +959,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.drawingArea.addKeyListener(this);
         this.drawingArea.setPaineis(this);
         this.jScrollPaneSideBar.setViewportView(null);
-        this.jPanelProperties.setjLabelTexto("");
+        this.jPanelProperties.setText("");
         this.jScrollPaneDrawingArea.setViewportView(this.drawingArea);
         this.appendNotificacao(this.translate(message));
         this.openEditing(file);
@@ -1114,7 +1114,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     private void closeModel() {
         this.jScrollPaneDrawingArea.setViewportView(null);
         this.jScrollPaneSideBar.setViewportView(null);
-        this.jPanelProperties.setjLabelTexto("");
+        this.jPanelProperties.setText("");
         this.appendNotificacao(this.translate("model closed"));
         this.closeEditing();
     }
@@ -1643,7 +1643,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jMenuItemAbout.setText(this.translate("About") + " " + this.translate("nomePrograma"));
         this.jMenuItemAbout.setToolTipText(this.translate("About") + " " + this.translate("nomePrograma"));
 
-        this.jPanelSimple.setjLabelTexto(this.translate("No icon selected."));
+        this.jPanelSimple.setText(this.translate("No icon selected."));
         this.jPanelSettings.setPalavras(this.words);
     }
 
@@ -1765,7 +1765,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     public void setSelectedIcon(final ItemGrade icon, final String text) {
         if (null == icon) {
             this.jScrollPaneSideBar.setViewportView(this.jPanelSimple);
-            this.jPanelProperties.setjLabelTexto("");
+            this.jPanelProperties.setText("");
             return;
         }
 
@@ -1777,7 +1777,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         }
 
         this.jScrollPaneSideBar.setViewportView(this.jPanelSettings);
-        this.jPanelProperties.setjLabelTexto(text);
+        this.jPanelProperties.setText(text);
     }
 
     private static class IspdFileView extends FileView {

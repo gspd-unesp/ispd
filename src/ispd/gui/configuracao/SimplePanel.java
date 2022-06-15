@@ -26,7 +26,7 @@
  * Other names may be trademarks of their respective owners.]
  *
  * ---------------
- * JPanelSimples.java
+ * SimplePanel.java
  * ---------------
  * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e
  * Distribuídos da Unesp (GSPD).
@@ -45,12 +45,13 @@ package ispd.gui.configuracao;
 
 import javax.swing.GroupLayout;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-public class JPanelSimples extends javax.swing.JPanel {
+public class SimplePanel extends JPanel {
 
-    private final JLabel jLabelTexto = new JLabel();
+    private final JLabel label = new JLabel();
 
-    public JPanelSimples() {
+    public SimplePanel() {
         this.initComponents();
     }
 
@@ -65,7 +66,7 @@ public class JPanelSimples extends javax.swing.JPanel {
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(this.jLabelTexto)
+                                .addComponent(this.label)
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE,
                                         Short.MAX_VALUE))
         );
@@ -73,13 +74,13 @@ public class JPanelSimples extends javax.swing.JPanel {
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(this.jLabelTexto)
+                                .addComponent(this.label)
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE,
                                         Short.MAX_VALUE))
         );
     }
 
-    public void setjLabelTexto(final String text) {
-        this.jLabelTexto.setText(text);
+    public void setText(final String text) {
+        this.label.setText(text);
     }
 }
