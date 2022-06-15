@@ -62,6 +62,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -73,6 +74,7 @@ import java.util.Map;
  */
 public class Graficos {
 
+    public static final double ONE_HUNDRED_PERCENT = 100.0;
     private static final Dimension PREFERRED_CHART_SIZE
             = new Dimension(600, 300);
     public ChartPanel PreemptionPerUser = null;
@@ -221,56 +223,76 @@ public class Graficos {
                 true,
                 false,
                 false);
-        ChartPanel cpc = new ChartPanel(jfc);
+        final ChartPanel cpc = new ChartPanel(jfc);
         cpc.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         this.communicationPieChart = cpc;
     }
 
-    private boolean shouldInclineChartXAxis(Map<String, MetricasComunicacao> metrics) {
-        return metrics != null && metrics.size() > 10;
+    public void criarProcessamentoTempoTarefa(
+            final Collection<? extends Tarefa> tasks) {
+        this.TaskThroughTime = this.makeTaskThroughTimeChart(tasks);
     }
 
-    public void criarProcessamentoTempoTarefa(final List<? extends Tarefa> tasks) {
+    private ChartPanel makeTaskThroughTimeChart(
+            final Collection<? extends Tarefa> tasks) {
+        return new ChartPanel(ChartFactory.createXYAreaChart(
+                "Use of total computing power through time \nTasks",
+                "Time (seconds)",
+                "Rate of total use of computing power (%)",
+                this.makeTTTChartData(tasks),
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false)
+        );
+    }
+
+    private XYSeriesCollection makeTTTChartData(
+            final Collection<? extends Tarefa> tasks) {
 
         final XYSeriesCollection chartData = new XYSeriesCollection();
-        if (!tasks.isEmpty()) {
-            for (final Tarefa task : tasks) {
-                final XYSeries timeSeries;
-                timeSeries = new XYSeries("task " + task.getIdentificador());
-                final CS_Processamento temp =
-                        (CS_Processamento) task.getLocalProcessamento();
-                if (temp != null) {
-                    final Double usage =
-                            (temp.getPoderComputacional() / this.poderComputacionalTotal) * 100;
-                    for (int j = 0; j < task.getTempoInicial().size(); j++) {
-                        timeSeries.add(task.getTempoInicial().get(j),
-                                (Double) 0.0);
-                        timeSeries.add(task.getTempoInicial().get(j), usage);
-                        timeSeries.add(task.getTempoFinal().get(j), usage);
-                        timeSeries.add(task.getTempoFinal().get(j),
-                                (Double) 0.0);
-                    }
-                    chartData.addSeries(timeSeries);
-                }
-            }
 
+        if (tasks.isEmpty()) {
+            return chartData;
         }
 
-        final JFreeChart jfc = ChartFactory.createXYAreaChart(
-                "Use of total computing power through time "
-                        + "\nTasks", //Titulo
-                "Time (seconds)", // Eixo X
-                "Rate of total use of computing power (%)", //Eixo Y
-                chartData, // Dados para o grafico
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, true, false); // exibir: legendas, tooltips, url
-        this.TaskThroughTime = new ChartPanel(jfc);
+        for (final Tarefa task : tasks) {
+            this.addEntryToTTChartData(chartData, task);
+        }
+
+        return chartData;
     }
 
-    //Cria o gráfico que demonstra o uso de cada recurso do sistema através
-    // do tempo.
-    //Ele recebe como parâmetro a lista com as maquinas que processaram
-    // durante a simulação.
+    private void addEntryToTTChartData(final XYSeriesCollection chartData,
+                                       final Tarefa task) {
+        final XYSeries timeSeries =
+                new XYSeries("task " + task.getIdentificador());
+        final CS_Processamento temp =
+                (CS_Processamento) task.getLocalProcessamento();
+
+        if (temp == null) {
+            return;
+        }
+
+        final Double usage =
+                (temp.getPoderComputacional() / this.poderComputacionalTotal) * 100;
+        for (int j = 0; j < task.getTempoInicial().size(); j++) {
+            timeSeries.add(task.getTempoInicial().get(j),
+                    (Double) 0.0);
+            timeSeries.add(task.getTempoInicial().get(j), usage);
+            timeSeries.add(task.getTempoFinal().get(j), usage);
+            timeSeries.add(task.getTempoFinal().get(j),
+                    (Double) 0.0);
+        }
+        chartData.addSeries(timeSeries);
+    }
+
+    /**
+     * Cria o gráfico que demonstra o uso de cada recurso do sistema através
+     * do tempo.
+     * Ele recebe como parâmetro a lista com as maquinas que processaram
+     * durante a simulação.
+     */
     public void criarProcessamentoTempoMaquina(final RedeDeFilas rdf) {
         final XYSeriesCollection dadosGrafico = new XYSeriesCollection();
         //Se tiver alguma máquina na lista.
@@ -459,8 +481,8 @@ public class Graficos {
 
                 }
 
-                dadosMflopProcessados.addValue(((job.getTamProcessamento() / mflopProcessadoTotal) * 100.0), "Usefull processing", "Task size :" + job.getTamProcessamento() + " MFlop" + ", total executed for task: " + mflopProcessadoTotal + " MFlop");
-                dadosMflopProcessados.addValue(((job.getMflopsDesperdicados()) / mflopProcessadoTotal) * 100.0, "Wasted processing", "Task size :" + job.getTamProcessamento() + " MFlop" + ", total executed for task: " + mflopProcessadoTotal + " MFlop");
+                dadosMflopProcessados.addValue(((job.getTamProcessamento() / mflopProcessadoTotal) * Graficos.ONE_HUNDRED_PERCENT), "Usefull processing", "Task size :" + job.getTamProcessamento() + " MFlop" + ", total executed for task: " + mflopProcessadoTotal + " MFlop");
+                dadosMflopProcessados.addValue(((job.getMflopsDesperdicados()) / mflopProcessadoTotal) * Graficos.ONE_HUNDRED_PERCENT, "Wasted processing", "Task size :" + job.getTamProcessamento() + " MFlop" + ", total executed for task: " + mflopProcessadoTotal + " MFlop");
 
                 final JFreeChart jfc = ChartFactory.createStackedBarChart(
                         "MFlop usage for task " + idTarefa, //Titulo
@@ -499,8 +521,8 @@ public class Graficos {
 
         }
 
-        dadosMflopProcessados.addValue((tamanhoTotal / (mflopDesperdicado + tamanhoTotal)) * 100.0, "Usefull Processing", "MFlop Usage");
-        dadosMflopProcessados.addValue((mflopDesperdicado / (mflopDesperdicado + tamanhoTotal)) * 100.0, "Wasted Processing", "MFlop Usage");
+        dadosMflopProcessados.addValue((tamanhoTotal / (mflopDesperdicado + tamanhoTotal)) * Graficos.ONE_HUNDRED_PERCENT, "Usefull Processing", "MFlop Usage");
+        dadosMflopProcessados.addValue((mflopDesperdicado / (mflopDesperdicado + tamanhoTotal)) * Graficos.ONE_HUNDRED_PERCENT, "Wasted Processing", "MFlop Usage");
 
         final JFreeChart jfc = ChartFactory.createStackedBarChart(
                 "Processing efficiency", //TituloUsage#
@@ -605,57 +627,49 @@ public class Graficos {
     }
 
     public ChartPanel gerarGraficoPorMaquina(final List<Tarefa> tarefas,
-                                             final String maq) {
-        final DefaultCategoryDataset dadosMflopProcessados =
-                new DefaultCategoryDataset();
-        int i;
-        int j;
-        final int histIndex = -1;
-        CS_Maquina alvo = null;
-        final Tarefa task = null;
-        double mflopUsado = 0.0;
-        double mflopPerdido = 0.0;
-        Double tempo;
+                                             final String machineId) {
+        final var target = this.findMachineWithIdOrNull(machineId);
 
-        for (i = 0; i < this.rede.getMaquinas().size(); i++) {
-            if (this.rede.getMaquinas().get(i).getId().equals(maq)) {
-                alvo = this.rede.getMaquinas().get(i);
-                break;
-            }
+        if (target == null) {
+            return null;
         }
 
-        if (alvo != null) {
+        double lostMFlops = 0.0;
+        double usedMFlops = 0.0;
+        for (int i = 0; i < target.getHistorico().size(); i++) {
 
-            for (i = 0; i < alvo.getHistorico().size(); i++) {
+            final Tarefa task = target.getHistorico().get(i);
 
-                if (alvo.getHistorico().get(i).getMflopsDesperdicados() > 0.0) {
+            if (task.getMflopsDesperdicados() > 0.0) {
 
-                    for (j = 0; j < alvo.getHistorico().get(i).getHistoricoProcessamento().size(); j++) {
+                for (int j = 0; j < task.getHistoricoProcessamento().size(); j++) {
 
-                        if (alvo.getHistorico().get(i).getHistoricoProcessamento().get(j).getId().equals(alvo.getId())) {
+                    if (task.getHistoricoProcessamento().get(j).getId().equals(target.getId())) {
 
-                            tempo = alvo.getHistorico().get(i).getTempoFinal().get(j) - alvo.getHistorico().get(i).getTempoInicial().get(j);
-                            if (alvo.getHistorico().get(i).getCheckPoint() != 0.0) {
-                                mflopUsado += alvo.getMflopsProcessados(tempo) / alvo.getHistorico().get(i).getCheckPoint() - alvo.getMflopsProcessados(tempo) % alvo.getHistorico().get(i).getCheckPoint();
-                                mflopPerdido += alvo.getMflopsProcessados(tempo) % alvo.getHistorico().get(i).getCheckPoint();
-                            } else {
-                                mflopPerdido += alvo.getMflopsProcessados(tempo);
-                            }
-
+                        final double tempo =
+                                task.getTempoFinal().get(j) - task.getTempoInicial().get(j);
+                        if (task.getCheckPoint() == 0.0) {
+                            lostMFlops += target.getMflopsProcessados(tempo);
+                        } else {
+                            final double remainder =
+                                    target.getMflopsProcessados(tempo) % task.getCheckPoint();
+                            usedMFlops += target.getMflopsProcessados(tempo) / task.getCheckPoint() - remainder;
+                            lostMFlops += remainder;
                         }
 
                     }
 
-                } else {
+                }
 
-                    for (j = 0; j < alvo.getHistorico().get(i).getHistoricoProcessamento().size(); j++) {
+            } else {
 
-                        if (alvo.getHistorico().get(i).getHistoricoProcessamento().get(j).getId().equals(alvo.getId())) {
+                for (int j = 0; j < task.getHistoricoProcessamento().size(); j++) {
 
-                            tempo = alvo.getHistorico().get(i).getTempoFinal().get(j) - alvo.getHistorico().get(i).getTempoInicial().get(j);
-                            mflopUsado += alvo.getMflopsProcessados(tempo);
+                    if (task.getHistoricoProcessamento().get(j).getId().equals(target.getId())) {
 
-                        }
+                        final double tempo =
+                                task.getTempoFinal().get(j) - task.getTempoInicial().get(j);
+                        usedMFlops += target.getMflopsProcessados(tempo);
 
                     }
 
@@ -663,25 +677,40 @@ public class Graficos {
 
             }
 
-            dadosMflopProcessados.addValue((mflopUsado / (mflopPerdido + mflopUsado)) * 100.0, "Usefull Processing", "MFlop Usage");
-            dadosMflopProcessados.addValue((mflopPerdido / (mflopPerdido + mflopUsado)) * 100.0, "Wasted Processing", "MFlop Usage");
-
-            final JFreeChart jfc = ChartFactory.createStackedBarChart(
-                    "Processing efficiency for resource " + alvo.getId(),
-                    //Titulo
-                    "", // Eixo X
-                    "% of total MFlop executed", //Eixo Y
-                    dadosMflopProcessados, // Dados para o grafico
-                    PlotOrientation.VERTICAL, //Orientacao do grafico
-                    true, true, false); // exibir: legendas, tooltips, url
-            final ChartPanel graficoAproveitamentoMaquina = new ChartPanel(jfc);
-            graficoAproveitamentoMaquina.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-            return graficoAproveitamentoMaquina;
         }
 
-        return null;
+        final var mFlopsData = Graficos.makeMFlopsData(usedMFlops, lostMFlops);
+
+        final var jfc = ChartFactory.createStackedBarChart(
+                "Processing efficiency for resource %s".formatted(target.getId()),
+                "",
+                "% of total MFlop executed",
+                mFlopsData,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
+
+        final ChartPanel machineUseChart = new ChartPanel(jfc);
+        machineUseChart.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        return machineUseChart;
     }
 
+    private CS_Maquina findMachineWithIdOrNull(final String id) {
+        return this.rede.getMaquinas().stream().filter(machine -> machine.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    private static DefaultCategoryDataset makeMFlopsData(final double usedMFlops,
+                                                         final double lostMFlops) {
+        final var data = new DefaultCategoryDataset();
+        final double total = lostMFlops + usedMFlops;
+        data.addValue((usedMFlops / total) * Graficos.ONE_HUNDRED_PERCENT,
+                "Usefull Processing", "MFlop Usage");
+        data.addValue((lostMFlops / total) * Graficos.ONE_HUNDRED_PERCENT,
+                "Wasted Processing", "MFlop Usage");
+        return data;
+    }
 
     public void calculaPoderTotal(final RedeDeFilas rdf) {
         for (final CS_Processamento maq : rdf.getMaquinas()) {
