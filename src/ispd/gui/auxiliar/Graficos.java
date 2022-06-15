@@ -55,7 +55,6 @@ import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYStepAreaRenderer;
-import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
@@ -122,31 +121,35 @@ public class Graficos {
     }
 
     public void criarProcessamento(
-            final Map<String, ? extends MetricasProcessamento> processingMetrics) {
+            final Map<String, ? extends MetricasProcessamento> metrics) {
 
-        final var barChartData = this.makeBarChartData(processingMetrics);
-        final var pieChartData = this.makePieChartData(processingMetrics);
-
-        this.processingBarChart = this.makeBarChart(
-                "Total processed on each " +
-                        "resource",
-                "Mflops",
-                barChartData,
-                processingMetrics != null,
-                processingMetrics.size()
-        );
+        this.processingBarChart = this.makeBarChart(metrics);
+        final var pieChartData = this.makePieChartData(metrics);
 
         this.processingPieChart = Graficos.makePieChart(pieChartData);
     }
 
-    private DefaultCategoryDataset makeBarChartData(
+    private ChartPanel makeBarChart(
             final Map<String, ? extends MetricasProcessamento> metrics) {
-        final var data = new DefaultCategoryDataset();
-        if (metrics == null) {
-            return data;
+        final var chart = ChartFactory.createBarChart(
+                "Total processed on each " +
+                        "resource",
+                "Resource",
+                "Mflops",
+                this.makeBarChartData(metrics),
+                PlotOrientation.VERTICAL,
+                false,
+                false,
+                false
+        );
+
+        if (Graficos.shouldInclineXAxis(metrics)) {
+            Graficos.inclineChartXAxis(chart);
         }
-        metrics.values().forEach(v -> Graficos.addBarChartData(data, v));
-        return data;
+
+        final var panel = new ChartPanel(chart);
+        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        return panel;
     }
 
     private DefaultPieDataset makePieChartData(
@@ -155,34 +158,9 @@ public class Graficos {
         if (metrics == null) {
             return data;
         }
-        metrics.values().forEach(v -> Graficos.addPieChartData(data, v));
+        metrics.values().forEach(v -> data.insertValue(0, Graficos.makeKey(v),
+                v.getMFlopsProcessados()));
         return data;
-    }
-
-    private ChartPanel makeBarChart(
-            final String title,
-            final String mFlops,
-            final CategoryDataset charData,
-            final boolean shouldIncludeMetrics,
-            final int metricsCount) {
-        final var chart = ChartFactory.createBarChart(
-                title,
-                "Resource",
-                mFlops,
-                charData,
-                PlotOrientation.VERTICAL,
-                false,
-                false,
-                false
-        );
-
-        if (this.shouldInclineXAxis(shouldIncludeMetrics, metricsCount)) {
-            this.inclineChartXAxis(chart);
-        }
-
-        final var panel = new ChartPanel(chart);
-        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-        return panel;
     }
 
     private static ChartPanel makePieChart(final PieDataset data) {
@@ -198,36 +176,31 @@ public class Graficos {
         return v;
     }
 
-    private static void addBarChartData(final DefaultCategoryDataset barChartData,
-                                        final MetricasProcessamento mt) {
-        if (mt.getnumeroMaquina() == 0) {
-            barChartData.addValue(mt.getMFlopsProcessados(), "vermelho",
-                    mt.getId());
-        } else {
-            barChartData.addValue(mt.getMFlopsProcessados(), "vermelho",
-                    mt.getId() + " node " + mt.getnumeroMaquina());
+    private DefaultCategoryDataset makeBarChartData(
+            final Map<String, ? extends MetricasProcessamento> metrics) {
+        final var data = new DefaultCategoryDataset();
+        if (metrics == null) {
+            return data;
         }
+        metrics.values().forEach(v -> data.addValue(v.getMFlopsProcessados(),
+                "vermelho",
+                Graficos.makeKey(v)));
+        return data;
     }
 
-    private static void addPieChartData(final DefaultPieDataset pieChartData,
-                                        final MetricasProcessamento mt) {
-        if (mt.getnumeroMaquina() == 0) {
-            pieChartData.insertValue(0, mt.getId(),
-                    mt.getMFlopsProcessados());
-        } else {
-            pieChartData.insertValue(0,
-                    mt.getId() + " node " + mt.getnumeroMaquina(),
-                    mt.getMFlopsProcessados());
-        }
+    private static boolean shouldInclineXAxis(
+            final Map<String, ? extends MetricasProcessamento> m) {
+        return m != null && m.size() > 10;
     }
 
-    private boolean shouldInclineXAxis(final boolean shouldIncludeMetrics,
-                                       final int metricsCount) {
-        return shouldIncludeMetrics && metricsCount > 10;
-    }
-
-    private void inclineChartXAxis(final JFreeChart chart) {
+    private static void inclineChartXAxis(final JFreeChart chart) {
         chart.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+    }
+
+    private static String makeKey(final MetricasProcessamento mt) {
+        return mt.getnumeroMaquina() != 0
+                ? "%s node %d".formatted(mt.getId(), mt.getnumeroMaquina())
+                : mt.getId();
     }
 
     public void criarComunicacao(final Map<String, MetricasComunicacao> mComunicacao) {
@@ -247,9 +220,23 @@ public class Graficos {
             }
         }
 
-        this.makeBarChart("Total communication in each resource", "Mbits",
-                dadosGraficoComunicacao, mComunicacao != null,
-                mComunicacao.size());
+        final var chart = ChartFactory.createBarChart(
+                "Total communication in each resource",
+                "Resource",
+                "Mbits",
+                dadosGraficoComunicacao,
+                PlotOrientation.VERTICAL,
+                false,
+                false,
+                false
+        );
+
+        if (mComunicacao != null && mComunicacao.size() > 10) {
+            Graficos.inclineChartXAxis(chart);
+        }
+
+        final var panel = new ChartPanel(chart);
+        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         final JFreeChart jfc;
 
         jfc = ChartFactory.createPieChart(
