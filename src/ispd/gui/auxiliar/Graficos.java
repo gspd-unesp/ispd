@@ -88,47 +88,47 @@ public class Graficos {
     private double poderComputacionalTotal = 0;
 
     public ChartPanel getProcessingBarChart() {
-        return ProcessingBarChart;
+        return this.ProcessingBarChart;
     }
 
     public ChartPanel getCommunicationBarChart() {
-        return CommunicationBarChart;
+        return this.CommunicationBarChart;
     }
 
     public ChartPanel getProcessingPieChart() {
-        return ProcessingPieChart;
+        return this.ProcessingPieChart;
     }
 
     public ChartPanel getCommunicationPieChart() {
-        return CommunicationPieChart;
+        return this.CommunicationPieChart;
     }
 
     public ChartPanel getUserThroughTimeChart1() {
-        return UserThroughTimeChart1;
+        return this.UserThroughTimeChart1;
     }
 
     public ChartPanel getUserThroughTimeChart2() {
-        return UserThroughTimeChart2;
+        return this.UserThroughTimeChart2;
     }
 
     public ChartPanel getMachineThroughTimeChart() {
-        return MachineThroughTimeChart;
+        return this.MachineThroughTimeChart;
     }
 
     public ChartPanel getTaskThroughTimeChart() {
-        return TaskThroughTimeChart;
+        return this.TaskThroughTimeChart;
     }
 
-    public void criarProcessamento(Map<String, MetricasProcessamento> mProcess) {
-        DefaultCategoryDataset dadosGraficoProcessamento =
+    public void criarProcessamento(final Map<String, MetricasProcessamento> mProcess) {
+        final DefaultCategoryDataset dadosGraficoProcessamento =
                 new DefaultCategoryDataset();
-        DefaultPieDataset dadosGraficoPizzaProcessamento =
+        final DefaultPieDataset dadosGraficoPizzaProcessamento =
                 new DefaultPieDataset();
 
         if (mProcess != null) {
-            for (Map.Entry<String, MetricasProcessamento> entry :
+            for (final Map.Entry<String, MetricasProcessamento> entry :
                     mProcess.entrySet()) {
-                MetricasProcessamento mt = entry.getValue();
+                final MetricasProcessamento mt = entry.getValue();
                 if (mt.getnumeroMaquina() == 0) {
                     dadosGraficoProcessamento.addValue(mt.getMFlopsProcessados(), "vermelho", mt.getId());
                     dadosGraficoPizzaProcessamento.insertValue(0, mt.getId(),
@@ -153,28 +153,28 @@ public class Graficos {
         if (mProcess != null && mProcess.size() > 10) {
             jfc.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         }
-        ProcessingBarChart = new ChartPanel(jfc);
-        ProcessingBarChart.setPreferredSize(new Dimension(600, 300));
+        this.ProcessingBarChart = new ChartPanel(jfc);
+        this.ProcessingBarChart.setPreferredSize(new Dimension(600, 300));
 
         jfc = ChartFactory.createPieChart(
                 "Total processed on each resource", //Titulo
                 dadosGraficoPizzaProcessamento, // Dados para o grafico
                 true, false, false);
-        ProcessingPieChart = new ChartPanel(jfc);
-        ProcessingPieChart.setPreferredSize(new Dimension(600, 300));
+        this.ProcessingPieChart = new ChartPanel(jfc);
+        this.ProcessingPieChart.setPreferredSize(new Dimension(600, 300));
 
     }
 
-    public void criarComunicacao(Map<String, MetricasComunicacao> mComunicacao) {
-        DefaultCategoryDataset dadosGraficoComunicacao =
+    public void criarComunicacao(final Map<String, MetricasComunicacao> mComunicacao) {
+        final DefaultCategoryDataset dadosGraficoComunicacao =
                 new DefaultCategoryDataset();
-        DefaultPieDataset dadosGraficoPizzaComunicacao =
+        final DefaultPieDataset dadosGraficoPizzaComunicacao =
                 new DefaultPieDataset();
 
         if (mComunicacao != null) {
-            for (Map.Entry<String, MetricasComunicacao> entry :
+            for (final Map.Entry<String, MetricasComunicacao> entry :
                     mComunicacao.entrySet()) {
-                MetricasComunicacao link = entry.getValue();
+                final MetricasComunicacao link = entry.getValue();
                 dadosGraficoComunicacao.addValue(link.getMbitsTransmitidos(),
                         "vermelho", link.getId());
                 dadosGraficoPizzaComunicacao.insertValue(0, link.getId(),
@@ -193,28 +193,28 @@ public class Graficos {
         if (mComunicacao != null && mComunicacao.size() > 10) {
             jfc.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         }
-        CommunicationBarChart = new ChartPanel(jfc);
-        CommunicationBarChart.setPreferredSize(new Dimension(600, 300));
+        this.CommunicationBarChart = new ChartPanel(jfc);
+        this.CommunicationBarChart.setPreferredSize(new Dimension(600, 300));
 
         jfc = ChartFactory.createPieChart(
                 "Total communication in each resource", //Titulo
                 dadosGraficoPizzaComunicacao, // Dados para o grafico
                 true, false, false);
-        CommunicationPieChart = new ChartPanel(jfc);
-        CommunicationPieChart.setPreferredSize(new Dimension(600, 300));
+        this.CommunicationPieChart = new ChartPanel(jfc);
+        this.CommunicationPieChart.setPreferredSize(new Dimension(600, 300));
     }
 
-    public void criarProcessamentoTempoTarefa(List<Tarefa> tarefas) {
+    public void criarProcessamentoTempoTarefa(final List<Tarefa> tarefas) {
 
-        XYSeriesCollection dadosGrafico = new XYSeriesCollection();
+        final XYSeriesCollection dadosGrafico = new XYSeriesCollection();
         if (!tarefas.isEmpty()) {
-            for (Tarefa task : tarefas) {
-                XYSeries tmp_series;
+            for (final Tarefa task : tarefas) {
+                final XYSeries tmp_series;
                 tmp_series = new XYSeries("task " + task.getIdentificador());
-                CS_Processamento temp =
+                final CS_Processamento temp =
                         (CS_Processamento) task.getLocalProcessamento();
                 if (temp != null) {
-                    Double uso =
+                    final Double uso =
                             (temp.getPoderComputacional() / this.poderComputacionalTotal) * 100;
                     for (int j = 0; j < task.getTempoInicial().size(); j++) {
                         tmp_series.add(task.getTempoInicial().get(j),
@@ -230,7 +230,7 @@ public class Graficos {
 
         }
 
-        JFreeChart jfc = ChartFactory.createXYAreaChart(
+        final JFreeChart jfc = ChartFactory.createXYAreaChart(
                 "Use of total computing power through time "
                         + "\nTasks", //Titulo
                 "Time (seconds)", // Eixo X
@@ -238,27 +238,27 @@ public class Graficos {
                 dadosGrafico, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
-        TaskThroughTimeChart = new ChartPanel(jfc);
+        this.TaskThroughTimeChart = new ChartPanel(jfc);
     }
 
     //Cria o gráfico que demonstra o uso de cada recurso do sistema através
     // do tempo.
     //Ele recebe como parâmetro a lista com as maquinas que processaram
     // durante a simulação.
-    public void criarProcessamentoTempoMaquina(RedeDeFilas rdf) {
-        XYSeriesCollection dadosGrafico = new XYSeriesCollection();
+    public void criarProcessamentoTempoMaquina(final RedeDeFilas rdf) {
+        final XYSeriesCollection dadosGrafico = new XYSeriesCollection();
         //Se tiver alguma máquina na lista.
         if (rdf.getMaquinas() != null) {
             //Laço foreach que percorre as máquinas.
-            for (CS_Processamento maq : rdf.getMaquinas()) {
+            for (final CS_Processamento maq : rdf.getMaquinas()) {
                 //Lista que recebe os pares de intervalo de tempo em que a
                 // máquina executou.
-                List<ParesOrdenadosUso> lista = maq.getListaProcessamento();
-                poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
+                final List<ParesOrdenadosUso> lista = maq.getListaProcessamento();
+                this.poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
                 //Se a máquina tiver intervalos.
                 if (!lista.isEmpty()) {
                     //Cria o objeto do tipo XYSeries.
-                    XYSeries tmp_series;
+                    final XYSeries tmp_series;
                     //Se o atributo numeroMaquina for 0, ou seja, não for um
                     // nó de um cluster.
                     if (maq.getnumeroMaquina() == 0) //Estancia com o nome puro.
@@ -293,7 +293,7 @@ public class Graficos {
             }
         }
 
-        JFreeChart jfc = ChartFactory.createXYAreaChart(
+        final JFreeChart jfc = ChartFactory.createXYAreaChart(
                 "Use of computing power through time "
                         + "\nMachines", //Titulo
                 "Time (seconds)", // Eixo X
@@ -301,21 +301,21 @@ public class Graficos {
                 dadosGrafico, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
-        MachineThroughTimeChart = new ChartPanel(jfc);
-        MachineThroughTimeChart.setPreferredSize(new Dimension(600, 300));
+        this.MachineThroughTimeChart = new ChartPanel(jfc);
+        this.MachineThroughTimeChart.setPreferredSize(new Dimension(600, 300));
     }
 
-    public void criarProcessamentoTempoUser(List<Tarefa> tarefas,
-                                            RedeDeFilas rdf) {
-        ArrayList<tempo_uso_usuario> lista = new ArrayList<tempo_uso_usuario>();
-        int numberUsers = rdf.getUsuarios().size();
-        Map<String, Integer> users = new HashMap<String, Integer>();
-        XYSeries tmp_series[] = new XYSeries[numberUsers];
-        XYSeries tmp_series1[] = new XYSeries[numberUsers];
-        Double utilizacaoUser[] = new Double[numberUsers];
-        Double utilizacaoUser1[] = new Double[numberUsers];
-        XYSeriesCollection dadosGrafico = new XYSeriesCollection();
-        XYSeriesCollection dadosGrafico1 = new XYSeriesCollection();
+    public void criarProcessamentoTempoUser(final List<Tarefa> tarefas,
+                                            final RedeDeFilas rdf) {
+        final ArrayList<tempo_uso_usuario> lista = new ArrayList<tempo_uso_usuario>();
+        final int numberUsers = rdf.getUsuarios().size();
+        final Map<String, Integer> users = new HashMap<String, Integer>();
+        final XYSeries[] tmp_series = new XYSeries[numberUsers];
+        final XYSeries[] tmp_series1 = new XYSeries[numberUsers];
+        final Double[] utilizacaoUser = new Double[numberUsers];
+        final Double[] utilizacaoUser1 = new Double[numberUsers];
+        final XYSeriesCollection dadosGrafico = new XYSeriesCollection();
+        final XYSeriesCollection dadosGrafico1 = new XYSeriesCollection();
         for (int i = 0; i < numberUsers; i++) {
             users.put(rdf.getUsuarios().get(i), i);
             utilizacaoUser[i] = 0.0;
@@ -325,18 +325,18 @@ public class Graficos {
         }
         if (!tarefas.isEmpty()) {
             //Insere cada tarefa como dois pontos na lista
-            for (Tarefa task : tarefas) {
-                CS_Processamento local =
+            for (final Tarefa task : tarefas) {
+                final CS_Processamento local =
                         (CS_Processamento) task.getLocalProcessamento();
                 if (local != null) {
 
                     for (int i = 0; i < task.getTempoInicial().size(); i++) {
-                        Double uso =
-                                (task.getHistoricoProcessamento().get(i).getPoderComputacional() / poderComputacionalTotal) * 100;
-                        tempo_uso_usuario provisorio1 =
+                        final Double uso =
+                                (task.getHistoricoProcessamento().get(i).getPoderComputacional() / this.poderComputacionalTotal) * 100;
+                        final tempo_uso_usuario provisorio1 =
                                 new tempo_uso_usuario(task.getTempoInicial().get(i), true, uso, users.get(task.getProprietario()));
                         lista.add(provisorio1);
-                        tempo_uso_usuario provisorio2 =
+                        final tempo_uso_usuario provisorio2 =
                                 new tempo_uso_usuario(task.getTempoFinal().get(i), false, uso, users.get(task.getProprietario()));
                         lista.add(provisorio2);
                     }
@@ -346,8 +346,8 @@ public class Graficos {
             Collections.sort(lista);
         }
         for (int i = 0; i < lista.size(); i++) {
-            tempo_uso_usuario temp = (tempo_uso_usuario) lista.get(i);
-            int usuario = temp.get_user();
+            final tempo_uso_usuario temp = lista.get(i);
+            final int usuario = temp.get_user();
             //Altera os valores do usuario atual e todos acima dele
             for (int j = usuario; j < numberUsers; j++) {
                 //Salva valores anteriores
@@ -375,7 +375,7 @@ public class Graficos {
             dadosGrafico.addSeries(tmp_series[i]);
             dadosGrafico1.addSeries(tmp_series1[i]);
         }
-        JFreeChart user1 = ChartFactory.createXYAreaChart(
+        final JFreeChart user1 = ChartFactory.createXYAreaChart(
                 "Use of total computing power through time"
                         + "\nUsers", //Titulo
                 "Time (seconds)", // Eixo X
@@ -384,7 +384,7 @@ public class Graficos {
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
 
-        JFreeChart user2 = ChartFactory.createXYLineChart(
+        final JFreeChart user2 = ChartFactory.createXYLineChart(
                 "Use of total computing power through time"
                         + "\nUsers", //Titulo
                 "Time (seconds)", // Eixo X
@@ -392,23 +392,23 @@ public class Graficos {
                 dadosGrafico, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
-        XYPlot xyplot = (XYPlot) user2.getPlot();
+        final XYPlot xyplot = (XYPlot) user2.getPlot();
         xyplot.setDomainPannable(true);
-        XYStepAreaRenderer xysteparearenderer = new XYStepAreaRenderer(2);
+        final XYStepAreaRenderer xysteparearenderer = new XYStepAreaRenderer(2);
         xysteparearenderer.setDataBoundsIncludesVisibleSeriesOnly(false);
         xysteparearenderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator());
         xysteparearenderer.setDefaultEntityRadius(6);
         xyplot.setRenderer(xysteparearenderer);
 
-        UserThroughTimeChart1 = new ChartPanel(user1);
-        UserThroughTimeChart1.setPreferredSize(new Dimension(600, 300));
-        UserThroughTimeChart2 = new ChartPanel(user2);
-        UserThroughTimeChart2.setPreferredSize(new Dimension(600, 300));
+        this.UserThroughTimeChart1 = new ChartPanel(user1);
+        this.UserThroughTimeChart1.setPreferredSize(new Dimension(600, 300));
+        this.UserThroughTimeChart2 = new ChartPanel(user2);
+        this.UserThroughTimeChart2.setPreferredSize(new Dimension(600, 300));
     }
 
-    public ChartPanel criarGraficoPorTarefa(List<Tarefa> tarefas,
-                                            int idTarefa) {
-        DefaultCategoryDataset dadosMflopProcessados =
+    public ChartPanel criarGraficoPorTarefa(final List<Tarefa> tarefas,
+                                            final int idTarefa) {
+        final DefaultCategoryDataset dadosMflopProcessados =
                 new DefaultCategoryDataset();
         Tarefa job = null;
         int i;
@@ -434,14 +434,14 @@ public class Graficos {
                 dadosMflopProcessados.addValue(((job.getTamProcessamento() / mflopProcessadoTotal) * 100.0), "Usefull processing", "Task size :" + job.getTamProcessamento() + " MFlop" + ", total executed for task: " + mflopProcessadoTotal + " MFlop");
                 dadosMflopProcessados.addValue(((job.getMflopsDesperdicados()) / mflopProcessadoTotal) * 100.0, "Wasted processing", "Task size :" + job.getTamProcessamento() + " MFlop" + ", total executed for task: " + mflopProcessadoTotal + " MFlop");
 
-                JFreeChart jfc = ChartFactory.createStackedBarChart(
+                final JFreeChart jfc = ChartFactory.createStackedBarChart(
                         "MFlop usage for task " + idTarefa, //Titulo
                         "", // Eixo X
                         "% of total MFlop executed for the task", //Eixo Y
                         dadosMflopProcessados, // Dados para o grafico
                         PlotOrientation.VERTICAL, //Orientacao do grafico
                         true, true, false); // exibir: legendas, tooltips, url
-                ChartPanel graficoPorTarefa = new ChartPanel(jfc);
+                final ChartPanel graficoPorTarefa = new ChartPanel(jfc);
                 graficoPorTarefa.setPreferredSize(new Dimension(600, 300));
                 return graficoPorTarefa;
             } else {
@@ -452,9 +452,9 @@ public class Graficos {
         }
     }
 
-    public ChartPanel criarGraficoAproveitamento(List<Tarefa> tarefas) {
+    public ChartPanel criarGraficoAproveitamento(final List<Tarefa> tarefas) {
 
-        DefaultCategoryDataset dadosMflopProcessados =
+        final DefaultCategoryDataset dadosMflopProcessados =
                 new DefaultCategoryDataset();
         double mflopDesperdicado = 0.0, tamanhoTotal = 0.0;
         int i, j;
@@ -474,22 +474,22 @@ public class Graficos {
         dadosMflopProcessados.addValue((tamanhoTotal / (mflopDesperdicado + tamanhoTotal)) * 100.0, "Usefull Processing", "MFlop Usage");
         dadosMflopProcessados.addValue((mflopDesperdicado / (mflopDesperdicado + tamanhoTotal)) * 100.0, "Wasted Processing", "MFlop Usage");
 
-        JFreeChart jfc = ChartFactory.createStackedBarChart(
+        final JFreeChart jfc = ChartFactory.createStackedBarChart(
                 "Processing efficiency", //TituloUsage#
                 "", // Eixo X
                 "% of total MFlop executed", //Eixo Y
                 dadosMflopProcessados, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
-        ChartPanel graficoAproveitamentoPorcentagem = new ChartPanel(jfc);
+        final ChartPanel graficoAproveitamentoPorcentagem = new ChartPanel(jfc);
         graficoAproveitamentoPorcentagem.setPreferredSize(new Dimension(600,
                 300));
         return graficoAproveitamentoPorcentagem;
     }
 
-    public ChartPanel criarGraficoNumTarefasAproveitamento(List<Tarefa> tarefas) {
+    public ChartPanel criarGraficoNumTarefasAproveitamento(final List<Tarefa> tarefas) {
 
-        DefaultCategoryDataset dadosMflopProcessados =
+        final DefaultCategoryDataset dadosMflopProcessados =
                 new DefaultCategoryDataset();
         int numExcesso = 0, numOK = 0, numCanceladas = 0;
         int i;
@@ -516,24 +516,24 @@ public class Graficos {
                 "Canceled Tasks");
 
 
-        JFreeChart jfc = ChartFactory.createStackedBarChart(
+        final JFreeChart jfc = ChartFactory.createStackedBarChart(
                 "Processing efficiency", //Titulo
                 "", // Eixo X
                 "Number of tasks", //Eixo Y
                 dadosMflopProcessados, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
-        ChartPanel graficoAproveitamentoNumero = new ChartPanel(jfc);
+        final ChartPanel graficoAproveitamentoNumero = new ChartPanel(jfc);
         graficoAproveitamentoNumero.setPreferredSize(new Dimension(600, 300));
         return graficoAproveitamentoNumero;
 
     }
 
-    public void criarGraficoPreempcao(RedeDeFilas rdf, List<Tarefa> tarefas) {
+    public void criarGraficoPreempcao(final RedeDeFilas rdf, final List<Tarefa> tarefas) {
 
-        DefaultCategoryDataset preempPorUsuario = new DefaultCategoryDataset();
+        final DefaultCategoryDataset preempPorUsuario = new DefaultCategoryDataset();
         double mflopTotal = 0.0, tamanhoTotal;
-        ArrayList<Integer> tarefasPreemp;
+        final ArrayList<Integer> tarefasPreemp;
         tarefasPreemp = new ArrayList();
         int i, j, indexUsuario;
 
@@ -564,30 +564,32 @@ public class Graficos {
 
         }
 
-        JFreeChart jfc = ChartFactory.createStackedBarChart(
+        final JFreeChart jfc = ChartFactory.createStackedBarChart(
                 "Tasks preempted per user", //Titulo
                 "", // Eixo X
                 "Number of tasks", //Eixo Y
                 preempPorUsuario, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
-        PreemptionPerUser = new ChartPanel(jfc);
-        PreemptionPerUser.setPreferredSize(new Dimension(600, 300));
+        this.PreemptionPerUser = new ChartPanel(jfc);
+        this.PreemptionPerUser.setPreferredSize(new Dimension(600, 300));
     }
 
-    public ChartPanel gerarGraficoPorMaquina(List<Tarefa> tarefas, String maq) {
-        DefaultCategoryDataset dadosMflopProcessados =
+    public ChartPanel gerarGraficoPorMaquina(final List<Tarefa> tarefas, final String maq) {
+        final DefaultCategoryDataset dadosMflopProcessados =
                 new DefaultCategoryDataset();
-        int i, j, histIndex = -1;
+        int i;
+        int j;
+        final int histIndex = -1;
         CS_Maquina alvo = null;
-        Tarefa task = null;
+        final Tarefa task = null;
         double mflopUsado = 0.0;
         double mflopPerdido = 0.0;
         Double tempo;
 
-        for (i = 0; i < rede.getMaquinas().size(); i++) {
-            if (rede.getMaquinas().get(i).getId().equals(maq)) {
-                alvo = rede.getMaquinas().get(i);
+        for (i = 0; i < this.rede.getMaquinas().size(); i++) {
+            if (this.rede.getMaquinas().get(i).getId().equals(maq)) {
+                alvo = this.rede.getMaquinas().get(i);
                 break;
             }
         }
@@ -634,7 +636,7 @@ public class Graficos {
             dadosMflopProcessados.addValue((mflopUsado / (mflopPerdido + mflopUsado)) * 100.0, "Usefull Processing", "MFlop Usage");
             dadosMflopProcessados.addValue((mflopPerdido / (mflopPerdido + mflopUsado)) * 100.0, "Wasted Processing", "MFlop Usage");
 
-            JFreeChart jfc = ChartFactory.createStackedBarChart(
+            final JFreeChart jfc = ChartFactory.createStackedBarChart(
                     "Processing efficiency for resource " + alvo.getId(),
                     //Titulo
                     "", // Eixo X
@@ -642,7 +644,7 @@ public class Graficos {
                     dadosMflopProcessados, // Dados para o grafico
                     PlotOrientation.VERTICAL, //Orientacao do grafico
                     true, true, false); // exibir: legendas, tooltips, url
-            ChartPanel graficoAproveitamentoMaquina = new ChartPanel(jfc);
+            final ChartPanel graficoAproveitamentoMaquina = new ChartPanel(jfc);
             graficoAproveitamentoMaquina.setPreferredSize(new Dimension(600,
                     300));
             return graficoAproveitamentoMaquina;
@@ -652,23 +654,23 @@ public class Graficos {
     }
 
 
-    public void calculaPoderTotal(RedeDeFilas rdf) {
-        for (CS_Processamento maq : rdf.getMaquinas()) {
-            poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
+    public void calculaPoderTotal(final RedeDeFilas rdf) {
+        for (final CS_Processamento maq : rdf.getMaquinas()) {
+            this.poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
         }
     }
 
     //graficos experimentais...
-    private JFreeChart criarGraficoEstadoTarefa2(List<Tarefa> tarefas,
-                                                 RedeDeFilas rdf) {
-        DefaultCategoryDataset dados = new DefaultCategoryDataset();
-        for (CS_Processamento maq : rdf.getMaquinas()) {
+    private JFreeChart criarGraficoEstadoTarefa2(final List<Tarefa> tarefas,
+                                                 final RedeDeFilas rdf) {
+        final DefaultCategoryDataset dados = new DefaultCategoryDataset();
+        for (final CS_Processamento maq : rdf.getMaquinas()) {
             dados.addValue(0, "Canceled", maq.getId());
             dados.addValue(0, "Completed", maq.getId());
             dados.addValue(0, "Not executed", maq.getId());
             dados.addValue(0, "Failures", maq.getId());
         }
-        for (CS_Processamento maq : rdf.getMestres()) {
+        for (final CS_Processamento maq : rdf.getMestres()) {
             if (maq instanceof CS_Mestre) {
                 dados.addValue(0, "Canceled", maq.getId());
                 dados.addValue(0, "Completed", maq.getId());
@@ -676,8 +678,8 @@ public class Graficos {
                 dados.addValue(0, "Failures", maq.getId());
             }
         }
-        for (Tarefa tarefa : tarefas) {
-            Double val;
+        for (final Tarefa tarefa : tarefas) {
+            final Double val;
             switch (tarefa.getEstado()) {
                 case Tarefa.PARADO:
                     val = (Double) dados.getValue("Not executed",
@@ -705,7 +707,7 @@ public class Graficos {
                     break;
             }
         }
-        JFreeChart jfc = ChartFactory.createBarChart(
+        final JFreeChart jfc = ChartFactory.createBarChart(
                 "State of tasks per resource", //Titulo
                 "Resource", // Eixo X
                 "Numbers of tasks", //Eixo Y
@@ -715,12 +717,12 @@ public class Graficos {
         return jfc;
     }
 
-    private JFreeChart criarGraficoEstadoTarefa(List<Tarefa> tarefas) {
-        XYSeries canceladas = new XYSeries("Canceled");
-        XYSeries concluidas = new XYSeries("Completed");
-        XYSeries paradas = new XYSeries("Not executed");
-        XYSeries falhas = new XYSeries("Failures");
-        for (Tarefa tarefa : tarefas) {
+    private JFreeChart criarGraficoEstadoTarefa(final List<Tarefa> tarefas) {
+        final XYSeries canceladas = new XYSeries("Canceled");
+        final XYSeries concluidas = new XYSeries("Completed");
+        final XYSeries paradas = new XYSeries("Not executed");
+        final XYSeries falhas = new XYSeries("Failures");
+        for (final Tarefa tarefa : tarefas) {
             switch (tarefa.getEstado()) {
                 case Tarefa.PARADO:
                     paradas.add(tarefa.getTimeCriacao(), 4);
@@ -739,31 +741,31 @@ public class Graficos {
                     break;
             }
         }
-        XYSeriesCollection data = new XYSeriesCollection();
+        final XYSeriesCollection data = new XYSeriesCollection();
         data.addSeries(falhas);
         data.addSeries(canceladas);
         data.addSeries(concluidas);
         data.addSeries(paradas);
-        JFreeChart chart = ChartFactory.createScatterPlot(
+        final JFreeChart chart = ChartFactory.createScatterPlot(
                 "State of tasks",
                 "Time (seconds)",
                 "Y", data,
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false);
-        NumberAxis domainAxis = (NumberAxis) chart.getXYPlot().getDomainAxis();
+        final NumberAxis domainAxis = (NumberAxis) chart.getXYPlot().getDomainAxis();
         domainAxis.setAutoRangeIncludesZero(false);
         return chart;
     }
 
     protected class tempo_uso_usuario implements Comparable<tempo_uso_usuario> {
 
-        private Double tempo;
-        private Double uso_no;
-        private Boolean tipo;
-        private Integer user;
+        private final Double tempo;
+        private final Double uso_no;
+        private final Boolean tipo;
+        private final Integer user;
 
-        private tempo_uso_usuario(double tempo, boolean tipo, Double uso,
-                                  Integer user) {
+        private tempo_uso_usuario(final double tempo, final boolean tipo, final Double uso,
+                                  final Integer user) {
             this.user = user;
             this.tempo = tempo;
             this.uso_no = uso;
@@ -787,8 +789,8 @@ public class Graficos {
         }
 
         @Override
-        public int compareTo(tempo_uso_usuario o) {
-            return tempo.compareTo(o.tempo);
+        public int compareTo(final tempo_uso_usuario o) {
+            return this.tempo.compareTo(o.tempo);
         }
     }
 }
