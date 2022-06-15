@@ -57,7 +57,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYStepAreaRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.general.PieDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -122,20 +121,18 @@ public class Graficos {
     public void criarProcessamento(
             final Map<String, ? extends MetricasProcessamento> metrics) {
 
-        this.processingBarChart = this.makeBarChart(metrics);
-        final var pieChartData = this.makePieChartData(metrics);
-
-        this.processingPieChart = Graficos.makePieChart(pieChartData);
+        this.processingBarChart = Graficos.makeBarChart(metrics);
+        this.processingPieChart = Graficos.makePieChart(metrics);
     }
 
-    private ChartPanel makeBarChart(
+    private static ChartPanel makeBarChart(
             final Map<String, ? extends MetricasProcessamento> metrics) {
         final var chart = ChartFactory.createBarChart(
                 "Total processed on each " +
                         "resource",
                 "Resource",
                 "Mflops",
-                this.makeBarChartData(metrics),
+                Graficos.makeBarChartData(metrics),
                 PlotOrientation.VERTICAL,
                 false,
                 false,
@@ -151,21 +148,12 @@ public class Graficos {
         return panel;
     }
 
-    private DefaultPieDataset makePieChartData(
+    private static ChartPanel makePieChart(
             final Map<String, ? extends MetricasProcessamento> metrics) {
-        final var data = new DefaultPieDataset();
-        if (metrics == null) {
-            return data;
-        }
-        metrics.values().forEach(v -> data.insertValue(0, Graficos.makeKey(v),
-                v.getMFlopsProcessados()));
-        return data;
-    }
 
-    private static ChartPanel makePieChart(final PieDataset data) {
         final JFreeChart jfc2 = ChartFactory.createPieChart(
                 "Total processed on each resource",
-                data,
+                Graficos.makePieChartData(metrics),
                 true,
                 false,
                 false
@@ -175,13 +163,14 @@ public class Graficos {
         return v;
     }
 
-    private DefaultCategoryDataset makeBarChartData(
+    private static DefaultCategoryDataset makeBarChartData(
             final Map<String, ? extends MetricasProcessamento> metrics) {
         final var data = new DefaultCategoryDataset();
         if (metrics == null) {
             return data;
         }
-        metrics.values().forEach(v -> data.addValue(v.getMFlopsProcessados(),
+        metrics.values().forEach(v -> data.addValue(
+                v.getMFlopsProcessados(),
                 "vermelho",
                 Graficos.makeKey(v)));
         return data;
@@ -194,6 +183,19 @@ public class Graficos {
 
     private static void inclineChartXAxis(final JFreeChart chart) {
         chart.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+    }
+
+    private static DefaultPieDataset makePieChartData(
+            final Map<String, ? extends MetricasProcessamento> metrics) {
+        final var data = new DefaultPieDataset();
+        if (metrics == null) {
+            return data;
+        }
+        metrics.values().forEach(v -> data.insertValue(
+                0,
+                Graficos.makeKey(v),
+                v.getMFlopsProcessados()));
+        return data;
     }
 
     private static String makeKey(final MetricasProcessamento mt) {
