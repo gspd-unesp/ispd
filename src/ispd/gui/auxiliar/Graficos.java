@@ -58,6 +58,7 @@ import org.jfree.chart.renderer.xy.XYStepAreaRenderer;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.general.PieDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -122,37 +123,40 @@ public class Graficos {
 
     public void criarProcessamento(
             final Map<String, ? extends MetricasProcessamento> processingMetrics) {
-        final var barChartData = new DefaultCategoryDataset();
-        final var pieChartData = new DefaultPieDataset();
 
-        if (processingMetrics != null) {
-            for (final var entry : processingMetrics.entrySet()) {
-                final MetricasProcessamento mt = entry.getValue();
-                Graficos.doSomethingUseful(barChartData, pieChartData, mt);
-            }
-        }
+        final var barChartData = this.makeBarChartData(processingMetrics);
+        final var pieChartData = this.makePieChartData(processingMetrics);
 
-        this.processingBarChart = this.makeBarChart("Total processed on each " +
-                        "resource", "Mflops",
-                barChartData, processingMetrics != null,
-                processingMetrics.size());
+        this.processingBarChart = this.makeBarChart(
+                "Total processed on each " +
+                        "resource",
+                "Mflops",
+                barChartData,
+                processingMetrics != null,
+                processingMetrics.size()
+        );
 
         this.processingPieChart = Graficos.makePieChart(pieChartData);
     }
 
-    public static void doSomethingUseful(final DefaultCategoryDataset barChartData, final DefaultPieDataset pieChartData, final MetricasProcessamento mt) {
-        if (mt.getnumeroMaquina() == 0) {
-            barChartData.addValue(mt.getMFlopsProcessados(), "vermelho",
-                    mt.getId());
-            pieChartData.insertValue(0, mt.getId(),
-                    mt.getMFlopsProcessados());
-        } else {
-            barChartData.addValue(mt.getMFlopsProcessados(), "vermelho",
-                    mt.getId() + " node " + mt.getnumeroMaquina());
-            pieChartData.insertValue(0,
-                    mt.getId() + " node " + mt.getnumeroMaquina(),
-                    mt.getMFlopsProcessados());
+    private DefaultCategoryDataset makeBarChartData(
+            final Map<String, ? extends MetricasProcessamento> metrics) {
+        final var data = new DefaultCategoryDataset();
+        if (metrics == null) {
+            return data;
         }
+        metrics.values().forEach(v -> Graficos.addBarChartData(data, v));
+        return data;
+    }
+
+    private DefaultPieDataset makePieChartData(
+            final Map<String, ? extends MetricasProcessamento> metrics) {
+        final var data = new DefaultPieDataset();
+        if (metrics == null) {
+            return data;
+        }
+        metrics.values().forEach(v -> Graficos.addPieChartData(data, v));
+        return data;
     }
 
     private ChartPanel makeBarChart(
@@ -181,7 +185,7 @@ public class Graficos {
         return panel;
     }
 
-    private static ChartPanel makePieChart(final DefaultPieDataset data) {
+    private static ChartPanel makePieChart(final PieDataset data) {
         final JFreeChart jfc2 = ChartFactory.createPieChart(
                 "Total processed on each resource",
                 data,
@@ -192,6 +196,29 @@ public class Graficos {
         final var v = new ChartPanel(jfc2);
         v.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         return v;
+    }
+
+    private static void addBarChartData(final DefaultCategoryDataset barChartData,
+                                        final MetricasProcessamento mt) {
+        if (mt.getnumeroMaquina() == 0) {
+            barChartData.addValue(mt.getMFlopsProcessados(), "vermelho",
+                    mt.getId());
+        } else {
+            barChartData.addValue(mt.getMFlopsProcessados(), "vermelho",
+                    mt.getId() + " node " + mt.getnumeroMaquina());
+        }
+    }
+
+    private static void addPieChartData(final DefaultPieDataset pieChartData,
+                                        final MetricasProcessamento mt) {
+        if (mt.getnumeroMaquina() == 0) {
+            pieChartData.insertValue(0, mt.getId(),
+                    mt.getMFlopsProcessados());
+        } else {
+            pieChartData.insertValue(0,
+                    mt.getId() + " node " + mt.getnumeroMaquina(),
+                    mt.getMFlopsProcessados());
+        }
     }
 
     private boolean shouldInclineXAxis(final boolean shouldIncludeMetrics,
