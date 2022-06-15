@@ -73,6 +73,8 @@ import java.util.Map;
  */
 public class Graficos {
 
+    public ChartPanel PreemptionPerUser = null;
+    public RedeDeFilas rede = null;
     private ChartPanel processingBarChart = null;
     private ChartPanel communicationBarChart = null;
     private ChartPanel processingPieChart = null;
@@ -81,8 +83,6 @@ public class Graficos {
     private ChartPanel UserThroughTime2 = null;
     private ChartPanel machineThroughTime = null;
     private ChartPanel TaskThroughTime = null;
-    public ChartPanel PreemptionPerUser = null;
-    public RedeDeFilas rede = null;
     private double poderComputacionalTotal = 0;
 
     public ChartPanel getProcessingBarChart() {
@@ -251,7 +251,8 @@ public class Graficos {
             for (final CS_Processamento maq : rdf.getMaquinas()) {
                 //Lista que recebe os pares de intervalo de tempo em que a
                 // máquina executou.
-                final List<ParesOrdenadosUso> lista = maq.getListaProcessamento();
+                final List<ParesOrdenadosUso> lista =
+                        maq.getListaProcessamento();
                 this.poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
                 //Se a máquina tiver intervalos.
                 if (!lista.isEmpty()) {
@@ -305,7 +306,8 @@ public class Graficos {
 
     public void criarProcessamentoTempoUser(final List<Tarefa> tarefas,
                                             final RedeDeFilas rdf) {
-        final ArrayList<tempo_uso_usuario> lista = new ArrayList<tempo_uso_usuario>();
+        final ArrayList<UserOperationTime> lista =
+                new ArrayList<UserOperationTime>();
         final int numberUsers = rdf.getUsuarios().size();
         final Map<String, Integer> users = new HashMap<String, Integer>();
         final XYSeries[] tmp_series = new XYSeries[numberUsers];
@@ -331,11 +333,11 @@ public class Graficos {
                     for (int i = 0; i < task.getTempoInicial().size(); i++) {
                         final Double uso =
                                 (task.getHistoricoProcessamento().get(i).getPoderComputacional() / this.poderComputacionalTotal) * 100;
-                        final tempo_uso_usuario provisorio1 =
-                                new tempo_uso_usuario(task.getTempoInicial().get(i), true, uso, users.get(task.getProprietario()));
+                        final UserOperationTime provisorio1 =
+                                new UserOperationTime(task.getTempoInicial().get(i), true, uso, users.get(task.getProprietario()));
                         lista.add(provisorio1);
-                        final tempo_uso_usuario provisorio2 =
-                                new tempo_uso_usuario(task.getTempoFinal().get(i), false, uso, users.get(task.getProprietario()));
+                        final UserOperationTime provisorio2 =
+                                new UserOperationTime(task.getTempoFinal().get(i), false, uso, users.get(task.getProprietario()));
                         lista.add(provisorio2);
                     }
                 }
@@ -344,29 +346,29 @@ public class Graficos {
             Collections.sort(lista);
         }
         for (int i = 0; i < lista.size(); i++) {
-            final tempo_uso_usuario temp = lista.get(i);
-            final int usuario = temp.get_user();
+            final UserOperationTime temp = lista.get(i);
+            final int usuario = temp.getUserId();
             //Altera os valores do usuario atual e todos acima dele
             for (int j = usuario; j < numberUsers; j++) {
                 //Salva valores anteriores
-                tmp_series[j].add(temp.get_tempo(), utilizacaoUser[j]);
-                if (temp.get_tipo()) {
-                    utilizacaoUser[j] += temp.get_uso_no();
+                tmp_series[j].add(temp.getTime(), utilizacaoUser[j]);
+                if (temp.getType()) {
+                    utilizacaoUser[j] += temp.getNodeUse();
                 } else {
-                    utilizacaoUser[j] -= temp.get_uso_no();
+                    utilizacaoUser[j] -= temp.getNodeUse();
                 }
                 //Novo valor
-                tmp_series[j].add(temp.get_tempo(), utilizacaoUser[j]);
+                tmp_series[j].add(temp.getTime(), utilizacaoUser[j]);
             }
             //Grafico1
-            tmp_series1[usuario].add(temp.get_tempo(),
+            tmp_series1[usuario].add(temp.getTime(),
                     utilizacaoUser1[usuario]);
-            if (temp.get_tipo()) {
-                utilizacaoUser1[usuario] += temp.get_uso_no();
+            if (temp.getType()) {
+                utilizacaoUser1[usuario] += temp.getNodeUse();
             } else {
-                utilizacaoUser1[usuario] -= temp.get_uso_no();
+                utilizacaoUser1[usuario] -= temp.getNodeUse();
             }
-            tmp_series1[usuario].add(temp.get_tempo(),
+            tmp_series1[usuario].add(temp.getTime(),
                     utilizacaoUser1[usuario]);
         }
         for (int i = 0; i < numberUsers; i++) {
@@ -527,9 +529,11 @@ public class Graficos {
 
     }
 
-    public void criarGraficoPreempcao(final RedeDeFilas rdf, final List<Tarefa> tarefas) {
+    public void criarGraficoPreempcao(final RedeDeFilas rdf,
+                                      final List<Tarefa> tarefas) {
 
-        final DefaultCategoryDataset preempPorUsuario = new DefaultCategoryDataset();
+        final DefaultCategoryDataset preempPorUsuario =
+                new DefaultCategoryDataset();
         double mflopTotal = 0.0, tamanhoTotal;
         final ArrayList<Integer> tarefasPreemp;
         tarefasPreemp = new ArrayList();
@@ -573,7 +577,8 @@ public class Graficos {
         this.PreemptionPerUser.setPreferredSize(new Dimension(600, 300));
     }
 
-    public ChartPanel gerarGraficoPorMaquina(final List<Tarefa> tarefas, final String maq) {
+    public ChartPanel gerarGraficoPorMaquina(final List<Tarefa> tarefas,
+                                             final String maq) {
         final DefaultCategoryDataset dadosMflopProcessados =
                 new DefaultCategoryDataset();
         int i;
@@ -658,40 +663,42 @@ public class Graficos {
         }
     }
 
-    protected class tempo_uso_usuario implements Comparable<tempo_uso_usuario> {
+    protected static class UserOperationTime implements Comparable<UserOperationTime> {
+        // TODO: make this should be a record
 
-        private final Double tempo;
-        private final Double uso_no;
-        private final Boolean tipo;
-        private final Integer user;
+        private final Double time;
+        private final Double nodeUse;
+        private final Boolean type;
+        private final Integer userId;
 
-        private tempo_uso_usuario(final double tempo, final boolean tipo, final Double uso,
-                                  final Integer user) {
-            this.user = user;
-            this.tempo = tempo;
-            this.uso_no = uso;
-            this.tipo = tipo;
+        private UserOperationTime(final double time, final boolean type,
+                                  final Double uso,
+                                  final Integer userId) {
+            this.userId = userId;
+            this.time = time;
+            this.nodeUse = uso;
+            this.type = type;
         }
 
-        public Double get_tempo() {
-            return this.tempo;
+        Integer getUserId() {
+            return this.userId;
         }
 
-        public Integer get_user() {
-            return this.user;
+        Boolean getType() {
+            return this.type;
         }
 
-        public Boolean get_tipo() {
-            return this.tipo;
-        }
-
-        public Double get_uso_no() {
-            return this.uso_no;
+        Double getNodeUse() {
+            return this.nodeUse;
         }
 
         @Override
-        public int compareTo(final tempo_uso_usuario o) {
-            return this.tempo.compareTo(o.tempo);
+        public int compareTo(final UserOperationTime o) {
+            return this.time.compareTo(o.getTime());
+        }
+
+        Double getTime() {
+            return this.time;
         }
     }
 }
