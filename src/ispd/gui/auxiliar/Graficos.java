@@ -74,7 +74,7 @@ import java.util.Map;
  */
 public class Graficos {
 
-    public static final Dimension PREFERRED_CHART_SIZE = new Dimension(600,
+    private static final Dimension PREFERRED_CHART_SIZE = new Dimension(600,
             300);
     private final ChartPanel communicationBarChart = null;
     public ChartPanel PreemptionPerUser = null;
@@ -93,7 +93,7 @@ public class Graficos {
     }
 
     public ChartPanel getCommunicationBarChart() {
-        return this.communicationBarChart;
+        return null;
     }
 
     public ChartPanel getProcessingPieChart() {
