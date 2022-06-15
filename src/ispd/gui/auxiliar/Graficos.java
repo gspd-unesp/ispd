@@ -204,19 +204,19 @@ public class Graficos {
                 : mt.getId();
     }
 
-    public void criarComunicacao(final Map<String, MetricasComunicacao> mComunicacao) {
-        final DefaultCategoryDataset dadosGraficoComunicacao =
+    public void criarComunicacao(final Map<String, MetricasComunicacao> metrics) {
+        final DefaultCategoryDataset commsChartData =
                 new DefaultCategoryDataset();
-        final DefaultPieDataset dadosGraficoPizzaComunicacao =
+        final DefaultPieDataset commsPieChartData =
                 new DefaultPieDataset();
 
-        if (mComunicacao != null) {
+        if (metrics != null) {
             for (final Map.Entry<String, MetricasComunicacao> entry :
-                    mComunicacao.entrySet()) {
+                    metrics.entrySet()) {
                 final MetricasComunicacao link = entry.getValue();
-                dadosGraficoComunicacao.addValue(link.getMbitsTransmitidos(),
+                commsChartData.addValue(link.getMbitsTransmitidos(),
                         "vermelho", link.getId());
-                dadosGraficoPizzaComunicacao.insertValue(0, link.getId(),
+                commsPieChartData.insertValue(0, link.getId(),
                         link.getMbitsTransmitidos());
             }
         }
@@ -225,14 +225,14 @@ public class Graficos {
                 "Total communication in each resource",
                 "Resource",
                 "Mbits",
-                dadosGraficoComunicacao,
+                commsChartData,
                 PlotOrientation.VERTICAL,
                 false,
                 false,
                 false
         );
 
-        if (mComunicacao != null && mComunicacao.size() > 10) {
+        if (metrics != null && metrics.size() > 10) {
             Graficos.inclineChartXAxis(chart);
         }
 
@@ -242,33 +242,33 @@ public class Graficos {
 
         jfc = ChartFactory.createPieChart(
                 "Total communication in each resource", //Titulo
-                dadosGraficoPizzaComunicacao, // Dados para o grafico
+                commsPieChartData, // Dados para o grafico
                 true, false, false);
         this.communicationPieChart = new ChartPanel(jfc);
         this.communicationPieChart.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
     }
 
-    public void criarProcessamentoTempoTarefa(final List<Tarefa> tarefas) {
+    public void criarProcessamentoTempoTarefa(final List<? extends Tarefa> tasks) {
 
-        final XYSeriesCollection dadosGrafico = new XYSeriesCollection();
-        if (!tarefas.isEmpty()) {
-            for (final Tarefa task : tarefas) {
-                final XYSeries tmp_series;
-                tmp_series = new XYSeries("task " + task.getIdentificador());
+        final XYSeriesCollection chartData = new XYSeriesCollection();
+        if (!tasks.isEmpty()) {
+            for (final Tarefa task : tasks) {
+                final XYSeries timeSeries;
+                timeSeries = new XYSeries("task " + task.getIdentificador());
                 final CS_Processamento temp =
                         (CS_Processamento) task.getLocalProcessamento();
                 if (temp != null) {
-                    final Double uso =
+                    final Double usage =
                             (temp.getPoderComputacional() / this.poderComputacionalTotal) * 100;
                     for (int j = 0; j < task.getTempoInicial().size(); j++) {
-                        tmp_series.add(task.getTempoInicial().get(j),
+                        timeSeries.add(task.getTempoInicial().get(j),
                                 (Double) 0.0);
-                        tmp_series.add(task.getTempoInicial().get(j), uso);
-                        tmp_series.add(task.getTempoFinal().get(j), uso);
-                        tmp_series.add(task.getTempoFinal().get(j),
+                        timeSeries.add(task.getTempoInicial().get(j), usage);
+                        timeSeries.add(task.getTempoFinal().get(j), usage);
+                        timeSeries.add(task.getTempoFinal().get(j),
                                 (Double) 0.0);
                     }
-                    dadosGrafico.addSeries(tmp_series);
+                    chartData.addSeries(timeSeries);
                 }
             }
 
@@ -279,7 +279,7 @@ public class Graficos {
                         + "\nTasks", //Titulo
                 "Time (seconds)", // Eixo X
                 "Rate of total use of computing power (%)", //Eixo Y
-                dadosGrafico, // Dados para o grafico
+                chartData, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
         this.TaskThroughTime = new ChartPanel(jfc);
