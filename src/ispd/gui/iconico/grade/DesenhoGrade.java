@@ -44,7 +44,7 @@ import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.EscolherClasse;
 import ispd.gui.JPrincipal;
 import ispd.gui.iconico.AreaDesenho;
-import ispd.gui.iconico.Aresta;
+import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Icon;
 import ispd.gui.iconico.Vertex;
 import ispd.motor.carga.CargaList;
@@ -308,26 +308,26 @@ public class DesenhoGrade extends AreaDesenho {
             int opcao = JOptionPane.showConfirmDialog(null, palavras.getString("Remove this icon?"), palavras.getString("Remove"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (opcao == JOptionPane.YES_OPTION) {
                 for (Icon iconeRemover : selecionados) {
-                    if (iconeRemover instanceof Aresta) {
-                        ItemGrade or = (ItemGrade) ((Aresta) iconeRemover).getOrigem();
+                    if (iconeRemover instanceof Edge) {
+                        ItemGrade or = (ItemGrade) ((Edge) iconeRemover).getSource();
                         or.getConexoesSaida().remove((ItemGrade) iconeRemover);
-                        ItemGrade de = (ItemGrade) ((Aresta) iconeRemover).getDestino();
+                        ItemGrade de = (ItemGrade) ((Edge) iconeRemover).getDestination();
                         de.getConexoesEntrada().remove((ItemGrade) iconeRemover);
                         ValidaValores.removeNomeIcone(((ItemGrade) iconeRemover).getId().getNome());
-                        arestas.remove((Aresta) iconeRemover);
+                        arestas.remove((Edge) iconeRemover);
                         this.janelaPrincipal.modificar();
                     } else {
                         int cont = 0;
                         //Remover dados das conexoes q entram
                         Set<ItemGrade> listanos = ((ItemGrade) iconeRemover).getConexoesEntrada();
                         for (ItemGrade I : listanos) {
-                            arestas.remove((Aresta) I);
+                            arestas.remove((Edge) I);
                             ValidaValores.removeNomeIcone(I.getId().getNome());
                         }
                         //Remover dados das conexoes q saem
                         listanos = ((ItemGrade) iconeRemover).getConexoesSaida();
                         for (ItemGrade I : listanos) {
-                            arestas.remove((Aresta) I);
+                            arestas.remove((Edge) I);
                             ValidaValores.removeNomeIcone(I.getId().getNome());
                         }
                         ValidaValores.removeNomeIcone(((ItemGrade) iconeRemover).getId().getNome());
@@ -383,9 +383,9 @@ public class DesenhoGrade extends AreaDesenho {
             Link temp = link.criarCopia(0, 0, numIcones, numArestas);
             numArestas++;
             numIcones++;
-            temp.setPosition(link.getDestino(), link.getOrigem());
-            ((ItemGrade) temp.getOrigem()).getConexoesSaida().add(temp);
-            ((ItemGrade) temp.getDestino()).getConexoesSaida().add(temp);
+            temp.setPosition(link.getDestination(), link.getSource());
+            ((ItemGrade) temp.getSource()).getConexoesSaida().add(temp);
+            ((ItemGrade) temp.getDestination()).getConexoesSaida().add(temp);
             selecionados.add(temp);
             arestas.add(temp);
             ValidaValores.addNomeIcone(temp.getId().getNome());
@@ -428,11 +428,11 @@ public class DesenhoGrade extends AreaDesenho {
                 saida.append(String.format("INET %s %f %f %f\n", I.getId().getNome(), I.getBanda(), I.getLatencia(), I.getTaxaOcupacao()));
             }
         }
-        for (Aresta icon : arestas) {
+        for (Edge icon : arestas) {
             Link I = (Link) icon;
             saida.append(String.format("REDE %s %f %f %f CONECTA", I.getId().getNome(), I.getBanda(), I.getLatencia(), I.getTaxaOcupacao()));
-            saida.append(" ").append(((ItemGrade) icon.getOrigem()).getId().getNome());
-            saida.append(" ").append(((ItemGrade) icon.getDestino()).getId().getNome());
+            saida.append(" ").append(((ItemGrade) icon.getSource()).getId().getNome());
+            saida.append(" ").append(((ItemGrade) icon.getDestination()).getId().getNome());
             saida.append("\n");
         }
         saida.append("CARGA");
@@ -458,16 +458,16 @@ public class DesenhoGrade extends AreaDesenho {
         if (imprimeNosConectados && icon instanceof Vertex) {
             Texto = Texto + "<br>" + palavras.getString("Output Connection:");
             for (ItemGrade i : icon.getConexoesSaida()) {
-                ItemGrade saida = (ItemGrade) ((Link) i).getDestino();
+                ItemGrade saida = (ItemGrade) ((Link) i).getDestination();
                 Texto = Texto + "<br>" + saida.getId().getNome();
             }
             Texto = Texto + "<br>" + palavras.getString("Input Connection:");
             for (ItemGrade i : icon.getConexoesEntrada()) {
-                ItemGrade entrada = (ItemGrade) ((Link) i).getOrigem();
+                ItemGrade entrada = (ItemGrade) ((Link) i).getSource();
                 Texto = Texto + "<br>" + entrada.getId().getNome();
             }
         }
-        if (imprimeNosConectados && icon instanceof Aresta) {
+        if (imprimeNosConectados && icon instanceof Edge) {
             for (ItemGrade i : icon.getConexoesEntrada()) {
                 Texto = Texto + "<br>" + palavras.getString("Source Node:") + " " + i.getConexoesEntrada();
             }
@@ -578,12 +578,12 @@ public class DesenhoGrade extends AreaDesenho {
                         I.getBanda(), I.getTaxaOcupacao(), I.getLatencia());
             }
         }
-        for (Aresta link : arestas) {
+        for (Edge link : arestas) {
             Link I = (Link) link;
-            xml.addLink(I.getOrigem().getX(), I.getOrigem().getY(), I.getDestino().getX(), I.getDestino().getY(),
+            xml.addLink(I.getSource().getX(), I.getSource().getY(), I.getDestination().getX(), I.getDestination().getY(),
                     I.getId().getIdLocal(), I.getId().getIdGlobal(), I.getId().getNome(),
                     I.getBanda(), I.getTaxaOcupacao(), I.getLatencia(),
-                    ((ItemGrade) I.getOrigem()).getId().getIdGlobal(), ((ItemGrade) I.getDestino()).getId().getIdGlobal());
+                    ((ItemGrade) I.getSource()).getId().getIdGlobal(), ((ItemGrade) I.getDestination()).getId().getIdGlobal());
         }
         //trecho de escrita das máquinas virtuais
         if(maquinasVirtuais != null){
@@ -666,7 +666,7 @@ public class DesenhoGrade extends AreaDesenho {
             banda = link.getBanda();
             taxa = link.getTaxaOcupacao();
             latencia = link.getLatencia();
-            for (Aresta I : arestas) {
+            for (Edge I : arestas) {
                 ((Link) I).setBanda(banda);
                 ((Link) I).setTaxaOcupacao(taxa);
                 ((Link) I).setLatencia(latencia);

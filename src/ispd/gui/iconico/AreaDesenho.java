@@ -103,7 +103,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
      * Lista com os vertices presentes na area de desenho
      */
     protected Set<Vertex> vertices;
-    protected Set<Aresta> arestas;
+    protected Set<Edge> arestas;
     //controle para adicionar icones
     private boolean addVertice;
     private boolean addAresta;
@@ -115,7 +115,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
 
     public AreaDesenho(boolean popupOn, boolean gridOn, boolean rectOn, boolean posicaoFixa) {
         vertices = new HashSet<Vertex>();
-        arestas = new HashSet<Aresta>();
+        arestas = new HashSet<Edge>();
         selecionados = new HashSet<Icon>();
         this.popupOn = popupOn;
         this.gridOn = gridOn;
@@ -331,7 +331,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
                         selecionados.add(icone);
                     }
                 }
-                for (Aresta icone : arestas) {
+                for (Edge icone : arestas) {
                     if (retanguloX < icone.getX()
                             && icone.getX() < (retanguloX + retanguloLag)
                             && retanguloY < icone.getY()
@@ -643,7 +643,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
                 return vertice;
             }
         }
-        for (Aresta aresta : arestas) {
+        for (Edge aresta : arestas) {
             if (aresta.contains(x, y)) {
                 return aresta;
             }
@@ -693,7 +693,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
                 jMenuVertice1.setVisible(true);
             }
             popupVertice.show(me.getComponent(), me.getX(), me.getY());
-        } else if (icon instanceof Aresta) {
+        } else if (icon instanceof Edge) {
             if (jMenuAresta1.isEnabled()) {
                 jMenuAresta1.setVisible(true);
             }
