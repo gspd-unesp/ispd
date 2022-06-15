@@ -75,16 +75,16 @@ import java.util.Map;
  */
 public class Graficos {
 
-    public ChartPanel ProcessingBarChart;
-    public ChartPanel CommunicationBarChart;
-    public ChartPanel ProcessingPieChart;
-    public ChartPanel CommunicationPieChart;
-    public ChartPanel UserThroughTimeChart1;
-    public ChartPanel UserThroughTimeChart2;
-    public ChartPanel MachineThroughTimeChart;
-    public ChartPanel TaskThroughTimeChart;
-    public ChartPanel PreemptionPerUser;
-    public RedeDeFilas rede;
+    private ChartPanel ProcessingBarChart = null;
+    private ChartPanel CommunicationBarChart = null;
+    private ChartPanel ProcessingPieChart = null;
+    private ChartPanel CommunicationPieChart = null;
+    private ChartPanel UserThroughTimeChart1 = null;
+    private ChartPanel UserThroughTimeChart2 = null;
+    private ChartPanel MachineThroughTimeChart = null;
+    private ChartPanel TaskThroughTimeChart = null;
+    public ChartPanel PreemptionPerUser = null;
+    public RedeDeFilas rede = null;
     private double poderComputacionalTotal = 0;
 
     public ChartPanel getProcessingBarChart() {
