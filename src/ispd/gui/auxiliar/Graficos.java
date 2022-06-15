@@ -72,8 +72,6 @@ import java.util.Map;
 /**
  * Classe criada para separear a criação e controle dos gráficos da janela de
  * exibição dos resultados da simulação
- *
- * @author denison
  */
 public class Graficos {
 
