@@ -150,7 +150,6 @@ public class Graficos {
 
     private static ChartPanel makePieChart(
             final Map<String, ? extends MetricasProcessamento> metrics) {
-
         final JFreeChart jfc2 = ChartFactory.createPieChart(
                 "Total processed on each resource",
                 Graficos.makePieChartData(metrics),
@@ -194,7 +193,8 @@ public class Graficos {
         metrics.values().forEach(v -> data.insertValue(
                 0,
                 Graficos.makeKey(v),
-                v.getMFlopsProcessados()));
+                v.getMFlopsProcessados())
+        );
         return data;
     }
 
