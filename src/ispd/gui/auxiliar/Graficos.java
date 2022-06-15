@@ -177,8 +177,8 @@ public class Graficos {
     }
 
     private static boolean shouldInclineXAxis(
-            final Map<String, ? extends MetricasProcessamento> m) {
-        return m != null && m.size() > 10;
+            final Map<String, ? extends MetricasProcessamento> metrics) {
+        return metrics != null && metrics.size() > 10;
     }
 
     private static void inclineChartXAxis(final JFreeChart chart) {
