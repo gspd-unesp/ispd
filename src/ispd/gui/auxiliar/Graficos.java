@@ -45,14 +45,12 @@ import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_Maquina;
-import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.metricas.MetricasComunicacao;
 import ispd.motor.metricas.MetricasProcessamento;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryLabelPositions;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -658,103 +656,6 @@ public class Graficos {
         for (final CS_Processamento maq : rdf.getMaquinas()) {
             this.poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
         }
-    }
-
-    //graficos experimentais...
-    private JFreeChart criarGraficoEstadoTarefa2(final List<Tarefa> tarefas,
-                                                 final RedeDeFilas rdf) {
-        final DefaultCategoryDataset dados = new DefaultCategoryDataset();
-        for (final CS_Processamento maq : rdf.getMaquinas()) {
-            dados.addValue(0, "Canceled", maq.getId());
-            dados.addValue(0, "Completed", maq.getId());
-            dados.addValue(0, "Not executed", maq.getId());
-            dados.addValue(0, "Failures", maq.getId());
-        }
-        for (final CS_Processamento maq : rdf.getMestres()) {
-            if (maq instanceof CS_Mestre) {
-                dados.addValue(0, "Canceled", maq.getId());
-                dados.addValue(0, "Completed", maq.getId());
-                dados.addValue(0, "Not executed", maq.getId());
-                dados.addValue(0, "Failures", maq.getId());
-            }
-        }
-        for (final Tarefa tarefa : tarefas) {
-            final Double val;
-            switch (tarefa.getEstado()) {
-                case Tarefa.PARADO:
-                    val = (Double) dados.getValue("Not executed",
-                            tarefa.getOrigem().getId());
-                    dados.setValue(val + 1, "Not executed",
-                            tarefa.getOrigem().getId());
-                    break;
-                case Tarefa.CONCLUIDO:
-                    val = (Double) dados.getValue("Completed",
-                            tarefa.getLocalProcessamento().getId());
-                    dados.setValue(val + 1, "Completed",
-                            tarefa.getLocalProcessamento().getId());
-                    break;
-                case Tarefa.CANCELADO:
-                    val = (Double) dados.getValue("Canceled",
-                            tarefa.getLocalProcessamento().getId());
-                    dados.setValue(val + 1, "Canceled",
-                            tarefa.getLocalProcessamento().getId());
-                    break;
-                case Tarefa.FALHA:
-                    val = (Double) dados.getValue("Failures",
-                            tarefa.getLocalProcessamento().getId());
-                    dados.setValue(val + 1, "Failures",
-                            tarefa.getLocalProcessamento().getId());
-                    break;
-            }
-        }
-        final JFreeChart jfc = ChartFactory.createBarChart(
-                "State of tasks per resource", //Titulo
-                "Resource", // Eixo X
-                "Numbers of tasks", //Eixo Y
-                dados, // Dados para o grafico
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, false, false); // exibir: legendas, tooltips, url
-        return jfc;
-    }
-
-    private JFreeChart criarGraficoEstadoTarefa(final List<Tarefa> tarefas) {
-        final XYSeries canceladas = new XYSeries("Canceled");
-        final XYSeries concluidas = new XYSeries("Completed");
-        final XYSeries paradas = new XYSeries("Not executed");
-        final XYSeries falhas = new XYSeries("Failures");
-        for (final Tarefa tarefa : tarefas) {
-            switch (tarefa.getEstado()) {
-                case Tarefa.PARADO:
-                    paradas.add(tarefa.getTimeCriacao(), 4);
-                    break;
-                case Tarefa.CONCLUIDO:
-                    concluidas.add(
-                            tarefa.getTempoFinal().get(tarefa.getTempoFinal().size() - 1), (Double) 1.0);
-                    break;
-                case Tarefa.CANCELADO:
-                    if (!tarefa.getTempoFinal().isEmpty()) {
-                        canceladas.add(tarefa.getTempoFinal().get(tarefa.getTempoFinal().size() - 1), (Double) 2.0);
-                    }
-                    break;
-                case Tarefa.FALHA:
-                    falhas.add(tarefa.getTempoFinal().get(tarefa.getTempoFinal().size() - 1), (Double) 3.0);
-                    break;
-            }
-        }
-        final XYSeriesCollection data = new XYSeriesCollection();
-        data.addSeries(falhas);
-        data.addSeries(canceladas);
-        data.addSeries(concluidas);
-        data.addSeries(paradas);
-        final JFreeChart chart = ChartFactory.createScatterPlot(
-                "State of tasks",
-                "Time (seconds)",
-                "Y", data,
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, true, false);
-        final NumberAxis domainAxis = (NumberAxis) chart.getXYPlot().getDomainAxis();
-        domainAxis.setAutoRangeIncludesZero(false);
-        return chart;
     }
 
     protected class tempo_uso_usuario implements Comparable<tempo_uso_usuario> {
