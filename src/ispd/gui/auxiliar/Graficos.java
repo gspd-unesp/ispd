@@ -75,48 +75,48 @@ import java.util.Map;
  */
 public class Graficos {
 
-    private ChartPanel ProcessingBarChart = null;
-    private ChartPanel CommunicationBarChart = null;
-    private ChartPanel ProcessingPieChart = null;
-    private ChartPanel CommunicationPieChart = null;
-    private ChartPanel UserThroughTimeChart1 = null;
-    private ChartPanel UserThroughTimeChart2 = null;
-    private ChartPanel MachineThroughTimeChart = null;
-    private ChartPanel TaskThroughTimeChart = null;
+    private ChartPanel processingBarChart = null;
+    private ChartPanel communicationBarChart = null;
+    private ChartPanel processingPieChart = null;
+    private ChartPanel communicationPieChart = null;
+    private ChartPanel userThroughTime1 = null;
+    private ChartPanel UserThroughTime2 = null;
+    private ChartPanel machineThroughTime = null;
+    private ChartPanel TaskThroughTime = null;
     public ChartPanel PreemptionPerUser = null;
     public RedeDeFilas rede = null;
     private double poderComputacionalTotal = 0;
 
     public ChartPanel getProcessingBarChart() {
-        return this.ProcessingBarChart;
+        return this.processingBarChart;
     }
 
     public ChartPanel getCommunicationBarChart() {
-        return this.CommunicationBarChart;
+        return this.communicationBarChart;
     }
 
     public ChartPanel getProcessingPieChart() {
-        return this.ProcessingPieChart;
+        return this.processingPieChart;
     }
 
     public ChartPanel getCommunicationPieChart() {
-        return this.CommunicationPieChart;
+        return this.communicationPieChart;
     }
 
     public ChartPanel getUserThroughTimeChart1() {
-        return this.UserThroughTimeChart1;
+        return this.userThroughTime1;
     }
 
     public ChartPanel getUserThroughTimeChart2() {
-        return this.UserThroughTimeChart2;
+        return this.UserThroughTime2;
     }
 
     public ChartPanel getMachineThroughTimeChart() {
-        return this.MachineThroughTimeChart;
+        return this.machineThroughTime;
     }
 
     public ChartPanel getTaskThroughTimeChart() {
-        return this.TaskThroughTimeChart;
+        return this.TaskThroughTime;
     }
 
     public void criarProcessamento(final Map<String, MetricasProcessamento> mProcess) {
@@ -153,15 +153,15 @@ public class Graficos {
         if (mProcess != null && mProcess.size() > 10) {
             jfc.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         }
-        this.ProcessingBarChart = new ChartPanel(jfc);
-        this.ProcessingBarChart.setPreferredSize(new Dimension(600, 300));
+        this.processingBarChart = new ChartPanel(jfc);
+        this.processingBarChart.setPreferredSize(new Dimension(600, 300));
 
         jfc = ChartFactory.createPieChart(
                 "Total processed on each resource", //Titulo
                 dadosGraficoPizzaProcessamento, // Dados para o grafico
                 true, false, false);
-        this.ProcessingPieChart = new ChartPanel(jfc);
-        this.ProcessingPieChart.setPreferredSize(new Dimension(600, 300));
+        this.processingPieChart = new ChartPanel(jfc);
+        this.processingPieChart.setPreferredSize(new Dimension(600, 300));
 
     }
 
@@ -193,15 +193,15 @@ public class Graficos {
         if (mComunicacao != null && mComunicacao.size() > 10) {
             jfc.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         }
-        this.CommunicationBarChart = new ChartPanel(jfc);
-        this.CommunicationBarChart.setPreferredSize(new Dimension(600, 300));
+        this.communicationBarChart = new ChartPanel(jfc);
+        this.communicationBarChart.setPreferredSize(new Dimension(600, 300));
 
         jfc = ChartFactory.createPieChart(
                 "Total communication in each resource", //Titulo
                 dadosGraficoPizzaComunicacao, // Dados para o grafico
                 true, false, false);
-        this.CommunicationPieChart = new ChartPanel(jfc);
-        this.CommunicationPieChart.setPreferredSize(new Dimension(600, 300));
+        this.communicationPieChart = new ChartPanel(jfc);
+        this.communicationPieChart.setPreferredSize(new Dimension(600, 300));
     }
 
     public void criarProcessamentoTempoTarefa(final List<Tarefa> tarefas) {
@@ -238,7 +238,7 @@ public class Graficos {
                 dadosGrafico, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
-        this.TaskThroughTimeChart = new ChartPanel(jfc);
+        this.TaskThroughTime = new ChartPanel(jfc);
     }
 
     //Cria o gráfico que demonstra o uso de cada recurso do sistema através
@@ -301,8 +301,8 @@ public class Graficos {
                 dadosGrafico, // Dados para o grafico
                 PlotOrientation.VERTICAL, //Orientacao do grafico
                 true, true, false); // exibir: legendas, tooltips, url
-        this.MachineThroughTimeChart = new ChartPanel(jfc);
-        this.MachineThroughTimeChart.setPreferredSize(new Dimension(600, 300));
+        this.machineThroughTime = new ChartPanel(jfc);
+        this.machineThroughTime.setPreferredSize(new Dimension(600, 300));
     }
 
     public void criarProcessamentoTempoUser(final List<Tarefa> tarefas,
@@ -400,10 +400,10 @@ public class Graficos {
         xysteparearenderer.setDefaultEntityRadius(6);
         xyplot.setRenderer(xysteparearenderer);
 
-        this.UserThroughTimeChart1 = new ChartPanel(user1);
-        this.UserThroughTimeChart1.setPreferredSize(new Dimension(600, 300));
-        this.UserThroughTimeChart2 = new ChartPanel(user2);
-        this.UserThroughTimeChart2.setPreferredSize(new Dimension(600, 300));
+        this.userThroughTime1 = new ChartPanel(user1);
+        this.userThroughTime1.setPreferredSize(new Dimension(600, 300));
+        this.UserThroughTime2 = new ChartPanel(user2);
+        this.UserThroughTime2.setPreferredSize(new Dimension(600, 300));
     }
 
     public ChartPanel criarGraficoPorTarefa(final List<Tarefa> tarefas,
