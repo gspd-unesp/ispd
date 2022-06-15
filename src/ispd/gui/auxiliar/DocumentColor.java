@@ -2,7 +2,8 @@
  * iSPD : iconic Simulator of Parallel and Distributed System
  * ==========================================================
  *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Project Info:  http://gspd.dcce.ibilce.unesp.br/
  *
@@ -10,50 +11,37 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ *  USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
  *
  * ---------------
  * DocumentColor.java
  * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Original Author:  Denison Menezes (for GSPD);
  * Contributor(s):   -;
  *
  * Changes
  * -------
- * 
+ *
  * 09-Set-2014 : Version 2.0;
  *
  */
 package ispd.gui.auxiliar;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -75,50 +63,88 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Estilo de texto para visualizar código Java
  * Após ser instanciado deve chamar o método:
- *      configurarTextComponent(JTextComponent)
+ * configurarTextComponent(JTextComponent)
  * Com esse método o componente de texto será configurado
- * @author Denison
  */
 public class DocumentColor extends DefaultStyledDocument implements CaretListener {
 
-    private final Element rootElement;
-    private final String[] keywords = {
-        "\\bfor\\b",
-        "\\bif\\b",
-        "\\belse\\b",
-        "\\bwhile\\b",
-        "\\bint\\b",
-        "\\bboolean\\b",
-        "\\bnew\\b",
-        "\\bdouble\\b",
-        "\\bpublic\\b",
-        "\\bprivate\\b",
-        "\\bprotected\\b",
-        "\\breturn\\b",
-        "\\bthis\\b",
-        "\\bstatic\\b",
-        "\\bvoid\\b",
-        "\\btry\\b",
-        "\\bcatch\\b",
-        "\\bbreak\\b",
-        "\\bthrow\\b",
-        "\\bpackage\\b",
-        "\\bimport\\b",
-        "\\bclass\\b",
-        "\\bextends\\b",
-        "\\btrue\\b",
-        "\\bfalse\\b"
+    public static final char NEW_LINE = '\n';
+    public static final char OPEN_BRACKET = '{';
+    public static final char CLOSE_BRACKET = '}';
+    public static final String TAB_AS_SPACES = "    ";
+    private static final char SPACE = ' ';
+    private static final String AUTOCOMPLETE_ACTION_KEY = "completar";
+    private static final String[] STRING_MATCHERS = {
+            "\"(.*)\"",
+            "('.')",
+            "('..')"
     };
-    private final String[] keyStrings = {
-        "\"(.*)\"",
-        "(\'.\')",
-        "(\'..\')"};
-    private final String keyNumbers = "\\b[0-9]+\\b";
-    private final MutableAttributeSet style;
+    private static final String NUMBER_MATCHER = "\\b\\d+\\b";
+    private static final String[] AUTOCOMPLETE_STRINGS = {
+            "boolean", "break", "case", "class", "double", "else",
+            "false", "final", "float", "for", "if", "instanceof", "int",
+            "new", "null", "private", "protected", "public", "return",
+            "static", "String", "super", "switch", "System",
+            "this", "true", "try", "void", "while",
+            "escravos", "filaEscravo", "tarefas", "metricaUsuarios",
+            "mestre", "caminhoEscravo", "adicionarTarefa(tarefa)",
+            "getTempoAtualizar()", "resultadoAtualizar(mensagem)",
+            "addTarefaConcluida(tarefa)", "enviarTarefa(Tarefa tarefa)",
+            "processarTarefa(Tarefa tarefa)", "executarEscalonamento()",
+            "enviarMensagem(tarefa, escravo, tipo)",
+            "atualizar(CS_Processamento escravo)", "criarCopia(Tarefa get)",
+            "Mensagens.CANCELAR", "Mensagens.PARAR", "Mensagens.DEVOLVER",
+            "Mensagens.DEVOLVER_COM_PREEMPCAO", "Mensagens.ATUALIZAR"
+    };
+    private final Element rootElement = this.getDefaultRootElement();
+    private final String[] keywords = { // TODO: make loop
+            "\\bfor\\b",
+            "\\bif\\b",
+            "\\belse\\b",
+            "\\bwhile\\b",
+            "\\bint\\b",
+            "\\bboolean\\b",
+            "\\bnew\\b",
+            "\\bdouble\\b",
+            "\\bpublic\\b",
+            "\\bprivate\\b",
+            "\\bprotected\\b",
+            "\\breturn\\b",
+            "\\bthis\\b",
+            "\\bstatic\\b",
+            "\\bvoid\\b",
+            "\\btry\\b",
+            "\\bcatch\\b",
+            "\\bbreak\\b",
+            "\\bthrow\\b",
+            "\\bpackage\\b",
+            "\\bimport\\b",
+            "\\bclass\\b",
+            "\\bextends\\b",
+            "\\btrue\\b",
+            "\\bfalse\\b"
+    };
+    private final MutableAttributeSet style = new SimpleAttributeSet();
     private final Color defaultStyle = Color.black;
     private final Color commentStyle = Color.lightGray;
     private final Color keyStyle = Color.blue;
@@ -127,330 +153,433 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
     private final Pattern singleCommentDelim = Pattern.compile("//");
     private final Pattern multiCommentDelimStart = Pattern.compile("/\\*");
     private final Pattern multiCommentDelimEnd = Pattern.compile("\\*/");
-    private final Font font;
-    //Desenha linhas
-    private final JTextArea BarraNumLinhas;
-    private final JLabel BarraPosCursor;
-    private Integer numeroLinhas;
-    //Popup para auto completar
-    private JPopupMenu popup;
-    private JList ListAutoCompletar;
-    private String[] autoCompletar = {
-        "boolean", "break", "case", "class", "double", "else", "false", "final", "float", "for", "if", "instanceof", "int", "new", "null", "private", "protected", "public", "return", "static", "String", "super", "switch", "System", "this", "true", "try", "void", "while",
-        "escravos", "filaEscravo", "tarefas", "metricaUsuarios", "mestre", "caminhoEscravo", "adicionarTarefa(tarefa)", "getTempoAtualizar()", "resultadoAtualizar(mensagem)", "addTarefaConcluida(tarefa)",
-        "enviarTarefa(Tarefa tarefa)", "processarTarefa(Tarefa tarefa)", "executarEscalonamento()", "enviarMensagem(tarefa, escravo, tipo)", "atualizar(CS_Processamento escravo)", "criarCopia(Tarefa get)",
-        "Mensagens.CANCELAR", "Mensagens.PARAR", "Mensagens.DEVOLVER", "Mensagens.DEVOLVER_COM_PREEMPCAO", "Mensagens.ATUALIZAR"};
+    private final Font font = new Font(Font.MONOSPACED, Font.BOLD, 12);
+    private final JTextArea lineCountBar = this.makeLineCountBar();
+    private final JLabel barAfterCursor = DocumentColor.makeBarAfterCursor();
+    private final JList<String> autocompleteList = this.makeAutoCompleteList();
+    private final JPopupMenu autocompletePopup = this.makeAutocompletePopup();
+    private Integer lineCount = 1;
 
     public DocumentColor() {
-        putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
-        rootElement = getDefaultRootElement();
-        style = new SimpleAttributeSet();
-        //Define estilo de fonte
-        font = new Font(Font.MONOSPACED, Font.BOLD, 12);
-        StyleConstants.setFontFamily(style, Font.MONOSPACED);
-        StyleConstants.setBold(style, true);
-        StyleConstants.setFontSize(style, 12);
-        //Desenha linhas
-        numeroLinhas = 1;
-        BarraNumLinhas = new JTextArea();
-        BarraNumLinhas.setDisabledTextColor(Color.BLACK);
-        BarraNumLinhas.setEnabled(false);
-        BarraNumLinhas.setMargin(new Insets(-2, 0, 0, 0));
-        BarraNumLinhas.setColumns(1);
-        BarraNumLinhas.setFont(font);
-        BarraNumLinhas.setText("1");
-        BarraNumLinhas.setBackground(Color.lightGray);
-        //Indicar posição do curso(teclado)
-        BarraPosCursor = new JLabel("Linha: 0 | Coluna: 0 ");
-        BarraPosCursor.setBackground(Color.lightGray);
-        BarraPosCursor.setHorizontalAlignment(SwingConstants.RIGHT);
-        //auto completar
-        criarPopup();
+        this.putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
+        this.setStyleFromConstants();
+    }
+
+    private void setStyleFromConstants() {
+        StyleConstants.setFontFamily(this.style, Font.MONOSPACED);
+        StyleConstants.setBold(this.style, true);
+        StyleConstants.setFontSize(this.style, 12);
+    }
+
+    private static JLabel makeBarAfterCursor() {
+        final JLabel bac = new JLabel("Linha: 0 | Coluna: 0 ");
+        bac.setBackground(Color.lightGray);
+        bac.setHorizontalAlignment(SwingConstants.RIGHT);
+        return bac;
+    }
+
+    private static int countMatches(final String input) {
+        final var pa = Pattern.compile("\n");
+        final var ma = pa.matcher(input);
+
+        int total = 0;
+        while (ma.find()) {
+            total++;
+        }
+        return total;
+    }
+
+    private JPopupMenu makeAutocompletePopup() {
+        final JScrollPane popupBar = new JScrollPane();
+        popupBar.setBorder(null);
+        popupBar.setViewportView(this.autocompleteList);
+        final JPopupMenu acp = new JPopupMenu();
+        acp.add(popupBar);
+        return acp;
+    }
+
+    private JList<String> makeAutoCompleteList() {
+        final var acl = new JList<>(DocumentColor.AUTOCOMPLETE_STRINGS);
+        acl.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        acl.addMouseListener(new AutoCompleteMouseAdapter());
+        acl.addKeyListener(new AutoCompleteKeyAdapter());
+        return acl;
+    }
+
+    private void insertAutocomplete() {
+        try {
+            final int dot =
+                    ((JTextComponent) this.autocompletePopup.getInvoker()).getCaret().getDot();
+            final var autocomplete = this.autocompleteList.getSelectedValue();
+            final int insertPos = this.ignoreSpace(dot, autocomplete);
+            this.insertString(insertPos, autocomplete, null);
+        } catch (final BadLocationException ex) {
+            Logger.getLogger(DocumentColor.class.getName()).log(Level.SEVERE,
+                    null, ex);
+        }
+
+        this.autocompletePopup.setVisible(false);
+    }
+
+    private int ignoreSpace(final int dot, final String autocomplete) throws BadLocationException {
+        if (dot <= 0) {
+            return dot;
+        }
+
+        if (!this.getText(dot - 2, 2).equals(
+                " " + autocomplete.charAt(0))) {
+            return dot;
+        }
+
+        this.remove(dot - 1, 1);
+        return dot - 1;
+    }
+
+    @Override
+    public void remove(final int offset, final int length) throws BadLocationException {
+        final int total = DocumentColor.countMatches(this.getText(offset,
+                length));
+
+        if (total > 0) {
+            this.updateLineCountBar(total);
+            this.updateColumns();
+        }
+
+        this.removeAndProcessChanges(offset, length);
+    }
+
+    @Override
+    public void insertString(
+            final int offset,
+            final String text,
+            final AttributeSet attr) throws BadLocationException {
+        if (text.length() != 1) {
+            this.insertPastedText(offset, text, attr);
+            this.processChangedLines();
+            return;
+        }
+
+        switch (text) {
+            case "\n" -> {
+                final var tabs = DocumentColor.TAB_AS_SPACES.repeat(
+                        this.calculateScopeDepthUntil(offset));
+                super.insertString(
+                        offset, "\n" + tabs, this.style);
+                this.insertLines(1);
+            }
+            case "\t" -> {
+                super.insertString(
+                        offset, DocumentColor.TAB_AS_SPACES, this.style);
+            }
+            case "}" -> {
+                this.removeAdditionalSpaces(offset, text);
+                this.processChangedLines();
+            }
+            default -> {
+                super.insertString(offset, text, this.style);
+                this.processChangedLines();
+            }
+        }
+    }
+
+    private void insertPastedText(final int offset, final String str,
+                                  final AttributeSet attr) throws BadLocationException {
+        final var spaces = str.replaceAll("\t", DocumentColor.TAB_AS_SPACES);
+        final int total = DocumentColor.countMatches(spaces);
+        this.insertLines(total);
+        super.insertString(offset, spaces, attr);
+    }
+
+    private int calculateScopeDepthUntil(final int offset) throws BadLocationException {
+        final var textBefore = this.getText(0, offset);
+        int depth = 0;
+
+        // TODO: { total - } total
+
+        for (int i = 0; i < textBefore.length(); i++) {
+            if (textBefore.charAt(i) == DocumentColor.OPEN_BRACKET) {
+                depth++;
+            } else if (textBefore.charAt(i) == DocumentColor.CLOSE_BRACKET) {
+                depth--;
+            }
+        }
+
+        return depth;
+    }
+
+    private void insertLines(final int total) throws BadLocationException {
+        this.updateText(total);
+        this.updateColumns();
+    }
+
+    private void removeAdditionalSpaces(final int offset, final String str) throws BadLocationException {
+        final String text = this.getText(0, offset);
+        super.insertString(offset, str, this.style);
+        if (text.substring(offset - 4).equals(DocumentColor.TAB_AS_SPACES)) {
+            super.remove(offset - 4, 4);
+        }
+    }
+
+    private void updateLineCountBar(final int total) throws BadLocationException {
+        this.lineCount -= total;
+        for (int i = 0; i < total; i++) {
+            final int end = this.lineCountBar.getText().length();
+            final int pos =
+                    this.lineCountBar.getText().lastIndexOf(DocumentColor.NEW_LINE, end);
+            this.lineCountBar.getDocument().remove(pos, end - pos);
+        }
+    }
+
+    private void updateColumns() {
+        if (this.lineCount.toString().length() != this.lineCountBar.getColumns()) {
+            this.lineCountBar.setColumns(this.lineCount.toString().length());
+        }
+    }
+
+    private void removeAndProcessChanges(final int offset, final int length) throws BadLocationException {
+        super.remove(offset, length);
+        this.processChangedLines();
+    }
+
+    private void updateText(final int total) throws BadLocationException {
+        final Document doc = this.lineCountBar.getDocument();
+        for (int i = 0; i < total; i++) {
+            this.lineCount++;
+            doc.insertString(doc.getLength(), "\n" + this.lineCount, null);
+        }
+    }
+
+    private JTextArea makeLineCountBar() {
+        final var lcb = new JTextArea();
+        lcb.setDisabledTextColor(Color.BLACK);
+        lcb.setEnabled(false);
+        lcb.setMargin(new Insets(-2, 0, 0, 0));
+        lcb.setColumns(1);
+        lcb.setFont(this.font);
+        lcb.setText("1");
+        lcb.setBackground(Color.lightGray);
+        return lcb;
     }
 
     public Font getFont() {
-        return font;
-    }
-
-    public Component getLinhas() {
-        return BarraNumLinhas;
+        return this.font;
     }
 
     public Component getCursor() {
-        return BarraPosCursor;
+        return this.barAfterCursor;
+    }
+
+    public Component getLinhas() {
+        return this.lineCountBar;
     }
 
     @Override
-    public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
-        if (str.length() == 1) {
-            if (str.equals("\n")) {
-                String text = getText(0, offset);
-                int nivel = 0;
-                for (int i = 0; i < text.length(); i++) {
-                    if (text.charAt(i) == '{') {
-                        nivel++;
-                    } else if (text.charAt(i) == '}') {
-                        nivel--;
-                    }
-                }
-                StringBuilder sb = new StringBuilder("\n");
-                for (int i = 0; i < nivel; i++) {
-                    sb.append("    ");
-                }
-                super.insertString(offset, sb.toString(), style);
-                inserirLinhas(1);
-            } else if (str.equals("\t")) {
-                super.insertString(offset, "    ", style);
-            } else if (str.equals(" ")) {
-                super.insertString(offset, str, style);
-                processChangedLines(offset, str.length());
-            } else if (str.equals("}")) {
-                //Busca remover espaços adicionados
-                String text = getText(0, offset);
-                super.insertString(offset, str, style);
-                if (text.substring(offset - 4).equals("    ")) {
-                    super.remove(offset - 4, 4);
-                }
-                processChangedLines(offset, str.length());
-            } else {
-                super.insertString(offset, str, style);
-                processChangedLines(offset, str.length());
-            }
-        } else {
-            //Substituir tabs
-            str = str.replaceAll("\t", "    ");
-            //insere modificações
-            Pattern p = Pattern.compile("\n");
-            Matcher m = p.matcher(str);
-            int total = 0;
-            while (m.find()) {
-                total++;
-            }
-            inserirLinhas(total);
-            super.insertString(offset, str, attr);
-            processChangedLines(offset, str.length());
+    public void caretUpdate(final CaretEvent ce) {
+        final int start = ce.getDot();
+        final int end = ce.getMark();
+        final var text = (JTextComponent) ce.getSource();
+
+        if (start == end) {
+            this.caretUpdateWithoutSelection(text, start);
+            return;
+        }
+
+        if (start < end) {
+            this.caretUpdateWithSelection(text.getText(), start, end);
+            return;
+        }
+
+        this.caretUpdateWithSelection(text.getText(), end, start);
+    }
+
+    private void caretUpdateWithoutSelection(
+            final JTextComponent text,
+            final int start) {
+        try {
+            final var caretCoords = (Rectangle) text.modelToView2D(start);
+            this.barAfterCursor.setText("Linha: %d | Coluna: %d ".formatted(
+                    (caretCoords.y - 4) / 15 + 1, (caretCoords.x - 6) / 7));
+        } catch (final BadLocationException ignored) {
         }
     }
 
-    @Override
-    public void remove(int offset, int length) throws BadLocationException {
-        Pattern p = Pattern.compile("\n");
-        Matcher m = p.matcher(getText(offset, length));
-        int total = 0;
-        while (m.find()) {
-            total++;
-        }
-        if (total > 0) {
-            numeroLinhas -= total;
-            for (int i = 0; i < total; i++) {
-                int fim = BarraNumLinhas.getText().length();
-                int pos = BarraNumLinhas.getText().lastIndexOf('\n', fim);
-                BarraNumLinhas.getDocument().remove(pos, fim - pos);
-            }
-            if (numeroLinhas.toString().length() != BarraNumLinhas.getColumns()) {
-                BarraNumLinhas.setColumns(numeroLinhas.toString().length());
+    private void caretUpdateWithSelection(
+            final String text, final int start, final int end) {
+        final int length = end - start;
+        if (length > 1 && length < 50) {
+            try {
+                final var selected =
+                        "\\b%s\\b".formatted(this.getText(start, length));
+                this.processChangedLines();
+                this.markOnTextAllEqualToSelected(text, selected);
+            } catch (final Exception ex) {
+                StyleConstants.setBackground(this.style, Color.WHITE);
             }
         }
-        super.remove(offset, length);
-        processChangedLines(offset, length);
+        this.barAfterCursor.setText("selection from: %d to %d ".formatted(start, end));
     }
 
-    public void processChangedLines(int offset, int length) throws BadLocationException {
+    private void processChangedLines() throws BadLocationException {
         // Normal Text
-        String text = getText(0, getLength());
-        StyleConstants.setForeground(style, defaultStyle);
-        StyleConstants.setBold(style, false);
+        final String text = this.getText(0, this.getLength());
+        StyleConstants.setForeground(this.style, this.defaultStyle);
+        StyleConstants.setBold(this.style, false);
         //StyleConstants.setItalic(style, false);
-        setCharacterAttributes(0, getLength(), style, true);
+        this.setCharacterAttributes(0, this.getLength(), this.style, true);
 
         // Keywords
-        StyleConstants.setBold(style, true);
-        StyleConstants.setForeground(style, keyStyle);
-        for (String keyword : keywords) {
-            Pattern p = Pattern.compile(keyword);
-            Matcher m = p.matcher(text);
+        StyleConstants.setBold(this.style, true);
+        StyleConstants.setForeground(this.style, this.keyStyle);
+        for (final String keyword : this.keywords) {
+            final Pattern p = Pattern.compile(keyword);
+            final Matcher m = p.matcher(text);
 
             while (m.find()) {
-                setCharacterAttributes(m.start(), m.end() - m.start(), style, true);
+                this.setCharacterAttributes(m.start(), m.end() - m.start(),
+                        this.style,
+                        true);
             }
         }
 
         //numbers
-        StyleConstants.setForeground(style, numberStyle);
+        StyleConstants.setForeground(this.style, this.numberStyle);
         {
-            Pattern p = Pattern.compile(keyNumbers);
-            Matcher m = p.matcher(text);
+            final Pattern p = Pattern.compile(DocumentColor.NUMBER_MATCHER);
+            final Matcher m = p.matcher(text);
             while (m.find()) {
-                setCharacterAttributes(m.start(), m.end() - m.start(), style, true);
+                this.setCharacterAttributes(m.start(), m.end() - m.start(),
+                        this.style,
+                        true);
             }
         }
 
-        StyleConstants.setForeground(style, stringStyle);
-        for (String keyword : keyStrings) {
-            Pattern p = Pattern.compile(keyword);
-            Matcher m = p.matcher(text);
+        StyleConstants.setForeground(this.style, this.stringStyle);
+        for (final String keyword : DocumentColor.STRING_MATCHERS) {
+            final Pattern p = Pattern.compile(keyword);
+            final Matcher m = p.matcher(text);
 
             while (m.find()) {
-                setCharacterAttributes(m.start(), m.end() - m.start(), style, true);
+                this.setCharacterAttributes(m.start(), m.end() - m.start(),
+                        this.style,
+                        true);
             }
         }
 
         // Comments
-        StyleConstants.setForeground(style, commentStyle);
-        Matcher mlcStart = multiCommentDelimStart.matcher(text);
-        Matcher mlcEnd = multiCommentDelimEnd.matcher(text);
+        StyleConstants.setForeground(this.style, this.commentStyle);
+        final Matcher mlcStart = this.multiCommentDelimStart.matcher(text);
+        final Matcher mlcEnd = this.multiCommentDelimEnd.matcher(text);
         while (mlcStart.find()) {
             if (mlcEnd.find(mlcStart.end())) {
-                setCharacterAttributes(mlcStart.start(), (mlcEnd.end() - mlcStart.start()), style, true);
+                this.setCharacterAttributes(mlcStart.start(),
+                        (mlcEnd.end() - mlcStart.start()), this.style, true);
             } else {
-                setCharacterAttributes(mlcStart.start(), getLength(), style, true);
+                this.setCharacterAttributes(mlcStart.start(),
+                        this.getLength(), this.style,
+                        true);
             }
         }
 
-        Matcher slc = singleCommentDelim.matcher(text);
+        final Matcher slc = this.singleCommentDelim.matcher(text);
 
         while (slc.find()) {
-            int line = rootElement.getElementIndex(slc.start());
-            int endOffset = rootElement.getElement(line).getEndOffset() - 1;
-            setCharacterAttributes(slc.start(), (endOffset - slc.start()), style, true);
+            final int line = this.rootElement.getElementIndex(slc.start());
+            final int endOffset =
+                    this.rootElement.getElement(line).getEndOffset() - 1;
+            this.setCharacterAttributes(slc.start(), (endOffset - slc.start()),
+                    this.style, true);
         }
     }
 
-    private void inserirLinhas(int total) throws BadLocationException {
-        Document doc = BarraNumLinhas.getDocument();
-        for (int i = 0; i < total; i++) {
-            numeroLinhas++;
-            doc.insertString(doc.getLength(), "\n" + numeroLinhas, null);
+    private void markOnTextAllEqualToSelected(
+            final String text, final String selectedText) {
+        StyleConstants.setForeground(this.style, Color.BLACK);
+        StyleConstants.setBackground(this.style, Color.YELLOW);
+        final Pattern p = Pattern.compile(selectedText);
+        final Matcher m = p.matcher(text);
+        while (m.find()) {
+            this.setCharacterAttributes(
+                    m.start(), m.end() - m.start(), this.style, true);
         }
-        if (numeroLinhas.toString().length() != BarraNumLinhas.getColumns()) {
-            BarraNumLinhas.setColumns(numeroLinhas.toString().length());
-        }
-    }
-
-    @Override
-    public void caretUpdate(CaretEvent ce) {
-        //System.out.println("Mover");
-        int inicio = ce.getDot();
-        int fim = ce.getMark();
-        JTextComponent jTexto = (JTextComponent) ce.getSource();
-        String textoSelecionado = "";
-
-        if (inicio == fim) {// no selection
-            try {
-                Rectangle caretCoords = jTexto.modelToView(inicio);
-                BarraPosCursor.setText("Linha: " + ((caretCoords.y - 4) / 15 + 1) + " | Coluna: " + (caretCoords.x - 6) / 7 + " ");
-            } catch (Exception ex) {
-                //Logger.getLogger(DocumentColor.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else {
-            if (inicio > fim) {
-                inicio = ce.getMark();
-                fim = ce.getDot();
-            }
-            if(fim-inicio > 1 && fim-inicio < 50) {
-                try {
-                    textoSelecionado = "\\b" + this.getText(inicio, fim - inicio) + "\\b";
-                    processChangedLines(0, 0);
-                    //Marcar texto igual ao texto selecionado
-                    StyleConstants.setForeground(style, Color.BLACK);
-                    StyleConstants.setBackground(style, Color.YELLOW);
-                    Pattern p = Pattern.compile(textoSelecionado);
-                    Matcher m = p.matcher(jTexto.getText());
-                    while (m.find()) {
-                        setCharacterAttributes(m.start(), m.end() - m.start(), style, true);
-                    }
-                    StyleConstants.setBackground(style, Color.WHITE);
-                } catch (Exception ex) {
-                    StyleConstants.setBackground(style, Color.WHITE);
-                }
-            }
-            BarraPosCursor.setText("selection from: " + inicio + " to " + fim + " ");
-        }
+        StyleConstants.setBackground(this.style, Color.WHITE);
     }
 
     public void close() {
-        numeroLinhas = 1;
-        BarraNumLinhas.setText("1");
-        BarraPosCursor.setText("Linha: 0 | Coluna: 0 ");
+        this.lineCount = 1;
+        this.lineCountBar.setText("1");
+        this.barAfterCursor.setText("Linha: 0 | Coluna: 0 ");
     }
 
-    private void criarPopup() {
-        popup = new JPopupMenu();
-        ListAutoCompletar = new JList(autoCompletar);
-        ListAutoCompletar.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        ListAutoCompletar.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent me) {
-                if (me.getClickCount() == 2) {
-                    inserirAutoCompletar();
-                }
-            }
-        });
-
-        ListAutoCompletar.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent ke) {
-                if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
-                    inserirAutoCompletar();
-                }
-            }
-        });
-
-        JScrollPane popupBarra = new JScrollPane();
-        popupBarra.setBorder(null);
-        popupBarra.setViewportView(ListAutoCompletar);
-        popup.add(popupBarra);
+    public void configurarTextComponent(final JTextComponent component) {
+        component.setDocument(this);
+        component.addCaretListener(this);
+        component.getInputMap().put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,
+                        InputEvent.CTRL_DOWN_MASK),
+                DocumentColor.AUTOCOMPLETE_ACTION_KEY
+        );
+        component.getActionMap().put(
+                DocumentColor.AUTOCOMPLETE_ACTION_KEY,
+                new TextPaneAction(component)
+        );
     }
 
-    private void inserirAutoCompletar() {
-        try {
-            JTextComponent jTextPane = (JTextComponent) popup.getInvoker();
-            int dot = jTextPane.getCaret().getDot();
-            String inserir = ListAutoCompletar.getSelectedValue().toString();
-            if (dot > 0) {
-                String text = getText(dot - 2, 2);
-                if (text.charAt(0) == ' ' && text.charAt(1) == inserir.charAt(0)) {
-                    dot--;
-                    remove(dot, 1);
-                }
-            }
-            insertString(dot, inserir, null);
-        } catch (BadLocationException ex) {
-            Logger.getLogger(DocumentColor.class.getName()).log(Level.SEVERE, null, ex);
+    private void displayAutocomplete(
+            final int dot,
+            final Rectangle caretCoords,
+            final Component component) throws BadLocationException {
+        this.autocompletePopup.show(component, caretCoords.x, caretCoords.y);
+        this.autocompleteList.setSelectedIndex(this.autocompleteListIndex(dot));
+        this.autocompleteList.repaint();
+        this.autocompleteList.requestFocus();
+    }
+
+    private int autocompleteListIndex(final int dotPosition) throws BadLocationException {
+        if (dotPosition <= 0) {
+            return 0;
         }
-        popup.setVisible(false);
+
+        final var text = this.getText(dotPosition - 1, 1);
+        return (int) Arrays
+                .stream(DocumentColor.AUTOCOMPLETE_STRINGS)
+                .takeWhile(s -> !s.startsWith(text)).count();
     }
 
-    public void configurarTextComponent(final JTextComponent jTextPane) {
-        jTextPane.setDocument(this);
-        jTextPane.addCaretListener(this);
-        jTextPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.CTRL_MASK), "completar");
-        jTextPane.getActionMap().put("completar", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                try {
-                    int dot = jTextPane.getCaret().getDot();
-                    Rectangle caretCoords = jTextPane.modelToView(dot);
-                    popup.show(jTextPane, caretCoords.x, caretCoords.y);
-                    int index = 0;
-                    if (dot > 0) {
-                        String text = getText(dot - 1, 1);
-                        for (String string : autoCompletar) {
-                            if (string.startsWith(text)) {
-                                break;
-                            } else {
-                                index++;
-                            }
-                        }
-                    }
-                    ListAutoCompletar.setSelectedIndex(index);
-                    ListAutoCompletar.repaint();
-                    ListAutoCompletar.requestFocus();
-                } catch (BadLocationException ex) {
-                    Logger.getLogger(DocumentColor.class.getName()).log(Level.SEVERE, null, ex);
-                }
+    private class AutoCompleteMouseAdapter extends MouseAdapter {
+        @Override
+        public void mouseClicked(final MouseEvent me) {
+            if (me.getClickCount() == 2) {
+                DocumentColor.this.insertAutocomplete();
             }
-        });
+        }
+    }
 
+    private class AutoCompleteKeyAdapter extends KeyAdapter {
+        @Override
+        public void keyReleased(final KeyEvent ke) {
+            if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
+                DocumentColor.this.insertAutocomplete();
+            }
+        }
+    }
+
+    private class TextPaneAction extends AbstractAction {
+        private final JTextComponent area;
+
+        TextPaneAction(final JTextComponent area) {
+            this.area = area;
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent ae) {
+            try {
+                final int dot = this.area.getCaret().getDot();
+                final var caretPos = (Rectangle) this.area.modelToView2D(dot);
+                DocumentColor.this.displayAutocomplete(dot, caretPos,
+                        this.area);
+            } catch (final BadLocationException ex) {
+                Logger.getLogger(DocumentColor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 }
