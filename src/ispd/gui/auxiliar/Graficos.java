@@ -204,48 +204,30 @@ public class Graficos {
                 : mt.getId();
     }
 
-    public void criarComunicacao(final Map<String, MetricasComunicacao> metrics) {
-        final DefaultCategoryDataset commsChartData =
-                new DefaultCategoryDataset();
-        final DefaultPieDataset commsPieChartData =
-                new DefaultPieDataset();
+    public void criarComunicacao(
+            final Map<String, ? extends MetricasComunicacao> metrics) {
+        final DefaultPieDataset commsPieChartData = new DefaultPieDataset();
 
         if (metrics != null) {
-            for (final Map.Entry<String, MetricasComunicacao> entry :
-                    metrics.entrySet()) {
-                final MetricasComunicacao link = entry.getValue();
-                commsChartData.addValue(link.getMbitsTransmitidos(),
-                        "vermelho", link.getId());
+            for (final var link : metrics.values()) {
                 commsPieChartData.insertValue(0, link.getId(),
                         link.getMbitsTransmitidos());
             }
         }
 
-        final var chart = ChartFactory.createBarChart(
+        final var jfc = ChartFactory.createPieChart(
                 "Total communication in each resource",
-                "Resource",
-                "Mbits",
-                commsChartData,
-                PlotOrientation.VERTICAL,
+                commsPieChartData,
+                true,
                 false,
-                false,
-                false
-        );
+                false);
+        ChartPanel cpc = new ChartPanel(jfc);
+        cpc.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        this.communicationPieChart = cpc;
+    }
 
-        if (metrics != null && metrics.size() > 10) {
-            Graficos.inclineChartXAxis(chart);
-        }
-
-        final var panel = new ChartPanel(chart);
-        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-        final JFreeChart jfc;
-
-        jfc = ChartFactory.createPieChart(
-                "Total communication in each resource", //Titulo
-                commsPieChartData, // Dados para o grafico
-                true, false, false);
-        this.communicationPieChart = new ChartPanel(jfc);
-        this.communicationPieChart.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+    private boolean shouldInclineChartXAxis(Map<String, MetricasComunicacao> metrics) {
+        return metrics != null && metrics.size() > 10;
     }
 
     public void criarProcessamentoTempoTarefa(final List<? extends Tarefa> tasks) {
