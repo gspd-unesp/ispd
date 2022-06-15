@@ -636,6 +636,7 @@ public class Graficos {
 
         double lostMFlops = 0.0;
         double usedMFlops = 0.0;
+
         for (int i = 0; i < target.getHistorico().size(); i++) {
 
             final Tarefa task = target.getHistorico().get(i);
@@ -692,7 +693,7 @@ public class Graficos {
                 false
         );
 
-        final ChartPanel machineUseChart = new ChartPanel(jfc);
+        final var machineUseChart = new ChartPanel(jfc);
         machineUseChart.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         return machineUseChart;
     }
