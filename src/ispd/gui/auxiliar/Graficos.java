@@ -21,6 +21,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -310,7 +311,7 @@ public class Graficos {
         final Double usage = Graficos.ONE_HUNDRED_PERCENT
                 - (machine.getOcupacao() * Graficos.ONE_HUNDRED_PERCENT);
 
-        final var title = Graficos.machineIsCluster(machine)
+        final var title = Graficos.isMachineCluster(machine)
                 ? "%s node %d".formatted(
                 machine.getId(), machine.getnumeroMaquina())
                 : machine.getId();
@@ -331,98 +332,73 @@ public class Graficos {
         return timeSeries;
     }
 
-    private static boolean machineIsCluster(final CS_Processamento machine) {
+    private static boolean isMachineCluster(final CS_Processamento machine) {
         return machine.getnumeroMaquina() != 0;
     }
 
-    public void criarProcessamentoTempoUser(final List<Tarefa> tarefas,
-                                            final RedeDeFilas rdf) {
-        final ArrayList<UserOperationTime> lista =
-                new ArrayList<UserOperationTime>();
-        final int numberUsers = rdf.getUsuarios().size();
-        final Map<String, Integer> users = new HashMap<String, Integer>();
-        final XYSeries[] tmp_series = new XYSeries[numberUsers];
-        final XYSeries[] tmp_series1 = new XYSeries[numberUsers];
-        final Double[] utilizacaoUser = new Double[numberUsers];
-        final Double[] utilizacaoUser1 = new Double[numberUsers];
-        final XYSeriesCollection dadosGrafico = new XYSeriesCollection();
-        final XYSeriesCollection dadosGrafico1 = new XYSeriesCollection();
-        for (int i = 0; i < numberUsers; i++) {
-            users.put(rdf.getUsuarios().get(i), i);
-            utilizacaoUser[i] = 0.0;
-            tmp_series[i] = new XYSeries(rdf.getUsuarios().get(i));
-            utilizacaoUser1[i] = 0.0;
-            tmp_series1[i] = new XYSeries(rdf.getUsuarios().get(i));
-        }
-        if (!tarefas.isEmpty()) {
-            //Insere cada tarefa como dois pontos na lista
-            for (final Tarefa task : tarefas) {
-                final CS_Processamento local =
-                        (CS_Processamento) task.getLocalProcessamento();
-                if (local != null) {
+    public void criarProcessamentoTempoUser(
+            final List<Tarefa> tasks, final RedeDeFilas qn) {
+        final int userCount = qn.getUsuarios().size();
+        final var timeSeries1 = Graficos.userSeries(qn);
+        final var timeSeries2 = Arrays.copyOf(timeSeries1, userCount);
+        final var userUsage1 = new Double[userCount];
+        final var userUsage2 = new Double[userCount];
+        final var chartData1 = new XYSeriesCollection();
+        final var chartData2 = new XYSeriesCollection();
 
-                    for (int i = 0; i < task.getTempoInicial().size(); i++) {
-                        final Double uso =
-                                (task.getHistoricoProcessamento().get(i).getPoderComputacional() / this.poderComputacionalTotal) * 100;
-                        final UserOperationTime provisorio1 =
-                                new UserOperationTime(task.getTempoInicial().get(i), true, uso, users.get(task.getProprietario()));
-                        lista.add(provisorio1);
-                        final UserOperationTime provisorio2 =
-                                new UserOperationTime(task.getTempoFinal().get(i), false, uso, users.get(task.getProprietario()));
-                        lista.add(provisorio2);
-                    }
-                }
-            }
-            //Ordena lista
-            Collections.sort(lista);
-        }
-        for (int i = 0; i < lista.size(); i++) {
-            final UserOperationTime temp = lista.get(i);
-            final int usuario = temp.getUserId();
+        final var list =
+                this.makeUserTimesList(tasks, Graficos.makeUserMap(qn));
+
+        for (final var userTime : list) {
+            final int userId = userTime.getUserId();
             //Altera os valores do usuario atual e todos acima dele
-            for (int j = usuario; j < numberUsers; j++) {
+            for (int j = userId; j < userCount; j++) {
                 //Salva valores anteriores
-                tmp_series[j].add(temp.getTime(), utilizacaoUser[j]);
-                if (temp.getType()) {
-                    utilizacaoUser[j] += temp.getNodeUse();
+                timeSeries1[j].add(userTime.getTime(), userUsage1[j]);
+                if (userTime.isStartTime()) {
+                    userUsage1[j] += userTime.getNodeUse();
                 } else {
-                    utilizacaoUser[j] -= temp.getNodeUse();
+                    userUsage1[j] -= userTime.getNodeUse();
                 }
                 //Novo valor
-                tmp_series[j].add(temp.getTime(), utilizacaoUser[j]);
+                timeSeries1[j].add(userTime.getTime(), userUsage1[j]);
             }
             //Grafico1
-            tmp_series1[usuario].add(temp.getTime(),
-                    utilizacaoUser1[usuario]);
-            if (temp.getType()) {
-                utilizacaoUser1[usuario] += temp.getNodeUse();
+            timeSeries2[userId].add(userTime.getTime(), userUsage2[userId]);
+            if (userTime.isStartTime()) {
+                userUsage2[userId] += userTime.getNodeUse();
             } else {
-                utilizacaoUser1[usuario] -= temp.getNodeUse();
+                userUsage2[userId] -= userTime.getNodeUse();
             }
-            tmp_series1[usuario].add(temp.getTime(),
-                    utilizacaoUser1[usuario]);
+            timeSeries2[userId].add(userTime.getTime(), userUsage2[userId]);
         }
-        for (int i = 0; i < numberUsers; i++) {
-            dadosGrafico.addSeries(tmp_series[i]);
-            dadosGrafico1.addSeries(tmp_series1[i]);
+        for (int i = 0; i < userCount; i++) {
+            chartData1.addSeries(timeSeries1[i]);
+            chartData2.addSeries(timeSeries2[i]);
         }
+
         final JFreeChart user1 = ChartFactory.createXYAreaChart(
-                "Use of total computing power through time"
-                        + "\nUsers", //Titulo
-                "Time (seconds)", // Eixo X
-                "Rate of total use of computing power (%)", //Eixo Y
-                dadosGrafico1, // Dados para o grafico
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, true, false); // exibir: legendas, tooltips, url
+                "Use of total computing power through time\nUsers",
+                "Time (seconds)",
+                "Rate of total use of computing power (%)",
+                chartData2,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
 
         final JFreeChart user2 = ChartFactory.createXYLineChart(
-                "Use of total computing power through time"
-                        + "\nUsers", //Titulo
-                "Time (seconds)", // Eixo X
-                "Rate of total use of computing power (%)", //Eixo Y
-                dadosGrafico, // Dados para o grafico
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, true, false); // exibir: legendas, tooltips, url
+                "Use of total computing power through time\nUsers",
+                "Time (seconds)",
+                "Rate of total use of computing power (%)",
+                chartData1,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
+
         final XYPlot xyplot = (XYPlot) user2.getPlot();
         xyplot.setDomainPannable(true);
         final XYStepAreaRenderer xysteparearenderer = new XYStepAreaRenderer(2);
@@ -435,6 +411,72 @@ public class Graficos {
         this.userThroughTime1.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
         this.UserThroughTime2 = new ChartPanel(user2);
         this.UserThroughTime2.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+    }
+
+    private static XYSeries[] userSeries(final RedeDeFilas qn) {
+        final int userCount = qn.getUsuarios().size();
+        final var series = new XYSeries[userCount];
+        for (int i = 0; i < userCount; i++) {
+            series[i] = new XYSeries(qn.getUsuarios().get(i));
+        }
+        return series;
+    }
+
+    private ArrayList<UserOperationTime> makeUserTimesList(
+            final Collection<? extends Tarefa> tasks,
+            final Map<String, Integer> users) {
+        final var list = new ArrayList<UserOperationTime>(0);
+
+        if (tasks.isEmpty()) {
+            return list;
+        }
+
+        for (final var task : tasks) {
+            this.addTaskStatsToList(task, list, users);
+        }
+
+        Collections.sort(list);
+        return list;
+    }
+
+    private static Map<String, Integer> makeUserMap(final RedeDeFilas qn) {
+        final int userCount = qn.getUsuarios().size();
+        final Map<String, Integer> users = new HashMap<>(userCount);
+        for (int i = 0; i < userCount; i++) {
+            users.put(qn.getUsuarios().get(i), i);
+        }
+        return users;
+    }
+
+    private void addTaskStatsToList(
+            final Tarefa task,
+            final Collection<? super UserOperationTime> list,
+            final Map<String, Integer> users) {
+        if (task.getLocalProcessamento() == null) {
+            return;
+        }
+
+        final int intervalCount = task.getTempoInicial().size();
+        for (int i = 0; i < intervalCount; i++) {
+            final var usage = this.calculateUsage(task, i);
+            final var ownerId = users.get(task.getProprietario());
+            list.add(new UserOperationTime(
+                    task.getTempoInicial().get(i),
+                    true,
+                    usage,
+                    ownerId
+            ));
+            list.add(new UserOperationTime(
+                    task.getTempoFinal().get(i),
+                    false,
+                    usage,
+                    ownerId
+            ));
+        }
+    }
+
+    private double calculateUsage(final Tarefa task, final int i) {
+        return (task.getHistoricoProcessamento().get(i).getPoderComputacional() / this.poderComputacionalTotal) * Graficos.ONE_HUNDRED_PERCENT;
     }
 
     public ChartPanel criarGraficoPorTarefa(final List<Tarefa> tarefas,
@@ -704,25 +746,27 @@ public class Graficos {
         // TODO: make this should be a record
 
         private final Double time;
+        private final Boolean isStartTime;
         private final Double nodeUse;
-        private final Boolean type;
         private final Integer userId;
 
-        private UserOperationTime(final double time, final boolean type,
-                                  final Double uso,
-                                  final Integer userId) {
-            this.userId = userId;
+        private UserOperationTime(
+                final double time,
+                final boolean isStartTime,
+                final Double nodeUse,
+                final Integer userId) {
             this.time = time;
-            this.nodeUse = uso;
-            this.type = type;
+            this.isStartTime = isStartTime;
+            this.nodeUse = nodeUse;
+            this.userId = userId;
         }
 
         Integer getUserId() {
             return this.userId;
         }
 
-        Boolean getType() {
-            return this.type;
+        Boolean isStartTime() {
+            return this.isStartTime;
         }
 
         Double getNodeUse() {
