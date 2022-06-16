@@ -191,12 +191,12 @@ public class Graficos {
     }
 
     public void criarProcessamentoTempoTarefa(
-            final Collection<? extends Tarefa> tasks) {
+            final Iterable<? extends Tarefa> tasks) {
         this.TaskThroughTime = this.makeTaskThroughTimeChart(tasks);
     }
 
     private ChartPanel makeTaskThroughTimeChart(
-            final Collection<? extends Tarefa> tasks) {
+            final Iterable<? extends Tarefa> tasks) {
         return new ChartPanel(ChartFactory.createXYAreaChart(
                 "Use of total computing power through time \nTasks",
                 "Time (seconds)",
@@ -325,7 +325,7 @@ public class Graficos {
             if (i + 1 < count) {
                 final var nextInterval = list.get(i + 1);
                 timeSeries.add(currInterval.getFim(), Graficos.ZERO);
-                timeSeries.add(currInterval.getInicio(), Graficos.ZERO);
+                timeSeries.add(nextInterval.getInicio(), Graficos.ZERO);
             }
         }
 
@@ -337,7 +337,7 @@ public class Graficos {
     }
 
     public void criarProcessamentoTempoUser(
-            final List<Tarefa> tasks, final RedeDeFilas qn) {
+            final Collection<? extends Tarefa> tasks, final RedeDeFilas qn) {
         final int userCount = qn.getUsuarios().size();
         final var timeSeries1 = Graficos.userSeries(qn);
         final var timeSeries2 = Arrays.copyOf(timeSeries1, userCount);
