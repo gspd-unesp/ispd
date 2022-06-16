@@ -255,65 +255,84 @@ public class Graficos {
      * Ele recebe como parâmetro a lista com as maquinas que processaram
      * durante a simulação.
      */
-    public void criarProcessamentoTempoMaquina(final RedeDeFilas rdf) {
-        final XYSeriesCollection dadosGrafico = new XYSeriesCollection();
-        //Se tiver alguma máquina na lista.
-        if (rdf.getMaquinas() != null) {
-            //Laço foreach que percorre as máquinas.
-            for (final CS_Processamento maq : rdf.getMaquinas()) {
-                //Lista que recebe os pares de intervalo de tempo em que a
-                // máquina executou.
-                final List<ParesOrdenadosUso> lista =
-                        maq.getListaProcessamento();
-                this.poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
-                //Se a máquina tiver intervalos.
-                if (!lista.isEmpty()) {
-                    //Cria o objeto do tipo XYSeries.
-                    final XYSeries tmp_series;
-                    //Se o atributo numeroMaquina for 0, ou seja, não for um
-                    // nó de um cluster.
-                    if (maq.getnumeroMaquina() == 0) //Estancia com o nome puro.
-                    {
-                        tmp_series = new XYSeries(maq.getId());
-                    } //Se for 1 ou mais, ou seja, é um nó de cluster.
-                    else //Estancia tmp_series com o nome concatenado com a
-                    // palavra node e seu numero.
-                    {
-                        tmp_series =
-                                new XYSeries(maq.getId() + " node " + maq.getnumeroMaquina());
-                    }
-                    int i;
-                    //Laço que vai adicionando os pontos para a criação do
-                    // gráfico.
-                    for (i = 0; i < lista.size(); i++) {
-                        //Calcula o uso, que é 100% - taxa de ocupação inicial.
-                        Double uso = 100 - (maq.getOcupacao() * 100);
-                        //Adiciona ponto inicial.
-                        tmp_series.add(lista.get(i).getInicio(), uso);
-                        //Adiciona ponto final.
-                        tmp_series.add(lista.get(i).getFim(), uso);
-                        if (i + 1 != lista.size()) {
-                            uso = 0.0000;
-                            tmp_series.add(lista.get(i).getFim(), uso);
-                            tmp_series.add(lista.get(i + 1).getInicio(), uso);
-                        }
-                    }
-                    //Add no gráfico.
-                    dadosGrafico.addSeries(tmp_series);
-                }
+    public void criarProcessamentoTempoMaquina(final RedeDeFilas qn) {
+        this.machineThroughTime = this.makeMachineProcTimeChart(qn);
+    }
+
+    private ChartPanel makeMachineProcTimeChart(final RedeDeFilas qn) {
+        final ChartPanel chart = new ChartPanel(ChartFactory.createXYAreaChart(
+                "Use of computing power through time \nMachines",
+                "Time (seconds)",
+                "Rate of use of computing power for each node (%)",
+                this.getMachineProcTimeChartData(qn),
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false)
+        );
+        chart.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        return chart;
+    }
+
+    private XYSeriesCollection getMachineProcTimeChartData(final RedeDeFilas qn) {
+        final var data = new XYSeriesCollection();
+        if (qn.getMaquinas() == null) {
+            return data;
+        }
+        qn.getMaquinas().forEach(machine ->
+                this.addMachineStatsToChartData(data, machine));
+        return data;
+    }
+
+    private void addMachineStatsToChartData(
+            final XYSeriesCollection data, final CS_Processamento machine) {
+        this.poderComputacionalTotal += Graficos.computationalPowerForMachine(machine);
+
+        final List<ParesOrdenadosUso> list = machine.getListaProcessamento();
+
+        if (list.isEmpty()) {
+            return;
+        }
+
+        final var timeSeries = Graficos.buildSeriesForMachine(machine, list);
+
+        data.addSeries(timeSeries);
+    }
+
+    private static double computationalPowerForMachine(final CS_Processamento machine) {
+        final var power = machine.getPoderComputacional();
+        return power - (machine.getOcupacao() * power);
+    }
+
+    private static XYSeries buildSeriesForMachine(
+            final CS_Processamento machine,
+            final List<? extends ParesOrdenadosUso> list) {
+        final Double usage = Graficos.ONE_HUNDRED_PERCENT
+                - (machine.getOcupacao() * Graficos.ONE_HUNDRED_PERCENT);
+
+        final var title = Graficos.machineIsCluster(machine)
+                ? "%s node %d".formatted(
+                machine.getId(), machine.getnumeroMaquina())
+                : machine.getId();
+        final var timeSeries = new XYSeries(title);
+
+        final var count = list.size();
+        for (int i = 0; i < count; ++i) {
+            final var currInterval = list.get(i);
+            timeSeries.add(currInterval.getInicio(), usage);
+            timeSeries.add(currInterval.getFim(), usage);
+            if (i + 1 < count) {
+                final var nextInterval = list.get(i + 1);
+                timeSeries.add(currInterval.getFim(), Graficos.ZERO);
+                timeSeries.add(currInterval.getInicio(), Graficos.ZERO);
             }
         }
 
-        final JFreeChart jfc = ChartFactory.createXYAreaChart(
-                "Use of computing power through time "
-                        + "\nMachines", //Titulo
-                "Time (seconds)", // Eixo X
-                "Rate of use of computing power for each node (%)", //Eixo Y
-                dadosGrafico, // Dados para o grafico
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, true, false); // exibir: legendas, tooltips, url
-        this.machineThroughTime = new ChartPanel(jfc);
-        this.machineThroughTime.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        return timeSeries;
+    }
+
+    private static boolean machineIsCluster(final CS_Processamento machine) {
+        return machine.getnumeroMaquina() != 0;
     }
 
     public void criarProcessamentoTempoUser(final List<Tarefa> tarefas,
@@ -677,7 +696,7 @@ public class Graficos {
 
     public void calculaPoderTotal(final RedeDeFilas rdf) {
         for (final CS_Processamento maq : rdf.getMaquinas()) {
-            this.poderComputacionalTotal += (maq.getPoderComputacional() - (maq.getOcupacao() * maq.getPoderComputacional()));
+            this.poderComputacionalTotal += Graficos.computationalPowerForMachine(maq);
         }
     }
 
