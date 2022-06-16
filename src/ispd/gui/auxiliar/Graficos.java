@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Classe criada para separear a criação e controle dos gráficos da janela de
@@ -33,7 +34,8 @@ import java.util.Map;
  */
 public class Graficos {
 
-    public static final double ONE_HUNDRED_PERCENT = 100.0;
+    public static final Double ZERO = 0.0;
+    private static final double ONE_HUNDRED_PERCENT = 100.0;
     private static final Dimension PREFERRED_CHART_SIZE
             = new Dimension(600, 300);
     public ChartPanel PreemptionPerUser = null;
@@ -207,43 +209,44 @@ public class Graficos {
     }
 
     private XYSeriesCollection makeTTTChartData(
-            final Collection<? extends Tarefa> tasks) {
+            final Iterable<? extends Tarefa> tasks) {
 
-        final XYSeriesCollection chartData = new XYSeriesCollection();
+        final var data = new XYSeriesCollection();
 
-        if (tasks.isEmpty()) {
-            return chartData;
-        }
+        tasks.forEach(task -> this.addTaskToChartData(task, data));
 
-        for (final Tarefa task : tasks) {
-            this.addEntryToTTChartData(chartData, task);
-        }
-
-        return chartData;
+        return data;
     }
 
-    private void addEntryToTTChartData(final XYSeriesCollection chartData,
-                                       final Tarefa task) {
-        final XYSeries timeSeries =
-                new XYSeries("task " + task.getIdentificador());
-        final CS_Processamento temp =
-                (CS_Processamento) task.getLocalProcessamento();
+    private void addTaskToChartData(
+            final Tarefa task, final XYSeriesCollection chartData) {
+        final var series = this.makeTaskTimeSeries(task);
+        if (series == null) return;
+        chartData.addSeries(series);
+    }
+
+    private XYSeries makeTaskTimeSeries(final Tarefa task) {
+        final var temp = (CS_Processamento) task.getLocalProcessamento();
 
         if (temp == null) {
-            return;
+            return null;
         }
 
+        final var series =
+                new XYSeries("task %d".formatted(task.getIdentificador()));
+
         final Double usage =
-                (temp.getPoderComputacional() / this.poderComputacionalTotal) * 100;
-        for (int j = 0; j < task.getTempoInicial().size(); j++) {
-            timeSeries.add(task.getTempoInicial().get(j),
-                    (Double) 0.0);
-            timeSeries.add(task.getTempoInicial().get(j), usage);
-            timeSeries.add(task.getTempoFinal().get(j), usage);
-            timeSeries.add(task.getTempoFinal().get(j),
-                    (Double) 0.0);
-        }
-        chartData.addSeries(timeSeries);
+                temp.getPoderComputacional() / this.poderComputacionalTotal * 100;
+
+        Stream.concat(
+                task.getTempoInicial().stream(),
+                task.getTempoFinal().stream()
+        ).forEach(time -> {
+            series.add(time, Graficos.ZERO);
+            series.add(time, usage);
+        });
+
+        return series;
     }
 
     /**
