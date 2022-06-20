@@ -710,7 +710,10 @@ public class Graficos {
             final List<Tarefa> tasks,
             final String machineId) {
 
-        final var machine = this.findMachineWithIdOrNull(machineId);
+        final var machine = this.rede.getMaquinas().stream()
+                .filter(machine1 -> machine1.getId().equals(machineId))
+                .findFirst()
+                .orElse(null);
 
         if (machine == null) {
             return null;
@@ -726,10 +729,6 @@ public class Graficos {
                 true,
                 false
         ));
-    }
-
-    private CS_Maquina findMachineWithIdOrNull(final String id) {
-        return this.rede.getMaquinas().stream().filter(machine -> machine.getId().equals(id)).findFirst().orElse(null);
     }
 
     private static DefaultCategoryDataset makePerMachineChartData(final CS_Maquina machine) {
@@ -781,6 +780,9 @@ public class Graficos {
         }
     }
 
+    /**
+     * Note: this class has a natural ordering that is inconsistent with equals.
+     */
     protected static class UserOperationTime implements Comparable<UserOperationTime> {
         // TODO: make this should be a record
 
