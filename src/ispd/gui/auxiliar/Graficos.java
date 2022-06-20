@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  */
 public class Graficos {
 
-    public static final Double ZERO = 0.0;
+    private static final Double ZERO = 0.0;
     private static final double ONE_HUNDRED_PERCENT = 100.0;
     private static final Dimension PREFERRED_CHART_SIZE
             = new Dimension(600, 300);
@@ -83,7 +83,6 @@ public class Graficos {
 
     public void criarProcessamento(
             final Map<String, ? extends MetricasProcessamento> metrics) {
-
         this.processingBarChart = Graficos.makeBarChart(metrics);
         this.processingPieChart = Graficos.makePieChart(metrics);
     }
@@ -106,21 +105,18 @@ public class Graficos {
             Graficos.inclineChartXAxis(chart);
         }
 
-        final ChartPanel panel = Graficos.panelWithPreferredSize(chart);
-        return panel;
+        return Graficos.panelWithPreferredSize(chart);
     }
 
     private static ChartPanel makePieChart(
             final Map<String, ? extends MetricasProcessamento> metrics) {
-        final JFreeChart jfc2 = ChartFactory.createPieChart(
+        return Graficos.panelWithPreferredSize(ChartFactory.createPieChart(
                 "Total processed on each resource",
                 Graficos.makePieChartData(metrics),
                 true,
                 false,
                 false
-        );
-        final ChartPanel v = Graficos.panelWithPreferredSize(jfc2);
-        return v;
+        ));
     }
 
     private static DefaultCategoryDataset makeBarChartData(
@@ -166,31 +162,31 @@ public class Graficos {
     }
 
     private static String makeKey(final MetricasProcessamento mt) {
-        return mt.getnumeroMaquina() != 0
-                ? "%s node %d".formatted(mt.getId(), mt.getnumeroMaquina())
-                : mt.getId();
+        final var id = mt.getId();
+        final var machineNum = mt.getnumeroMaquina();
+        return machineNum == 0 ? id
+                : "%s node %d".formatted(id, machineNum);
     }
 
     public void criarComunicacao(
             final Map<String, ? extends MetricasComunicacao> metrics) {
-        final DefaultPieDataset commsPieChartData = new DefaultPieDataset();
+        final var commsPieChartData = new DefaultPieDataset();
 
         if (metrics != null) {
             for (final var link : metrics.values()) {
-                commsPieChartData.insertValue(0, link.getId(),
-                        link.getMbitsTransmitidos());
+                commsPieChartData.insertValue(
+                        0, link.getId(), link.getMbitsTransmitidos());
             }
         }
 
-        final var jfc = ChartFactory.createPieChart(
-                "Total communication in each resource",
-                commsPieChartData,
-                true,
-                false,
-                false);
-        final ChartPanel cpc = new ChartPanel(jfc);
-        cpc.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-        this.communicationPieChart = cpc;
+        this.communicationPieChart =
+                Graficos.panelWithPreferredSize(ChartFactory.createPieChart(
+                        "Total communication in each resource",
+                        commsPieChartData,
+                        true,
+                        false,
+                        false
+                ));
     }
 
     public void criarProcessamentoTempoTarefa(
@@ -264,7 +260,7 @@ public class Graficos {
     }
 
     private ChartPanel makeMachineProcTimeChart(final RedeDeFilas qn) {
-        final ChartPanel chart = new ChartPanel(ChartFactory.createXYAreaChart(
+        return Graficos.panelWithPreferredSize(ChartFactory.createXYAreaChart(
                 "Use of computing power through time \nMachines",
                 "Time (seconds)",
                 "Rate of use of computing power for each node (%)",
@@ -272,10 +268,8 @@ public class Graficos {
                 PlotOrientation.VERTICAL,
                 true,
                 true,
-                false)
-        );
-        chart.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-        return chart;
+                false
+        ));
     }
 
     private XYSeriesCollection getMachineProcTimeChartData(final RedeDeFilas qn) {
@@ -558,7 +552,7 @@ public class Graficos {
                 "Processing efficiency",
                 "",
                 "% of total MFlop executed",
-                this.makeUsageChartData(tasks),
+                Graficos.makeUsageChartData(tasks),
                 PlotOrientation.VERTICAL,
                 true,
                 true,
@@ -566,7 +560,7 @@ public class Graficos {
         ));
     }
 
-    private DefaultCategoryDataset makeUsageChartData(
+    private static DefaultCategoryDataset makeUsageChartData(
             final Collection<? extends Tarefa> tasks) {
 
         final double useful = tasks.stream()
@@ -582,17 +576,18 @@ public class Graficos {
 
         final var chartData = new DefaultCategoryDataset();
         Graficos.addProcessingData(
-                useful, total, chartData, "Usefull Processing");
+                chartData, "Usefull Processing", useful, total);
         Graficos.addProcessingData(
-                wasted, total, chartData, "Wasted Processing");
+                chartData, "Wasted Processing", wasted, total);
         return chartData;
     }
 
     private static void addProcessingData(
-            final double usefulProcessing,
-            final double totalProcessing,
-            final DefaultCategoryDataset chartData, final String title) {
-        chartData.addValue(usefulProcessing / totalProcessing * Graficos.ONE_HUNDRED_PERCENT, title, "MFlop Usage");
+            final DefaultCategoryDataset chartData,
+            final String title,
+            final double processing,
+            final double totalProcessing) {
+        chartData.addValue(processing / totalProcessing * Graficos.ONE_HUNDRED_PERCENT, title, "MFlop Usage");
     }
 
     public ChartPanel criarGraficoNumTarefasAproveitamento(
@@ -768,9 +763,9 @@ public class Graficos {
         final double total = lostMFlops + usedMFlops;
         final var data = new DefaultCategoryDataset();
         Graficos.addProcessingData(
-                usedMFlops, total, data, "Usefull Processing");
+                data, "Usefull Processing", usedMFlops, total);
         Graficos.addProcessingData(
-                lostMFlops, total, data, "Wasted Processing");
+                data, "Wasted Processing", lostMFlops, total);
         return data;
     }
 
