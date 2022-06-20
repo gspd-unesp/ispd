@@ -595,46 +595,47 @@ public class Graficos {
         chartData.addValue(usefulProcessing / totalProcessing * Graficos.ONE_HUNDRED_PERCENT, title, "MFlop Usage");
     }
 
-    public ChartPanel criarGraficoNumTarefasAproveitamento(final List<Tarefa> tarefas) {
+    public ChartPanel criarGraficoNumTarefasAproveitamento(
+            final Iterable<? extends Tarefa> tasks) {
+        return Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+                "Processing efficiency",
+                "",
+                "Number of tasks",
+                Graficos.makeChartDataForTaskCount(tasks),
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        ));
+    }
 
-        final DefaultCategoryDataset dadosMflopProcessados =
-                new DefaultCategoryDataset();
-        int numExcesso = 0, numOK = 0, numCanceladas = 0;
-        int i;
+    private static DefaultCategoryDataset makeChartDataForTaskCount(
+            final Iterable<? extends Tarefa> tasks) {
 
-        for (i = 0; i < tarefas.size(); i++) {
+        int cancelled = 0;
+        int withoutWaste = 0;
+        int withWaste = 0;
 
-            if (tarefas.get(i).getEstado() != Tarefa.CANCELADO) {
-                if (tarefas.get(i).getMflopsDesperdicados() != 0.0) {
-                    numExcesso++;
-                } else {
-                    numOK++;
-                }
+        for (final var task : tasks) {
+            if (task.getEstado() == Tarefa.CANCELADO) {
+                cancelled++;
+            } else if (task.getMflopsDesperdicados() == 0.0) {
+                withoutWaste++;
             } else {
-                numCanceladas++;
+                withWaste++;
             }
-
         }
 
-        dadosMflopProcessados.addValue(numExcesso, "Number of tasks", "Tasks " +
-                "with waste");
-        dadosMflopProcessados.addValue(numOK, "Number of tasks", "Tasks " +
-                "without waste");
-        dadosMflopProcessados.addValue(numCanceladas, "Number of tasks",
-                "Canceled Tasks");
+        final var chartData = new DefaultCategoryDataset();
 
+        chartData.addValue(
+                withWaste, "Number of tasks", "Tasks with waste");
+        chartData.addValue(
+                withoutWaste, "Number of tasks", "Tasks without waste");
+        chartData.addValue(
+                cancelled, "Number of tasks", "Canceled Tasks");
 
-        final JFreeChart jfc = ChartFactory.createStackedBarChart(
-                "Processing efficiency", //Titulo
-                "", // Eixo X
-                "Number of tasks", //Eixo Y
-                dadosMflopProcessados, // Dados para o grafico
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, true, false); // exibir: legendas, tooltips, url
-        final ChartPanel graficoAproveitamentoNumero = new ChartPanel(jfc);
-        graficoAproveitamentoNumero.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-        return graficoAproveitamentoNumero;
-
+        return chartData;
     }
 
     public void criarGraficoPreempcao(final RedeDeFilas rdf,
