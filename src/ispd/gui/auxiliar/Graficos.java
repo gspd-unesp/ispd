@@ -716,45 +716,32 @@ public class Graficos {
         double lostMFlops = 0.0;
 
         for (final var task : machine.getHistorico()) {
-            final int machineCount = task.getHistoricoProcessamento().size();
-            if (task.getMflopsDesperdicados() == 0.0) {
-                for (int i = 0; i < machineCount; i++) {
-                    if (!machine.getId().equals(task.getHistoricoProcessamento().get(i).getId())) {
-                        continue;
-                    }
-
-                    final double time =
-                            task.getTempoFinal().get(i) - task.getTempoInicial().get(i);
-
-                    usedMFlops += machine.getMflopsProcessados(time);
-                }
-
-                continue;
-
-            } else {
-                for (int i = 0; i < machineCount; i++) {
-
-                    if (!machine.getId().equals(task.getHistoricoProcessamento().get(i).getId())) {
-                        continue;
-                    }
-
-                    final double time =
-                            task.getTempoFinal().get(i) - task.getTempoInicial().get(i);
-
-                    final double processed = machine.getMflopsProcessados(time);
-                    final double checkpoint = task.getCheckPoint();
-
-                    if (checkpoint == 0.0) {
-                        lostMFlops += processed;
-                        continue;
-                    }
-
-                    final double remainder = processed % checkpoint;
-                    usedMFlops += processed / checkpoint - remainder;
-                    lostMFlops += remainder;
-
+            final var machines = task.getHistoricoProcessamento();
+            final int count = machines.size();
+            for (int i = 0; i < count; ++i) {
+                if (!machine.getId().equals(machines.get(i).getId())) {
                     continue;
                 }
+
+                final double processed = machine.getMflopsProcessados(
+                        task.getTempoFinal().get(i) - task.getTempoInicial().get(i));
+
+                if (task.getMflopsDesperdicados() == 0.0) {
+                    usedMFlops += processed;
+                    continue;
+                }
+
+                final double checkpoint = task.getCheckPoint();
+
+                if (checkpoint == 0.0) {
+                    lostMFlops += processed;
+                    continue;
+                }
+
+                final double quotient = processed / checkpoint;
+                final double remainder = processed % checkpoint;
+                usedMFlops += quotient - remainder;
+                lostMFlops += remainder;
             }
         }
 
