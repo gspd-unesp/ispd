@@ -106,8 +106,7 @@ public class Graficos {
             Graficos.inclineChartXAxis(chart);
         }
 
-        final var panel = new ChartPanel(chart);
-        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        final ChartPanel panel = Graficos.panelWithPreferredSize(chart);
         return panel;
     }
 
@@ -120,8 +119,7 @@ public class Graficos {
                 false,
                 false
         );
-        final var v = new ChartPanel(jfc2);
-        v.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        final ChartPanel v = Graficos.panelWithPreferredSize(jfc2);
         return v;
     }
 
@@ -145,6 +143,12 @@ public class Graficos {
 
     private static void inclineChartXAxis(final JFreeChart chart) {
         chart.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+    }
+
+    private static ChartPanel panelWithPreferredSize(final JFreeChart chart) {
+        final var panel = new ChartPanel(chart);
+        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        return panel;
     }
 
     private static DefaultPieDataset makePieChartData(
@@ -391,12 +395,10 @@ public class Graficos {
 
         this.setPlotRenderer(chart2);
 
-        final var chartPanel1 = new ChartPanel(chart1);
-        chartPanel1.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        final ChartPanel chartPanel1 = Graficos.panelWithPreferredSize(chart1);
         this.userThroughTime1 = chartPanel1;
 
-        final var chartPanel2 = new ChartPanel(chart2);
-        chartPanel2.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        final ChartPanel chartPanel2 = Graficos.panelWithPreferredSize(chart2);
         this.UserThroughTime2 = chartPanel2;
     }
 
@@ -523,8 +525,7 @@ public class Graficos {
                 false
         );
 
-        final var panel = new ChartPanel(chart);
-        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        final ChartPanel panel = Graficos.panelWithPreferredSize(chart);
         return panel;
     }
 
@@ -551,38 +552,47 @@ public class Graficos {
         );
     }
 
-    public ChartPanel criarGraficoAproveitamento(final List<Tarefa> tarefas) {
+    public ChartPanel criarGraficoAproveitamento(
+            final Collection<? extends Tarefa> tasks) {
+        return Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+                "Processing efficiency",
+                "",
+                "% of total MFlop executed",
+                this.makeUsageChartData(tasks),
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        ));
+    }
 
-        final DefaultCategoryDataset dadosMflopProcessados =
-                new DefaultCategoryDataset();
-        double mflopDesperdicado = 0.0, tamanhoTotal = 0.0;
-        int i, j;
+    private DefaultCategoryDataset makeUsageChartData(
+            final Collection<? extends Tarefa> tasks) {
 
-        for (i = 0; i < tarefas.size(); i++) {
+        final double useful = tasks.stream()
+                .filter(t -> t.getEstado() != Tarefa.CANCELADO)
+                .mapToDouble(Tarefa::getTamProcessamento)
+                .sum();
 
-            if (tarefas.get(i).getEstado() != Tarefa.CANCELADO) {
+        final double wasted = tasks.stream()
+                .mapToDouble(Tarefa::getMflopsDesperdicados)
+                .sum();
 
-                tamanhoTotal += tarefas.get(i).getTamProcessamento();
+        final double total = wasted + useful;
 
-            }
+        final var chartData = new DefaultCategoryDataset();
+        Graficos.addProcessingData(
+                useful, total, chartData, "Usefull Processing");
+        Graficos.addProcessingData(
+                wasted, total, chartData, "Wasted Processing");
+        return chartData;
+    }
 
-            mflopDesperdicado += tarefas.get(i).getMflopsDesperdicados();
-
-        }
-
-        dadosMflopProcessados.addValue((tamanhoTotal / (mflopDesperdicado + tamanhoTotal)) * Graficos.ONE_HUNDRED_PERCENT, "Usefull Processing", "MFlop Usage");
-        dadosMflopProcessados.addValue((mflopDesperdicado / (mflopDesperdicado + tamanhoTotal)) * Graficos.ONE_HUNDRED_PERCENT, "Wasted Processing", "MFlop Usage");
-
-        final JFreeChart jfc = ChartFactory.createStackedBarChart(
-                "Processing efficiency", //TituloUsage#
-                "", // Eixo X
-                "% of total MFlop executed", //Eixo Y
-                dadosMflopProcessados, // Dados para o grafico
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, true, false); // exibir: legendas, tooltips, url
-        final ChartPanel graficoAproveitamentoPorcentagem = new ChartPanel(jfc);
-        graficoAproveitamentoPorcentagem.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-        return graficoAproveitamentoPorcentagem;
+    private static void addProcessingData(
+            final double usefulProcessing,
+            final double totalProcessing,
+            final DefaultCategoryDataset chartData, final String title) {
+        chartData.addValue(usefulProcessing / totalProcessing * Graficos.ONE_HUNDRED_PERCENT, title, "MFlop Usage");
     }
 
     public ChartPanel criarGraficoNumTarefasAproveitamento(final List<Tarefa> tarefas) {
@@ -742,8 +752,7 @@ public class Graficos {
                 false
         );
 
-        final var machineUseChart = new ChartPanel(jfc);
-        machineUseChart.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        final ChartPanel machineUseChart = Graficos.panelWithPreferredSize(jfc);
         return machineUseChart;
     }
 
@@ -755,10 +764,10 @@ public class Graficos {
                                                          final double lostMFlops) {
         final var data = new DefaultCategoryDataset();
         final double total = lostMFlops + usedMFlops;
-        data.addValue((usedMFlops / total) * Graficos.ONE_HUNDRED_PERCENT,
-                "Usefull Processing", "MFlop Usage");
-        data.addValue((lostMFlops / total) * Graficos.ONE_HUNDRED_PERCENT,
-                "Wasted Processing", "MFlop Usage");
+        Graficos.addProcessingData(usedMFlops, total, data, "Usefull " +
+                "Processing");
+        Graficos.addProcessingData(lostMFlops, total, data, "Wasted " +
+                "Processing");
         return data;
     }
 
