@@ -21,7 +21,6 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -339,41 +338,31 @@ public class Graficos {
     public void criarProcessamentoTempoUser(
             final Collection<? extends Tarefa> tasks, final RedeDeFilas qn) {
         final int userCount = qn.getUsuarios().size();
+
         final var timeSeries1 = Graficos.userSeries(qn);
-        final var timeSeries2 = Arrays.copyOf(timeSeries1, userCount);
         final var userUsage1 = new Double[userCount];
-        final var userUsage2 = new Double[userCount];
         final var chartData1 = new XYSeriesCollection();
+
+        final var timeSeries2 = Graficos.userSeries(qn);
+        final var userUsage2 = new Double[userCount];
         final var chartData2 = new XYSeriesCollection();
 
         final var list =
                 this.makeUserTimesList(tasks, Graficos.makeUserMap(qn));
 
-        for (final var userTime : list) {
-            final int userId = userTime.getUserId();
-            //Altera os valores do usuario atual e todos acima dele
-            for (int j = userId; j < userCount; j++) {
-                //Salva valores anteriores
-                timeSeries1[j].add(userTime.getTime(), userUsage1[j]);
-                if (userTime.isStartTime()) {
-                    userUsage1[j] += userTime.getNodeUse();
-                } else {
-                    userUsage1[j] -= userTime.getNodeUse();
-                }
-                //Novo valor
-                timeSeries1[j].add(userTime.getTime(), userUsage1[j]);
+        for (final var useTime : list) {
+            final int userId = useTime.getUserId();
+            for (int id = userId; id < userCount; id++) {
+                this.updateUserUsage(timeSeries1, userUsage1, useTime, id);
             }
-            //Grafico1
-            timeSeries2[userId].add(userTime.getTime(), userUsage2[userId]);
-            if (userTime.isStartTime()) {
-                userUsage2[userId] += userTime.getNodeUse();
-            } else {
-                userUsage2[userId] -= userTime.getNodeUse();
-            }
-            timeSeries2[userId].add(userTime.getTime(), userUsage2[userId]);
+            this.updateUserUsage(timeSeries2, userUsage2, useTime, userId);
         }
+
         for (int i = 0; i < userCount; i++) {
             chartData1.addSeries(timeSeries1[i]);
+        }
+
+        for (int i = 0; i < userCount; i++) {
             chartData2.addSeries(timeSeries2[i]);
         }
 
@@ -446,6 +435,20 @@ public class Graficos {
             users.put(qn.getUsuarios().get(i), i);
         }
         return users;
+    }
+
+    private void updateUserUsage(
+            final XYSeries[] timeSeries,
+            final Double[] usages,
+            final UserOperationTime userTime,
+            final int index) {
+        timeSeries[index].add(userTime.getTime(), usages[index]);
+        if (userTime.isStartTime()) {
+            usages[index] += userTime.getNodeUse();
+        } else {
+            usages[index] -= userTime.getNodeUse();
+        }
+        timeSeries[index].add(userTime.getTime(), usages[index]);
     }
 
     private void addTaskStatsToList(
