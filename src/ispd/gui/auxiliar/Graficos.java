@@ -684,7 +684,7 @@ public class Graficos {
             final int userIndex =
                     qn.getUsuarios().indexOf(task.getProprietario());
 
-            if (task.getMflopsDesperdicados() > 0.0 && task.getEstado() != Tarefa.CANCELADO) {
+            if (Graficos.taskIsPreempted(task)) {
                 preemptedTasks.set(
                         userIndex, 1 + preemptedTasks.get(userIndex));
             }
@@ -702,6 +702,10 @@ public class Graficos {
         return preemptiveTasks;
     }
 
+    private static boolean taskIsPreempted(final Tarefa task) {
+        return task.getMflopsDesperdicados() > 0.0 && task.getEstado() != Tarefa.CANCELADO;
+    }
+
     public ChartPanel gerarGraficoPorMaquina(
             final List<Tarefa> tasks,
             final String machineId) {
@@ -712,6 +716,23 @@ public class Graficos {
             return null;
         }
 
+        return Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+                "Processing efficiency for resource %s".formatted(machine.getId()),
+                "",
+                "% of total MFlop executed",
+                Graficos.makePerMachineChartData(machine),
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        ));
+    }
+
+    private CS_Maquina findMachineWithIdOrNull(final String id) {
+        return this.rede.getMaquinas().stream().filter(machine -> machine.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    private static DefaultCategoryDataset makePerMachineChartData(final CS_Maquina machine) {
         double usedMFlops = 0.0;
         double lostMFlops = 0.0;
 
@@ -745,27 +766,8 @@ public class Graficos {
             }
         }
 
-        return Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
-                "Processing efficiency for resource %s".formatted(machine.getId()),
-                "",
-                "% of total MFlop executed",
-                Graficos.makeMFlopsData(usedMFlops, lostMFlops),
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        ));
-    }
-
-    private CS_Maquina findMachineWithIdOrNull(final String id) {
-        return this.rede.getMaquinas().stream().filter(machine -> machine.getId().equals(id)).findFirst().orElse(null);
-    }
-
-    private static DefaultCategoryDataset makeMFlopsData(
-            final double usedMFlops,
-            final double lostMFlops) {
-        final var data = new DefaultCategoryDataset();
         final double total = lostMFlops + usedMFlops;
+        final var data = new DefaultCategoryDataset();
         Graficos.addProcessingData(
                 usedMFlops, total, data, "Usefull Processing");
         Graficos.addProcessingData(
