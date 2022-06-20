@@ -638,52 +638,68 @@ public class Graficos {
         return chartData;
     }
 
-    public void criarGraficoPreempcao(final RedeDeFilas rdf,
-                                      final List<Tarefa> tarefas) {
+    public void criarGraficoPreempcao(
+            final RedeDeFilas qn,
+            final Iterable<? extends Tarefa> tasks) {
+        this.PreemptionPerUser =
+                Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+                        "Tasks preempted per user",
+                        "",
+                        "Number of tasks",
+                        Graficos.makePreemptionChartData(qn, tasks),
+                        PlotOrientation.VERTICAL,
+                        true,
+                        true,
+                        false
+                ));
+    }
 
-        final DefaultCategoryDataset preempPorUsuario =
-                new DefaultCategoryDataset();
-        double mflopTotal = 0.0, tamanhoTotal;
-        final ArrayList<Integer> tarefasPreemp;
-        tarefasPreemp = new ArrayList();
-        int i, j, indexUsuario;
+    private static DefaultCategoryDataset makePreemptionChartData(
+            final RedeDeFilas qn,
+            final Iterable<? extends Tarefa> tasks) {
 
-        for (i = 0; i < rdf.getUsuarios().size(); i++) {
+        final var preemptedTasks =
+                Graficos.calculatePreemptedTasksPerUser(qn, tasks);
 
-            tarefasPreemp.add(0);
+        final var chartData = new DefaultCategoryDataset();
 
+        final int userCount = qn.getUsuarios().size();
+        for (int i = 0; i < userCount; i++) {
+            chartData.addValue(
+                    preemptedTasks.get(i),
+                    "Number of tasks",
+                    qn.getUsuarios().get(i)
+            );
         }
 
-        for (i = 0; i < tarefas.size(); i++) {
+        return chartData;
+    }
 
-            indexUsuario =
-                    rdf.getUsuarios().indexOf(tarefas.get(i).getProprietario());
+    private static ArrayList<Integer> calculatePreemptedTasksPerUser(
+            final RedeDeFilas qn,
+            final Iterable<? extends Tarefa> tasks) {
+        final var preemptedTasks = Graficos.preemptiveTasksList(qn);
 
-            if (tarefas.get(i).getMflopsDesperdicados() > 0.0 && tarefas.get(i).getEstado() != Tarefa.CANCELADO) {
-                tarefasPreemp.set(indexUsuario,
-                        1 + tarefasPreemp.get(indexUsuario));
+        for (final var task : tasks) {
+            final int userIndex =
+                    qn.getUsuarios().indexOf(task.getProprietario());
+
+            if (task.getMflopsDesperdicados() > 0.0 && task.getEstado() != Tarefa.CANCELADO) {
+                preemptedTasks.set(
+                        userIndex, 1 + preemptedTasks.get(userIndex));
             }
-
-            mflopTotal = 0.0;
-
         }
 
-        for (i = 0; i < rdf.getUsuarios().size(); i++) {
+        return preemptedTasks;
+    }
 
-            preempPorUsuario.addValue(tarefasPreemp.get(i), "Number of tasks"
-                    , rdf.getUsuarios().get(i));
-
+    private static ArrayList<Integer> preemptiveTasksList(final RedeDeFilas qn) {
+        final int userCount = qn.getUsuarios().size();
+        final var preemptiveTasks = new ArrayList<Integer>(userCount);
+        for (int i = 0; i < userCount; i++) {
+            preemptiveTasks.add(0);
         }
-
-        final JFreeChart jfc = ChartFactory.createStackedBarChart(
-                "Tasks preempted per user", //Titulo
-                "", // Eixo X
-                "Number of tasks", //Eixo Y
-                preempPorUsuario, // Dados para o grafico
-                PlotOrientation.VERTICAL, //Orientacao do grafico
-                true, true, false); // exibir: legendas, tooltips, url
-        this.PreemptionPerUser = new ChartPanel(jfc);
-        this.PreemptionPerUser.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        return preemptiveTasks;
     }
 
     public ChartPanel gerarGraficoPorMaquina(final List<Tarefa> tarefas,
