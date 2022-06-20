@@ -353,9 +353,10 @@ public class Graficos {
         for (final var useTime : list) {
             final int userId = useTime.getUserId();
             for (int id = userId; id < userCount; id++) {
-                this.updateUserUsage(timeSeries1, userUsage1, useTime, id);
+                this.updateUserUsage(timeSeries1[id], userUsage1, useTime, id);
             }
-            this.updateUserUsage(timeSeries2, userUsage2, useTime, userId);
+            this.updateUserUsage(timeSeries2[userId], userUsage2, useTime,
+                    userId);
         }
 
         for (int i = 0; i < userCount; i++) {
@@ -366,7 +367,7 @@ public class Graficos {
             chartData2.addSeries(timeSeries2[i]);
         }
 
-        final JFreeChart user1 = ChartFactory.createXYAreaChart(
+        final JFreeChart chart1 = ChartFactory.createXYAreaChart(
                 "Use of total computing power through time\nUsers",
                 "Time (seconds)",
                 "Rate of total use of computing power (%)",
@@ -377,7 +378,7 @@ public class Graficos {
                 false
         );
 
-        final JFreeChart user2 = ChartFactory.createXYLineChart(
+        final JFreeChart chart2 = ChartFactory.createXYLineChart(
                 "Use of total computing power through time\nUsers",
                 "Time (seconds)",
                 "Rate of total use of computing power (%)",
@@ -388,18 +389,25 @@ public class Graficos {
                 false
         );
 
-        final XYPlot xyplot = (XYPlot) user2.getPlot();
-        xyplot.setDomainPannable(true);
-        final XYStepAreaRenderer xysteparearenderer = new XYStepAreaRenderer(2);
-        xysteparearenderer.setDataBoundsIncludesVisibleSeriesOnly(false);
-        xysteparearenderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator());
-        xysteparearenderer.setDefaultEntityRadius(6);
-        xyplot.setRenderer(xysteparearenderer);
+        this.setPlotRenderer(chart2);
 
-        this.userThroughTime1 = new ChartPanel(user1);
-        this.userThroughTime1.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-        this.UserThroughTime2 = new ChartPanel(user2);
-        this.UserThroughTime2.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        final var chartPanel1 = new ChartPanel(chart1);
+        chartPanel1.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        this.userThroughTime1 = chartPanel1;
+
+        final var chartPanel2 = new ChartPanel(chart2);
+        chartPanel2.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        this.UserThroughTime2 = chartPanel2;
+    }
+
+    private void setPlotRenderer(final JFreeChart user2) {
+        final var xyPlot = (XYPlot) user2.getPlot();
+        xyPlot.setDomainPannable(true);
+        final var xyStepAreaRenderer = new XYStepAreaRenderer(2);
+        xyStepAreaRenderer.setDataBoundsIncludesVisibleSeriesOnly(false);
+        xyStepAreaRenderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator());
+        xyStepAreaRenderer.setDefaultEntityRadius(6);
+        xyPlot.setRenderer(xyStepAreaRenderer);
     }
 
     private static XYSeries[] userSeries(final RedeDeFilas qn) {
@@ -438,17 +446,17 @@ public class Graficos {
     }
 
     private void updateUserUsage(
-            final XYSeries[] timeSeries,
+            final XYSeries timeSeries,
             final Double[] usages,
             final UserOperationTime userTime,
             final int index) {
-        timeSeries[index].add(userTime.getTime(), usages[index]);
+        timeSeries.add(userTime.getTime(), usages[index]);
         if (userTime.isStartTime()) {
             usages[index] += userTime.getNodeUse();
         } else {
             usages[index] -= userTime.getNodeUse();
         }
-        timeSeries[index].add(userTime.getTime(), usages[index]);
+        timeSeries.add(userTime.getTime(), usages[index]);
     }
 
     private void addTaskStatsToList(
