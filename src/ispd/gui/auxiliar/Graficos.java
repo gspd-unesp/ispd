@@ -702,89 +702,87 @@ public class Graficos {
         return preemptiveTasks;
     }
 
-    public ChartPanel gerarGraficoPorMaquina(final List<Tarefa> tarefas,
-                                             final String machineId) {
-        final var target = this.findMachineWithIdOrNull(machineId);
+    public ChartPanel gerarGraficoPorMaquina(
+            final List<Tarefa> tasks,
+            final String machineId) {
 
-        if (target == null) {
+        final var machine = this.findMachineWithIdOrNull(machineId);
+
+        if (machine == null) {
             return null;
         }
 
-        double lostMFlops = 0.0;
         double usedMFlops = 0.0;
+        double lostMFlops = 0.0;
 
-        for (int i = 0; i < target.getHistorico().size(); i++) {
-
-            final Tarefa task = target.getHistorico().get(i);
-
-            if (task.getMflopsDesperdicados() > 0.0) {
-
-                for (int j = 0; j < task.getHistoricoProcessamento().size(); j++) {
-
-                    if (task.getHistoricoProcessamento().get(j).getId().equals(target.getId())) {
-
-                        final double tempo =
-                                task.getTempoFinal().get(j) - task.getTempoInicial().get(j);
-                        if (task.getCheckPoint() == 0.0) {
-                            lostMFlops += target.getMflopsProcessados(tempo);
-                        } else {
-                            final double remainder =
-                                    target.getMflopsProcessados(tempo) % task.getCheckPoint();
-                            usedMFlops += target.getMflopsProcessados(tempo) / task.getCheckPoint() - remainder;
-                            lostMFlops += remainder;
-                        }
-
+        for (final var task : machine.getHistorico()) {
+            final int machineCount = task.getHistoricoProcessamento().size();
+            if (task.getMflopsDesperdicados() == 0.0) {
+                for (int i = 0; i < machineCount; i++) {
+                    if (!machine.getId().equals(task.getHistoricoProcessamento().get(i).getId())) {
+                        continue;
                     }
 
+                    final double time =
+                            task.getTempoFinal().get(i) - task.getTempoInicial().get(i);
+
+                    usedMFlops += machine.getMflopsProcessados(time);
                 }
+
+                continue;
 
             } else {
+                for (int i = 0; i < machineCount; i++) {
 
-                for (int j = 0; j < task.getHistoricoProcessamento().size(); j++) {
-
-                    if (task.getHistoricoProcessamento().get(j).getId().equals(target.getId())) {
-
-                        final double tempo =
-                                task.getTempoFinal().get(j) - task.getTempoInicial().get(j);
-                        usedMFlops += target.getMflopsProcessados(tempo);
-
+                    if (!machine.getId().equals(task.getHistoricoProcessamento().get(i).getId())) {
+                        continue;
                     }
 
+                    final double time =
+                            task.getTempoFinal().get(i) - task.getTempoInicial().get(i);
+
+                    final double processed = machine.getMflopsProcessados(time);
+                    final double checkpoint = task.getCheckPoint();
+
+                    if (checkpoint == 0.0) {
+                        lostMFlops += processed;
+                        continue;
+                    }
+
+                    final double remainder = processed % checkpoint;
+                    usedMFlops += processed / checkpoint - remainder;
+                    lostMFlops += remainder;
+
+                    continue;
                 }
-
             }
-
         }
 
-        final var mFlopsData = Graficos.makeMFlopsData(usedMFlops, lostMFlops);
-
-        final var jfc = ChartFactory.createStackedBarChart(
-                "Processing efficiency for resource %s".formatted(target.getId()),
+        return Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+                "Processing efficiency for resource %s".formatted(machine.getId()),
                 "",
                 "% of total MFlop executed",
-                mFlopsData,
+                Graficos.makeMFlopsData(usedMFlops, lostMFlops),
                 PlotOrientation.VERTICAL,
                 true,
                 true,
                 false
-        );
-
-        final ChartPanel machineUseChart = Graficos.panelWithPreferredSize(jfc);
-        return machineUseChart;
+        ));
     }
 
     private CS_Maquina findMachineWithIdOrNull(final String id) {
         return this.rede.getMaquinas().stream().filter(machine -> machine.getId().equals(id)).findFirst().orElse(null);
     }
 
-    private static DefaultCategoryDataset makeMFlopsData(final double usedMFlops,
-                                                         final double lostMFlops) {
+    private static DefaultCategoryDataset makeMFlopsData(
+            final double usedMFlops,
+            final double lostMFlops) {
         final var data = new DefaultCategoryDataset();
         final double total = lostMFlops + usedMFlops;
-        Graficos.addProcessingData(usedMFlops, total, data, "Usefull " +
-                "Processing");
-        Graficos.addProcessingData(lostMFlops, total, data, "Wasted " +
-                "Processing");
+        Graficos.addProcessingData(
+                usedMFlops, total, data, "Usefull Processing");
+        Graficos.addProcessingData(
+                lostMFlops, total, data, "Wasted Processing");
         return data;
     }
 
