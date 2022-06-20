@@ -278,8 +278,8 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private static boolean hasValidIspdFileExtension(final File file) {
-        return file.getName().endsWith(".ims") || file.getName().endsWith(
-                ".imsx");
+        return file.getName().endsWith(".ims")
+                || file.getName().endsWith(".imsx");
     }
 
     private static DescreveSistema getSystemDescription(final File file) throws ClassNotFoundException, IOException {
@@ -905,8 +905,10 @@ public class JPrincipal extends JFrame implements KeyListener {
             return;
 
         this.configureFileFilterAndChooser(
-                "Iconic Model of Simulation", JPrincipal.ISPD_FILE_EXTENSIONS
-                , false);
+                "Iconic Model of Simulation",
+                JPrincipal.ISPD_FILE_EXTENSIONS,
+                true // TODO: Undo this
+        );
 
         if (JFileChooser.APPROVE_OPTION != this.jFileChooser.showOpenDialog(this))
             return;
@@ -931,9 +933,12 @@ public class JPrincipal extends JFrame implements KeyListener {
         if ("Torre".equals(file.getName())) {
             this.jScrollPaneDrawingArea.setViewportView(new Stalemate());
         } else {
-            JOptionPane.showMessageDialog(null,
-                    this.translate("Invalid file"), this.translate("WARNING")
-                    , JOptionPane.PLAIN_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    null,
+                    this.translate("Invalid file"),
+                    this.translate("WARNING"),
+                    JOptionPane.PLAIN_MESSAGE
+            );
         }
     }
 
