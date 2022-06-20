@@ -400,16 +400,6 @@ public class Graficos {
         this.UserThroughTime2 = chartPanel2;
     }
 
-    private void setPlotRenderer(final JFreeChart user2) {
-        final var xyPlot = (XYPlot) user2.getPlot();
-        xyPlot.setDomainPannable(true);
-        final var xyStepAreaRenderer = new XYStepAreaRenderer(2);
-        xyStepAreaRenderer.setDataBoundsIncludesVisibleSeriesOnly(false);
-        xyStepAreaRenderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator());
-        xyStepAreaRenderer.setDefaultEntityRadius(6);
-        xyPlot.setRenderer(xyStepAreaRenderer);
-    }
-
     private static XYSeries[] userSeries(final RedeDeFilas qn) {
         final int userCount = qn.getUsuarios().size();
         final var series = new XYSeries[userCount];
@@ -459,6 +449,16 @@ public class Graficos {
         timeSeries.add(userTime.getTime(), usages[index]);
     }
 
+    private void setPlotRenderer(final JFreeChart user2) {
+        final var xyPlot = (XYPlot) user2.getPlot();
+        xyPlot.setDomainPannable(true);
+        final var xyStepAreaRenderer = new XYStepAreaRenderer(2);
+        xyStepAreaRenderer.setDataBoundsIncludesVisibleSeriesOnly(false);
+        xyStepAreaRenderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator());
+        xyStepAreaRenderer.setDefaultEntityRadius(6);
+        xyPlot.setRenderer(xyStepAreaRenderer);
+    }
+
     private void addTaskStatsToList(
             final Tarefa task,
             final Collection<? super UserOperationTime> list,
@@ -490,50 +490,65 @@ public class Graficos {
         return (task.getHistoricoProcessamento().get(i).getPoderComputacional() / this.poderComputacionalTotal) * Graficos.ONE_HUNDRED_PERCENT;
     }
 
-    public ChartPanel criarGraficoPorTarefa(final List<Tarefa> tarefas,
-                                            final int idTarefa) {
-        final DefaultCategoryDataset dadosMflopProcessados =
-                new DefaultCategoryDataset();
-        Tarefa job = null;
-        int i;
-        Double mflopProcessadoTotal = 0.0;
+    public ChartPanel criarGraficoPorTarefa(
+            final Collection<? extends Tarefa> tasks,
+            final int taskId) {
 
-        for (i = 0; i < tarefas.size(); i++) {
-            if (tarefas.get(i).getIdentificador() == idTarefa) {
-                job = tarefas.get(i);
-                break;
-            }
-        }
+        final var task = tasks.stream()
+                .filter(t -> t.getIdentificador() == taskId)
+                .findFirst()
+                .orElse(null);
 
-        if (job != null) {
-
-            if (job.getEstado() != Tarefa.CANCELADO) {
-
-                for (i = 0; i < job.getHistoricoProcessamento().size(); i++) {
-
-                    mflopProcessadoTotal += job.getHistoricoProcessamento().get(i).getMflopsProcessados(job.getTempoFinal().get(i) - job.getTempoInicial().get(i));
-
-                }
-
-                dadosMflopProcessados.addValue(((job.getTamProcessamento() / mflopProcessadoTotal) * Graficos.ONE_HUNDRED_PERCENT), "Usefull processing", "Task size :" + job.getTamProcessamento() + " MFlop" + ", total executed for task: " + mflopProcessadoTotal + " MFlop");
-                dadosMflopProcessados.addValue(((job.getMflopsDesperdicados()) / mflopProcessadoTotal) * Graficos.ONE_HUNDRED_PERCENT, "Wasted processing", "Task size :" + job.getTamProcessamento() + " MFlop" + ", total executed for task: " + mflopProcessadoTotal + " MFlop");
-
-                final JFreeChart jfc = ChartFactory.createStackedBarChart(
-                        "MFlop usage for task " + idTarefa, //Titulo
-                        "", // Eixo X
-                        "% of total MFlop executed for the task", //Eixo Y
-                        dadosMflopProcessados, // Dados para o grafico
-                        PlotOrientation.VERTICAL, //Orientacao do grafico
-                        true, true, false); // exibir: legendas, tooltips, url
-                final ChartPanel graficoPorTarefa = new ChartPanel(jfc);
-                graficoPorTarefa.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
-                return graficoPorTarefa;
-            } else {
-                return null;
-            }
-        } else {
+        if (task == null || task.getEstado() == Tarefa.CANCELADO) {
             return null;
         }
+
+        final double totalProcessedMFlops =
+                Graficos.calculateTotalProcessedMFlops(task);
+
+        final var chartData = new DefaultCategoryDataset();
+        Graficos.addTaskProcessingData(chartData, task.getTamProcessamento(),
+                "Usefull processing", totalProcessedMFlops);
+        Graficos.addTaskProcessingData(chartData, task.getMflopsDesperdicados(),
+                "Wasted processing", totalProcessedMFlops);
+
+        final var chart = ChartFactory.createStackedBarChart(
+                "MFlop usage for task " + taskId,
+                "",
+                "% of total MFlop executed for the task",
+                chartData,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
+
+        final var panel = new ChartPanel(chart);
+        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        return panel;
+    }
+
+    private static double calculateTotalProcessedMFlops(final Tarefa task) {
+        final int historySize = task.getHistoricoProcessamento().size();
+        double total = 0.0;
+        for (int i = 0; i < historySize; i++) {
+            total += task.getHistoricoProcessamento().get(i).getMflopsProcessados(
+                    task.getTempoFinal().get(i) - task.getTempoInicial().get(i));
+        }
+        return total;
+    }
+
+    private static void addTaskProcessingData(
+            final DefaultCategoryDataset data,
+            final double processing,
+            final String title,
+            final double totalProcessing) {
+        data.addValue(
+                processing / totalProcessing * Graficos.ONE_HUNDRED_PERCENT,
+                title,
+                "Task size :%s MFlop, total executed for task: %s MFlop"
+                        .formatted(processing, totalProcessing)
+        );
     }
 
     public ChartPanel criarGraficoAproveitamento(final List<Tarefa> tarefas) {
