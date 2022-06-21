@@ -1,6 +1,5 @@
 package ispd.application;
 
-public interface Application
-{
-    void run ();
+public interface Application {
+    void run();
 }
