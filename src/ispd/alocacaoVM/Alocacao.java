@@ -2,36 +2,57 @@ package ispd.alocacaoVM;
 
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 
 import java.util.List;
 
 public abstract class Alocacao {
-    protected List<CS_Processamento> maquinasFisicas; //lista de "escravos"
-    protected List<List> infoMaquinas; // lista de informações armazenada
-    // sobre cada máquina física
-    protected List<CS_VirtualMac> maquinasVirtuais; //lista de vms "tarefas"
-    protected VMM VMM; //vmm responsável por implementar a política de alocação
-    protected List<CS_VirtualMac> VMsRejeitadas;
-    protected List<List> caminhoMaquina;
+    /**
+     * List of "Slaves".
+     */
+    protected List<CS_Processamento> maquinasFisicas = null;
+    /**
+     * List of Virtual Machine "Tasks".
+     */
+    protected List<CS_VirtualMac> maquinasVirtuais = null;
+    /**
+     * VMM responsible for implementing allocation policy.
+     */
+    protected VMM VMM = null;
+    protected List<CS_VirtualMac> VMsRejeitadas = null;
+    protected List<List> caminhoMaquina = null;
 
-    //iniciar a alocação
+    /**
+     * Begin the allocation.
+     */
     public abstract void iniciar();
 
-    //selecionar o critério de seleção da vm
+    /**
+     * Select the vm selection criterion.
+     *
+     * @return selected vm.
+     */
     public abstract CS_VirtualMac escalonarVM();
 
-    //selecionar o critério de seleção do recurso
+    /**
+     * Select the resource selection criterion.
+     *
+     * @return selected resource.
+     */
     public abstract CS_Processamento escalonarRecurso();
 
-    //implementar a rota até o recurso selecionado
+    /**
+     * Implement route to selected resource.
+     *
+     * @param destino resource to be routed to.
+     * @return List with service centers that make up a route to the resource.
+     */
     public abstract List<CentroServico> escalonarRota(CentroServico destino);
 
-    //realiza o escalonamento de fato
+    /**
+     * Actually do the scheduling.
+     */
     public abstract void escalonar();
-
-    public abstract void migrarVM();
 
     public void addVM(final CS_VirtualMac vm) {
         this.maquinasVirtuais.add(vm);
@@ -49,15 +70,11 @@ public abstract class Alocacao {
         return this.maquinasVirtuais;
     }
 
-    public void setMaquinasVirtuais(final List<CS_VirtualMac> maquinasVirtuais) {
-        this.maquinasVirtuais = maquinasVirtuais;
-    }
-
     public VMM getVMM() {
         return this.VMM;
     }
 
-    public void setVMM(final CS_VMM hypervisor) {
+    public void setVMM(final VMM hypervisor) {
         this.VMM = hypervisor;
     }
 
@@ -68,19 +85,4 @@ public abstract class Alocacao {
     public List<CS_VirtualMac> getVMsRejeitadas() {
         return this.VMsRejeitadas;
     }
-
-
-    /**
-     * Indica o intervalo de tempo utilizado pelo escalonador para realizar
-     * atualização dos dados dos escravos
-     * Retornar null para escalonadores estáticos, nos dinâmicos o método
-     * deve ser reescrito
-     *
-     * @return Intervalo em segundos para atualização
-     */
-    public Double getTempoAtualizar() {
-        return null;
-    }
 }
-
-

@@ -150,9 +150,4 @@ public class RoundRobin extends Alocacao {
             this.findMachineForTask(this.escalonarVM());
         }
     }
-
-    @Override
-    public void migrarVM() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 }
