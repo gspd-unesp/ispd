@@ -13,10 +13,6 @@ public class ParesOrdenadosUso implements Comparable<ParesOrdenadosUso> {
         this.end = end;
     }
 
-    public Double getInicio() {
-        return this.start;
-    }
-
     public Double getFim() {
         return this.end;
     }
@@ -29,5 +25,9 @@ public class ParesOrdenadosUso implements Comparable<ParesOrdenadosUso> {
     @Override
     public int compareTo(final ParesOrdenadosUso o) {
         return this.start.compareTo(o.getInicio());
+    }
+
+    public Double getInicio() {
+        return this.start;
     }
 }

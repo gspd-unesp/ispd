@@ -4,8 +4,7 @@ package ispd.gui.auxiliar;
  * Note: this class has a natural ordering that is inconsistent with equals.
  */
 class UserOperationTime implements Comparable<UserOperationTime> {
-    // TODO: make this should be a record
-
+    // TODO: maybe this should be a record
     private final Double time;
     private final Boolean isStartTime;
     private final Double nodeUse;

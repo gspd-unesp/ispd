@@ -29,11 +29,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Classe criada para separear a criação e controle dos gráficos da janela de
- * exibição dos resultados da simulação
+ * Class which creates and configures charts for simulation results.
  */
 public class Graficos {
-
     private static final Double ZERO = 0.0;
     private static final double ONE_HUNDRED_PERCENT = 100.0;
     private static final Dimension PREFERRED_CHART_SIZE
