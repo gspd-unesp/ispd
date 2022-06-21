@@ -1,54 +1,12 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * LinkTable.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui.configuracao;
 
 import ispd.gui.iconico.grade.Internet;
 import ispd.gui.iconico.grade.ItemGrade;
 import ispd.gui.iconico.grade.Link;
-import java.util.ResourceBundle;
-import javax.swing.table.AbstractTableModel;
 
-/**
- *
- * @author denison
- */
+import javax.swing.table.AbstractTableModel;
+import java.util.ResourceBundle;
+
 public class LinkTable extends AbstractTableModel {
 
     // Constantes representando o índice das colunas
@@ -64,113 +22,60 @@ public class LinkTable extends AbstractTableModel {
     private ItemGrade link;
     private ResourceBundle palavras;
 
-    public LinkTable(ResourceBundle palavras) {
+    public LinkTable(final ResourceBundle palavras) {
         this.palavras = palavras;
     }
-    
-    public void setLink(ItemGrade link) {
+
+    public void setLink(final ItemGrade link) {
         this.link = link;
     }
 
     @Override
     public int getRowCount() {
-        return NUMLINHAS;
-    }
-
-    @Override
-    public String getColumnName(int columnIndex) {
-        switch (columnIndex) {
-            case TYPE:
-                return palavras.getString("Properties");
-            case VALUE:
-                return palavras.getString("Values");
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        if (columnIndex == TYPE) {
-            return false;
-        }
-        return true;
+        return LinkTable.NUMLINHAS;
     }
 
     @Override
     public int getColumnCount() {
-        return NUMCOLUNAS;
+        return LinkTable.NUMCOLUNAS;
     }
 
     @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        // Pega o sócio referente a linha especificada.
-        if (columnIndex == VALUE && link != null) {
-            switch (rowIndex) {
-                case LABEL:
-                    link.getId().setNome(aValue.toString());
-                    break;
-                case BANDW:
-                    if (link instanceof Link) {
-                        ((Link) link).setBanda(Double.valueOf(aValue.toString()));
-                    } else {
-                        ((Internet) link).setBanda(Double.valueOf(aValue.toString()));
-                    }
-                    break;
-                case LATEN:
-                    if (link instanceof Link) {
-                        ((Link) link).setLatencia(Double.valueOf(aValue.toString()));
-                    } else {
-                        ((Internet) link).setLatencia(Double.valueOf(aValue.toString()));
-                    }
-                    break;
-                case LOADF:
-                    if (link instanceof Link) {
-                        ((Link) link).setTaxaOcupacao(Double.valueOf(aValue.toString()));
-                    } else {
-                        ((Internet) link).setTaxaOcupacao(Double.valueOf(aValue.toString()));
-                    }
-                    break;
-            }
-            fireTableCellUpdated(rowIndex, columnIndex); // Notifica a atualização da célula
-        }
-    }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
+    public Object getValueAt(final int rowIndex, final int columnIndex) {
         switch (columnIndex) {
-            case TYPE:
+            case LinkTable.TYPE:
                 switch (rowIndex) {
-                    case LABEL:
-                        return palavras.getString("Label");
-                    case BANDW:
-                        return palavras.getString("Bandwidth");
-                    case LATEN:
-                        return palavras.getString("Latency");
-                    case LOADF:
-                        return palavras.getString("Load Factor");
+                    case LinkTable.LABEL:
+                        return this.palavras.getString("Label");
+                    case LinkTable.BANDW:
+                        return this.palavras.getString("Bandwidth");
+                    case LinkTable.LATEN:
+                        return this.palavras.getString("Latency");
+                    case LinkTable.LOADF:
+                        return this.palavras.getString("Load Factor");
                 }
-            case VALUE:
-                if (link != null) {
+            case LinkTable.VALUE:
+                if (this.link != null) {
                     switch (rowIndex) {
-                        case LABEL:
-                            return link.getId().getNome();
-                        case BANDW:
-                            if (link instanceof Link) {
-                                return ((Link) link).getBanda();
+                        case LinkTable.LABEL:
+                            return this.link.getId().getNome();
+                        case LinkTable.BANDW:
+                            if (this.link instanceof Link) {
+                                return ((Link) this.link).getBanda();
                             } else {
-                                return ((Internet) link).getBanda();
+                                return ((Internet) this.link).getBanda();
                             }
-                        case LATEN:
-                            if (link instanceof Link) {
-                                return ((Link) link).getLatencia();
+                        case LinkTable.LATEN:
+                            if (this.link instanceof Link) {
+                                return ((Link) this.link).getLatencia();
                             } else {
-                                return ((Internet) link).getLatencia();
+                                return ((Internet) this.link).getLatencia();
                             }
-                        case LOADF:
-                            if (link instanceof Link) {
-                                return ((Link) link).getTaxaOcupacao();
+                        case LinkTable.LOADF:
+                            if (this.link instanceof Link) {
+                                return ((Link) this.link).getTaxaOcupacao();
                             } else {
-                                return ((Internet) link).getTaxaOcupacao();
+                                return ((Internet) this.link).getTaxaOcupacao();
                             }
                     }
                 } else {
@@ -178,12 +83,64 @@ public class LinkTable extends AbstractTableModel {
                 }
             default:
                 // Não deve ocorrer, pois só existem 2 colunas
-                throw new IndexOutOfBoundsException("columnIndex out of bounds");
+                throw new IndexOutOfBoundsException("columnIndex out of " +
+                        "bounds");
         }
     }
 
-    public void setPalavras(ResourceBundle palavras) {
+    @Override
+    public String getColumnName(final int columnIndex) {
+        switch (columnIndex) {
+            case LinkTable.TYPE:
+                return this.palavras.getString("Properties");
+            case LinkTable.VALUE:
+                return this.palavras.getString("Values");
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return columnIndex != LinkTable.TYPE;
+    }
+
+    @Override
+    public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
+        // Pega o sócio referente a linha especificada.
+        if (columnIndex == LinkTable.VALUE && this.link != null) {
+            switch (rowIndex) {
+                case LinkTable.LABEL:
+                    this.link.getId().setNome(aValue.toString());
+                    break;
+                case LinkTable.BANDW:
+                    if (this.link instanceof Link) {
+                        ((Link) this.link).setBanda(Double.valueOf(aValue.toString()));
+                    } else {
+                        ((Internet) this.link).setBanda(Double.valueOf(aValue.toString()));
+                    }
+                    break;
+                case LinkTable.LATEN:
+                    if (this.link instanceof Link) {
+                        ((Link) this.link).setLatencia(Double.valueOf(aValue.toString()));
+                    } else {
+                        ((Internet) this.link).setLatencia(Double.valueOf(aValue.toString()));
+                    }
+                    break;
+                case LinkTable.LOADF:
+                    if (this.link instanceof Link) {
+                        ((Link) this.link).setTaxaOcupacao(Double.valueOf(aValue.toString()));
+                    } else {
+                        ((Internet) this.link).setTaxaOcupacao(Double.valueOf(aValue.toString()));
+                    }
+                    break;
+            }
+            this.fireTableCellUpdated(rowIndex, VALUE); // Notifica a
+            // atualização da célula
+        }
+    }
+
+    public void setPalavras(final ResourceBundle palavras) {
         this.palavras = palavras;
-        fireTableStructureChanged();
+        this.fireTableStructureChanged();
     }
 }

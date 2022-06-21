@@ -1,62 +1,20 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * MachineTable.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui.configuracao;
 
 import ispd.arquivo.Escalonadores;
 import ispd.gui.iconico.grade.ItemGrade;
 import ispd.gui.iconico.grade.Machine;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ResourceBundle;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ResourceBundle;
 
-/**
- *
- * @author denison
- */
 public class MachineTable extends AbstractTableModel {
 
     // Constantes representando o índice das colunas
@@ -78,211 +36,213 @@ public class MachineTable extends AbstractTableModel {
     // Array com os nomes das linhas
     private ResourceBundle palavras;
     private Machine maquina;
-    private JButton escravos;
-    private JComboBox escalonador;
-    private JComboBox usuarios;
-    private JList selecionadorEscravos;
+    private final JButton escravos;
+    private final JComboBox escalonador;
+    private final JComboBox usuarios;
+    private final JList selecionadorEscravos;
 
-    public MachineTable(ResourceBundle palavras) {
+    public MachineTable(final ResourceBundle palavras) {
         this.palavras = palavras;
-        selecionadorEscravos = new JList();
-        CheckListRenderer clr = new CheckListRenderer(selecionadorEscravos);
-        escravos = new JButton();
-        escravos.addActionListener(new java.awt.event.ActionListener() {
+        this.selecionadorEscravos = new JList();
+        final CheckListRenderer clr = new CheckListRenderer(this.selecionadorEscravos);
+        this.escravos = new JButton();
+        this.escravos.addActionListener(new java.awt.event.ActionListener() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            public void actionPerformed(final java.awt.event.ActionEvent evt) {
                 //Cria lista com nós escalonaveis
-                if (!selecionadorEscravos.isVisible()) {
-                    DefaultListModel listModel = new DefaultListModel();
-                    List<ItemGrade> listaConectados = maquina.getNosEscalonaveis();
-                    for (ItemGrade item : listaConectados) {
+                if (!MachineTable.this.selecionadorEscravos.isVisible()) {
+                    final DefaultListModel listModel = new DefaultListModel();
+                    final List<ItemGrade> listaConectados =
+                            MachineTable.this.maquina.getNosEscalonaveis();
+                    for (final ItemGrade item : listaConectados) {
                         listModel.addElement(item);
                     }
-                    selecionadorEscravos.setModel(listModel);
-                    for (ItemGrade escravo : maquina.getEscravos()) {
-                        int index = listaConectados.indexOf(escravo);
-                        selecionadorEscravos.addSelectionInterval(index, index);
+                    MachineTable.this.selecionadorEscravos.setModel(listModel);
+                    for (final ItemGrade escravo : MachineTable.this.maquina.getEscravos()) {
+                        final int index = listaConectados.indexOf(escravo);
+                        MachineTable.this.selecionadorEscravos.addSelectionInterval(index, index);
                     }
-                    selecionadorEscravos.setVisible(true);
+                    MachineTable.this.selecionadorEscravos.setVisible(true);
                 }
-                if (selecionadorEscravos.getModel().getSize() > 0) {
-                    int opcao = JOptionPane.showConfirmDialog(
-                            escravos,
-                            selecionadorEscravos,
+                if (MachineTable.this.selecionadorEscravos.getModel().getSize() > 0) {
+                    final int opcao = JOptionPane.showConfirmDialog(
+                            MachineTable.this.escravos,
+                            MachineTable.this.selecionadorEscravos,
                             "Select the slaves",
                             JOptionPane.OK_CANCEL_OPTION,
                             JOptionPane.PLAIN_MESSAGE);
                     if (opcao == JOptionPane.OK_OPTION) {
-                        List<ItemGrade> escravosList = new ArrayList<ItemGrade>(selecionadorEscravos.getSelectedValuesList());
-                        maquina.setEscravos(escravosList);
-                        escravos.setText(maquina.getEscravos().toString());
+                        final List<ItemGrade> escravosList =
+                                new ArrayList<ItemGrade>(MachineTable.this.selecionadorEscravos.getSelectedValuesList());
+                        MachineTable.this.maquina.setEscravos(escravosList);
+                        MachineTable.this.escravos.setText(MachineTable.this.maquina.getEscravos().toString());
                     }
                 }
             }
         });
-        escalonador = new JComboBox(Escalonadores.ESCALONADORES);
-        usuarios = new JComboBox();
+        this.escalonador = new JComboBox(Escalonadores.ESCALONADORES);
+        this.usuarios = new JComboBox();
     }
 
-    public void setMaquina(Machine maquina, HashSet users) {
+    public void setMaquina(final Machine maquina, final HashSet users) {
         this.maquina = maquina;
         this.escalonador.setSelectedItem(this.maquina.getAlgoritmo());
         this.usuarios.removeAllItems();
-        for (Object object : users) {
+        for (final Object object : users) {
             this.usuarios.addItem(object);
         }
         this.usuarios.setSelectedItem(maquina.getProprietario());
         this.selecionadorEscravos.setVisible(false);
-        escravos.setText(maquina.getEscravos().toString());
+        this.escravos.setText(maquina.getEscravos().toString());
     }
 
     @Override
     public int getRowCount() {
-        return NUMLINHAS;
-    }
-
-    @Override
-    public String getColumnName(int columnIndex) {
-        switch (columnIndex) {
-            case TYPE:
-                return palavras.getString("Properties");
-            case VALUE:
-                return palavras.getString("Values");
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        if (columnIndex == TYPE) {
-            return false;
-        }
-        return true;
+        return MachineTable.NUMLINHAS;
     }
 
     @Override
     public int getColumnCount() {
-        return NUMCOLUNAS;
-    }
-
-    public JComboBox getEscalonadores() {
-        return escalonador;
+        return MachineTable.NUMCOLUNAS;
     }
 
     @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        // Pega o sócio referente a linha especificada.
-        if (columnIndex == VALUE && maquina != null) {
-            switch (rowIndex) {
-                case LABEL:
-                    maquina.getId().setNome(aValue.toString());
-                    break;
-                case OWNER:
-                    maquina.setProprietario(usuarios.getSelectedItem().toString());
-                    break;
-                case PROCS:
-                    maquina.setPoderComputacional(Double.valueOf(aValue.toString()));
-                    break;
-                case LOADF:
-                    maquina.setTaxaOcupacao(Double.valueOf(aValue.toString()));
-                    break;
-                case MERAM:
-                    maquina.setMemoriaRAM(Double.valueOf(aValue.toString()));
-                    break;
-                case HDISK:
-                    maquina.setDiscoRigido(Double.valueOf(aValue.toString()));
-                    break;
-                case CORES:
-                    maquina.setNucleosProcessador(Integer.valueOf(aValue.toString()));
-                    break;
-                case ENERGY:
-                    maquina.setConsumoEnergia(Double.valueOf(aValue.toString()));
-                break;
-                case MASTR:
-                    maquina.setMestre(Boolean.valueOf(aValue.toString()));
-                    break;
-                case SCHED:
-                    maquina.setAlgoritmo(escalonador.getSelectedItem().toString());
-                    break;
-            }
-            fireTableCellUpdated(rowIndex, columnIndex); // Notifica a atualização da célula
-        }
-    }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
+    public Object getValueAt(final int rowIndex, final int columnIndex) {
         switch (columnIndex) {
-            case TYPE:
+            case MachineTable.TYPE:
                 switch (rowIndex) {
-                    case LABEL:
-                        return palavras.getString("Label");
-                    case OWNER:
-                        return palavras.getString("Owner");
-                    case PROCS:
-                        return palavras.getString("Computing power") + " (Mflop/s)";
-                    case LOADF:
-                        return palavras.getString("Load Factor");
-                    case MERAM:
+                    case MachineTable.LABEL:
+                        return this.palavras.getString("Label");
+                    case MachineTable.OWNER:
+                        return this.palavras.getString("Owner");
+                    case MachineTable.PROCS:
+                        return this.palavras.getString("Computing power") + " " +
+                                "(Mflop/s)";
+                    case MachineTable.LOADF:
+                        return this.palavras.getString("Load Factor");
+                    case MachineTable.MERAM:
                         return "Primary Storage";
-                    case HDISK:
+                    case MachineTable.HDISK:
                         return "Secondary Storage";
-                    case CORES:
+                    case MachineTable.CORES:
                         return "Cores";
-                    case MASTR:
-                        return palavras.getString("Master");
-                    case SCHED:
-                        return palavras.getString("Scheduling algorithm");
-                    case SLAVE:
+                    case MachineTable.MASTR:
+                        return this.palavras.getString("Master");
+                    case MachineTable.SCHED:
+                        return this.palavras.getString("Scheduling algorithm");
+                    case MachineTable.SLAVE:
                         return "Slave Nodes";
-                    case ENERGY:
+                    case MachineTable.ENERGY:
                         return "Energy consumption";
                 }
-            case VALUE:
-                if (maquina != null) {
+            case MachineTable.VALUE:
+                if (this.maquina != null) {
                     switch (rowIndex) {
-                        case LABEL:
-                            return maquina.getId().getNome();
-                        case OWNER:
-                            return usuarios;
-                        case PROCS:
-                            return maquina.getPoderComputacional();
-                        case LOADF:
-                            return maquina.getTaxaOcupacao();
-                        case MERAM:
-                            return maquina.getMemoriaRAM();
-                        case HDISK:
-                            return maquina.getDiscoRigido();
-                        case CORES:
-                            return maquina.getNucleosProcessador();
-                        case MASTR:
-                            return maquina.isMestre();
-                        case SCHED:
-                            return escalonador;
-                        case SLAVE:
-                            return escravos;
-                        case ENERGY:
-                             return maquina.getConsumoEnergia();
+                        case MachineTable.LABEL:
+                            return this.maquina.getId().getNome();
+                        case MachineTable.OWNER:
+                            return this.usuarios;
+                        case MachineTable.PROCS:
+                            return this.maquina.getPoderComputacional();
+                        case MachineTable.LOADF:
+                            return this.maquina.getTaxaOcupacao();
+                        case MachineTable.MERAM:
+                            return this.maquina.getMemoriaRAM();
+                        case MachineTable.HDISK:
+                            return this.maquina.getDiscoRigido();
+                        case MachineTable.CORES:
+                            return this.maquina.getNucleosProcessador();
+                        case MachineTable.MASTR:
+                            return this.maquina.isMestre();
+                        case MachineTable.SCHED:
+                            return this.escalonador;
+                        case MachineTable.SLAVE:
+                            return this.escravos;
+                        case MachineTable.ENERGY:
+                            return this.maquina.getConsumoEnergia();
                     }
                 } else {
                     switch (rowIndex) {
-                        case OWNER:
-                            return usuarios;
-                        case SCHED:
-                            return escalonador;
-                        case SLAVE:
-                            return escravos;
+                        case MachineTable.OWNER:
+                            return this.usuarios;
+                        case MachineTable.SCHED:
+                            return this.escalonador;
+                        case MachineTable.SLAVE:
+                            return this.escravos;
                         default:
                             return "null";
                     }
                 }
             default:
                 // Não deve ocorrer, pois só existem 2 colunas
-                throw new IndexOutOfBoundsException("ColumnIndex out of bounds");
+                throw new IndexOutOfBoundsException("ColumnIndex out of " +
+                        "bounds");
         }
     }
 
-    public void setPalavras(ResourceBundle palavras) {
+    @Override
+    public String getColumnName(final int columnIndex) {
+        switch (columnIndex) {
+            case MachineTable.TYPE:
+                return this.palavras.getString("Properties");
+            case MachineTable.VALUE:
+                return this.palavras.getString("Values");
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return columnIndex != MachineTable.TYPE;
+    }
+
+    @Override
+    public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
+        // Pega o sócio referente a linha especificada.
+        if (columnIndex == MachineTable.VALUE && this.maquina != null) {
+            switch (rowIndex) {
+                case MachineTable.LABEL:
+                    this.maquina.getId().setNome(aValue.toString());
+                    break;
+                case MachineTable.OWNER:
+                    this.maquina.setProprietario(this.usuarios.getSelectedItem().toString());
+                    break;
+                case MachineTable.PROCS:
+                    this.maquina.setPoderComputacional(Double.valueOf(aValue.toString()));
+                    break;
+                case MachineTable.LOADF:
+                    this.maquina.setTaxaOcupacao(Double.valueOf(aValue.toString()));
+                    break;
+                case MachineTable.MERAM:
+                    this.maquina.setMemoriaRAM(Double.valueOf(aValue.toString()));
+                    break;
+                case MachineTable.HDISK:
+                    this.maquina.setDiscoRigido(Double.valueOf(aValue.toString()));
+                    break;
+                case MachineTable.CORES:
+                    this.maquina.setNucleosProcessador(Integer.valueOf(aValue.toString()));
+                    break;
+                case MachineTable.ENERGY:
+                    this.maquina.setConsumoEnergia(Double.valueOf(aValue.toString()));
+                    break;
+                case MachineTable.MASTR:
+                    this.maquina.setMestre(Boolean.valueOf(aValue.toString()));
+                    break;
+                case MachineTable.SCHED:
+                    this.maquina.setAlgoritmo(this.escalonador.getSelectedItem().toString());
+                    break;
+            }
+            this.fireTableCellUpdated(rowIndex, VALUE); // Notifica a
+            // atualização da célula
+        }
+    }
+
+    public JComboBox getEscalonadores() {
+        return this.escalonador;
+    }
+
+    public void setPalavras(final ResourceBundle palavras) {
         this.palavras = palavras;
-        fireTableStructureChanged();
+        this.fireTableStructureChanged();
     }
 }
