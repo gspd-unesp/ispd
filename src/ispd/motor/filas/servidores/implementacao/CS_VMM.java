@@ -5,6 +5,7 @@
 package ispd.motor.filas.servidores.implementacao;
 
 import ispd.alocacaoVM.Alocacao;
+import ispd.alocacaoVM.CarregarAlloc;
 import ispd.alocacaoVM.VMM;
 import ispd.escalonadorCloud.CarregarCloud;
 import ispd.escalonadorCloud.EscalonadorCloud;
@@ -14,13 +15,13 @@ import ispd.motor.Mensagens;
 import ispd.motor.Simulation;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
+import ispd.motor.filas.TarefaVM;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+
 import java.util.ArrayList;
 import java.util.List;
-import ispd.alocacaoVM.CarregarAlloc;
-import ispd.motor.filas.TarefaVM;
 
 /**
  *
@@ -454,35 +455,8 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
-  public void enviarMensagemAlloc(Tarefa tarefa, CS_Processamento maquina, int tipo) {
-    throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose Tools
-                                                                   // | Templates.
-  }
-
-  @Override
-  public void atualizarAlloc(CS_Processamento maquina) {
-    throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose Tools
-                                                                   // | Templates.
-  }
-
-  @Override
   public void setSimulacaoAlloc(Simulation simulacao) {
     this.simulacao = simulacao;
-  }
-
-  @Override
-  public int getTipoAlocacao() {
-    return this.tipoAlocacao;
-  }
-
-  @Override
-  public void setTipoAlocacao(int tipo) {
-    this.tipoAlocacao = tipo;
-  }
-
-  @Override
-  public Simulation getSimulacaoAlloc() {
-    return this.simulacao;
   }
 
   public void instanciarCaminhosVMs() {
