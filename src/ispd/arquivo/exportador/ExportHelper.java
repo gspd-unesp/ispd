@@ -7,8 +7,7 @@ import org.w3c.dom.NodeList;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
-class ExportHelper
-{
+class ExportHelper {
     private final HashMap<? super Integer, ? super String> resources;
     private final NodeList users;
     private final NodeList machines;
@@ -17,8 +16,7 @@ class ExportHelper
     private final NodeList links;
     private final NodeList loads;
 
-    ExportHelper (final Document model)
-    {
+    ExportHelper(final Document model) {
         this.resources = new HashMap<>(0);
         this.users = model.getElementsByTagName("owner");
         this.machines = model.getElementsByTagName("machine");
@@ -28,8 +26,7 @@ class ExportHelper
         this.loads = model.getElementsByTagName("load");
     }
 
-    void printCodeToFile (final PrintWriter pw)
-    {
+    void printCodeToFile(final PrintWriter pw) {
         ExportHelper.printHeader(pw);
 
         this.printMain(pw);
@@ -40,8 +37,7 @@ class ExportHelper
         this.printCreateGridlet(pw);
     }
 
-    private static void printHeader (final PrintWriter pw)
-    {
+    private static void printHeader(final PrintWriter pw) {
         pw.print("""
                     
                 import java.util.*;
@@ -118,14 +114,19 @@ class ExportHelper
                 """);
     }
 
-    private void printMain (final PrintWriter pw)
-    {
-        pw.println(" \nclass Modelo{ \n\n  \tpublic static void main(String[] args) {\n");
+    private void printMain(final PrintWriter pw) {
+        pw.println(" \nclass Modelo{ \n\n  \tpublic static void main(String[]" +
+                " args) {\n");
         pw.println("\t\ttry {");
-        pw.println("\t\t\tCalendar calendar = Calendar.getInstance(); \n\t\t\t boolean trace_flag = true;");
-        pw.println("\t\t\tString[] exclude_from_file = {\"\"}; \n\t\t\t String[] exclude_from_processing = {\"\"};");
-        pw.println("\t\t\tGridSim.init(" + this.users.getLength() + ",calendar, true, exclude_from_file,exclude_from_processing, null);");
-        pw.println("\n\t\t\tFIFOScheduler resSched = new FIFOScheduler( \" GridResSched \");");
+        pw.println("\t\t\tCalendar calendar = Calendar.getInstance(); " +
+                "\n\t\t\t boolean trace_flag = true;");
+        pw.println("\t\t\tString[] exclude_from_file = {\"\"}; \n\t\t\t " +
+                "String[] exclude_from_processing = {\"\"};");
+        pw.println("\t\t\tGridSim.init(" + this.users.getLength() + "," +
+                "calendar, true, exclude_from_file,exclude_from_processing, " +
+                "null);");
+        pw.println("\n\t\t\tFIFOScheduler resSched = new FIFOScheduler( \" " +
+                "GridResSched \");");
 
         pw.print("""
                             double baud_rate = 100.0;
@@ -147,11 +148,11 @@ class ExportHelper
         pw.println("\n\t\t\tGridSim.startGridSimulation();");
 
         pw.println("\t\t} \t\tcatch (Exception e){ ");
-        pw.println("\t\t\t  e.printStackTrace();\n \t\t\tSystem.out.println(\"Unwanted ERRORS happened\"); \n\t\t} \n\t} ");
+        pw.println("\t\t\t  e.printStackTrace();\n \t\t\tSystem.out.println" +
+                "(\"Unwanted ERRORS happened\"); \n\t\t} \n\t} ");
     }
 
-    private void printCreateGridUser (final PrintWriter pw)
-    {
+    private void printCreateGridUser(final PrintWriter pw) {
         pw.print(String.format("""
 
                     private static ResourceUserList createGridUser(){
@@ -164,8 +165,7 @@ class ExportHelper
         );
     }
 
-    private static void printCreateResource (final PrintWriter pw)
-    {
+    private static void printCreateResource(final PrintWriter pw) {
         pw.print("""
                     
                     private static GridResource createResource(String name, double baud_rate, double delay, int MTU, int n_maq, int cap){
@@ -208,30 +208,30 @@ class ExportHelper
                 """);
     }
 
-    private void printCreateGridlet (final PrintWriter pw)
-    {
-        pw.println("\n\n\tprivate static GridletList createGridlet(){ \n\t\tdouble length; \n\t\tlong file_size;\n\t\tRandom random = new Random();");
+    private void printCreateGridlet(final PrintWriter pw) {
+        pw.println("\n\n\tprivate static GridletList createGridlet(){ " +
+                "\n\t\tdouble length; \n\t\tlong file_size;\n\t\tRandom " +
+                "random = new Random();");
         pw.println("\n\t\tGridletList list = new GridletList();");
-        for (int i = 0; i < this.loads.getLength(); i++)
-        {
-            final var sizes = ((Element) this.loads.item(i)).getElementsByTagName("size");
+        for (int i = 0; i < this.loads.getLength(); i++) {
+            final var sizes =
+                    ((Element) this.loads.item(i)).getElementsByTagName("size");
             ExportHelper.processLoadValues(sizes, pw);
         }
         pw.println("\n\t} \n}");
     }
 
-    private void printResources (final PrintWriter pw)
-    {
+    private void printResources(final PrintWriter pw) {
         this.printMachines(pw);
         this.printClusters(pw);
     }
 
-    private String getLoadTraceString ()
-    {
+    private String getLoadTraceString() {
         if (0 == this.loads.getLength())
             return "";
 
-        final var trace = ((Element) this.loads.item(0)).getElementsByTagName("trace");
+        final var trace =
+                ((Element) this.loads.item(0)).getElementsByTagName("trace");
 
         if (0 == trace.getLength())
             return """
@@ -255,34 +255,33 @@ class ExportHelper
                 """, ((Element) trace.item(0)).getAttribute("file_path"));
     }
 
-    private void printMasters (final PrintWriter pw)
-    {
-        pw.println("\n\t\t\tLink link = new SimpleLink(\"link_\", 100, 0.01, 1500 );");
+    private void printMasters(final PrintWriter pw) {
+        pw.println("\n\t\t\tLink link = new SimpleLink(\"link_\", 100, 0.01, " +
+                "1500 );");
         for (int i = 0; i < this.machines.getLength(); i++)
             this.printMaster((Element) this.machines.item(i), i, pw);
     }
 
-    private void printInternet (final PrintWriter pw)
-    {
-        for (int i = 0; i < this.internet.getLength(); i++)
-        {
+    private void printInternet(final PrintWriter pw) {
+        for (int i = 0; i < this.internet.getLength(); i++) {
             final var net = (Element) this.internet.item(i);
             this.resources.put(Integer.parseInt(((Element) net.getElementsByTagName("icon_id").item(0)).getAttribute("global")), net.getAttribute("id"));
-            pw.println("\t\t\tRouter r_" + net.getAttribute("id") + " = new RIPRouter(" + net.getAttribute("id") + ",trace_flag);");
+            pw.println("\t\t\tRouter r_" + net.getAttribute("id") + " = new " +
+                    "RIPRouter(" + net.getAttribute("id") + ",trace_flag);");
         }
     }
 
-    private void printNonMasterConnection (final PrintWriter pw)
-    {
+    private void printNonMasterConnection(final PrintWriter pw) {
         pw.print("""
                     
                 \t\t\tFIFOScheduler rSched = new FIFOScheduler("r_Sched");
                 """);
 
-        for (int i = 0; i < this.links.getLength(); i++)
-        {//Pega cada conexão que nao seja mestre
+        for (int i = 0; i < this.links.getLength(); i++) {//Pega cada conexão
+            // que nao seja mestre
             final var link = (Element) this.links.item(i);
-            final var connect = (Element) link.getElementsByTagName("connect").item(0);
+            final var connect =
+                    (Element) link.getElementsByTagName("connect").item(0);
             Integer.parseInt(connect.getAttribute("origination"));
             Integer.parseInt(connect.getAttribute("destination"));
             pw.print(String.format("""
@@ -297,8 +296,7 @@ class ExportHelper
         }
     }
 
-    private String userAdds ()
-    {
+    private String userAdds() {
         final StringBuilder sb = new StringBuilder(0);
 
         for (int i = 0; i < this.users.getLength(); i++)
@@ -309,8 +307,8 @@ class ExportHelper
         return sb.toString();
     }
 
-    private static void processLoadValues (final NodeList sizes, final PrintWriter pw)
-    {
+    private static void processLoadValues(final NodeList sizes,
+                                          final PrintWriter pw) {
         double minComputation = 0;
         double maxComputation = 0;
         double computationValue = 0;
@@ -319,24 +317,25 @@ class ExportHelper
         double maxcp = 0;
         double mincm = 0;
         double maxcm = 0;
-        for (int k = 0; k < sizes.getLength(); k++)
-        {
+        for (int k = 0; k < sizes.getLength(); k++) {
             final Element size = (Element) sizes.item(k);
 
-            if ("computing".equals(size.getAttribute("type")))
-            {
-                minComputation = Double.parseDouble(size.getAttribute("minimum"));
-                maxComputation = Double.parseDouble(size.getAttribute("maximum"));
-                computationValue = Double.parseDouble(size.getAttribute("average"));
+            if ("computing".equals(size.getAttribute("type"))) {
+                minComputation = Double.parseDouble(size.getAttribute(
+                        "minimum"));
+                maxComputation = Double.parseDouble(size.getAttribute(
+                        "maximum"));
+                computationValue = Double.parseDouble(size.getAttribute(
+                        "average"));
                 mincp = (computationValue - minComputation) / computationValue;
                 mincp = Math.min(1.0, mincp);
                 maxcp = (maxComputation - computationValue) / computationValue;
                 maxcp = Math.min(1.0, maxcp);
-            } else if ("communication".equals(size.getAttribute("type")))
-            {
+            } else if ("communication".equals(size.getAttribute("type"))) {
                 Double.parseDouble(size.getAttribute("minimum"));
                 Double.parseDouble(size.getAttribute("maximum"));
-                communicationValue = Double.parseDouble(size.getAttribute("average"));
+                communicationValue = Double.parseDouble(size.getAttribute(
+                        "average"));
                 mincm = (communicationValue - minComputation) / communicationValue;
                 mincp = Math.min(1.0, mincm);
                 maxcm = (maxComputation - communicationValue) / communicationValue;
@@ -344,64 +343,67 @@ class ExportHelper
             }
             pw.println("\t\tlength = GridSimRandom.real(" + computationValue + "," + mincp + "," + maxcp + ",random.nextDouble());");
             pw.println("\t\tfile_size = (long) GridSimRandom.real(" + communicationValue + "," + mincm + "," + maxcm + ",random.nextDouble());");
-            pw.println("\t\tGridlet gridlet" + k + " = new Gridlet(" + k + ", length, file_size,file_size);");
+            pw.println("\t\tGridlet gridlet" + k + " = new Gridlet(" + k + "," +
+                    " length, file_size,file_size);");
             pw.println("\t\tlist.add(gridlet" + k + ");");
             pw.println("\n\t\tgridlet" + k + ".setUserID(0);");
         }
         pw.println("\n\t\treturn list;");
     }
 
-    private void printMachines (final PrintWriter pw)
-    {
-        for (int i = 0; i < this.machines.getLength(); i++)
-        {
+    private void printMachines(final PrintWriter pw) {
+        for (int i = 0; i < this.machines.getLength(); i++) {
             final var machine = (Element) this.machines.item(i);
             if (0 == machine.getElementsByTagName("master").getLength())
                 this.printResource(machine, i, 1, pw);
         }
     }
 
-    private void printClusters (final PrintWriter pw)
-    {
-        for (int j = 0, i = this.machines.getLength(); i < this.machines.getLength() + this.clusters.getLength(); i++, j++)
-        {
+    private void printClusters(final PrintWriter pw) {
+        for (int j = 0, i = this.machines.getLength(); i < this.machines.getLength() + this.clusters.getLength(); i++, j++) {
             final var cluster = (Element) this.clusters.item(j);
             final int nodes = Integer.parseInt(cluster.getAttribute("nodes"));
             this.printResource(cluster, i, nodes, pw);
         }
     }
 
-    private void printMaster (final Element machine, final int id, final PrintWriter pw)
-    {
+    private void printMaster(final Element machine, final int id,
+                             final PrintWriter pw) {
         if (1 != machine.getElementsByTagName("master").getLength())
             return;
 
         this.resources.put(Integer.parseInt(((Element) machine.getElementsByTagName("icon_id").item(0)).getAttribute("global")), machine.getAttribute("id"));
 
-        final var slaves = ((Element) machine.getElementsByTagName("master").item(0)).getElementsByTagName("slave");
+        final var slaves =
+                ((Element) machine.getElementsByTagName("master").item(0)).getElementsByTagName("slave");
         pw.println("\n\t\t\tArrayList esc" + id + " = new ArrayList();");
 
         for (int i = 0; i < slaves.getLength(); i++)
             pw.println("\t\t\tesc" + id + ".add(" + this.resources.get(Integer.parseInt(((Element) slaves.item(i)).getAttribute("id"))) + ");");
 
-        pw.println("\n\t\t\tMestre " + machine.getAttribute("id") + " = new Mestre(\"" + machine.getAttribute("id") + "_\", link, list, esc" + id + ", " + slaves.getLength() + ");");
-        pw.println("\t\t\tRouter r_" + machine.getAttribute("id") + " = new RIPRouter( \"router_" + id + "\", trace_flag);");
+        pw.println("\n\t\t\tMestre " + machine.getAttribute("id") + " = new " +
+                "Mestre(\"" + machine.getAttribute("id") + "_\", link, list, " +
+                "esc" + id + ", " + slaves.getLength() + ");");
+        pw.println("\t\t\tRouter r_" + machine.getAttribute("id") + " = new " +
+                "RIPRouter( \"router_" + id + "\", trace_flag);");
         pw.println("\t\t\tr_" + machine.getAttribute("id") + ".attachHost( " + machine.getAttribute("id") + ", resSched); ");
 
         for (int i = 0; i < slaves.getLength(); i++)
-            pw.println("\n\t\t\tr_" + machine.getAttribute("id") + ".attachHost( " + this.resources.get(Integer.parseInt(((Element) slaves.item(i)).getAttribute("id"))) + ", resSched); ");
+            pw.println("\n\t\t\tr_" + machine.getAttribute("id") +
+                    ".attachHost( " + this.resources.get(Integer.parseInt(((Element) slaves.item(i)).getAttribute("id"))) + ", resSched); ");
     }
 
-    private void printResource (
+    private void printResource(
             final Element machine,
             final int index,
             final int nodes,
-            final PrintWriter pw)
-    {
+            final PrintWriter pw) {
         this.resources.put(Integer.parseInt(((Element) machine.getElementsByTagName("icon_id").item(0)).getAttribute("global")), machine.getAttribute("id"));
 
-        pw.println("\n\t\t\tGridResource %s = createResource(\"%s_\",  baud_rate,  delay,  MTU, %d, (int)%s);".formatted(machine.getAttribute("id"), machine.getAttribute("id"), nodes, machine.getAttribute("power")));
-        pw.println("\t\t\tRouter r_" + machine.getAttribute("id") + " = new RIPRouter( \"router_" + index + "\", trace_flag);");
+        pw.println(("\n\t\t\tGridResource %s = createResource(\"%s_\",  " +
+                "baud_rate,  delay,  MTU, %d, (int)%s);").formatted(machine.getAttribute("id"), machine.getAttribute("id"), nodes, machine.getAttribute("power")));
+        pw.println("\t\t\tRouter r_" + machine.getAttribute("id") + " = new " +
+                "RIPRouter( \"router_" + index + "\", trace_flag);");
         pw.println("\t\t\tr_" + machine.getAttribute("id") + ".attachHost( " + machine.getAttribute("id") + ", resSched); ");
     }
 }
