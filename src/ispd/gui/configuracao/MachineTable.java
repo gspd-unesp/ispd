@@ -31,7 +31,7 @@ public class MachineTable extends AbstractTableModel {
     private static final int ENERGY = 10;
     private static final int ROW_COUNT = 11;
     private static final int COLUMN_COUNT = 2;
-    private final JButton slaves = this.setSlaves();
+    private final JButton slaves = this.setButton();
     private final JComboBox<?> schedulers =
             new JComboBox<Object>(Escalonadores.ESCALONADORES);
     private final JComboBox<String> users = new JComboBox<>();
@@ -44,7 +44,7 @@ public class MachineTable extends AbstractTableModel {
         new CheckListRenderer(this.slaveList);
     }
 
-    private JButton setSlaves() {
+    private JButton setButton() {
         final var button = new JButton();
         button.addActionListener(new ButtonActionListener());
         return button;
@@ -54,8 +54,8 @@ public class MachineTable extends AbstractTableModel {
         this.machine = machine;
         this.schedulers.setSelectedItem(this.machine.getAlgoritmo());
         this.users.removeAllItems();
-        for (final String object : users) {
-            this.users.addItem(object);
+        for (final var s : users) {
+            this.users.addItem(s);
         }
         this.users.setSelectedItem(machine.getProprietario());
         this.slaveList.setVisible(false);
