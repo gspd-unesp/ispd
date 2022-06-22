@@ -301,6 +301,29 @@ public final class Ruler extends JComponent {
         public abstract int getIncrement();
 
         /**
+         * It returns the next unit described after this one.
+         * Further, if it does not have any unit described
+         * after this one, then the <em>topmost (or the first)</em>
+         * unit is returned, instead.
+         * <p>
+         * An example of such method operation is given below,
+         * first suppose the units is described as
+         * <ul>
+         *     <li>CENTIMETERS</li>
+         *     <li>INCHES</li>
+         * </ul>
+         * and suppose that this unit is <em>centimeters</em>.
+         * Therefore, the next described unit after this one
+         * is <em>inches</em>.
+         *
+         * @return the next unit described after this one
+         */
+        public RulerUnit nextUnit() {
+            final var values = RulerUnit.values();
+            return values[(this.ordinal() + 1) % values.length];
+        }
+
+        /**
          * Returns the unit symbol.
          *
          * @return the unit symbol
