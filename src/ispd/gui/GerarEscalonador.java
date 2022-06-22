@@ -1,2421 +1,2570 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * GerarEscalonador.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * Created on 30/04/2011
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui;
 
-import ispd.utils.ValidaValores;
-import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.alocacaoVM.ManipularArquivosAlloc;
+import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.escalonador.ManipularArquivos;
 import ispd.escalonadorCloud.ManipularArquivosCloud;
+import ispd.utils.ValidaValores;
+
+import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.LayoutStyle;
+import javax.swing.border.TitledBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
+import java.util.stream.Collectors;
 
-/**
- *
- * @author denison
- */
-public class GerarEscalonador extends javax.swing.JDialog {
-
-    private final int INICIAL = 0;
-    private final int VARIAVEL = 1;
-    private final int OPERADOR = 2;
-    private final int ABRE_CHAVE = 3;
-    private final int FECHA_CHAVE = 4;
-    public static final int GRID = 0;
-    public static final int IAAS = 1;
-    public static final int ALLOC = 2;
-    private int passoAtual;
-    private String caminho;
-    private String ordenacao;
-    private String ordenacao_t = "Random"; //NOI18N
-    private String ordenacao_r = "Random"; //NOI18N
-    private LinkedList<String> formula;
-    private LinkedList<String> formula_t = new LinkedList<String>() {
-
-        @Override
-        public String toString() {
-            String result = ""; //NOI18N
-            for (String item : this) {
-                result += item + " "; //NOI18N
-            }
-            return result;
-        }
-    };
-    private LinkedList<String> formula_r = new LinkedList<String>() {
-
-        @Override
-        public String toString() {
-            String result = ""; //NOI18N
-            for (String item : this) {
-                result += item + " "; //NOI18N
-            }
-            return result;
-        }
-    };
-    private int tipoBotao;
-    private int tipoBotao_t = INICIAL;
-    private int tipoBotao_r = INICIAL;
-    private int contaParent;
-    private int contaParent_t = 0;
-    private int contaParent_r = 0;
-    private ManipularArquivos arquivosEscalonadores = null;
-    private ManipularArquivosCloud arquivosEscalonadoresCloud = null;
-    private ManipularArquivosAlloc arquivosAlocadores = null;
+public class GerarEscalonador extends JDialog {
+    private static final Font VERDANA_FONT_BOLD =
+            new Font("Verdana", Font.BOLD, 11);
+    private static final Dimension MAXIMUM_BUTTON_SIZE =
+            new Dimension(37, 50);
+    private static final Font COMIC_SANS_FONT =
+            new Font("Comic Sans MS", Font.PLAIN, 11);
+    private static final Color BLACK = new Color(0, 0, 0);
+    private static final int GRID = 0;
+    private static final int IAAS = 1;
+    private static final int ALLOC = 2;
+    private static final int START = 0;
+    private static final int VARIABLE = 1;
+    private static final int OPERATOR = 2;
+    private static final int OPEN_BRACKET = 3;
+    private static final int CLOSE_BRACKET = 4;
+    private static final Font COMIC_SANS_FONT_BOLD =
+            new Font("Comic Sans MS", Font.BOLD, 12);
+    private static final Color FOREGROUND_RED = new Color(204, 0, 0);
+    private static final Dimension MINIMUM_BUTTON_SIZE = new Dimension(37, 23);
+    private static final Color BACKGROUND_WHITE = new Color(255, 255, 255);
+    private static final Dimension PANEL_PREFERRED_SIZE =
+            new Dimension(600, 350);
+    private static final Font TAHOMA_FONT_BOLD =
+            new Font("Tahoma", Font.BOLD, 12);
+    private final String path;
+    private final LinkedList<String> tFormula = new SpacedPrintList();
+    private final LinkedList<String> rFormula = new SpacedPrintList();
+    private final ResourceBundle translator;
+    private final JScrollPane jScrollPanePrincipal;
+    private int currentStep = 1;
+    private String ordering = "Random";
+    private String tOrdering = "Random";
+    private String rOrdering = "Random";
+    private LinkedList<String> formula = this.tFormula;
+    private int buttonType = GerarEscalonador.START;
+    private int tButtonType = GerarEscalonador.START;
+    private int rButtonType = GerarEscalonador.START;
+    private int parentAccount = 0;
+    private int tParentAccount = 0;
+    private int rParentAccount = 0;
+    private ManipularArquivos schedulerFiles = null;
+    private ManipularArquivosCloud cloudSchedulerFiles = null;
+    private ManipularArquivosAlloc allocFiles = null;
     private InterpretadorGerador parse = null;
-    private ResourceBundle palavras;
-    private int tipoModelo;
+    private int modelType = 0;
+    private JButton buttonFinalize;
+    private JButton buttonNext;
+    private JButton buttonPrevious;
+    private JFormattedTextField jFormattedTextFieldP2Tempo;
+    private JFormattedTextField jFormattedTextP4DigitaConst;
+    private JFormattedTextField jFormattedTextP5DigitaConst;
+    private JLabel jLabelP1Informacao;
+    private JLabel jLabelP2Forma;
+    private JLabel jLabelP6_1;
+    private JLabel jLabelP6_2;
+    private JLabel jLabelPasso1;
+    private JLabel jLabelPasso2;
+    private JLabel jLabelPasso3;
+    private JLabel jLabelPasso4;
+    private JLabel jLabelPasso5;
+    private JLabel jLabelPasso6;
+    private JLabel jLabelPasso7;
+    private JList<?> jListRecurso;
+    private JList<?> jListTarefa;
+    private JRadioButton jOpAvancada;
+    private JRadioButton jOpSimples;
+    private JPanel jPanelPasso1;
+    private JPanel jPanelPasso2;
+    private JPanel jPanelPasso3;
+    private JPanel jPanelPasso4;
+    private JPanel jPanelPasso5;
+    private JPanel jPanelPasso6;
+    private JPanel jPanelPasso7;
+    private JPanel jPanelPassoSimples;
+    private JRadioButton jRadioButtonP2Centralizada;
+    private JRadioButton jRadioButtonP2Chegada;
+    private JRadioButton jRadioButtonP2Dinamica;
+    private JRadioButton jRadioButtonP2Distribuida;
+    private JRadioButton jRadioButtonP2Estatica;
+    private JRadioButton jRadioButtonP2Saida;
+    private JRadioButton jRadioButtonP2Tempo;
+    private JRadioButton jRadioButtonP2concluida;
+    private JRadioButton jRadioButtonP4Crescente;
+    private JRadioButton jRadioButtonP4Decrescente;
+    private JRadioButton jRadioButtonP4FIFO;
+    private JRadioButton jRadioButtonP4Random;
+    private JRadioButton jRadioButtonP5Crescente;
+    private JRadioButton jRadioButtonP5Decrescente;
+    private JRadioButton jRadioButtonP5FIFO;
+    private JRadioButton jRadioButtonP5Random;
+    private JRadioButton jRadioButtonP6PorRecurso;
+    private JRadioButton jRadioButtonP6PorUsuario;
+    private JRadioButton jRadioButtonP6SemRestricao;
+    private JTextField jTextFieldP1LocalArq;
+    private JTextField jTextFieldP1NomeEsc;
+    private JTextField jTextFieldP4Formula;
+    private JTextField jTextFieldP5Formula;
+    private JFormattedTextField jTextFieldP6Num;
+    private JTextPane jTextPaneP7Gramatica;
 
-    /**
-     * Creates new form GerarEscalonador
-     */
-    public GerarEscalonador(java.awt.Frame parent, boolean modal, String caminho, ResourceBundle palavras) {
+    GerarEscalonador(
+            final Frame parent,
+            final boolean modal,
+            final String path,
+            final ResourceBundle translator) {
         super(parent, modal);
-        this.palavras = palavras;
-        this.caminho = caminho;
-        this.passoAtual = 1;
-        //Inicio das variaveis para formula
-        this.ordenacao = "Random"; //NOI18N
-        this.formula = formula_t;
-        this.tipoBotao = INICIAL;
-        this.contaParent = 0;
-        //Fim das variaveis para formula
-        initComponents();
-        //Adiciona a janela o primeiro painel
+        this.path = path;
+        this.translator = translator;
+        this.jScrollPanePrincipal = new JScrollPane();
+        this.initComponents();
         this.jScrollPanePrincipal.setViewportView(this.jPanelPasso1);
-        jTextFieldP1NomeEscKeyReleased(null);
-        //Esconde Topologia do painel 2
-        jLabelP2Topologia.setVisible(false);
-        jRadioButtonP2Centralizada.setVisible(false);
-        jRadioButtonP2Distribuida.setVisible(false);
+        this.startStepOne();
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private static JButton minimalButton(
+            final String text,
+            final ActionListener action) {
+        final var button = new JButton();
+        button.setText(text);
+        button.addActionListener(action);
+        return button;
+    }
+
     private void initComponents() {
 
-        jPanelPasso1 = new javax.swing.JPanel();
-        jLabelP1NomeEsc = new javax.swing.JLabel();
-        jTextFieldP1NomeEsc = new javax.swing.JTextField();
-        jLabelP1LocalArq = new javax.swing.JLabel();
-        jTextFieldP1LocalArq = new javax.swing.JTextField();
-        jSeparatorP1 = new javax.swing.JSeparator();
-        jLabelP1Informacao = new javax.swing.JLabel();
-        jPanelPasso2 = new javax.swing.JPanel();
-        jLabelP2Informacao = new javax.swing.JLabel();
-        jRadioButtonP2Estatica = new javax.swing.JRadioButton();
-        jRadioButtonP2Dinamica = new javax.swing.JRadioButton();
-        jLabelP2Forma = new javax.swing.JLabel();
-        jRadioButtonP2Tempo = new javax.swing.JRadioButton();
-        jRadioButtonP2Chegada = new javax.swing.JRadioButton();
-        jRadioButtonP2Saida = new javax.swing.JRadioButton();
-        jFormattedTextFieldP2Tempo = new javax.swing.JFormattedTextField();
-        jLabelP2Topologia = new javax.swing.JLabel();
-        jRadioButtonP2Centralizada = new javax.swing.JRadioButton();
-        jRadioButtonP2Distribuida = new javax.swing.JRadioButton();
-        jRadioButtonP2concluida = new javax.swing.JRadioButton();
-        jPanelPasso3 = new javax.swing.JPanel();
-        jOpSimples = new javax.swing.JRadioButton();
-        jOpAvancada = new javax.swing.JRadioButton();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jPanelPasso4 = new javax.swing.JPanel();
-        jLabelP4Formula = new javax.swing.JLabel();
-        jTextFieldP4Formula = new javax.swing.JTextField();
-        jPanel1 = new javax.swing.JPanel();
-        jButtonP4Add = new javax.swing.JButton();
-        jButtonP4Sub = new javax.swing.JButton();
-        jButtonP4AbreParent = new javax.swing.JButton();
-        jButtonP4FechaParent = new javax.swing.JButton();
-        jButtonP4Div = new javax.swing.JButton();
-        jButtonP4Mult = new javax.swing.JButton();
-        jButtonP4Voltar = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        jButtonP4TComputacao = new javax.swing.JButton();
-        jButtonP4TComunicacao = new javax.swing.JButton();
-        jButtonP4NTSubmetidas = new javax.swing.JButton();
-        jButtonP4NTConcluidas = new javax.swing.JButton();
-        jButtonP4PComputUser = new javax.swing.JButton();
-        jButtonP4Const = new javax.swing.JButton();
-        jFormattedTextP4DigitaConst = new javax.swing.JFormattedTextField();
-        jButtonP4PTempoCriacao = new javax.swing.JButton();
-        jPanel3 = new javax.swing.JPanel();
-        jRadioButtonP4Crescente = new javax.swing.JRadioButton();
-        jRadioButtonP4Decrescente = new javax.swing.JRadioButton();
-        jRadioButtonP4Random = new javax.swing.JRadioButton();
-        jRadioButtonP4FIFO = new javax.swing.JRadioButton();
-        jPanelPasso5 = new javax.swing.JPanel();
-        jLabelP5Formula = new javax.swing.JLabel();
-        jTextFieldP5Formula = new javax.swing.JTextField();
-        jPanel4 = new javax.swing.JPanel();
-        jButtonP5Add = new javax.swing.JButton();
-        jButtonP5Sub = new javax.swing.JButton();
-        jButtonP5AbreParent = new javax.swing.JButton();
-        jButtonP5FechaParent = new javax.swing.JButton();
-        jButtonP5Div = new javax.swing.JButton();
-        jButtonP5Mult = new javax.swing.JButton();
-        jButtonP5Voltar = new javax.swing.JButton();
-        jPanel5 = new javax.swing.JPanel();
-        jButtonP5PProcessamento = new javax.swing.JButton();
-        jButtonP5LinkComunicacao = new javax.swing.JButton();
-        jButtonP5TCompTarefa = new javax.swing.JButton();
-        jButtonP5NumTExec = new javax.swing.JButton();
-        jButtonP5TComunTarefa = new javax.swing.JButton();
-        jButtonP5Const1 = new javax.swing.JButton();
-        jFormattedTextP5DigitaConst = new javax.swing.JFormattedTextField();
-        jButtonP5MflopExec = new javax.swing.JButton();
-        jPanel6 = new javax.swing.JPanel();
-        jRadioButtonP5Crescente = new javax.swing.JRadioButton();
-        jRadioButtonP5Decrescente = new javax.swing.JRadioButton();
-        jRadioButtonP5Random = new javax.swing.JRadioButton();
-        jRadioButtonP5FIFO = new javax.swing.JRadioButton();
-        jPanelPassoSimples = new javax.swing.JPanel();
-        jPanel7 = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jListRecurso = new javax.swing.JList();
-        jPanel8 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jListTarefa = new javax.swing.JList();
-        jPanelPasso6 = new javax.swing.JPanel();
-        jSeparatorP6 = new javax.swing.JSeparator();
-        jRadioButtonP6SemRestricao = new javax.swing.JRadioButton();
-        jRadioButtonP6PorRecurso = new javax.swing.JRadioButton();
-        jRadioButtonP6PorUsuario = new javax.swing.JRadioButton();
-        jLabelP6_1 = new javax.swing.JLabel();
-        jTextFieldP6Num = new javax.swing.JFormattedTextField();
-        jLabelP6_2 = new javax.swing.JLabel();
-        jPanelPasso7 = new javax.swing.JPanel();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jTextPaneP7Gramatica = new javax.swing.JTextPane();
-        jPanelPassos = new javax.swing.JPanel();
-        jLabelPassos = new javax.swing.JLabel();
-        jLabelPasso1 = new javax.swing.JLabel();
-        jLabelPasso2 = new javax.swing.JLabel();
-        jLabelPasso3 = new javax.swing.JLabel();
-        jLabelPasso4 = new javax.swing.JLabel();
-        jLabelPasso5 = new javax.swing.JLabel();
-        jLabelPasso6 = new javax.swing.JLabel();
-        jLabelPasso7 = new javax.swing.JLabel();
-        jPanelControle = new javax.swing.JPanel();
-        jButtonVoltar = new javax.swing.JButton();
-        jButtonProximo = new javax.swing.JButton();
-        jButtonFinalizar = new javax.swing.JButton();
-        jButtonCancelar = new javax.swing.JButton();
-        jScrollPanePrincipal = new javax.swing.JScrollPane();
+        this.initStepOneComponents();
 
-        jPanelPasso1.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Enter the name of the scheduler"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Comic Sans MS", 1, 12))); // NOI18N
+        this.initStepTwoComponents();
 
-        jLabelP1NomeEsc.setFont(new java.awt.Font("Comic Sans MS", 0, 11)); // NOI18N
-        jLabelP1NomeEsc.setText(palavras.getString("Scheduler name")); // NOI18N
+        this.initStepThreeComponents();
 
-        jTextFieldP1NomeEsc.setText("NewScheduler");
-        jTextFieldP1NomeEsc.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextFieldP1NomeEscKeyReleased(evt);
-            }
-        });
+        this.jPanelPasso4 = new JPanel();
+        this.jPanelPasso4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Advanced") + " - " + this.translate("Tasks distribution order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso4.setPreferredSize(GerarEscalonador.PANEL_PREFERRED_SIZE);
 
-        jLabelP1LocalArq.setFont(new java.awt.Font("Comic Sans MS", 0, 11)); // NOI18N
-        jLabelP1LocalArq.setText(palavras.getString("File")); // NOI18N
+        final JLabel jLabelP4Formula = new JLabel();
+        jLabelP4Formula.setFont(GerarEscalonador.COMIC_SANS_FONT);
 
-        jTextFieldP1LocalArq.setEditable(false);
-        jTextFieldP1LocalArq.setText(this.caminho + "NewScheduler.java");
+        jLabelP4Formula.setText(this.translate("Formula:"));
 
-        jSeparatorP1.setForeground(new java.awt.Color(0, 0, 0));
+        this.jTextFieldP4Formula = new JTextField();
+        this.jTextFieldP4Formula.setEditable(false);
+        this.jTextFieldP4Formula.setFont(GerarEscalonador.VERDANA_FONT_BOLD);
+        this.jTextFieldP4Formula.setText("Random");
+        this.jTextFieldP4Formula.addActionListener(this::jTextFieldP4FormulaActionPerformed);
 
-        jLabelP1Informacao.setForeground(new java.awt.Color(204, 0, 0));
+        final JPanel jPanel1 = new JPanel();
+        jPanel1.setBorder(BorderFactory.createTitledBorder(this.translate(
+                "Operators and precedence")));
 
-        javax.swing.GroupLayout jPanelPasso1Layout = new javax.swing.GroupLayout(jPanelPasso1);
-        jPanelPasso1.setLayout(jPanelPasso1Layout);
-        jPanelPasso1Layout.setHorizontalGroup(
-            jPanelPasso1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPasso1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabelP1NomeEsc)
-                    .addComponent(jLabelP1LocalArq))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelPasso1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextFieldP1LocalArq, javax.swing.GroupLayout.DEFAULT_SIZE, 381, Short.MAX_VALUE)
-                    .addComponent(jTextFieldP1NomeEsc, javax.swing.GroupLayout.DEFAULT_SIZE, 381, Short.MAX_VALUE))
-                .addContainerGap())
-            .addComponent(jSeparatorP1, javax.swing.GroupLayout.DEFAULT_SIZE, 486, Short.MAX_VALUE)
-            .addGroup(jPanelPasso1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelP1Informacao, javax.swing.GroupLayout.DEFAULT_SIZE, 466, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelPasso1Layout.setVerticalGroup(
-            jPanelPasso1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPasso1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelP1NomeEsc)
-                    .addComponent(jTextFieldP1NomeEsc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelPasso1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelP1LocalArq)
-                    .addComponent(jTextFieldP1LocalArq, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(jSeparatorP1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jLabelP1Informacao, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(56, Short.MAX_VALUE))
-        );
+        final String text = "+";
+        final ActionListener jButtonP4AddActionPerformed =
+                this::jButtonP4AddActionPerformed;
+        final var button11 = GerarEscalonador.minimalButton(text,
+         jButtonP4AddActionPerformed);
+        button11.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP4Add = button11;
+        jButtonP4Add.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
 
-        jPanelPasso2.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Enter the characteristics"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Comic Sans MS", 1, 12))); // NOI18N
+        final var button10 = GerarEscalonador.minimalButton("-",
+        this::jButtonP4SubActionPerformed);
+        button10.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP4Sub = button10;
 
-        jLabelP2Informacao.setText(palavras.getString("Search for information:")); // NOI18N
+        final var button9 = GerarEscalonador.minimalButton("(",
+         this::jButtonP4AbreParentActionPerformed);
+        button9.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP4AbreParent = button9;
 
-        jRadioButtonP2Estatica.setSelected(true);
-        jRadioButtonP2Estatica.setText(palavras.getString("Static")); // NOI18N
-        jRadioButtonP2Estatica.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP2EstaticaActionPerformed(evt);
-            }
-        });
+        final var button8 = GerarEscalonador.minimalButton(")",
+this::jButtonP4FechaParentActionPerformed);
+        button8.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP4FechaParent = button8;
 
-        jRadioButtonP2Dinamica.setText(palavras.getString("Dynamic")); // NOI18N
-        jRadioButtonP2Dinamica.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP2DinamicaActionPerformed(evt);
-            }
-        });
+        final var button7 = GerarEscalonador.minimalButton("/",
+         this::jButtonP4DivActionPerformed);
+        button7.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP4Div = button7;
 
-        jLabelP2Forma.setText(palavras.getString("How to refresh:")); // NOI18N
-        jLabelP2Forma.setEnabled(false);
+        final var button6 = GerarEscalonador.minimalButton("*",
+         this::jButtonP4MultActionPerformed);
+        button6.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP4Mult = button6;
+        jButtonP4Mult.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
 
-        jRadioButtonP2Tempo.setSelected(true);
-        jRadioButtonP2Tempo.setText(palavras.getString("Time interval")); // NOI18N
-        jRadioButtonP2Tempo.setToolTipText(palavras.getString("Variables will be refreshed after the passing of specified time")); // NOI18N
-        jRadioButtonP2Tempo.setEnabled(false);
-        jRadioButtonP2Tempo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP2TempoActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP4Voltar = GerarEscalonador.minimalButton("←",
+                this::jButtonP4VoltarActionPerformed);
 
-        jRadioButtonP2Chegada.setText(palavras.getString("Task arrival")); // NOI18N
-        jRadioButtonP2Chegada.setEnabled(false);
-        jRadioButtonP2Chegada.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP2ChegadaActionPerformed(evt);
-            }
-        });
-
-        jRadioButtonP2Saida.setText(palavras.getString("Task output")); // NOI18N
-        jRadioButtonP2Saida.setEnabled(false);
-        jRadioButtonP2Saida.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP2SaidaActionPerformed(evt);
-            }
-        });
-
-        jFormattedTextFieldP2Tempo.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
-        jFormattedTextFieldP2Tempo.setText("1");
-        jFormattedTextFieldP2Tempo.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        jFormattedTextFieldP2Tempo.setEnabled(false);
-
-        jLabelP2Topologia.setText(palavras.getString("Topology:")); // NOI18N
-
-        jRadioButtonP2Centralizada.setSelected(true);
-        jRadioButtonP2Centralizada.setText(palavras.getString("Centralized")); // NOI18N
-        jRadioButtonP2Centralizada.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP2CentralizadaActionPerformed(evt);
-            }
-        });
-
-        jRadioButtonP2Distribuida.setText(palavras.getString("Distributed")); // NOI18N
-        jRadioButtonP2Distribuida.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP2DistribuidaActionPerformed(evt);
-            }
-        });
-
-        jRadioButtonP2concluida.setText(palavras.getString("Task completed")); // NOI18N
-        jRadioButtonP2concluida.setEnabled(false);
-        jRadioButtonP2concluida.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP2concluidaActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanelPasso2Layout = new javax.swing.GroupLayout(jPanelPasso2);
-        jPanelPasso2.setLayout(jPanelPasso2Layout);
-        jPanelPasso2Layout.setHorizontalGroup(
-            jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                .addGroup(jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                        .addGroup(jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jLabelP2Informacao))
-                            .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                                .addGap(26, 26, 26)
-                                .addGroup(jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jRadioButtonP2Estatica)
-                                    .addComponent(jRadioButtonP2Dinamica)
-                                    .addComponent(jRadioButtonP2Tempo)
-                                    .addComponent(jRadioButtonP2Chegada)
-                                    .addComponent(jRadioButtonP2Saida)
-                                    .addComponent(jRadioButtonP2concluida))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                        .addGap(81, 81, 81)
-                        .addGroup(jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jFormattedTextFieldP2Tempo, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabelP2Topologia)
-                            .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                                .addGap(10, 10, 10)
-                                .addGroup(jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jRadioButtonP2Distribuida)
-                                    .addComponent(jRadioButtonP2Centralizada)))))
-                    .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabelP2Forma)))
-                .addContainerGap(38, Short.MAX_VALUE))
-        );
-        jPanelPasso2Layout.setVerticalGroup(
-            jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                .addGroup(jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                        .addGap(32, 32, 32)
-                        .addComponent(jRadioButtonP2Estatica)
-                        .addGap(0, 0, 0)
-                        .addComponent(jRadioButtonP2Dinamica))
-                    .addGroup(jPanelPasso2Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabelP2Informacao)
-                            .addComponent(jLabelP2Topologia))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jRadioButtonP2Centralizada)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jRadioButtonP2Distribuida)))
-                .addGap(18, 18, 18)
-                .addComponent(jLabelP2Forma)
-                .addGap(10, 10, 10)
-                .addGroup(jPanelPasso2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jRadioButtonP2Tempo)
-                    .addComponent(jFormattedTextFieldP2Tempo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jRadioButtonP2Chegada)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jRadioButtonP2Saida)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jRadioButtonP2concluida)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        jPanelPasso3.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Generator type"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Comic Sans MS", 1, 12))); // NOI18N
-
-        jOpSimples.setSelected(true);
-        jOpSimples.setText(palavras.getString("Simple")); // NOI18N
-        jOpSimples.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jOpSimplesActionPerformed(evt);
-            }
-        });
-
-        jOpAvancada.setText(palavras.getString("Advanced")); // NOI18N
-        jOpAvancada.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jOpAvancadaActionPerformed(evt);
-            }
-        });
-
-        jLabel3.setText(palavras.getString("Select a option of scheduler generator:")); // NOI18N
-
-        jLabel4.setText(palavras.getString("This option provides common standards of scheduling policies")); // NOI18N
-
-        jLabel5.setText(palavras.getString("This option allows to create scheduling policies through mathematical formulation")); // NOI18N
-
-        javax.swing.GroupLayout jPanelPasso3Layout = new javax.swing.GroupLayout(jPanelPasso3);
-        jPanelPasso3.setLayout(jPanelPasso3Layout);
-        jPanelPasso3Layout.setHorizontalGroup(
-            jPanelPasso3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso3Layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addGroup(jPanelPasso3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3)
-                    .addComponent(jOpSimples)
-                    .addComponent(jOpAvancada)
-                    .addGroup(jPanelPasso3Layout.createSequentialGroup()
-                        .addGap(21, 21, 21)
-                        .addComponent(jLabel4))
-                    .addGroup(jPanelPasso3Layout.createSequentialGroup()
-                        .addGap(21, 21, 21)
-                        .addComponent(jLabel5)))
-                .addContainerGap(132, Short.MAX_VALUE))
-        );
-        jPanelPasso3Layout.setVerticalGroup(
-            jPanelPasso3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso3Layout.createSequentialGroup()
-                .addGap(33, 33, 33)
-                .addComponent(jLabel3)
-                .addGap(18, 18, 18)
-                .addComponent(jOpSimples)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel4)
-                .addGap(18, 18, 18)
-                .addComponent(jOpAvancada)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel5)
-                .addContainerGap(45, Short.MAX_VALUE))
-        );
-
-        jPanelPasso4.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Advanced") + " - " + palavras.getString("Tasks distribution order"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Comic Sans MS", 1, 12))); // NOI18N
-        jPanelPasso4.setPreferredSize(new java.awt.Dimension(600, 350));
-
-        jLabelP4Formula.setFont(new java.awt.Font("Comic Sans MS", 0, 11)); // NOI18N
-        jLabelP4Formula.setText(palavras.getString("Formula:")); // NOI18N
-
-        jTextFieldP4Formula.setEditable(false);
-        jTextFieldP4Formula.setFont(new java.awt.Font("Verdana", 1, 11)); // NOI18N
-        jTextFieldP4Formula.setText("Random");
-        jTextFieldP4Formula.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldP4FormulaActionPerformed(evt);
-            }
-        });
-
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Operators and precedence"))); // NOI18N
-
-        jButtonP4Add.setText("+");
-        jButtonP4Add.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP4Add.setMinimumSize(new java.awt.Dimension(37, 23));
-        jButtonP4Add.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4AddActionPerformed(evt);
-            }
-        });
-
-        jButtonP4Sub.setText("-");
-        jButtonP4Sub.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP4Sub.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4SubActionPerformed(evt);
-            }
-        });
-
-        jButtonP4AbreParent.setText("(");
-        jButtonP4AbreParent.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP4AbreParent.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4AbreParentActionPerformed(evt);
-            }
-        });
-
-        jButtonP4FechaParent.setText(")");
-        jButtonP4FechaParent.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP4FechaParent.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4FechaParentActionPerformed(evt);
-            }
-        });
-
-        jButtonP4Div.setText("/");
-        jButtonP4Div.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP4Div.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4DivActionPerformed(evt);
-            }
-        });
-
-        jButtonP4Mult.setText("*");
-        jButtonP4Mult.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP4Mult.setMinimumSize(new java.awt.Dimension(37, 23));
-        jButtonP4Mult.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4MultActionPerformed(evt);
-            }
-        });
-
-        jButtonP4Voltar.setText("←");
-        jButtonP4Voltar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4VoltarActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        final GroupLayout jPanel1Layout =
+                new GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButtonP4AbreParent, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-                    .addComponent(jButtonP4Add, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-                    .addComponent(jButtonP4Mult, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-                    .addComponent(jButtonP4Div, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-                    .addComponent(jButtonP4Sub, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-                    .addComponent(jButtonP4FechaParent, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButtonP4Voltar, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28))
+                jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jButtonP4AbreParent,
+                                                GroupLayout.Alignment.LEADING
+                                                , GroupLayout.DEFAULT_SIZE,
+                                                50, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4Add,
+                                                GroupLayout.Alignment.LEADING
+                                                , GroupLayout.DEFAULT_SIZE,
+                                                50, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4Mult,
+                                                GroupLayout.Alignment.LEADING
+                                                , GroupLayout.DEFAULT_SIZE,
+                                                50, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4Div,
+                                                GroupLayout.Alignment.LEADING
+                                                , GroupLayout.DEFAULT_SIZE,
+                                                50, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4Sub,
+                                                GroupLayout.Alignment.LEADING
+                                                , GroupLayout.DEFAULT_SIZE,
+                                                50, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4FechaParent,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 50, Short.MAX_VALUE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButtonP4Voltar,
+                                        GroupLayout.PREFERRED_SIZE, 52,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addGap(28, 28, 28))
         );
         jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButtonP4Add, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonP4Sub, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonP4Mult, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(8, 8, 8)
-                        .addComponent(jButtonP4Div, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(8, 8, 8)
-                        .addComponent(jButtonP4AbreParent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButtonP4FechaParent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButtonP4Voltar, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(27, Short.MAX_VALUE))
+                jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(jButtonP4Add,
+                                                        GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButtonP4Sub,
+                                                        GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButtonP4Mult,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addGap(8, 8, 8)
+                                                .addComponent(jButtonP4Div,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addGap(8, 8, 8)
+                                                .addComponent(jButtonP4AbreParent, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jButtonP4FechaParent, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jButtonP4Voltar,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                177,
+                                                GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap(27, Short.MAX_VALUE))
         );
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Variables"))); // NOI18N
+        final JPanel jPanel2 = new JPanel();
+        jPanel2.setBorder(BorderFactory.createTitledBorder(this.translate(
+                "Variables")));
 
-        jButtonP4TComputacao.setText(palavras.getString("Computational size") + " - TCP"); // NOI18N
-        jButtonP4TComputacao.setToolTipText(palavras.getString("Computational size")); // NOI18N
-        jButtonP4TComputacao.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4TComputacaoActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP4TComputacao =
+                this.configuredButton(this.translate(
+                                "Computational size") +
+                                      " - TCP",
+                        this.translate("Computational " +
+                                       "size"),
+                        this::jButtonP4TComputacaoActionPerformed);
 
-        jButtonP4TComunicacao.setText(palavras.getString("Communication size") + " - TC"); // NOI18N
-        jButtonP4TComunicacao.setToolTipText(palavras.getString("Communication size")); // NOI18N
-        jButtonP4TComunicacao.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4TComunicacaoActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP4TComunicacao =
+                this.configuredButton(this.translate("Communication size") +
+                                      " - TC",
+                        this.translate("Communication " +
+                                       "size"),
+                        this::jButtonP4TComunicacaoActionPerformed);
 
-        jButtonP4NTSubmetidas.setText(palavras.getString("Number of submitted tasks") + " - NTS"); // NOI18N
-        jButtonP4NTSubmetidas.setToolTipText(palavras.getString("Number of submitted tasks by the user")); // NOI18N
-        jButtonP4NTSubmetidas.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4NTSubmetidasActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP4NTSubmetidas =
+                this.configuredButton(this.translate("Number of" +
+                                                     " submitted" +
+                                                     " tasks") + " - " +
+                                      "NTS",
+                        this.translate("Number of " +
+                                       "submitted tasks " +
+                                       "by the user"),
+                        this::jButtonP4NTSubmetidasActionPerformed);
 
-        jButtonP4NTConcluidas.setText(palavras.getString("Number of completed tasks") + " - NTC"); // NOI18N
-        jButtonP4NTConcluidas.setToolTipText("Número de tarefas concluídas do usuário");
-        jButtonP4NTConcluidas.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4NTConcluidasActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP4NTConcluidas =
+                this.configuredButton(this.translate("Number of" +
+                                                     " completed" +
+                                                     " tasks") + " - " +
+                                      "NTC", "Número" +
+                                             " de tarefas " +
+                                             "conclu" +
+                                             "ídas " +
+                                             "do" +
+                                             " usuário",
+                        this::jButtonP4NTConcluidasActionPerformed);
 
-        jButtonP4PComputUser.setText(palavras.getString("User's computational power") + " - PCU"); // NOI18N
-        jButtonP4PComputUser.setToolTipText(palavras.getString("Computational power given by the user to grid")); // NOI18N
-        jButtonP4PComputUser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4PComputUserActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP4PComputUser =
+                this.configuredButton(this.translate(
+                                "User's " +
+                                "computational" +
+                                " power") + " - " +
+                                      "PCU",
+                        this.translate(
+                                "Computational" +
+                                " power " +
+                                "given " +
+                                "by " +
+                                "the user " +
+                                "to " +
+                                "grid"),
+                        this::jButtonP4PComputUserActionPerformed);
 
-        jButtonP4Const.setText("Const");
-        jButtonP4Const.setToolTipText(palavras.getString("Numerical constant")); // NOI18N
-        jButtonP4Const.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4ConstActionPerformed(evt);
-            }
-        });
+        final String aConst = "Const";
+        final String translate = this.translate("Numerical" +
+                                                " constant");
+        final ActionListener action =
+                this::jButtonP4ConstActionPerformed;
+        final JButton jButtonP4Const = this.configuredButton(aConst, translate,
+                action);
 
-        jFormattedTextP4DigitaConst.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
-        jFormattedTextP4DigitaConst.setText("1");
-        jFormattedTextP4DigitaConst.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jFormattedTextP4DigitaConstActionPerformed(evt);
-            }
-        });
+        this.jFormattedTextP4DigitaConst = new JFormattedTextField();
+        this.jFormattedTextP4DigitaConst.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        this.jFormattedTextP4DigitaConst.setText("1");
+        this.jFormattedTextP4DigitaConst.addActionListener(this::jFormattedTextP4DigitaConstActionPerformed);
 
-        jButtonP4PTempoCriacao.setText(palavras.getString("Task creation time") + " - TCR"); // NOI18N
-        jButtonP4PTempoCriacao.setToolTipText(palavras.getString("Task creation time")); // NOI18N
-        jButtonP4PTempoCriacao.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP4PTempoCriacaoActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP4PTempoCriacao =
+                this.configuredButton(this.translate("Task " +
+                                                     "creation" +
+                                                     " " +
+                                                     "time") + " - " +
+                                      "TCR",
+                        this.translate("Task " +
+                                       "creation time"),
+                        this::jButtonP4PTempoCriacaoActionPerformed);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        final GroupLayout jPanel2Layout =
+                new GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButtonP4TComputacao, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addComponent(jButtonP4TComunicacao, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addComponent(jButtonP4NTSubmetidas, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addComponent(jButtonP4PComputUser, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addComponent(jButtonP4NTConcluidas, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jButtonP4Const, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jFormattedTextP4DigitaConst, javax.swing.GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE))
-                    .addComponent(jButtonP4PTempoCriacao, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE))
-                .addContainerGap())
+                jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jButtonP4TComputacao,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 271, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4TComunicacao,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 271, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4NTSubmetidas,
+                                                GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4PComputUser,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 271, Short.MAX_VALUE)
+                                        .addComponent(jButtonP4NTConcluidas,
+                                                GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
+                                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                                .addComponent(jButtonP4Const,
+                                                        GroupLayout.PREFERRED_SIZE, 184, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(this.jFormattedTextP4DigitaConst, GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE))
+                                        .addComponent(jButtonP4PTempoCriacao,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 271, Short.MAX_VALUE))
+                                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jButtonP4TComputacao)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP4TComunicacao)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP4NTSubmetidas)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP4NTConcluidas)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP4PComputUser)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP4PTempoCriacao)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonP4Const)
-                    .addComponent(jFormattedTextP4DigitaConst, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jButtonP4TComputacao)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP4TComunicacao)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP4NTSubmetidas)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP4NTConcluidas)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP4PComputUser)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP4PTempoCriacao)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
+                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jButtonP4Const)
+                                        .addComponent(this.jFormattedTextP4DigitaConst, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap())
         );
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Order"))); // NOI18N
+        final JPanel jPanel3 = new JPanel();
+        jPanel3.setBorder(BorderFactory.createTitledBorder(this.translate(
+                "Order")));
 
-        jRadioButtonP4Crescente.setText(palavras.getString("Crescent")); // NOI18N
-        jRadioButtonP4Crescente.setToolTipText(palavras.getString("This option schedules by the generated formula in crescent order")); // NOI18N
-        jRadioButtonP4Crescente.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP4CrescenteActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP4Crescente = new JRadioButton();
+        this.jRadioButtonP4Crescente.setText(this.translate("Crescent"));
 
-        jRadioButtonP4Decrescente.setText(palavras.getString("Decrescent")); // NOI18N
-        jRadioButtonP4Decrescente.setToolTipText(palavras.getString("This option schedules by the generated formula in decrescent order")); // NOI18N
-        jRadioButtonP4Decrescente.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP4DecrescenteActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP4Crescente.setToolTipText(this.translate("This " +
+                                                                   "option " +
+                                                                   "schedules" +
+                                                                                                                                                  "generated" +
+                                                                   " formula" +
+                                                                   " in crescent order"));
 
-        jRadioButtonP4Random.setSelected(true);
-        jRadioButtonP4Random.setText(palavras.getString("Random")); // NOI18N
-        jRadioButtonP4Random.setToolTipText(palavras.getString("This option schedules randomly")); // NOI18N
-        jRadioButtonP4Random.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP4RandomActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP4Crescente.addActionListener(this::jRadioButtonP4CrescenteActionPerformed);
 
-        jRadioButtonP4FIFO.setText("FIFO");
-        jRadioButtonP4FIFO.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP4FIFOActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP4Decrescente = new JRadioButton();
+        this.jRadioButtonP4Decrescente.setText(this.translate("Decrescent"));
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        this.jRadioButtonP4Decrescente.setToolTipText(this.translate("This " +
+                                                                     "option " +
+                                                                     "schedules " +
+                                                                     "by the " +
+                                                                     "generated formula in decrescent " +
+                                                                     "order"));
+
+        this.jRadioButtonP4Decrescente.addActionListener(this::jRadioButtonP4DecrescenteActionPerformed);
+
+        this.jRadioButtonP4Random = new JRadioButton();
+        this.jRadioButtonP4Random.setSelected(true);
+        this.jRadioButtonP4Random.setText(this.translate("Random"));
+
+        this.jRadioButtonP4Random.setToolTipText(this.translate("This option " +
+                                                                "schedules " +
+                                                                "randomly"));
+        this.jRadioButtonP4Random.addActionListener(this::jRadioButtonP4RandomActionPerformed);
+
+        this.jRadioButtonP4FIFO = new JRadioButton();
+        this.jRadioButtonP4FIFO.setText("FIFO");
+        this.jRadioButtonP4FIFO.addActionListener(this::jRadioButtonP4FIFOActionPerformed);
+
+        final GroupLayout jPanel3Layout =
+                new GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jRadioButtonP4Crescente)
-                    .addComponent(jRadioButtonP4Decrescente)
-                    .addComponent(jRadioButtonP4Random)
-                    .addComponent(jRadioButtonP4FIFO))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(this.jRadioButtonP4Crescente)
+                                        .addComponent(this.jRadioButtonP4Decrescente)
+                                        .addComponent(this.jRadioButtonP4Random)
+                                        .addComponent(this.jRadioButtonP4FIFO))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jRadioButtonP4Crescente)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jRadioButtonP4Decrescente)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jRadioButtonP4Random)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jRadioButtonP4FIFO)
-                .addContainerGap(113, Short.MAX_VALUE))
+                jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jRadioButtonP4Crescente)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jRadioButtonP4Decrescente)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(this.jRadioButtonP4Random)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jRadioButtonP4FIFO)
+                                .addContainerGap(113, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout jPanelPasso4Layout = new javax.swing.GroupLayout(jPanelPasso4);
-        jPanelPasso4.setLayout(jPanelPasso4Layout);
+        final GroupLayout jPanelPasso4Layout =
+                new GroupLayout(this.jPanelPasso4);
+        this.jPanelPasso4.setLayout(jPanelPasso4Layout);
         jPanelPasso4Layout.setHorizontalGroup(
-            jPanelPasso4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelPasso4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPasso4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelPasso4Layout.createSequentialGroup()
-                        .addComponent(jLabelP4Formula)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldP4Formula, javax.swing.GroupLayout.DEFAULT_SIZE, 523, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelPasso4Layout.createSequentialGroup()
-                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(2, 2, 2)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                jPanelPasso4Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING,
+                                jPanelPasso4Layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addGroup(jPanelPasso4Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                .addGroup(jPanelPasso4Layout.createSequentialGroup()
+                                                        .addComponent(jLabelP4Formula)
+                                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                        .addComponent(this.jTextFieldP4Formula, GroupLayout.DEFAULT_SIZE, 523, Short.MAX_VALUE))
+                                                .addGroup(GroupLayout.Alignment.TRAILING, jPanelPasso4Layout.createSequentialGroup()
+                                                        .addComponent(jPanel2,
+                                                                GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addGap(2, 2, 2)
+                                                        .addComponent(jPanel1,
+                                                                GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addComponent(jPanel3,
+                                                                GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                                        .addContainerGap())
         );
         jPanelPasso4Layout.setVerticalGroup(
-            jPanelPasso4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPasso4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelP4Formula)
-                    .addComponent(jTextFieldP4Formula, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelPasso4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(36, Short.MAX_VALUE))
+                jPanelPasso4Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso4Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelPasso4Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabelP4Formula)
+                                        .addComponent(this.jTextFieldP4Formula,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                27,
+                                                GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanelPasso4Layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(jPanel3,
+                                                GroupLayout.DEFAULT_SIZE
+                                                ,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addComponent(jPanel1,
+                                                GroupLayout.DEFAULT_SIZE
+                                                ,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addComponent(jPanel2,
+                                                GroupLayout.DEFAULT_SIZE
+                                                ,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE))
+                                .addContainerGap(36, Short.MAX_VALUE))
         );
 
-        jPanelPasso5.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Advanced") + " - " + palavras.getString("Resource aloccation order"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Comic Sans MS", 1, 12))); // NOI18N
-        jPanelPasso5.setPreferredSize(new java.awt.Dimension(600, 350));
+        this.jPanelPasso5 = new JPanel();
+        this.jPanelPasso5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Advanced") + " - " + this.translate("Resource aloccation order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso5.setPreferredSize(GerarEscalonador.PANEL_PREFERRED_SIZE);
 
-        jLabelP5Formula.setFont(new java.awt.Font("Comic Sans MS", 0, 11)); // NOI18N
-        jLabelP5Formula.setText(palavras.getString("Formula:")); // NOI18N
+        final JLabel jLabelP5Formula = new JLabel();
+        jLabelP5Formula.setFont(GerarEscalonador.COMIC_SANS_FONT);
 
-        jTextFieldP5Formula.setEditable(false);
-        jTextFieldP5Formula.setFont(new java.awt.Font("Verdana", 1, 11)); // NOI18N
-        jTextFieldP5Formula.setText("Random");
-        jTextFieldP5Formula.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldP5FormulaActionPerformed(evt);
-            }
-        });
+        jLabelP5Formula.setText(this.translate("Formula:"));
 
-        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Operators and precedence"))); // NOI18N
 
-        jButtonP5Add.setText("+");
-        jButtonP5Add.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP5Add.setMinimumSize(new java.awt.Dimension(37, 23));
-        jButtonP5Add.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5AddActionPerformed(evt);
-            }
-        });
+        this.jTextFieldP5Formula = new JTextField();
+        this.jTextFieldP5Formula.setEditable(false);
+        this.jTextFieldP5Formula.setFont(GerarEscalonador.VERDANA_FONT_BOLD);
+        this.jTextFieldP5Formula.setText("Random");
+        this.jTextFieldP5Formula.addActionListener(this::jTextFieldP5FormulaActionPerformed);
 
-        jButtonP5Sub.setText("-");
-        jButtonP5Sub.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP5Sub.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5SubActionPerformed(evt);
-            }
-        });
+        final JPanel jPanel4 = new JPanel();
+        jPanel4.setBorder(BorderFactory.createTitledBorder(this.translate(
+                "Operators and precedence")));
 
-        jButtonP5AbreParent.setText("(");
-        jButtonP5AbreParent.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP5AbreParent.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5AbreParentActionPerformed(evt);
-            }
-        });
+        final var button5 = GerarEscalonador.minimalButton("+",
+         this::jButtonP5AddActionPerformed);
+        button5.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP5Add = button5;
+        jButtonP5Add.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
 
-        jButtonP5FechaParent.setText(")");
-        jButtonP5FechaParent.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP5FechaParent.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5FechaParentActionPerformed(evt);
-            }
-        });
+        final var button4 = GerarEscalonador.minimalButton("-",
+this::jButtonP5SubActionPerformed);
+        button4.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP5Sub = button4;
 
-        jButtonP5Div.setText("/");
-        jButtonP5Div.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP5Div.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5DivActionPerformed(evt);
-            }
-        });
+        final var button3 = GerarEscalonador.minimalButton("(",
+         this::jButtonP5AbreParentActionPerformed);
+        button3.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP5AbreParent = button3;
 
-        jButtonP5Mult.setText("*");
-        jButtonP5Mult.setMaximumSize(new java.awt.Dimension(37, 50));
-        jButtonP5Mult.setMinimumSize(new java.awt.Dimension(37, 23));
-        jButtonP5Mult.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5MultActionPerformed(evt);
-            }
-        });
+        final var button2 = GerarEscalonador.minimalButton(")",
+                this::jButtonP5FechaParentActionPerformed);
+        button2.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP5FechaParent = button2;
 
-        jButtonP5Voltar.setText("←");
-        jButtonP5Voltar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5VoltarActionPerformed(evt);
-            }
-        });
+        final var button1 = GerarEscalonador.minimalButton("/",
+         this::jButtonP5DivActionPerformed);
+        button1.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP5Div = button1;
 
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        final var button = GerarEscalonador.minimalButton("*",
+         this::jButtonP5MultActionPerformed);
+        button.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        final JButton jButtonP5Mult = button;
+        jButtonP5Mult.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
+
+        final String text1 = "←";
+        final ActionListener jButtonP5VoltarActionPerformed =
+                this::jButtonP5VoltarActionPerformed;
+        final JButton jButtonP5Voltar = GerarEscalonador.minimalButton(text1,
+                jButtonP5VoltarActionPerformed);
+
+        final GroupLayout jPanel4Layout =
+                new GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButtonP5AbreParent, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-                    .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jButtonP5Sub, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButtonP5Add, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
-                    .addComponent(jButtonP5Mult, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-                    .addComponent(jButtonP5Div, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-                    .addComponent(jButtonP5FechaParent, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP5Voltar, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(32, 32, 32))
+                jPanel4Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel4Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jButtonP5AbreParent,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 50, Short.MAX_VALUE)
+                                        .addGroup(jPanel4Layout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                                .addComponent(jButtonP5Sub,
+                                                        GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jButtonP5Add,
+                                                        GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
+                                        .addComponent(jButtonP5Mult,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 50, Short.MAX_VALUE)
+                                        .addComponent(jButtonP5Div,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 50, Short.MAX_VALUE)
+                                        .addComponent(jButtonP5FechaParent,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 50, Short.MAX_VALUE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP5Voltar,
+                                        GroupLayout.PREFERRED_SIZE, 52,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addGap(32, 32, 32))
         );
         jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jButtonP5Voltar, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
-                        .addComponent(jButtonP5Add, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonP5Sub, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonP5Mult, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonP5Div, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonP5AbreParent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonP5FechaParent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(28, Short.MAX_VALUE))
+                jPanel4Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel4Layout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(jButtonP5Voltar,
+                                                GroupLayout.Alignment.LEADING
+                                                , GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addGroup(GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
+                                                .addComponent(jButtonP5Add,
+                                                        GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButtonP5Sub,
+                                                        GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButtonP5Mult,
+                                                        GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButtonP5Div,
+                                                        GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButtonP5AbreParent, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButtonP5FechaParent, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                                .addContainerGap(28, Short.MAX_VALUE))
         );
 
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Variables"))); // NOI18N
+        final JPanel jPanel5 = new JPanel();
+        jPanel5.setBorder(BorderFactory.createTitledBorder(this.translate(
+                "Variables")));
 
-        jButtonP5PProcessamento.setText(palavras.getString("Processing power") + " - PP"); // NOI18N
-        jButtonP5PProcessamento.setToolTipText(palavras.getString("Resource processing power")); // NOI18N
-        jButtonP5PProcessamento.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5PProcessamentoActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP5PProcessamento =
+                this.configuredButton(this.translate("Processing power") +
+                                      " - PP",
+                        this.translate("Resource " +
+                                       "processing " +
+                                       "power"),
+                        this::jButtonP5PProcessamentoActionPerformed);
 
-        jButtonP5LinkComunicacao.setText(palavras.getString("Communication link") + " - LC"); // NOI18N
-        jButtonP5LinkComunicacao.setToolTipText(palavras.getString("Band of the communication link")); // NOI18N
-        jButtonP5LinkComunicacao.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5LinkComunicacaoActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP5LinkComunicacao =
+                this.configuredButton(this.translate("Communication " +
+                                                     "link") + " - LC",
+                        this.translate("Band of " +
+                                       "the communication link"),
+                        this::jButtonP5LinkComunicacaoActionPerformed);
 
-        jButtonP5TCompTarefa.setText(palavras.getString("Task computational size") + " - TCT"); // NOI18N
-        jButtonP5TCompTarefa.setToolTipText(palavras.getString("Computational size of the submitted task")); // NOI18N
-        jButtonP5TCompTarefa.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5TCompTarefaActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP5TCompTarefa =
+                this.configuredButton(this.translate(
+                                "Task " +
+                                "computational " +
+                                "size") +
+                                      " - TCT",
+                        this.translate("Computational" +
+                                       " size of the " +
+                                       "submitted task"),
+                        this::jButtonP5TCompTarefaActionPerformed);
 
-        jButtonP5NumTExec.setText(palavras.getString("Number of running taks") + " - NTE"); // NOI18N
-        jButtonP5NumTExec.setToolTipText(palavras.getString("Number of running tasks in the resource")); // NOI18N
-        jButtonP5NumTExec.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5NumTExecActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP5NumTExec = this.configuredButton(this.translate(
+                        "Number of " +
+                        "running taks") + " - " +
+                                                                "NTE",
+                this.translate(
+                        "Number" +
+                        " of " +
+                        "running tasks " +
+                        "in the " +
+                        "resource"), this::jButtonP5NumTExecActionPerformed);
 
-        jButtonP5TComunTarefa.setText(palavras.getString("Task communication size") + " - TCMT"); // NOI18N
-        jButtonP5TComunTarefa.setToolTipText(palavras.getString("Commnication size of the submmited task")); // NOI18N
-        jButtonP5TComunTarefa.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5TComunTarefaActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP5TComunTarefa =
+                this.configuredButton(this.translate("Task " +
+                                                     "communication " +
+                                                     "size") +
+                                      " - TCMT",
+                        this.translate("Commnication" +
+                                       " size of the " +
+                                       "submmited task"),
+                        this::jButtonP5TComunTarefaActionPerformed);
 
-        jButtonP5Const1.setText("Const");
-        jButtonP5Const1.setToolTipText(palavras.getString("Numerical constant")); // NOI18N
-        jButtonP5Const1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5Const1ActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP5Const1 = this.configuredButton("Const",
+                this.translate("Numerical " +
+                               "constant"),
+                this::jButtonP5Const1ActionPerformed);
 
-        jFormattedTextP5DigitaConst.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
-        jFormattedTextP5DigitaConst.setText("1");
-        jFormattedTextP5DigitaConst.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jFormattedTextP5DigitaConstActionPerformed(evt);
-            }
-        });
+        this.jFormattedTextP5DigitaConst = new JFormattedTextField();
+        this.jFormattedTextP5DigitaConst.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        this.jFormattedTextP5DigitaConst.setText("1");
+        this.jFormattedTextP5DigitaConst.addActionListener(this::jFormattedTextP5DigitaConstActionPerformed);
 
-        jButtonP5MflopExec.setText(palavras.getString("Running Mflops") + " - MFE"); // NOI18N
-        jButtonP5MflopExec.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonP5MflopExecActionPerformed(evt);
-            }
-        });
+        final JButton jButtonP5MflopExec =
+         GerarEscalonador.minimalButton(this.translate(
+                        "Running " +
+                        "Mflops") +
+                                                                          " -" +
+                                                                          " MFE",
+                this::jButtonP5MflopExecActionPerformed);
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        final GroupLayout jPanel5Layout =
+                new GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButtonP5PProcessamento, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addComponent(jButtonP5LinkComunicacao, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addComponent(jButtonP5NumTExec, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addComponent(jButtonP5TCompTarefa, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addComponent(jButtonP5TComunTarefa, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addGap(2, 2, 2)
-                        .addComponent(jButtonP5Const1, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jFormattedTextP5DigitaConst, javax.swing.GroupLayout.DEFAULT_SIZE, 73, Short.MAX_VALUE))
-                    .addComponent(jButtonP5MflopExec, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE))
-                .addContainerGap())
+                jPanel5Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addGroup(jPanel5Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jButtonP5PProcessamento
+                                                ,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 271, Short.MAX_VALUE)
+                                        .addComponent(jButtonP5LinkComunicacao, GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
+                                        .addComponent(jButtonP5NumTExec,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 271, Short.MAX_VALUE)
+                                        .addComponent(jButtonP5TCompTarefa,
+                                                GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
+                                        .addComponent(jButtonP5TComunTarefa,
+                                                GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
+                                        .addGroup(jPanel5Layout.createSequentialGroup()
+                                                .addGap(2, 2, 2)
+                                                .addComponent(jButtonP5Const1
+                                                        ,
+                                                        GroupLayout.PREFERRED_SIZE, 190, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(this.jFormattedTextP5DigitaConst, GroupLayout.DEFAULT_SIZE, 73, Short.MAX_VALUE))
+                                        .addComponent(jButtonP5MflopExec,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 271, Short.MAX_VALUE))
+                                .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addComponent(jButtonP5PProcessamento)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP5LinkComunicacao)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP5TCompTarefa)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP5TComunTarefa)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP5NumTExec)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonP5MflopExec)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonP5Const1)
-                    .addComponent(jFormattedTextP5DigitaConst, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(18, Short.MAX_VALUE))
+                jPanel5Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(jButtonP5PProcessamento)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP5LinkComunicacao)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP5TCompTarefa)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP5TComunTarefa)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP5NumTExec)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonP5MflopExec)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel5Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jButtonP5Const1)
+                                        .addComponent(this.jFormattedTextP5DigitaConst, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap(18, Short.MAX_VALUE))
         );
 
-        jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Order"))); // NOI18N
+        final JPanel jPanel6 = new JPanel();
+        jPanel6.setBorder(BorderFactory.createTitledBorder(this.translate(
+                "Order")));
 
-        jRadioButtonP5Crescente.setText(palavras.getString("Crescent")); // NOI18N
-        jRadioButtonP5Crescente.setToolTipText(palavras.getString("This option schedules by the generated formula in crescent order")); // NOI18N
-        jRadioButtonP5Crescente.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP5CrescenteActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP5Crescente = new JRadioButton();
+        this.jRadioButtonP5Crescente.setText(this.translate("Crescent"));
 
-        jRadioButtonP5Decrescente.setText(palavras.getString("Decrescent")); // NOI18N
-        jRadioButtonP5Decrescente.setToolTipText(palavras.getString("This option schedules by the generated formula in decrescent order")); // NOI18N
-        jRadioButtonP5Decrescente.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP5DecrescenteActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP5Crescente.setToolTipText(this.translate("This " +
+                                                                   "option " +
+                                                                   "schedules" +
+                                                                                                                                                  "generated" +
+                                                                   " formula" +
+                                                                   " in crescent order"));
 
-        jRadioButtonP5Random.setSelected(true);
-        jRadioButtonP5Random.setText(palavras.getString("Random")); // NOI18N
-        jRadioButtonP5Random.setToolTipText(palavras.getString("This option schedules randomly")); // NOI18N
-        jRadioButtonP5Random.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP5RandomActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP5Crescente.addActionListener(this::jRadioButtonP5CrescenteActionPerformed);
 
-        jRadioButtonP5FIFO.setText("FIFO");
-        jRadioButtonP5FIFO.setToolTipText("");
-        jRadioButtonP5FIFO.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP5FIFOActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP5Decrescente = new JRadioButton();
+        this.jRadioButtonP5Decrescente.setText(this.translate("Decrescent"));
 
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        this.jRadioButtonP5Decrescente.setToolTipText(this.translate("This " +
+                                                                     "option " +
+                                                                     "schedules " +
+                                                                     "by the " +
+                                                                     "generated formula in decrescent " +
+                                                                     "order"));
+
+        this.jRadioButtonP5Decrescente.addActionListener(this::jRadioButtonP5DecrescenteActionPerformed);
+
+        this.jRadioButtonP5Random = new JRadioButton();
+        this.jRadioButtonP5Random.setSelected(true);
+        this.jRadioButtonP5Random.setText(this.translate("Random"));
+
+        this.jRadioButtonP5Random.setToolTipText(this.translate("This option " +
+                                                                "schedules " +
+                                                                "randomly"));
+        this.jRadioButtonP5Random.addActionListener(this::jRadioButtonP5RandomActionPerformed);
+
+        this.jRadioButtonP5FIFO = new JRadioButton();
+        this.jRadioButtonP5FIFO.setText("FIFO");
+        this.jRadioButtonP5FIFO.setToolTipText("");
+        this.jRadioButtonP5FIFO.addActionListener(this::jRadioButtonP5FIFOActionPerformed);
+
+        final GroupLayout jPanel6Layout =
+                new GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jRadioButtonP5Crescente)
-                    .addComponent(jRadioButtonP5Random)
-                    .addComponent(jRadioButtonP5Decrescente)
-                    .addComponent(jRadioButtonP5FIFO))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(this.jRadioButtonP5Crescente)
+                                        .addComponent(this.jRadioButtonP5Random)
+                                        .addComponent(this.jRadioButtonP5Decrescente)
+                                        .addComponent(this.jRadioButtonP5FIFO))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jRadioButtonP5Crescente)
-                .addGap(3, 3, 3)
-                .addComponent(jRadioButtonP5Decrescente)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jRadioButtonP5Random)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jRadioButtonP5FIFO)
-                .addContainerGap(113, Short.MAX_VALUE))
+                jPanel6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jRadioButtonP5Crescente)
+                                .addGap(3, 3, 3)
+                                .addComponent(this.jRadioButtonP5Decrescente)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jRadioButtonP5Random)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jRadioButtonP5FIFO)
+                                .addContainerGap(113, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout jPanelPasso5Layout = new javax.swing.GroupLayout(jPanelPasso5);
-        jPanelPasso5.setLayout(jPanelPasso5Layout);
+        final GroupLayout jPanelPasso5Layout =
+                new GroupLayout(this.jPanelPasso5);
+        this.jPanelPasso5.setLayout(jPanelPasso5Layout);
         jPanelPasso5Layout.setHorizontalGroup(
-            jPanelPasso5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPasso5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelPasso5Layout.createSequentialGroup()
-                        .addComponent(jLabelP5Formula)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldP5Formula, javax.swing.GroupLayout.DEFAULT_SIZE, 523, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelPasso5Layout.createSequentialGroup()
-                        .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                jPanelPasso5Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso5Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelPasso5Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanelPasso5Layout.createSequentialGroup()
+                                                .addComponent(jLabelP5Formula)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(this.jTextFieldP5Formula, GroupLayout.DEFAULT_SIZE, 523, Short.MAX_VALUE))
+                                        .addGroup(GroupLayout.Alignment.TRAILING, jPanelPasso5Layout.createSequentialGroup()
+                                                .addComponent(jPanel5,
+                                                        GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jPanel4,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jPanel6,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                                .addContainerGap())
         );
         jPanelPasso5Layout.setVerticalGroup(
-            jPanelPasso5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelPasso5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPasso5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelP5Formula)
-                    .addComponent(jTextFieldP5Formula, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelPasso5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(36, Short.MAX_VALUE))
+                jPanelPasso5Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING,
+                                jPanelPasso5Layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addGroup(jPanelPasso5Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                .addComponent(jLabelP5Formula)
+                                                .addComponent(this.jTextFieldP5Formula,
+                                                        GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE))
+                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(jPanelPasso5Layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                                .addComponent(jPanel6,
+                                                        GroupLayout.DEFAULT_SIZE
+                                                        ,
+                                                        GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jPanel4,
+                                                        GroupLayout.DEFAULT_SIZE
+                                                        ,
+                                                        GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jPanel5,
+                                                        GroupLayout.DEFAULT_SIZE
+                                                        ,
+                                                        GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                        .addContainerGap(36, Short.MAX_VALUE))
         );
 
-        jPanelPasso5.getAccessibleContext().setAccessibleName("Ordem de alocação de recursos");
+        this.jPanelPasso5.getAccessibleContext().setAccessibleName("Ordem de " +
+                                                                   "alocação " +
+                                                                   "de recursos");
 
-        jPanelPassoSimples.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Simple") + " - " + palavras.getString("Scheduling options"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Comic Sans MS", 1, 12))); // NOI18N
+        this.jPanelPassoSimples = new JPanel();
+        this.jPanelPassoSimples.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Simple") + " - " + this.translate("Scheduling options"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
 
-        jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true), palavras.getString("Resource Scheduler"))); // NOI18N
+        final JPanel jPanel7 = new JPanel();
+        jPanel7.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(GerarEscalonador.BLACK, 1, true), this.translate("Resource Scheduler")));
 
-        jListRecurso.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Select the policy used:"))); // NOI18N
-        jListRecurso.setModel(this.simplesRecurso());
-        jListRecurso.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jListRecurso.setSelectedIndex(0);
-        jScrollPane2.setViewportView(jListRecurso);
+        this.jListRecurso = new JList<>();
+        this.jListRecurso.setBorder(BorderFactory.createTitledBorder(this.translate("Select the policy used:")));
+        this.jListRecurso.setModel(new SimpleResourceModel());
+        this.jListRecurso.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        this.jListRecurso.setSelectedIndex(0);
+        final JScrollPane jScrollPane2 = new JScrollPane();
+        jScrollPane2.setViewportView(this.jListRecurso);
 
-        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        final GroupLayout jPanel7Layout =
+                new GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel7Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jScrollPane2,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        280,
+                                        Short.MAX_VALUE)
+                                .addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addGap(43, 43, 43)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(33, Short.MAX_VALUE))
+                jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel7Layout.createSequentialGroup()
+                                .addGap(43, 43, 43)
+                                .addComponent(jScrollPane2,
+                                        GroupLayout.PREFERRED_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(33, Short.MAX_VALUE))
         );
 
-        jPanel8.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true), palavras.getString("Task Scheduler"))); // NOI18N
+        final JPanel jPanel8 = new JPanel();
+        jPanel8.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(GerarEscalonador.BLACK, 1, true), this.translate("Task Scheduler")));
 
-        jListTarefa.setBorder(javax.swing.BorderFactory.createTitledBorder(palavras.getString("Select the policy used:"))); // NOI18N
-        jListTarefa.setModel(simplesTarefa());
-        jListTarefa.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jListTarefa.setSelectedIndex(0);
-        jScrollPane1.setViewportView(jListTarefa);
+        this.jListTarefa = new JList<>();
+        this.jListTarefa.setBorder(BorderFactory.createTitledBorder(this.translate("Select the policy used:")));
+        this.jListTarefa.setModel(new SimpleTaskModel());
+        this.jListTarefa.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        this.jListTarefa.setSelectedIndex(0);
+        final JScrollPane jScrollPane1 = new JScrollPane();
+        jScrollPane1.setViewportView(this.jListTarefa);
 
-        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
+        final GroupLayout jPanel8Layout =
+                new GroupLayout(jPanel8);
         jPanel8.setLayout(jPanel8Layout);
         jPanel8Layout.setHorizontalGroup(
-            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel8Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanel8Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel8Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jScrollPane1,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        297,
+                                        Short.MAX_VALUE)
+                                .addContainerGap())
         );
         jPanel8Layout.setVerticalGroup(
-            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel8Layout.createSequentialGroup()
-                .addGap(43, 43, 43)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(33, Short.MAX_VALUE))
+                jPanel8Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel8Layout.createSequentialGroup()
+                                .addGap(43, 43, 43)
+                                .addComponent(jScrollPane1,
+                                        GroupLayout.PREFERRED_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(33, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout jPanelPassoSimplesLayout = new javax.swing.GroupLayout(jPanelPassoSimples);
-        jPanelPassoSimples.setLayout(jPanelPassoSimplesLayout);
+        final GroupLayout jPanelPassoSimplesLayout =
+                new GroupLayout(this.jPanelPassoSimples);
+        this.jPanelPassoSimples.setLayout(jPanelPassoSimplesLayout);
         jPanelPassoSimplesLayout.setHorizontalGroup(
-            jPanelPassoSimplesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelPassoSimplesLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                jPanelPassoSimplesLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING,
+                                jPanelPassoSimplesLayout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(jPanel8,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jPanel7,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addContainerGap())
         );
         jPanelPassoSimplesLayout.setVerticalGroup(
-            jPanelPassoSimplesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelPassoSimplesLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPassoSimplesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                jPanelPassoSimplesLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING,
+                                jPanelPassoSimplesLayout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addGroup(jPanelPassoSimplesLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                                .addComponent(jPanel7,
+                                                        GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jPanel8,
+                                                        GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                        .addContainerGap())
         );
 
-        jPanelPasso6.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Restrictions"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Comic Sans MS", 1, 12))); // NOI18N
+        this.jPanelPasso6 = new JPanel();
+        this.jPanelPasso6.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Restrictions"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
 
-        jSeparatorP6.setForeground(new java.awt.Color(0, 0, 0));
+        final JSeparator jSeparatorP6 = new JSeparator();
+        jSeparatorP6.setForeground(GerarEscalonador.BLACK);
 
-        jRadioButtonP6SemRestricao.setSelected(true);
-        jRadioButtonP6SemRestricao.setText(palavras.getString("No restrictions")); // NOI18N
-        jRadioButtonP6SemRestricao.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP6SemRestricaoActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP6SemRestricao = new JRadioButton();
+        this.jRadioButtonP6SemRestricao.setSelected(true);
+        this.jRadioButtonP6SemRestricao.setText(this.translate("No " +
+                                                               "restrictions"));
+        this.jRadioButtonP6SemRestricao.addActionListener(this::jRadioButtonP6SemRestricaoActionPerformed);
 
-        jRadioButtonP6PorRecurso.setText(palavras.getString("Limit the number of tasks submitted by resource")); // NOI18N
-        jRadioButtonP6PorRecurso.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP6PorRecursoActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP6PorRecurso = new JRadioButton();
+        this.jRadioButtonP6PorRecurso.setText(this.translate("Limit " +
+                                                             "the number" +
+                                                             " of tasks" +
+                                                             " submitted by " +
+                                                             "resource"));
+        this.jRadioButtonP6PorRecurso.addActionListener(this::jRadioButtonP6PorRecursoActionPerformed);
 
-        jRadioButtonP6PorUsuario.setText(palavras.getString("Limit the number of tasks submitted by user")); // NOI18N
-        jRadioButtonP6PorUsuario.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonP6PorUsuarioActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonP6PorUsuario = new JRadioButton();
+        this.jRadioButtonP6PorUsuario.setText(this.translate("Limit " +
+                                                             "the number" +
+                                                             " of tasks" +
+                                                             " submitted by " +
+                                                             "user"));
+        this.jRadioButtonP6PorUsuario.addActionListener(this::jRadioButtonP6PorUsuarioActionPerformed);
 
-        jLabelP6_1.setText(palavras.getString("The scheduler stop when there are more than")); // NOI18N
-        jLabelP6_1.setEnabled(false);
+        this.jLabelP6_1 = new JLabel();
+        this.jLabelP6_1.setText(this.translate("The scheduler stop " +
+                                               "when there " +
+                                               "are more than"));
 
-        jTextFieldP6Num.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        jTextFieldP6Num.setText("1");
-        jTextFieldP6Num.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        jTextFieldP6Num.setEnabled(false);
+        this.jLabelP6_1.setEnabled(false);
 
-        jLabelP6_2.setText(palavras.getString("tasks in all resources.")); // NOI18N
-        jLabelP6_2.setEnabled(false);
+        this.jTextFieldP6Num = new JFormattedTextField();
+        this.jTextFieldP6Num.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        this.jTextFieldP6Num.setText("1");
+        this.jTextFieldP6Num.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        this.jTextFieldP6Num.setEnabled(false);
 
-        javax.swing.GroupLayout jPanelPasso6Layout = new javax.swing.GroupLayout(jPanelPasso6);
-        jPanelPasso6.setLayout(jPanelPasso6Layout);
+        this.jLabelP6_2 = new JLabel();
+        this.jLabelP6_2.setText(this.translate("tasks in all " +
+                                               "resources."));
+
+        this.jLabelP6_2.setEnabled(false);
+
+        final GroupLayout jPanelPasso6Layout =
+                new GroupLayout(this.jPanelPasso6);
+        this.jPanelPasso6.setLayout(jPanelPasso6Layout);
         jPanelPasso6Layout.setHorizontalGroup(
-            jPanelPasso6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jRadioButtonP6SemRestricao)
-                .addContainerGap(359, Short.MAX_VALUE))
-            .addGroup(jPanelPasso6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jRadioButtonP6PorUsuario)
-                .addContainerGap(219, Short.MAX_VALUE))
-            .addComponent(jSeparatorP6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 460, Short.MAX_VALUE)
-            .addGroup(jPanelPasso6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelP6_1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextFieldP6Num, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelP6_2)
-                .addContainerGap(62, Short.MAX_VALUE))
-            .addGroup(jPanelPasso6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jRadioButtonP6PorRecurso)
-                .addContainerGap(199, Short.MAX_VALUE))
+                jPanelPasso6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso6Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jRadioButtonP6SemRestricao)
+                                .addContainerGap(359, Short.MAX_VALUE))
+                        .addGroup(jPanelPasso6Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jRadioButtonP6PorUsuario)
+                                .addContainerGap(219, Short.MAX_VALUE))
+                        .addComponent(jSeparatorP6,
+                                GroupLayout.Alignment.TRAILING,
+                                GroupLayout.DEFAULT_SIZE, 460,
+                                Short.MAX_VALUE)
+                        .addGroup(jPanelPasso6Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jLabelP6_1)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jTextFieldP6Num,
+                                        GroupLayout.PREFERRED_SIZE, 57,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelP6_2)
+                                .addContainerGap(62, Short.MAX_VALUE))
+                        .addGroup(jPanelPasso6Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jRadioButtonP6PorRecurso)
+                                .addContainerGap(199, Short.MAX_VALUE))
         );
         jPanelPasso6Layout.setVerticalGroup(
-            jPanelPasso6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jRadioButtonP6SemRestricao)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jRadioButtonP6PorRecurso)
-                .addGap(4, 4, 4)
-                .addComponent(jRadioButtonP6PorUsuario)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jSeparatorP6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanelPasso6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelP6_1)
-                    .addComponent(jTextFieldP6Num, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabelP6_2))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                jPanelPasso6Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso6Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jRadioButtonP6SemRestricao)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(this.jRadioButtonP6PorRecurso)
+                                .addGap(4, 4, 4)
+                                .addComponent(this.jRadioButtonP6PorUsuario)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jSeparatorP6,
+                                        GroupLayout.PREFERRED_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanelPasso6Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.jLabelP6_1)
+                                        .addComponent(this.jTextFieldP6Num,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.jLabelP6_2))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
 
-        jPanelPasso7.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Finish"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Comic Sans MS", 1, 12))); // NOI18N
+        this.jPanelPasso7 = new JPanel();
+        this.jPanelPasso7.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Finish"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
 
-        jTextPaneP7Gramatica.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        jScrollPane3.setViewportView(jTextPaneP7Gramatica);
+        this.jTextPaneP7Gramatica = new JTextPane();
+        this.jTextPaneP7Gramatica.setFont(GerarEscalonador.TAHOMA_FONT_BOLD);
 
-        javax.swing.GroupLayout jPanelPasso7Layout = new javax.swing.GroupLayout(jPanelPasso7);
-        jPanelPasso7.setLayout(jPanelPasso7Layout);
+        final JScrollPane jScrollPane3 = new JScrollPane();
+        jScrollPane3.setViewportView(this.jTextPaneP7Gramatica);
+
+        final GroupLayout jPanelPasso7Layout =
+                new GroupLayout(this.jPanelPasso7);
+        this.jPanelPasso7.setLayout(jPanelPasso7Layout);
         jPanelPasso7Layout.setHorizontalGroup(
-            jPanelPasso7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 458, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanelPasso7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso7Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jScrollPane3,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        458,
+                                        Short.MAX_VALUE)
+                                .addContainerGap())
         );
         jPanelPasso7Layout.setVerticalGroup(
-            jPanelPasso7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPasso7Layout.createSequentialGroup()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanelPasso7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso7Layout.createSequentialGroup()
+                                .addComponent(jScrollPane3,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        233,
+                                        Short.MAX_VALUE)
+                                .addContainerGap())
         );
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(palavras.getString("New Scheduler")); // NOI18N
-        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("imagens/Logo_iSPD_25.png")));
-        setLocation(new java.awt.Point(0, 0));
+        this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        this.setTitle(this.translate("New Scheduler"));
+        this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        this.setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("imagens/Logo_iSPD_25.png")));
+        this.setLocation(new Point(0, 0));
 
-        jPanelPassos.setBackground(new java.awt.Color(255, 255, 255));
+        final JPanel jPanelPassos = new JPanel();
+        jPanelPassos.setBackground(GerarEscalonador.BACKGROUND_WHITE);
         jPanelPassos.setBorder(new javax.swing.border.MatteBorder(null));
 
-        jLabelPassos.setFont(new java.awt.Font("Comic Sans MS", 1, 12)); // NOI18N
-        jLabelPassos.setText("<html><b>" + palavras.getString("Steps") + "<br>----------------</b></html>"); // NOI18N
+        final JLabel jLabelPassos = new JLabel();
+        jLabelPassos.setFont(GerarEscalonador.COMIC_SANS_FONT_BOLD);
 
-        jLabelPasso1.setText("1 - " + palavras.getString("Enter the name")); // NOI18N
+        jLabelPassos.setText("<html><b>" + this.translate("Steps") + "<br" +
+                             ">----------------</b></html>");
 
-        jLabelPasso2.setText("2 - " + palavras.getString("Characteristics")); // NOI18N
-        jLabelPasso2.setEnabled(false);
+        this.jLabelPasso1 = new JLabel();
+        this.jLabelPasso1.setText("1 - " + this.translate("Enter the" +
+                                                          " name"));
 
-        jLabelPasso3.setText("3 - " + palavras.getString("Generator type")); // NOI18N
-        jLabelPasso3.setEnabled(false);
 
-        jLabelPasso4.setText("4 - " + palavras.getString("Task Scheduler")); // NOI18N
-        jLabelPasso4.setEnabled(false);
+        this.jLabelPasso2 = new JLabel();
+        this.jLabelPasso2.setText("2 - " + this.translate("Characteristics"));
+        this.jLabelPasso2.setEnabled(false);
 
-        jLabelPasso5.setText("5 - " + palavras.getString("Resource Scheduler")); // NOI18N
-        jLabelPasso5.setEnabled(false);
+        this.jLabelPasso3 = new JLabel();
+        this.jLabelPasso3.setText("3 - " + this.translate("Generator" +
+                                                          " type"));
 
-        jLabelPasso6.setText("6 - " + palavras.getString("Restrictions")); // NOI18N
-        jLabelPasso6.setEnabled(false);
+        this.jLabelPasso3.setEnabled(false);
 
-        jLabelPasso7.setText("7 - " + palavras.getString("Finish")); // NOI18N
-        jLabelPasso7.setEnabled(false);
+        this.jLabelPasso4 = new JLabel();
+        this.jLabelPasso4.setText("4 - " + this.translate("Task " +
+                                                          "Scheduler"));
 
-        javax.swing.GroupLayout jPanelPassosLayout = new javax.swing.GroupLayout(jPanelPassos);
+        this.jLabelPasso4.setEnabled(false);
+
+        this.jLabelPasso5 = new JLabel();
+        this.jLabelPasso5.setText("5 - " + this.translate("Resource " +
+                                                          "Scheduler"));
+        this.jLabelPasso5.setEnabled(false);
+
+        this.jLabelPasso6 = new JLabel();
+        this.jLabelPasso6.setText("6 - " + this.translate("Restrictions"));
+
+        this.jLabelPasso6.setEnabled(false);
+
+        this.jLabelPasso7 = new JLabel();
+        this.jLabelPasso7.setText("7 - " + this.translate("Finish"));
+
+        this.jLabelPasso7.setEnabled(false);
+
+        final GroupLayout jPanelPassosLayout =
+                new GroupLayout(jPanelPassos);
         jPanelPassos.setLayout(jPanelPassosLayout);
         jPanelPassosLayout.setHorizontalGroup(
-            jPanelPassosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPassosLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPassosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabelPassos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabelPasso1)
-                    .addComponent(jLabelPasso2)
-                    .addComponent(jLabelPasso4)
-                    .addComponent(jLabelPasso5)
-                    .addComponent(jLabelPasso3)
-                    .addComponent(jLabelPasso6)
-                    .addComponent(jLabelPasso7))
-                .addContainerGap())
+                jPanelPassosLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPassosLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelPassosLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabelPassos,
+                                                GroupLayout.DEFAULT_SIZE
+                                                ,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addComponent(this.jLabelPasso1)
+                                        .addComponent(this.jLabelPasso2)
+                                        .addComponent(this.jLabelPasso4)
+                                        .addComponent(this.jLabelPasso5)
+                                        .addComponent(this.jLabelPasso3)
+                                        .addComponent(this.jLabelPasso6)
+                                        .addComponent(this.jLabelPasso7))
+                                .addContainerGap())
         );
         jPanelPassosLayout.setVerticalGroup(
-            jPanelPassosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPassosLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelPassos)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelPasso1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelPasso2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelPasso3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelPasso4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelPasso5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelPasso6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelPasso7)
-                .addContainerGap(262, Short.MAX_VALUE))
+                jPanelPassosLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPassosLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabelPassos)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelPasso1)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelPasso2)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelPasso3)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelPasso4)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelPasso5)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelPasso6)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelPasso7)
+                                .addContainerGap(262, Short.MAX_VALUE))
         );
 
-        jPanelControle.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        final JPanel jPanelControle = new JPanel();
+        jPanelControle.setBorder(BorderFactory.createEtchedBorder());
 
-        jButtonVoltar.setText("< " + palavras.getString("Back")); // NOI18N
-        jButtonVoltar.setEnabled(false);
-        jButtonVoltar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonVoltarActionPerformed(evt);
-            }
-        });
+        this.buttonPrevious = new JButton();
+        this.buttonPrevious.setText("< " + this.translate("Back"));
+        this.buttonPrevious.addActionListener(this::jButtonVoltarActionPerformed);
+        this.buttonPrevious.setEnabled(false);
 
-        jButtonProximo.setText(palavras.getString("Next") + " >"); // NOI18N
-        jButtonProximo.setActionCommand(palavras.getString("Next") + " >"); // NOI18N
-        jButtonProximo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonProximoActionPerformed(evt);
-            }
-        });
+        this.buttonNext = new JButton();
+        this.buttonNext.setText(this.translate("Next") + " >");
+        this.buttonNext.setActionCommand(this.translate("Next") + " >");
+        this.buttonNext.addActionListener(this::jButtonProximoActionPerformed);
 
-        jButtonFinalizar.setText(palavras.getString("Finish")); // NOI18N
-        jButtonFinalizar.setEnabled(false);
-        jButtonFinalizar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonFinalizarActionPerformed(evt);
-            }
-        });
+        this.buttonFinalize = new JButton();
+        this.buttonFinalize.setText(this.translate("Finish"));
+        this.buttonFinalize.setEnabled(false);
+        this.buttonFinalize.addActionListener(this::jButtonFinalizarActionPerformed);
 
-        jButtonCancelar.setText(palavras.getString("Cancel")); // NOI18N
-        jButtonCancelar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonCancelarActionPerformed(evt);
-            }
-        });
+        final JButton jButtonCancelar =
+                GerarEscalonador.minimalButton(this.translate("Cancel"),
+                        this::jButtonCancelarActionPerformed);
 
-        javax.swing.GroupLayout jPanelControleLayout = new javax.swing.GroupLayout(jPanelControle);
+        final GroupLayout jPanelControleLayout =
+                new GroupLayout(jPanelControle);
         jPanelControle.setLayout(jPanelControleLayout);
         jPanelControleLayout.setHorizontalGroup(
-            jPanelControleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelControleLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jButtonVoltar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonProximo)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonFinalizar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonCancelar)
-                .addContainerGap(380, Short.MAX_VALUE))
+                jPanelControleLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelControleLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.buttonPrevious)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.buttonNext)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.buttonFinalize)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonCancelar)
+                                .addContainerGap(380, Short.MAX_VALUE))
         );
         jPanelControleLayout.setVerticalGroup(
-            jPanelControleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelControleLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelControleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonVoltar)
-                    .addComponent(jButtonProximo)
-                    .addComponent(jButtonFinalizar)
-                    .addComponent(jButtonCancelar))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                jPanelControleLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelControleLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelControleLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.buttonPrevious)
+                                        .addComponent(this.buttonNext)
+                                        .addComponent(this.buttonFinalize)
+                                        .addComponent(jButtonCancelar))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        this.makeLayoutAndPack(jPanelPassos, jPanelControle);
+    }
+
+    private JButton configuredButton(final String aConst,
+                                     final String translate,
+                                     final ActionListener action) {
+        final JButton jButtonP4Const = new JButton();
+        jButtonP4Const.setText(aConst);
+        jButtonP4Const.setToolTipText(translate);
+        jButtonP4Const.addActionListener(action);
+        return jButtonP4Const;
+    }
+
+    private void initStepThreeComponents() {
+        this.jPanelPasso3 = new JPanel();
+        this.jPanelPasso3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Generator type"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+
+        this.jOpSimples = new JRadioButton();
+        this.jOpSimples.setSelected(true);
+        this.jOpSimples.setText(this.translate("Simple"));
+        this.jOpSimples.addActionListener(this::jOpSimplesActionPerformed);
+
+        this.jOpAvancada = new JRadioButton();
+        this.jOpAvancada.setText(this.translate("Advanced"));
+        this.jOpAvancada.addActionListener(this::jOpAvancadaActionPerformed);
+
+        final JLabel jLabel3 = new JLabel();
+        jLabel3.setText(this.translate("Select a option of " +
+                                       "scheduler " +
+                                       "generator:"));
+
+        final JLabel jLabel4 = new JLabel();
+        jLabel4.setText(this.translate("This option provides " +
+                                       "common " +
+                                       "standards of scheduling" +
+                                       " policies"));
+
+        final JLabel jLabel5 = new JLabel();
+        jLabel5.setText(this.translate("This option allows to " +
+                                       "create " +
+                                       "scheduling policies " +
+                                       "through mathematical " +
+                                       "formulation"));
+
+
+        final GroupLayout jPanelPasso3Layout =
+                new GroupLayout(this.jPanelPasso3);
+        this.jPanelPasso3.setLayout(jPanelPasso3Layout);
+        jPanelPasso3Layout.setHorizontalGroup(
+                jPanelPasso3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso3Layout.createSequentialGroup()
+                                .addGap(19, 19, 19)
+                                .addGroup(jPanelPasso3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel3)
+                                        .addComponent(this.jOpSimples)
+                                        .addComponent(this.jOpAvancada)
+                                        .addGroup(jPanelPasso3Layout.createSequentialGroup()
+                                                .addGap(21, 21, 21)
+                                                .addComponent(jLabel4))
+                                        .addGroup(jPanelPasso3Layout.createSequentialGroup()
+                                                .addGap(21, 21, 21)
+                                                .addComponent(jLabel5)))
+                                .addContainerGap(132, Short.MAX_VALUE))
+        );
+        jPanelPasso3Layout.setVerticalGroup(
+                jPanelPasso3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso3Layout.createSequentialGroup()
+                                .addGap(33, 33, 33)
+                                .addComponent(jLabel3)
+                                .addGap(18, 18, 18)
+                                .addComponent(this.jOpSimples)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel4)
+                                .addGap(18, 18, 18)
+                                .addComponent(this.jOpAvancada)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel5)
+                                .addContainerGap(45, Short.MAX_VALUE))
+        );
+    }
+
+    private void initStepTwoComponents() {
+        this.jPanelPasso2 = new JPanel();
+        this.jPanelPasso2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Enter the characteristics"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+
+        final JLabel jLabelP2Informacao = new JLabel();
+        jLabelP2Informacao.setText(this.translate("Search for " +
+                                                  "information" +
+                                                  ":"));
+
+
+        this.jRadioButtonP2Estatica = new JRadioButton();
+        this.jRadioButtonP2Estatica.setText(this.translate("Static"));
+        this.jRadioButtonP2Estatica.addActionListener(this::jRadioButtonP2EstaticaActionPerformed);
+        this.jRadioButtonP2Estatica.setSelected(true);
+
+        this.jRadioButtonP2Dinamica = new JRadioButton();
+        this.jRadioButtonP2Dinamica.setText(this.translate("Dynamic"));
+        this.jRadioButtonP2Dinamica.addActionListener(this::jRadioButtonP2DinamicaActionPerformed);
+
+        this.jLabelP2Forma = new JLabel();
+        this.jLabelP2Forma.setText(this.translate("How to refresh:"));
+        this.jLabelP2Forma.setEnabled(false);
+
+        this.jRadioButtonP2Tempo = new JRadioButton();
+        this.jRadioButtonP2Tempo.setSelected(true);
+        this.jRadioButtonP2Tempo.setText(this.translate("Time " +
+                                                        "interval"));
+        this.jRadioButtonP2Tempo.setToolTipText(this.translate("Variables " +
+                                                               "will" +
+                                                               " be refreshed" +
+                                                               " after the " +
+                                                               "passing of " +
+                                                               "specified " +
+                                                               "time"));
+        this.jRadioButtonP2Tempo.setEnabled(false);
+        this.jRadioButtonP2Tempo.addActionListener(this::jRadioButtonP2TempoActionPerformed);
+
+        this.jRadioButtonP2Chegada = new JRadioButton();
+        this.jRadioButtonP2Chegada.setText(this.translate("Task " +
+                                                          "arrival"));
+        this.jRadioButtonP2Chegada.setEnabled(false);
+        this.jRadioButtonP2Chegada.addActionListener(this::jRadioButtonP2ChegadaActionPerformed);
+
+        this.jRadioButtonP2Saida = new JRadioButton();
+        this.jRadioButtonP2Saida.setText(this.translate("Task " +
+                                                        "output"));
+        this.jRadioButtonP2Saida.setEnabled(false);
+        this.jRadioButtonP2Saida.addActionListener(this::jRadioButtonP2SaidaActionPerformed);
+
+        this.jFormattedTextFieldP2Tempo = new JFormattedTextField();
+        this.jFormattedTextFieldP2Tempo.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        this.jFormattedTextFieldP2Tempo.setText("1");
+        this.jFormattedTextFieldP2Tempo.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        this.jFormattedTextFieldP2Tempo.setEnabled(false);
+
+        final JLabel jLabelP2Topologia = new JLabel();
+        jLabelP2Topologia.setText(this.translate("Topology:"));
+        jLabelP2Topologia.setVisible(false);
+
+
+        this.jRadioButtonP2Centralizada = new JRadioButton();
+        this.jRadioButtonP2Centralizada.setSelected(true);
+        this.jRadioButtonP2Centralizada.setText(this.translate("Centralized"));
+        this.jRadioButtonP2Centralizada.addActionListener(this::jRadioButtonP2CentralizadaActionPerformed);
+        this.jRadioButtonP2Centralizada.setVisible(false);
+
+
+        this.jRadioButtonP2Distribuida = new JRadioButton();
+        this.jRadioButtonP2Distribuida.setText(this.translate("Distributed"));
+        this.jRadioButtonP2Distribuida.addActionListener(this::jRadioButtonP2DistribuidaActionPerformed);
+        this.jRadioButtonP2Distribuida.setVisible(false);
+
+
+        this.jRadioButtonP2concluida = new JRadioButton();
+        this.jRadioButtonP2concluida.setText(this.translate("Task " +
+                                                            "completed"));
+        this.jRadioButtonP2concluida.setEnabled(false);
+        this.jRadioButtonP2concluida.addActionListener(this::jRadioButtonP2concluidaActionPerformed);
+
+        final GroupLayout jPanelPasso2Layout =
+                new GroupLayout(this.jPanelPasso2);
+        this.jPanelPasso2.setLayout(jPanelPasso2Layout);
+        jPanelPasso2Layout.setHorizontalGroup(
+                jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                .addGroup(jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                                .addGroup(jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                                                .addContainerGap()
+                                                                .addComponent(jLabelP2Informacao))
+                                                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                                                .addGap(26,
+                                                                        26, 26)
+                                                                .addGroup(jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(this.jRadioButtonP2Estatica)
+                                                                        .addComponent(this.jRadioButtonP2Dinamica)
+                                                                        .addComponent(this.jRadioButtonP2Tempo)
+                                                                        .addComponent(this.jRadioButtonP2Chegada)
+                                                                        .addComponent(this.jRadioButtonP2Saida)
+                                                                        .addComponent(this.jRadioButtonP2concluida))
+                                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                                                .addGap(81, 81, 81)
+                                                .addGroup(jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(this.jFormattedTextFieldP2Tempo, GroupLayout.PREFERRED_SIZE, 57, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(jLabelP2Topologia)
+                                                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                                                .addGap(10,
+                                                                        10, 10)
+                                                                .addGroup(jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(this.jRadioButtonP2Distribuida)
+                                                                        .addComponent(this.jRadioButtonP2Centralizada)))))
+                                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                                .addContainerGap()
+                                                .addComponent(this.jLabelP2Forma)))
+                                .addContainerGap(38, Short.MAX_VALUE))
+        );
+        jPanelPasso2Layout.setVerticalGroup(
+                jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                .addGroup(jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                                .addGap(32, 32, 32)
+                                                .addComponent(this.jRadioButtonP2Estatica)
+                                                .addGap(0, 0, 0)
+                                                .addComponent(this.jRadioButtonP2Dinamica))
+                                        .addGroup(jPanelPasso2Layout.createSequentialGroup()
+                                                .addContainerGap()
+                                                .addGroup(jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(jLabelP2Informacao)
+                                                        .addComponent(jLabelP2Topologia))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(this.jRadioButtonP2Centralizada)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(this.jRadioButtonP2Distribuida)))
+                                .addGap(18, 18, 18)
+                                .addComponent(this.jLabelP2Forma)
+                                .addGap(10, 10, 10)
+                                .addGroup(jPanelPasso2Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.jRadioButtonP2Tempo)
+                                        .addComponent(this.jFormattedTextFieldP2Tempo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(this.jRadioButtonP2Chegada)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(this.jRadioButtonP2Saida)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(this.jRadioButtonP2concluida)
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
+        );
+    }
+
+    private void initStepOneComponents() {
+        this.jPanelPasso1 = new JPanel();
+        this.jPanelPasso1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Enter the name of the scheduler"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+
+        final JLabel jLabelP1NomeEsc = new JLabel();
+        jLabelP1NomeEsc.setFont(GerarEscalonador.COMIC_SANS_FONT);
+        jLabelP1NomeEsc.setText(this.translate("Scheduler name"));
+
+        this.jTextFieldP1NomeEsc = new JTextField();
+        this.jTextFieldP1NomeEsc.setText("NewScheduler");
+        this.jTextFieldP1NomeEsc.addKeyListener(new SchedulerNameKeyAdapter());
+
+        final JLabel jLabelP1LocalArq = new JLabel();
+        jLabelP1LocalArq.setFont(GerarEscalonador.COMIC_SANS_FONT);
+        jLabelP1LocalArq.setText(this.translate("File"));
+
+        this.jTextFieldP1LocalArq = new JTextField();
+        this.jTextFieldP1LocalArq.setEditable(false);
+        this.jTextFieldP1LocalArq.setText("%sNewScheduler.java".formatted(this.path));
+
+        final JSeparator jSeparatorP1 = new JSeparator();
+        jSeparatorP1.setForeground(GerarEscalonador.BLACK);
+
+        this.jLabelP1Informacao = new JLabel();
+        this.jLabelP1Informacao.setForeground(GerarEscalonador.FOREGROUND_RED);
+
+        final GroupLayout jPanelPasso1Layout =
+                new GroupLayout(this.jPanelPasso1);
+        this.jPanelPasso1.setLayout(jPanelPasso1Layout);
+        jPanelPasso1Layout.setHorizontalGroup(
+                jPanelPasso1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelPasso1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabelP1NomeEsc)
+                                        .addComponent(jLabelP1LocalArq))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanelPasso1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(this.jTextFieldP1LocalArq,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 381, Short.MAX_VALUE)
+                                        .addComponent(this.jTextFieldP1NomeEsc,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 381, Short.MAX_VALUE))
+                                .addContainerGap())
+                        .addComponent(jSeparatorP1,
+                                GroupLayout.DEFAULT_SIZE, 486,
+                                Short.MAX_VALUE)
+                        .addGroup(jPanelPasso1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jLabelP1Informacao,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        466,
+                                        Short.MAX_VALUE)
+                                .addContainerGap())
+        );
+        jPanelPasso1Layout.setVerticalGroup(
+                jPanelPasso1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelPasso1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelPasso1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabelP1NomeEsc)
+                                        .addComponent(this.jTextFieldP1NomeEsc,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanelPasso1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabelP1LocalArq)
+                                        .addComponent(this.jTextFieldP1LocalArq,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE))
+                                .addGap(18, 18, 18)
+                                .addComponent(jSeparatorP1,
+                                        GroupLayout.PREFERRED_SIZE, 10,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(this.jLabelP1Informacao,
+                                        GroupLayout.PREFERRED_SIZE, 24,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(56, Short.MAX_VALUE))
+        );
+    }
+
+    private void makeLayoutAndPack(final JPanel jPanelPassos,
+                                   final JPanel jPanelControle) {
+        final GroupLayout layout = new GroupLayout(this.getContentPane());
+        this.getContentPane().setLayout(layout);
+
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanelPassos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPanePrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 646, Short.MAX_VALUE)
-                    .addComponent(jPanelControle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jPanelPassos,
+                                        GroupLayout.PREFERRED_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(this.jScrollPanePrincipal,
+                                                GroupLayout.DEFAULT_SIZE
+                                                , 646, Short.MAX_VALUE)
+                                        .addComponent(jPanelControle,
+                                                GroupLayout.DEFAULT_SIZE
+                                                ,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE))
+                                .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jScrollPanePrincipal, javax.swing.GroupLayout.DEFAULT_SIZE, 373, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jPanelControle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jPanelPassos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                .addComponent(this.jScrollPanePrincipal, GroupLayout.DEFAULT_SIZE, 373, Short.MAX_VALUE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(jPanelControle,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jPanelPassos,
+                                                GroupLayout.DEFAULT_SIZE
+                                                ,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE))
+                                .addContainerGap())
         );
 
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
+        this.pack();
+    }
 
-    private void jTextFieldP1NomeEscKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldP1NomeEscKeyReleased
-        if (this.jTextFieldP1NomeEsc.getText().equals("")) {
-            this.jLabelP1Informacao.setText(palavras.getString("Provide a valid name for a Java class"));
+    private void jTextFieldP1NomeEscKeyReleased(final KeyEvent evt) {
+        this.startStepOne();
+    }
+
+    private void startStepOne() {
+        if (this.jTextFieldP1NomeEsc.getText().isEmpty()) {
+            this.jLabelP1Informacao.setText(this.translate("Provide " +
+                                                           "a " +
+                                                           "valid " +
+                                                           "name " +
+                                                           "for a " +
+                                                           "Java " +
+                                                           "class"));
             this.jTextFieldP1LocalArq.setText("");
-            this.jButtonProximo.setEnabled(false);
+            this.buttonNext.setEnabled(false);
         } else if (ValidaValores.validaNomeClasse(this.jTextFieldP1NomeEsc.getText())) {
             this.jLabelP1Informacao.setText("");
-            this.jTextFieldP1LocalArq.setText(this.caminho + "\\" + this.jTextFieldP1NomeEsc.getText() + ".java");
-            this.jButtonProximo.setEnabled(true);
+            this.jTextFieldP1LocalArq.setText(this.path + "\\" + this.jTextFieldP1NomeEsc.getText() + ".java");
+            this.buttonNext.setEnabled(true);
         } else {
-            this.jLabelP1Informacao.setText(palavras.getString("The class name is invalid"));
-            this.jButtonProximo.setEnabled(false);
+            this.jLabelP1Informacao.setText(this.translate("The " +
+                                                           "class " +
+                                                           "name is " +
+                                                           "invalid"));
+            this.buttonNext.setEnabled(false);
         }
-        File arq = new File(caminho + "\\" + this.jTextFieldP1NomeEsc.getText() + ".java");
+        final File arq =
+                new File(this.path + "\\" + this.jTextFieldP1NomeEsc.getText() +
+                         ".java");
         if (arq.exists()) {
-            this.jLabelP1Informacao.setText(this.jLabelP1Informacao.getText() + "\n" + palavras.getString("This scheduler name already exists"));
+            this.jLabelP1Informacao.setText(this.jLabelP1Informacao.getText() + "\n" + this.translate("This scheduler name already exists"));
         }
-    }//GEN-LAST:event_jTextFieldP1NomeEscKeyReleased
+    }
 
-    private void jButtonProximoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProximoActionPerformed
-        switch (this.passoAtual) {
-            case 1:
+    private String translate(final String text) {
+        return this.translator.getString(text);
+    }
+
+    private void jButtonProximoActionPerformed(final ActionEvent evt) {
+        switch (this.currentStep) {
+            case 1 -> {
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso2);
-                this.jButtonVoltar.setEnabled(true);
+                this.buttonPrevious.setEnabled(true);
                 this.jLabelPasso1.setEnabled(false);
                 this.jLabelPasso2.setEnabled(true);
-                this.passoAtual = 2;
-                break;
-            case 2:
+                this.currentStep = 2;
+            }
+            case 2 -> {
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso3);
                 this.jLabelPasso2.setEnabled(false);
                 this.jLabelPasso3.setEnabled(true);
-                this.passoAtual = 3;
-                break;
-            case 3:
+                this.currentStep = 3;
+            }
+            case 3 -> {
                 this.jLabelPasso3.setEnabled(false);
-                if (jOpSimples.isSelected()) {
+                if (this.jOpSimples.isSelected()) {
                     this.jScrollPanePrincipal.setViewportView(this.jPanelPassoSimples);
                     this.jLabelPasso4.setEnabled(true);
                     this.jLabelPasso5.setEnabled(true);
-                    passoAtual = 5;
+                    this.currentStep = 5;
                 } else {
                     this.jScrollPanePrincipal.setViewportView(this.jPanelPasso4);
                     this.jLabelPasso4.setEnabled(true);
-                    passoAtual = 4;
+                    this.currentStep = 4;
                 }
-                break;
-            case 4:
+            }
+            case 4 -> {
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso5);
                 this.jLabelPasso4.setEnabled(false);
                 this.jLabelPasso5.setEnabled(true);
-                this.passoAtual = 5;
-                this.ordenacao_t = ordenacao;
-                this.contaParent_t = contaParent;
-                this.tipoBotao_t = tipoBotao;
-                ordenacao = this.ordenacao_r;
-                formula = this.formula_r;
-                tipoBotao = this.tipoBotao_r;
-                contaParent = this.contaParent_r;
-                escreverFormula();
-                break;
-            case 5:
-                this.ordenacao_r = ordenacao;
-                this.contaParent_r = contaParent;
-                this.tipoBotao_r = tipoBotao;
+                this.currentStep = 5;
+                this.tOrdering = this.ordering;
+                this.tParentAccount = this.parentAccount;
+                this.tButtonType = this.buttonType;
+                this.ordering = this.rOrdering;
+                this.formula = this.rFormula;
+                this.buttonType = this.rButtonType;
+                this.parentAccount = this.rParentAccount;
+                this.escreverFormula();
+            }
+            case 5 -> {
+                this.rOrdering = this.ordering;
+                this.rParentAccount = this.parentAccount;
+                this.rButtonType = this.buttonType;
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso6);
                 this.jLabelPasso4.setEnabled(false);
                 this.jLabelPasso5.setEnabled(false);
                 this.jLabelPasso6.setEnabled(true);
-                this.passoAtual = 6;
-                break;
-            case 6:
-                escreverGramatica();
+                this.currentStep = 6;
+            }
+            case 6 -> {
+                this.escreverGramatica();
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso7);
                 this.jLabelPasso6.setEnabled(false);
                 this.jLabelPasso7.setEnabled(true);
-                this.passoAtual = 7;
-                this.jButtonProximo.setEnabled(false);
-                this.jButtonFinalizar.setEnabled(true);
-                break;
+                this.currentStep = 7;
+                this.buttonNext.setEnabled(false);
+                this.buttonFinalize.setEnabled(true);
+            }
         }
-    }//GEN-LAST:event_jButtonProximoActionPerformed
+    }
 
-    private void jButtonVoltarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonVoltarActionPerformed
-        switch (this.passoAtual) {
-            case 2:
+    private void jButtonVoltarActionPerformed(final ActionEvent evt) {
+        switch (this.currentStep) {
+            case 2 -> {
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso1);
-                this.jButtonVoltar.setEnabled(false);
+                this.buttonPrevious.setEnabled(false);
                 this.jLabelPasso1.setEnabled(true);
                 this.jLabelPasso2.setEnabled(false);
-                this.passoAtual = 1;
-                break;
-            case 3:
+                this.currentStep = 1;
+            }
+            case 3 -> {
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso2);
                 this.jLabelPasso2.setEnabled(true);
                 this.jLabelPasso3.setEnabled(false);
-                this.passoAtual = 2;
-                break;
-            case 4:
+                this.currentStep = 2;
+            }
+            case 4 -> {
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso3);
                 this.jLabelPasso3.setEnabled(true);
                 this.jLabelPasso4.setEnabled(false);
-                this.passoAtual = 3;
-                break;
-            case 5:
+                this.currentStep = 3;
+            }
+            case 5 -> {
                 this.jLabelPasso5.setEnabled(false);
-                if (jOpSimples.isSelected()) {
+                if (this.jOpSimples.isSelected()) {
                     this.jScrollPanePrincipal.setViewportView(this.jPanelPasso3);
                     this.jLabelPasso4.setEnabled(false);
                     this.jLabelPasso3.setEnabled(true);
-                    passoAtual = 3;
+                    this.currentStep = 3;
                 } else {
                     this.jScrollPanePrincipal.setViewportView(this.jPanelPasso4);
                     this.jLabelPasso4.setEnabled(true);
-                    passoAtual = 4;
+                    this.currentStep = 4;
                 }
-                this.ordenacao_r = ordenacao;
-                //this.formula_r.remove();
-                //this.formula_r.addAll(formula);
-                this.contaParent_r = contaParent;
-                this.tipoBotao_r = tipoBotao;
-                ordenacao = this.ordenacao_t;
-                formula = this.formula_t;
-                tipoBotao = this.tipoBotao_t;
-                contaParent = this.contaParent_t;
-                escreverFormula();
-                break;
-            case 6:
+                this.rOrdering = this.ordering;
+                this.rParentAccount = this.parentAccount;
+                this.rButtonType = this.buttonType;
+                this.ordering = this.tOrdering;
+                this.formula = this.tFormula;
+                this.buttonType = this.tButtonType;
+                this.parentAccount = this.tParentAccount;
+                this.escreverFormula();
+            }
+            case 6 -> {
                 this.jLabelPasso6.setEnabled(false);
                 this.jLabelPasso5.setEnabled(true);
-                if (jOpSimples.isSelected()) {
+                if (this.jOpSimples.isSelected()) {
                     this.jScrollPanePrincipal.setViewportView(this.jPanelPassoSimples);
                     this.jLabelPasso4.setEnabled(true);
                 } else {
                     this.jScrollPanePrincipal.setViewportView(this.jPanelPasso5);
                 }
-                this.passoAtual = 5;
-                break;
-            case 7:
+                this.currentStep = 5;
+            }
+            case 7 -> {
                 this.jLabelPasso7.setEnabled(false);
                 this.jLabelPasso6.setEnabled(true);
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso6);
-                this.jButtonProximo.setEnabled(true);
-                this.jButtonFinalizar.setEnabled(false);
-                this.passoAtual = 6;
-                break;
+                this.buttonNext.setEnabled(true);
+                this.buttonFinalize.setEnabled(false);
+                this.currentStep = 6;
+            }
         }
-    }//GEN-LAST:event_jButtonVoltarActionPerformed
+    }
 
-    private void jRadioButtonP4RandomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP4RandomActionPerformed
+    private void jRadioButtonP4RandomActionPerformed(final ActionEvent evt) {
         this.jRadioButtonP4FIFO.setSelected(false);
         this.jRadioButtonP4Random.setSelected(true);
         this.jRadioButtonP4Crescente.setSelected(false);
         this.jRadioButtonP4Decrescente.setSelected(false);
-        this.ordenacao = "Random";
-        escreverFormula();
-    }//GEN-LAST:event_jRadioButtonP4RandomActionPerformed
+        this.ordering = "Random";
+        this.escreverFormula();
+    }
 
-    private void jRadioButtonP4DecrescenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP4DecrescenteActionPerformed
+    private void jRadioButtonP4DecrescenteActionPerformed(final ActionEvent evt) {
         this.jRadioButtonP4FIFO.setSelected(false);
         this.jRadioButtonP4Random.setSelected(false);
         this.jRadioButtonP4Crescente.setSelected(false);
         this.jRadioButtonP4Decrescente.setSelected(true);
-        this.ordenacao = "Decrescente";
-        escreverFormula();
-    }//GEN-LAST:event_jRadioButtonP4DecrescenteActionPerformed
+        this.ordering = "Decrescente";
+        this.escreverFormula();
+    }
 
-    private void jRadioButtonP4CrescenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP4CrescenteActionPerformed
+    private void jRadioButtonP4CrescenteActionPerformed(final ActionEvent evt) {
         this.jRadioButtonP4FIFO.setSelected(false);
         this.jRadioButtonP4Random.setSelected(false);
         this.jRadioButtonP4Crescente.setSelected(true);
         this.jRadioButtonP4Decrescente.setSelected(false);
-        this.ordenacao = "Crescente";
-        escreverFormula();
-    }//GEN-LAST:event_jRadioButtonP4CrescenteActionPerformed
+        this.ordering = "Crescente";
+        this.escreverFormula();
+    }
 
-    private void jButtonP4TComputacaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4TComputacaoActionPerformed
-        // TODO add your handling code here:
-        pressionarVariavel("[TCP]");
-    }//GEN-LAST:event_jButtonP4TComputacaoActionPerformed
+    private void jButtonP4TComputacaoActionPerformed(final ActionEvent evt) {
 
-    private void jButtonP4AddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4AddActionPerformed
-        // TODO add your handling code here:
-        pressionarOperador("+");
-    }//GEN-LAST:event_jButtonP4AddActionPerformed
+        this.pressionarVariavel("[TCP]");
+    }
 
-    private void jButtonP4VoltarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4VoltarActionPerformed
-        // TODO add your handling code here:
-        String operador = "+ - / * ";
-        if (!formula.isEmpty()) {
-            if (this.tipoBotao == ABRE_CHAVE) {
-                this.contaParent--;
-            } else if (this.tipoBotao == FECHA_CHAVE) {
-                this.contaParent++;
+    private void jButtonP4AddActionPerformed(final ActionEvent evt) {
+
+        this.pressionarOperador("+");
+    }
+
+    private void jButtonP4VoltarActionPerformed(final ActionEvent evt) {
+
+        final String operador = "+ - / * ";
+        if (!this.formula.isEmpty()) {
+            if (this.buttonType == GerarEscalonador.OPEN_BRACKET) {
+                this.parentAccount--;
+            } else if (this.buttonType == GerarEscalonador.CLOSE_BRACKET) {
+                this.parentAccount++;
             }
             this.formula.removeLast();
-            if (formula.isEmpty()) {
-                this.tipoBotao = INICIAL;
-                this.contaParent = 0;
-            } else if (operador.contains(formula.getLast())) {
-                this.tipoBotao = OPERADOR;
-            } else if (formula.getLast().contains("(")) {
-                this.tipoBotao = ABRE_CHAVE;
-            } else if (formula.getLast().contains(")")) {
-                this.tipoBotao = FECHA_CHAVE;
+            if (this.formula.isEmpty()) {
+                this.buttonType = GerarEscalonador.START;
+                this.parentAccount = 0;
+            } else if (operador.contains(this.formula.getLast())) {
+                this.buttonType = GerarEscalonador.OPERATOR;
+            } else if (this.formula.getLast().contains("(")) {
+                this.buttonType = GerarEscalonador.OPEN_BRACKET;
+            } else if (this.formula.getLast().contains(")")) {
+                this.buttonType = GerarEscalonador.CLOSE_BRACKET;
             } else {
-                this.tipoBotao = VARIAVEL;
+                this.buttonType = GerarEscalonador.VARIABLE;
             }
         } else {
-            this.tipoBotao = INICIAL;
-            this.contaParent = 0;
+            this.buttonType = GerarEscalonador.START;
+            this.parentAccount = 0;
         }
-        escreverFormula();
-    }//GEN-LAST:event_jButtonP4VoltarActionPerformed
+        this.escreverFormula();
+    }
 
-    private void jButtonP4NTSubmetidasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4NTSubmetidasActionPerformed
-        // TODO add your handling code here:
-        pressionarVariavel("[NTS]");
-    }//GEN-LAST:event_jButtonP4NTSubmetidasActionPerformed
+    private void jButtonP4NTSubmetidasActionPerformed(final ActionEvent evt) {
 
-    private void jButtonP4NTConcluidasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4NTConcluidasActionPerformed
-        // TODO add your handling code here:
-        pressionarVariavel("[NTC]");
-    }//GEN-LAST:event_jButtonP4NTConcluidasActionPerformed
+        this.pressionarVariavel("[NTS]");
+    }
 
-    private void jButtonP4TComunicacaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4TComunicacaoActionPerformed
-        // TODO add your handling code here:
-        pressionarVariavel("[TC]");
-    }//GEN-LAST:event_jButtonP4TComunicacaoActionPerformed
+    private void jButtonP4NTConcluidasActionPerformed(final ActionEvent evt) {
 
-    private void jButtonP4PComputUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4PComputUserActionPerformed
-        // TODO add your handling code here:
-        pressionarVariavel("[PCU]");
-    }//GEN-LAST:event_jButtonP4PComputUserActionPerformed
+        this.pressionarVariavel("[NTC]");
+    }
 
-    private void jButtonP4SubActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4SubActionPerformed
-        // TODO add your handling code here:
-        pressionarOperador("-");
-    }//GEN-LAST:event_jButtonP4SubActionPerformed
+    private void jButtonP4TComunicacaoActionPerformed(final ActionEvent evt) {
 
-    private void jButtonP4MultActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4MultActionPerformed
-        // TODO add your handling code here:
-        pressionarOperador("*");
-    }//GEN-LAST:event_jButtonP4MultActionPerformed
+        this.pressionarVariavel("[TC]");
+    }
 
-    private void jButtonP4DivActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4DivActionPerformed
-        // TODO add your handling code here:
-        pressionarOperador("/");
-    }//GEN-LAST:event_jButtonP4DivActionPerformed
+    private void jButtonP4PComputUserActionPerformed(final ActionEvent evt) {
 
-    private void jButtonP4AbreParentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4AbreParentActionPerformed
-        // TODO add your handling code here:
-        if (tipoBotao == INICIAL || tipoBotao == OPERADOR || tipoBotao == ABRE_CHAVE) {
-            this.contaParent++;
-            this.tipoBotao = ABRE_CHAVE;
+        this.pressionarVariavel("[PCU]");
+    }
+
+    private void jButtonP4SubActionPerformed(final ActionEvent evt) {
+
+        this.pressionarOperador("-");
+    }
+
+    private void jButtonP4MultActionPerformed(final ActionEvent evt) {
+
+        this.pressionarOperador("*");
+    }
+
+    private void jButtonP4DivActionPerformed(final ActionEvent evt) {
+
+        this.pressionarOperador("/");
+    }
+
+    private void jButtonP4AbreParentActionPerformed(final ActionEvent evt) {
+
+        if (this.buttonType == GerarEscalonador.START || this.buttonType == GerarEscalonador.OPERATOR || this.buttonType == GerarEscalonador.OPEN_BRACKET) {
+            this.parentAccount++;
+            this.buttonType = GerarEscalonador.OPEN_BRACKET;
             this.formula.add("(");
         }
-        escreverFormula();
-    }//GEN-LAST:event_jButtonP4AbreParentActionPerformed
+        this.escreverFormula();
+    }
 
-    private void jButtonP4FechaParentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4FechaParentActionPerformed
-        // TODO add your handling code here:
-        if (contaParent != 0 && (tipoBotao == VARIAVEL || tipoBotao == FECHA_CHAVE)) {
-            this.contaParent--;
-            this.tipoBotao = FECHA_CHAVE;
+    private void jButtonP4FechaParentActionPerformed(final ActionEvent evt) {
+
+        if (this.parentAccount != 0 && (this.buttonType == GerarEscalonador.VARIABLE || this.buttonType == GerarEscalonador.CLOSE_BRACKET)) {
+            this.parentAccount--;
+            this.buttonType = GerarEscalonador.CLOSE_BRACKET;
             this.formula.add(")");
         }
-        escreverFormula();
-    }//GEN-LAST:event_jButtonP4FechaParentActionPerformed
-
-private void jButtonP4ConstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4ConstActionPerformed
-// TODO add your handling code here:
-    pressionarVariavel("[" + this.jFormattedTextP4DigitaConst.getText() + "]");
-}//GEN-LAST:event_jButtonP4ConstActionPerformed
-
-private void jButtonP5AddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5AddActionPerformed
-// TODO add your handling code here:
-    pressionarOperador("+");
-}//GEN-LAST:event_jButtonP5AddActionPerformed
-
-private void jButtonP5SubActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5SubActionPerformed
-// TODO add your handling code here:
-    pressionarOperador("-");
-}//GEN-LAST:event_jButtonP5SubActionPerformed
-
-private void jButtonP5AbreParentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5AbreParentActionPerformed
-    // TODO add your handling code here:
-    jButtonP4AbreParentActionPerformed(evt);
-}//GEN-LAST:event_jButtonP5AbreParentActionPerformed
-
-private void jButtonP5FechaParentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5FechaParentActionPerformed
-    // TODO add your handling code here:
-    jButtonP4FechaParentActionPerformed(evt);
-}//GEN-LAST:event_jButtonP5FechaParentActionPerformed
-
-private void jButtonP5DivActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5DivActionPerformed
-// TODO add your handling code here:
-    pressionarOperador("/");
-}//GEN-LAST:event_jButtonP5DivActionPerformed
-
-private void jButtonP5MultActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5MultActionPerformed
-// TODO add your handling code here:
-    pressionarOperador("*");
-}//GEN-LAST:event_jButtonP5MultActionPerformed
-
-private void jButtonP5PProcessamentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5PProcessamentoActionPerformed
-// TODO add your handling code here:
-    pressionarVariavel("[PP]");
-}//GEN-LAST:event_jButtonP5PProcessamentoActionPerformed
-
-private void jButtonP5LinkComunicacaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5LinkComunicacaoActionPerformed
-// TODO add your handling code here:
-    pressionarVariavel("[LC]");
-}//GEN-LAST:event_jButtonP5LinkComunicacaoActionPerformed
-
-private void jButtonP5TCompTarefaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5TCompTarefaActionPerformed
-// TODO add your handling code here:
-    pressionarVariavel("[TCT]");
-}//GEN-LAST:event_jButtonP5TCompTarefaActionPerformed
-
-private void jButtonP5NumTExecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5NumTExecActionPerformed
-// TODO add your handling code here:
-    pressionarVariavel("[NTE]");
-}//GEN-LAST:event_jButtonP5NumTExecActionPerformed
-
-private void jButtonP5TComunTarefaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5TComunTarefaActionPerformed
-// TODO add your handling code here:
-    pressionarVariavel("[TCMT]");
-}//GEN-LAST:event_jButtonP5TComunTarefaActionPerformed
-
-private void jButtonP5Const1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5Const1ActionPerformed
-// TODO add your handling code here:
-    pressionarVariavel("[" + this.jFormattedTextP5DigitaConst.getText() + "]");
-}//GEN-LAST:event_jButtonP5Const1ActionPerformed
-
-private void jRadioButtonP5CrescenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP5CrescenteActionPerformed
-    // TODO add your handling code here:
-    this.jRadioButtonP5FIFO.setSelected(false);
-    this.jRadioButtonP5Random.setSelected(false);
-    this.jRadioButtonP5Crescente.setSelected(true);
-    this.jRadioButtonP5Decrescente.setSelected(false);
-    this.ordenacao = "Crescente";
-    escreverFormula();
-}//GEN-LAST:event_jRadioButtonP5CrescenteActionPerformed
-
-private void jRadioButtonP5DecrescenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP5DecrescenteActionPerformed
-    // TODO add your handling code here:
-    this.jRadioButtonP5FIFO.setSelected(false);
-    this.jRadioButtonP5Random.setSelected(false);
-    this.jRadioButtonP5Crescente.setSelected(false);
-    this.jRadioButtonP5Decrescente.setSelected(true);
-    this.ordenacao = "Decrescente";
-    escreverFormula();
-}//GEN-LAST:event_jRadioButtonP5DecrescenteActionPerformed
-
-private void jRadioButtonP5RandomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP5RandomActionPerformed
-    // TODO add your handling code here:
-    this.jRadioButtonP5FIFO.setSelected(false);
-    this.jRadioButtonP5Random.setSelected(true);
-    this.jRadioButtonP5Crescente.setSelected(false);
-    this.jRadioButtonP5Decrescente.setSelected(false);
-    this.ordenacao = "Random";
-    escreverFormula();
-}//GEN-LAST:event_jRadioButtonP5RandomActionPerformed
-
-private void jTextFieldP5FormulaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldP5FormulaActionPerformed
-// TODO add your handling code here:
-}//GEN-LAST:event_jTextFieldP5FormulaActionPerformed
-
-private void jTextFieldP4FormulaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldP4FormulaActionPerformed
-// TODO add your handling code here:
-}//GEN-LAST:event_jTextFieldP4FormulaActionPerformed
-
-private void jFormattedTextP5DigitaConstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFormattedTextP5DigitaConstActionPerformed
-// TODO add your handling code here:
-}//GEN-LAST:event_jFormattedTextP5DigitaConstActionPerformed
-
-private void jFormattedTextP4DigitaConstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFormattedTextP4DigitaConstActionPerformed
-// TODO add your handling code here:
-}//GEN-LAST:event_jFormattedTextP4DigitaConstActionPerformed
-
-private void jOpSimplesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jOpSimplesActionPerformed
-    if (this.jOpSimples.isSelected()) {
-        this.jOpAvancada.setSelected(false);
-        this.jOpSimples.setSelected(true);
-    } else {
-        this.jOpAvancada.setSelected(true);
-        this.jOpSimples.setSelected(false);
+        this.escreverFormula();
     }
-}//GEN-LAST:event_jOpSimplesActionPerformed
 
-private void jOpAvancadaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jOpAvancadaActionPerformed
-// TODO add your handling code here:
-    if (this.jOpAvancada.isSelected()) {
-        this.jOpSimples.setSelected(false);
-        this.jOpAvancada.setSelected(true);
-    } else {
-        this.jOpAvancada.setSelected(false);
-        this.jOpSimples.setSelected(true);
+    private void jButtonP4ConstActionPerformed(final ActionEvent evt) {
+
+        this.pressionarVariavel("[%s]".formatted(this.jFormattedTextP4DigitaConst.getText()));
     }
-}//GEN-LAST:event_jOpAvancadaActionPerformed
 
-    private void jRadioButtonP2EstaticaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP2EstaticaActionPerformed
-        // TODO add your handling code here:
-        jRadioButtonP2Estatica.setSelected(true);
-        jRadioButtonP2Dinamica.setSelected(false);
-        setEnableDinamica(false);
-    }//GEN-LAST:event_jRadioButtonP2EstaticaActionPerformed
+    private void jButtonP5AddActionPerformed(final ActionEvent evt) {
 
-    private void jRadioButtonP2DinamicaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP2DinamicaActionPerformed
-        // TODO add your handling code here:
-        jRadioButtonP2Estatica.setSelected(false);
-        jRadioButtonP2Dinamica.setSelected(true);
-        setEnableDinamica(true);
-    }//GEN-LAST:event_jRadioButtonP2DinamicaActionPerformed
+        this.pressionarOperador("+");
+    }
 
-    private void jRadioButtonP2TempoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP2TempoActionPerformed
-        jRadioButtonP2Tempo.setSelected(true);
-        jRadioButtonP2Chegada.setSelected(false);
-        jRadioButtonP2Saida.setSelected(false);
-        jRadioButtonP2concluida.setSelected(false);
-    }//GEN-LAST:event_jRadioButtonP2TempoActionPerformed
+    private void jButtonP5SubActionPerformed(final ActionEvent evt) {
 
-    private void jRadioButtonP2ChegadaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP2ChegadaActionPerformed
-        jRadioButtonP2Tempo.setSelected(false);
-        jRadioButtonP2Chegada.setSelected(true);
-        jRadioButtonP2Saida.setSelected(false);
-        jRadioButtonP2concluida.setSelected(false);
-    }//GEN-LAST:event_jRadioButtonP2ChegadaActionPerformed
+        this.pressionarOperador("-");
+    }
 
-    private void jRadioButtonP2SaidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP2SaidaActionPerformed
-        jRadioButtonP2Tempo.setSelected(false);
-        jRadioButtonP2Chegada.setSelected(false);
-        jRadioButtonP2Saida.setSelected(true);
-        jRadioButtonP2concluida.setSelected(false);
-    }//GEN-LAST:event_jRadioButtonP2SaidaActionPerformed
+    private void jButtonP5AbreParentActionPerformed(final ActionEvent evt) {
 
-    private void jRadioButtonP2CentralizadaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP2CentralizadaActionPerformed
-        // TODO add your handling code here:
-        jRadioButtonP2Centralizada.setSelected(true);
-        jRadioButtonP2Distribuida.setSelected(false);
-    }//GEN-LAST:event_jRadioButtonP2CentralizadaActionPerformed
+        this.jButtonP4AbreParentActionPerformed(evt);
+    }
 
-    private void jRadioButtonP2DistribuidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP2DistribuidaActionPerformed
-        // TODO add your handling code here:
-        jRadioButtonP2Centralizada.setSelected(false);
-        jRadioButtonP2Distribuida.setSelected(true);
-    }//GEN-LAST:event_jRadioButtonP2DistribuidaActionPerformed
+    private void jButtonP5FechaParentActionPerformed(final ActionEvent evt) {
 
-    private void jButtonP5VoltarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5VoltarActionPerformed
-        // TODO add your handling code here:
-        jButtonP4VoltarActionPerformed(evt);
-    }//GEN-LAST:event_jButtonP5VoltarActionPerformed
+        this.jButtonP4FechaParentActionPerformed(evt);
+    }
 
-    private void jButtonFinalizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFinalizarActionPerformed
-        // TODO add your handling code here:
-        String codigo = jTextPaneP7Gramatica.getText();
-        parse = new InterpretadorGerador(codigo);
-        if (tipoModelo == GRID) {
-            if (!parse.executarParse()) {
-                if (arquivosEscalonadores != null) {
-                    arquivosEscalonadores.escrever(parse.getNome(), parse.getCodigo());
-                    String result = arquivosEscalonadores.compilar(parse.getNome());
+    private void jButtonP5DivActionPerformed(final ActionEvent evt) {
+
+        this.pressionarOperador("/");
+    }
+
+    private void jButtonP5MultActionPerformed(final ActionEvent evt) {
+
+        this.pressionarOperador("*");
+    }
+
+    private void jButtonP5PProcessamentoActionPerformed(final ActionEvent evt) {
+
+        this.pressionarVariavel("[PP]");
+    }
+
+    private void jButtonP5LinkComunicacaoActionPerformed(final ActionEvent evt) {
+
+        this.pressionarVariavel("[LC]");
+    }
+
+    private void jButtonP5TCompTarefaActionPerformed(final ActionEvent evt) {
+
+        this.pressionarVariavel("[TCT]");
+    }
+
+    private void jButtonP5NumTExecActionPerformed(final ActionEvent evt) {
+
+        this.pressionarVariavel("[NTE]");
+    }
+
+    private void jButtonP5TComunTarefaActionPerformed(final ActionEvent evt) {
+
+        this.pressionarVariavel("[TCMT]");
+    }
+
+    private void jButtonP5Const1ActionPerformed(final ActionEvent evt) {
+
+        this.pressionarVariavel("[" + this.jFormattedTextP5DigitaConst.getText() + "]");
+    }
+
+    private void jRadioButtonP5CrescenteActionPerformed(final ActionEvent evt) {
+
+        this.jRadioButtonP5FIFO.setSelected(false);
+        this.jRadioButtonP5Random.setSelected(false);
+        this.jRadioButtonP5Crescente.setSelected(true);
+        this.jRadioButtonP5Decrescente.setSelected(false);
+        this.ordering = "Crescente";
+        this.escreverFormula();
+    }
+
+    private void jRadioButtonP5DecrescenteActionPerformed(final ActionEvent evt) {
+
+        this.jRadioButtonP5FIFO.setSelected(false);
+        this.jRadioButtonP5Random.setSelected(false);
+        this.jRadioButtonP5Crescente.setSelected(false);
+        this.jRadioButtonP5Decrescente.setSelected(true);
+        this.ordering = "Decrescente";
+        this.escreverFormula();
+    }
+
+    private void jRadioButtonP5RandomActionPerformed(final ActionEvent evt) {
+
+        this.jRadioButtonP5FIFO.setSelected(false);
+        this.jRadioButtonP5Random.setSelected(true);
+        this.jRadioButtonP5Crescente.setSelected(false);
+        this.jRadioButtonP5Decrescente.setSelected(false);
+        this.ordering = "Random";
+        this.escreverFormula();
+    }
+
+    private void jTextFieldP5FormulaActionPerformed(final ActionEvent evt) {
+
+    }
+
+    private void jTextFieldP4FormulaActionPerformed(final ActionEvent evt) {
+
+    }
+
+    private void jFormattedTextP5DigitaConstActionPerformed(final ActionEvent evt) {
+
+    }
+
+    private void jFormattedTextP4DigitaConstActionPerformed(final ActionEvent evt) {
+
+    }
+
+    private void jOpSimplesActionPerformed(final ActionEvent evt) {
+
+        if (this.jOpSimples.isSelected()) {
+            this.jOpAvancada.setSelected(false);
+            this.jOpSimples.setSelected(true);
+        } else {
+            this.jOpAvancada.setSelected(true);
+            this.jOpSimples.setSelected(false);
+        }
+    }
+
+    private void jOpAvancadaActionPerformed(final ActionEvent evt) {
+
+
+        if (this.jOpAvancada.isSelected()) {
+            this.jOpSimples.setSelected(false);
+            this.jOpAvancada.setSelected(true);
+        } else {
+            this.jOpAvancada.setSelected(false);
+            this.jOpSimples.setSelected(true);
+        }
+    }
+
+    private void jRadioButtonP2EstaticaActionPerformed(final ActionEvent evt) {
+
+        this.jRadioButtonP2Estatica.setSelected(true);
+        this.jRadioButtonP2Dinamica.setSelected(false);
+        this.setEnableDinamica(false);
+    }
+
+    private void jRadioButtonP2DinamicaActionPerformed(final ActionEvent evt) {
+
+        this.jRadioButtonP2Estatica.setSelected(false);
+        this.jRadioButtonP2Dinamica.setSelected(true);
+        this.setEnableDinamica(true);
+    }
+
+    private void jRadioButtonP2TempoActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonP2Tempo.setSelected(true);
+        this.jRadioButtonP2Chegada.setSelected(false);
+        this.jRadioButtonP2Saida.setSelected(false);
+        this.jRadioButtonP2concluida.setSelected(false);
+    }
+
+    private void jRadioButtonP2ChegadaActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonP2Tempo.setSelected(false);
+        this.jRadioButtonP2Chegada.setSelected(true);
+        this.jRadioButtonP2Saida.setSelected(false);
+        this.jRadioButtonP2concluida.setSelected(false);
+    }
+
+    private void jRadioButtonP2SaidaActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonP2Tempo.setSelected(false);
+        this.jRadioButtonP2Chegada.setSelected(false);
+        this.jRadioButtonP2Saida.setSelected(true);
+        this.jRadioButtonP2concluida.setSelected(false);
+    }
+
+    private void jRadioButtonP2CentralizadaActionPerformed(final ActionEvent evt) {
+
+        this.jRadioButtonP2Centralizada.setSelected(true);
+        this.jRadioButtonP2Distribuida.setSelected(false);
+    }
+
+    private void jRadioButtonP2DistribuidaActionPerformed(final ActionEvent evt) {
+
+        this.jRadioButtonP2Centralizada.setSelected(false);
+        this.jRadioButtonP2Distribuida.setSelected(true);
+    }
+
+    private void jButtonP5VoltarActionPerformed(final ActionEvent evt) {
+
+        this.jButtonP4VoltarActionPerformed(evt);
+    }
+
+    private void jButtonFinalizarActionPerformed(final ActionEvent evt) {
+
+        final String codigo = this.jTextPaneP7Gramatica.getText();
+        this.parse = new InterpretadorGerador(codigo);
+        if (this.modelType == GerarEscalonador.GRID) {
+            if (!this.parse.executarParse()) {
+                if (this.schedulerFiles != null) {
+                    this.schedulerFiles.escrever(this.parse.getNome(),
+                            this.parse.getCodigo());
+                    final String result =
+                            this.schedulerFiles.compilar(this.parse.getNome());
                     if (result != null) {
-                        JOptionPane.showMessageDialog(this, result, "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(this, result, "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
-                    if (arquivosEscalonadores.listar().contains(parse.getNome())) {
+                    if (this.schedulerFiles.listar().contains(this.parse.getNome())) {
                         this.dispose();
                     } else {
-                        parse = null;
+                        this.parse = null;
+                    }
+                } else {
+                    this.dispose();
+                }
+            }
+        } else if (this.modelType == GerarEscalonador.IAAS) {
+            if (!this.parse.executarParse()) {
+                if (this.cloudSchedulerFiles != null) {
+                    this.cloudSchedulerFiles.escrever(this.parse.getNome(),
+                            this.parse.getCodigo());
+                    final String result =
+                            this.cloudSchedulerFiles.compilar(this.parse.getNome());
+                    if (result != null) {
+                        JOptionPane.showMessageDialog(this, result, "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                    if (this.cloudSchedulerFiles.listar().contains(this.parse.getNome())) {
+                        this.dispose();
+                    } else {
+                        this.parse = null;
+                    }
+                } else {
+                    this.dispose();
+                }
+            }
+        } else if (this.modelType == GerarEscalonador.ALLOC) {
+            if (!this.parse.executarParse()) {
+                if (this.allocFiles != null) {
+                    this.allocFiles.escrever(this.parse.getNome(),
+                            this.parse.getCodigo());
+                    final String result =
+                            this.allocFiles.compilar(this.parse.getNome());
+                    if (result != null) {
+                        JOptionPane.showMessageDialog(this, result, "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                    if (this.allocFiles.listar().contains(this.parse.getNome())) {
+                        this.dispose();
+                    } else {
+                        this.parse = null;
                     }
                 } else {
                     this.dispose();
                 }
             }
         }
-        else if (tipoModelo == IAAS){
-            if (!parse.executarParse()) {
-                if (arquivosEscalonadoresCloud != null) {
-                    arquivosEscalonadoresCloud.escrever(parse.getNome(), parse.getCodigo());
-                    String result = arquivosEscalonadoresCloud.compilar(parse.getNome());
-                    if (result != null) {
-                        JOptionPane.showMessageDialog(this, result, "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                    if (arquivosEscalonadoresCloud.listar().contains(parse.getNome())) {
-                        this.dispose();
-                    } else {
-                        parse = null;
-                    }
-                } else {
-                    this.dispose();
-                }
-            }
-        }
-        else if (tipoModelo == ALLOC) {
-            if (!parse.executarParse()) {
-                if (arquivosAlocadores != null) {
-                    arquivosAlocadores.escrever(parse.getNome(), parse.getCodigo());
-                    String result = arquivosAlocadores.compilar(parse.getNome());
-                    if (result != null) {
-                        JOptionPane.showMessageDialog(this, result, "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                    if (arquivosAlocadores.listar().contains(parse.getNome())) {
-                        this.dispose();
-                    } else {
-                        parse = null;
-                    }
-                } else {
-                    this.dispose();
-                }
-            }
-        }
-    }//GEN-LAST:event_jButtonFinalizarActionPerformed
+    }
 
-    private void jButtonCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelarActionPerformed
-        // TODO add your handling code here:
+    private void jButtonCancelarActionPerformed(final ActionEvent evt) {
+
         this.dispose();
-    }//GEN-LAST:event_jButtonCancelarActionPerformed
+    }
 
-    private void jButtonP5MflopExecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP5MflopExecActionPerformed
-        pressionarVariavel("[MFE]");
-    }//GEN-LAST:event_jButtonP5MflopExecActionPerformed
+    private void jButtonP5MflopExecActionPerformed(final ActionEvent evt) {
+        this.pressionarVariavel("[MFE]");
+    }
 
-    private void jButtonP4PTempoCriacaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonP4PTempoCriacaoActionPerformed
-        pressionarVariavel("[TCR]");
-    }//GEN-LAST:event_jButtonP4PTempoCriacaoActionPerformed
+    private void jButtonP4PTempoCriacaoActionPerformed(final ActionEvent evt) {
+        this.pressionarVariavel("[TCR]");
+    }
 
-    private void jRadioButtonP2concluidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP2concluidaActionPerformed
-        jRadioButtonP2Tempo.setSelected(false);
-        jRadioButtonP2Chegada.setSelected(false);
-        jRadioButtonP2Saida.setSelected(false);
-        jRadioButtonP2concluida.setSelected(true);
-    }//GEN-LAST:event_jRadioButtonP2concluidaActionPerformed
+    private void jRadioButtonP2concluidaActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonP2Tempo.setSelected(false);
+        this.jRadioButtonP2Chegada.setSelected(false);
+        this.jRadioButtonP2Saida.setSelected(false);
+        this.jRadioButtonP2concluida.setSelected(true);
+    }
 
-    private void jRadioButtonP4FIFOActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP4FIFOActionPerformed
-        // TODO add your handling code here:
+    private void jRadioButtonP4FIFOActionPerformed(final ActionEvent evt) {
+
         this.jRadioButtonP4FIFO.setSelected(true);
         this.jRadioButtonP4Random.setSelected(false);
         this.jRadioButtonP4Crescente.setSelected(false);
         this.jRadioButtonP4Decrescente.setSelected(false);
-        this.ordenacao = "FIFO";
-        escreverFormula();
-    }//GEN-LAST:event_jRadioButtonP4FIFOActionPerformed
+        this.ordering = "FIFO";
+        this.escreverFormula();
+    }
 
-    private void jRadioButtonP5FIFOActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP5FIFOActionPerformed
-        // TODO add your handling code here:
+    private void jRadioButtonP5FIFOActionPerformed(final ActionEvent evt) {
+
         this.jRadioButtonP5FIFO.setSelected(true);
         this.jRadioButtonP5Random.setSelected(false);
         this.jRadioButtonP5Crescente.setSelected(false);
         this.jRadioButtonP5Decrescente.setSelected(false);
-        this.ordenacao = "FIFO";
-        escreverFormula();
-    }//GEN-LAST:event_jRadioButtonP5FIFOActionPerformed
-
-    private void jRadioButtonP6SemRestricaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP6SemRestricaoActionPerformed
-        jRadioButtonP6SemRestricao.setSelected(true);
-        jRadioButtonP6PorRecurso.setSelected(false);
-        jRadioButtonP6PorUsuario.setSelected(false);
-        jLabelP6_1.setEnabled(false);
-        jTextFieldP6Num.setEnabled(false);
-        jLabelP6_2.setEnabled(false);
-    }//GEN-LAST:event_jRadioButtonP6SemRestricaoActionPerformed
-
-    private void jRadioButtonP6PorRecursoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP6PorRecursoActionPerformed
-        jRadioButtonP6SemRestricao.setSelected(false);
-        jRadioButtonP6PorRecurso.setSelected(true);
-        jRadioButtonP6PorUsuario.setSelected(false);
-        jLabelP6_1.setEnabled(true);
-        jTextFieldP6Num.setEnabled(true);
-        jLabelP6_2.setEnabled(true);
-        jLabelP6_2.setText(palavras.getString("tasks in all resources."));
-    }//GEN-LAST:event_jRadioButtonP6PorRecursoActionPerformed
-
-    private void jRadioButtonP6PorUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonP6PorUsuarioActionPerformed
-        jRadioButtonP6SemRestricao.setSelected(false);
-        jRadioButtonP6PorRecurso.setSelected(false);
-        jRadioButtonP6PorUsuario.setSelected(true);
-        jLabelP6_1.setEnabled(true);
-        jTextFieldP6Num.setEnabled(true);
-        jLabelP6_2.setEnabled(true);
-        jLabelP6_2.setText(palavras.getString("tasks by all user."));
-    }//GEN-LAST:event_jRadioButtonP6PorUsuarioActionPerformed
-
-    private void setEnableDinamica(boolean b) {
-        jLabelP2Forma.setEnabled(b);
-        jRadioButtonP2Tempo.setEnabled(b);
-        jRadioButtonP2Chegada.setEnabled(b);
-        jRadioButtonP2Saida.setEnabled(b);
-        jRadioButtonP2concluida.setEnabled(b);
-        jFormattedTextFieldP2Tempo.setEnabled(b);
+        this.ordering = "FIFO";
+        this.escreverFormula();
     }
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonCancelar;
-    private javax.swing.JButton jButtonFinalizar;
-    private javax.swing.JButton jButtonP4AbreParent;
-    private javax.swing.JButton jButtonP4Add;
-    private javax.swing.JButton jButtonP4Const;
-    private javax.swing.JButton jButtonP4Div;
-    private javax.swing.JButton jButtonP4FechaParent;
-    private javax.swing.JButton jButtonP4Mult;
-    private javax.swing.JButton jButtonP4NTConcluidas;
-    private javax.swing.JButton jButtonP4NTSubmetidas;
-    private javax.swing.JButton jButtonP4PComputUser;
-    private javax.swing.JButton jButtonP4PTempoCriacao;
-    private javax.swing.JButton jButtonP4Sub;
-    private javax.swing.JButton jButtonP4TComputacao;
-    private javax.swing.JButton jButtonP4TComunicacao;
-    private javax.swing.JButton jButtonP4Voltar;
-    private javax.swing.JButton jButtonP5AbreParent;
-    private javax.swing.JButton jButtonP5Add;
-    private javax.swing.JButton jButtonP5Const1;
-    private javax.swing.JButton jButtonP5Div;
-    private javax.swing.JButton jButtonP5FechaParent;
-    private javax.swing.JButton jButtonP5LinkComunicacao;
-    private javax.swing.JButton jButtonP5MflopExec;
-    private javax.swing.JButton jButtonP5Mult;
-    private javax.swing.JButton jButtonP5NumTExec;
-    private javax.swing.JButton jButtonP5PProcessamento;
-    private javax.swing.JButton jButtonP5Sub;
-    private javax.swing.JButton jButtonP5TCompTarefa;
-    private javax.swing.JButton jButtonP5TComunTarefa;
-    private javax.swing.JButton jButtonP5Voltar;
-    private javax.swing.JButton jButtonProximo;
-    private javax.swing.JButton jButtonVoltar;
-    private javax.swing.JFormattedTextField jFormattedTextFieldP2Tempo;
-    private javax.swing.JFormattedTextField jFormattedTextP4DigitaConst;
-    private javax.swing.JFormattedTextField jFormattedTextP5DigitaConst;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabelP1Informacao;
-    private javax.swing.JLabel jLabelP1LocalArq;
-    private javax.swing.JLabel jLabelP1NomeEsc;
-    private javax.swing.JLabel jLabelP2Forma;
-    private javax.swing.JLabel jLabelP2Informacao;
-    private javax.swing.JLabel jLabelP2Topologia;
-    private javax.swing.JLabel jLabelP4Formula;
-    private javax.swing.JLabel jLabelP5Formula;
-    private javax.swing.JLabel jLabelP6_1;
-    private javax.swing.JLabel jLabelP6_2;
-    private javax.swing.JLabel jLabelPasso1;
-    private javax.swing.JLabel jLabelPasso2;
-    private javax.swing.JLabel jLabelPasso3;
-    private javax.swing.JLabel jLabelPasso4;
-    private javax.swing.JLabel jLabelPasso5;
-    private javax.swing.JLabel jLabelPasso6;
-    private javax.swing.JLabel jLabelPasso7;
-    private javax.swing.JLabel jLabelPassos;
-    private javax.swing.JList jListRecurso;
-    private javax.swing.JList jListTarefa;
-    private javax.swing.JRadioButton jOpAvancada;
-    private javax.swing.JRadioButton jOpSimples;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel6;
-    private javax.swing.JPanel jPanel7;
-    private javax.swing.JPanel jPanel8;
-    private javax.swing.JPanel jPanelControle;
-    private javax.swing.JPanel jPanelPasso1;
-    private javax.swing.JPanel jPanelPasso2;
-    private javax.swing.JPanel jPanelPasso3;
-    private javax.swing.JPanel jPanelPasso4;
-    private javax.swing.JPanel jPanelPasso5;
-    private javax.swing.JPanel jPanelPasso6;
-    private javax.swing.JPanel jPanelPasso7;
-    private javax.swing.JPanel jPanelPassoSimples;
-    private javax.swing.JPanel jPanelPassos;
-    private javax.swing.JRadioButton jRadioButtonP2Centralizada;
-    private javax.swing.JRadioButton jRadioButtonP2Chegada;
-    private javax.swing.JRadioButton jRadioButtonP2Dinamica;
-    private javax.swing.JRadioButton jRadioButtonP2Distribuida;
-    private javax.swing.JRadioButton jRadioButtonP2Estatica;
-    private javax.swing.JRadioButton jRadioButtonP2Saida;
-    private javax.swing.JRadioButton jRadioButtonP2Tempo;
-    private javax.swing.JRadioButton jRadioButtonP2concluida;
-    private javax.swing.JRadioButton jRadioButtonP4Crescente;
-    private javax.swing.JRadioButton jRadioButtonP4Decrescente;
-    private javax.swing.JRadioButton jRadioButtonP4FIFO;
-    private javax.swing.JRadioButton jRadioButtonP4Random;
-    private javax.swing.JRadioButton jRadioButtonP5Crescente;
-    private javax.swing.JRadioButton jRadioButtonP5Decrescente;
-    private javax.swing.JRadioButton jRadioButtonP5FIFO;
-    private javax.swing.JRadioButton jRadioButtonP5Random;
-    private javax.swing.JRadioButton jRadioButtonP6PorRecurso;
-    private javax.swing.JRadioButton jRadioButtonP6PorUsuario;
-    private javax.swing.JRadioButton jRadioButtonP6SemRestricao;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPanePrincipal;
-    private javax.swing.JSeparator jSeparatorP1;
-    private javax.swing.JSeparator jSeparatorP6;
-    private javax.swing.JTextField jTextFieldP1LocalArq;
-    private javax.swing.JTextField jTextFieldP1NomeEsc;
-    private javax.swing.JTextField jTextFieldP4Formula;
-    private javax.swing.JTextField jTextFieldP5Formula;
-    private javax.swing.JFormattedTextField jTextFieldP6Num;
-    private javax.swing.JTextPane jTextPaneP7Gramatica;
-    // End of variables declaration//GEN-END:variables
+
+    private void jRadioButtonP6SemRestricaoActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonP6SemRestricao.setSelected(true);
+        this.jRadioButtonP6PorRecurso.setSelected(false);
+        this.jRadioButtonP6PorUsuario.setSelected(false);
+        this.jLabelP6_1.setEnabled(false);
+        this.jTextFieldP6Num.setEnabled(false);
+        this.jLabelP6_2.setEnabled(false);
+    }
+
+    private void jRadioButtonP6PorRecursoActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonP6SemRestricao.setSelected(false);
+        this.jRadioButtonP6PorRecurso.setSelected(true);
+        this.jRadioButtonP6PorUsuario.setSelected(false);
+        this.jLabelP6_1.setEnabled(true);
+        this.jTextFieldP6Num.setEnabled(true);
+        this.jLabelP6_2.setEnabled(true);
+        this.jLabelP6_2.setText(this.translate("tasks in all " +
+                                               "resources."));
+    }
+
+    private void jRadioButtonP6PorUsuarioActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonP6SemRestricao.setSelected(false);
+        this.jRadioButtonP6PorRecurso.setSelected(false);
+        this.jRadioButtonP6PorUsuario.setSelected(true);
+        this.jLabelP6_1.setEnabled(true);
+        this.jTextFieldP6Num.setEnabled(true);
+        this.jLabelP6_2.setEnabled(true);
+        this.jLabelP6_2.setText(this.translate("tasks by all user."));
+    }
+
+    private void setEnableDinamica(final boolean b) {
+        this.jLabelP2Forma.setEnabled(b);
+        this.jRadioButtonP2Tempo.setEnabled(b);
+        this.jRadioButtonP2Chegada.setEnabled(b);
+        this.jRadioButtonP2Saida.setEnabled(b);
+        this.jRadioButtonP2concluida.setEnabled(b);
+        this.jFormattedTextFieldP2Tempo.setEnabled(b);
+    }
 
     private void escreverFormula() {
-        if (this.ordenacao.equals("Random") || this.ordenacao.equals("FIFO")) {
-            this.jTextFieldP4Formula.setText(this.ordenacao);
-            this.jTextFieldP5Formula.setText(this.ordenacao);
+        if ("Random".equals(this.ordering) || "FIFO".equals(this.ordering)) {
+            this.jTextFieldP4Formula.setText(this.ordering);
+            this.jTextFieldP5Formula.setText(this.ordering);
         } else {
-            this.jTextFieldP4Formula.setText(this.ordenacao + "( " + this.formula + ")");
-            this.jTextFieldP5Formula.setText(this.ordenacao + "( " + this.formula + ")");
+            this.jTextFieldP4Formula.setText(this.ordering + "( " + this.formula + ")");
+            this.jTextFieldP5Formula.setText(this.ordering + "( " + this.formula + ")");
         }
     }
 
-    private void pressionarOperador(String token) {
-        if (tipoBotao == VARIAVEL || tipoBotao == FECHA_CHAVE) {
-            this.tipoBotao = OPERADOR;
-            formula.add(token);
-        } else if (tipoBotao == OPERADOR) {
-            formula.set(formula.size() - 1, token);
+    private void pressionarOperador(final String token) {
+        if (this.buttonType == GerarEscalonador.VARIABLE || this.buttonType == GerarEscalonador.CLOSE_BRACKET) {
+            this.buttonType = GerarEscalonador.OPERATOR;
+            this.formula.add(token);
+        } else if (this.buttonType == GerarEscalonador.OPERATOR) {
+            this.formula.set(this.formula.size() - 1, token);
         }
-        escreverFormula();
+        this.escreverFormula();
     }
 
-    private void pressionarVariavel(String token) {
-        if (tipoBotao == INICIAL || tipoBotao == OPERADOR || tipoBotao == ABRE_CHAVE) {
-            this.tipoBotao = VARIAVEL;
-            formula.add(token);
-        } else if (tipoBotao == VARIAVEL) {
-            formula.set(formula.size() - 1, token);
+    private void pressionarVariavel(final String token) {
+        if (this.buttonType == GerarEscalonador.START || this.buttonType == GerarEscalonador.OPERATOR || this.buttonType == GerarEscalonador.OPEN_BRACKET) {
+            this.buttonType = GerarEscalonador.VARIABLE;
+            this.formula.add(token);
+        } else if (this.buttonType == GerarEscalonador.VARIABLE) {
+            this.formula.set(this.formula.size() - 1, token);
         }
-        escreverFormula();
+        this.escreverFormula();
     }
 
     private void escreverGramatica() {
         this.jTextPaneP7Gramatica.setText("");
-        print("SCHEDULER ", Color.blue);
-        println(jTextFieldP1NomeEsc.getText());
-        if (!jRadioButtonP6SemRestricao.isSelected()) {
-            print("RESTRICT ", Color.blue);
-            print(this.jTextFieldP6Num.getText(), Color.green);
-            if (jRadioButtonP6PorRecurso.isSelected()) {
-                println(" TASKPER RESOURCE", Color.blue);
+        this.print("SCHEDULER ", Color.blue);
+        this.println(this.jTextFieldP1NomeEsc.getText());
+        if (!this.jRadioButtonP6SemRestricao.isSelected()) {
+            this.print("RESTRICT ", Color.blue);
+            this.print(this.jTextFieldP6Num.getText(), Color.green);
+            if (this.jRadioButtonP6PorRecurso.isSelected()) {
+                this.println(" TASKPER RESOURCE", Color.blue);
             } else {
-                println(" TASKPER USER", Color.blue);
+                this.println(" TASKPER USER", Color.blue);
             }
         }
         if (this.jRadioButtonP2Estatica.isSelected()) {
-            println("STATIC", Color.blue);
+            this.println("STATIC", Color.blue);
         } else {
-            print("DYNAMIC ", Color.blue);
+            this.print("DYNAMIC ", Color.blue);
             if (this.jRadioButtonP2Chegada.isSelected()) {
-                println("TASK ENTRY", Color.blue);
+                this.println("TASK ENTRY", Color.blue);
             } else if (this.jRadioButtonP2Saida.isSelected()) {
-                println("TASK DISPACTH", Color.blue);
+                this.println("TASK DISPACTH", Color.blue);
             } else if (this.jRadioButtonP2concluida.isSelected()) {
-                println("TASK COMPLETED", Color.blue);
+                this.println("TASK COMPLETED", Color.blue);
             } else {
-                print("TIME INTERVAL ", Color.blue);
-                println(this.jFormattedTextFieldP2Tempo.getText(), Color.green);
+                this.print("TIME INTERVAL ", Color.blue);
+                this.println(this.jFormattedTextFieldP2Tempo.getText(),
+                        Color.green);
             }
         }
-        print("TASK SCHEDULER: ", Color.blue);
-        if (jOpSimples.isSelected()) {
-            switch (jListTarefa.getSelectedIndex()) {
-                case 0:
-                    println("FIFO", Color.blue);
-                    break;
-                case 1:
-                    print("DECREASING", Color.blue);
-                    println(" ( [TCP] )");
-                    break;
-                case 2:
-                    print("CRESCENT", Color.blue);
-                    println(" ( [TCP] )");
-                    break;
-                case 3:
-                    print("DECREASING", Color.blue);
-                    println(" ( [TC] )");
-                    break;
-                case 4:
-                    print("CRESCENT", Color.blue);
-                    println(" ( [TC] )");
-                    break;
-                case 5:
-                    print("CRESCENT", Color.blue);
-                    println(" ( [NTS] - [NTC] )");
-                    break;
+        this.print("TASK SCHEDULER: ", Color.blue);
+        if (this.jOpSimples.isSelected()) {
+            switch (this.jListTarefa.getSelectedIndex()) {
+                case 0 -> this.println("FIFO", Color.blue);
+                case 1 -> {
+                    this.print("DECREASING", Color.blue);
+                    this.println(" ( [TCP] )");
+                }
+                case 2 -> {
+                    this.print("CRESCENT", Color.blue);
+                    this.println(" ( [TCP] )");
+                }
+                case 3 -> {
+                    this.print("DECREASING", Color.blue);
+                    this.println(" ( [TC] )");
+                }
+                case 4 -> {
+                    this.print("CRESCENT", Color.blue);
+                    this.println(" ( [TC] )");
+                }
+                case 5 -> {
+                    this.print("CRESCENT", Color.blue);
+                    this.println(" ( [NTS] - [NTC] )");
+                }
             }
         } else {
-            if (this.ordenacao_t.equals("Random")) {
-                println("RANDOM", Color.blue);
-            } else if (this.ordenacao_t.equals("FIFO")) {
-                println("FIFO", Color.blue);
-            } else if (this.ordenacao_t.equals("Crescente")) {
-                print("CRESCENT", Color.blue);
-                print(" ( ");
-                print(this.formula_t.toString());
-                println(")");
-            } else {
-                print("DECREASING", Color.blue);
-                print(" ( ");
-                print(this.formula_t.toString());
-                println(")");
+            switch (this.tOrdering) {
+                case "Random" -> this.println("RANDOM", Color.blue);
+                case "FIFO" -> this.println("FIFO", Color.blue);
+                case "Crescente" -> {
+                    this.print("CRESCENT", Color.blue);
+                    this.print(" ( ");
+                    this.print(this.tFormula.toString());
+                    this.println(")");
+                }
+                default -> {
+                    this.print("DECREASING", Color.blue);
+                    this.print(" ( ");
+                    this.print(this.tFormula.toString());
+                    this.println(")");
+                }
             }
         }
-        print("RESOURCE SCHEDULER: ", Color.blue);
-        if (jOpSimples.isSelected()) {
-            switch (jListRecurso.getSelectedIndex()) {
-                case 0:
-                    println("FIFO", Color.blue);
-                    break;
-                case 1:
-                    print("DECREASING", Color.blue);
-                    println(" ( [PP] - [MFE] )");
-                    break;
-                case 2:
-                    print("CRESCENT", Color.blue);
-                    println(" ( [MFE] )");
-                    break;
-                case 3:
-                    print("DECREASING", Color.blue);
-                    println(" ( [LC] / ( [NTE] + [1] ) )");
-                    break;
+        this.print("RESOURCE SCHEDULER: ", Color.blue);
+        if (this.jOpSimples.isSelected()) {
+            switch (this.jListRecurso.getSelectedIndex()) {
+                case 0 -> this.println("FIFO", Color.blue);
+                case 1 -> {
+                    this.print("DECREASING", Color.blue);
+                    this.println(" ( [PP] - [MFE] )");
+                }
+                case 2 -> {
+                    this.print("CRESCENT", Color.blue);
+                    this.println(" ( [MFE] )");
+                }
+                case 3 -> {
+                    this.print("DECREASING", Color.blue);
+                    this.println(" ( [LC] / ( [NTE] + [1] ) )");
+                }
             }
         } else {
-            if (this.ordenacao_r.equals("Random")) {
-                println("RANDOM", Color.blue);
-            } else if (this.ordenacao_r.equals("FIFO")) {
-                println("FIFO", Color.blue);
-            } else if (this.ordenacao_r.equals("Crescente")) {
-                print("CRESCENT", Color.blue);
-                print(" ( ");
-                print(this.formula_r.toString());
-                println(")");
-            } else {
-                print("DECREASING", Color.blue);
-                print(" ( ");
-                print(this.formula_r.toString());
-                println(")");
+            switch (this.rOrdering) {
+                case "Random" -> this.println("RANDOM", Color.blue);
+                case "FIFO" -> this.println("FIFO", Color.blue);
+                case "Crescente" -> {
+                    this.print("CRESCENT", Color.blue);
+                    this.print(" ( ");
+                    this.print(this.rFormula.toString());
+                    this.println(")");
+                }
+                default -> {
+                    this.print("DECREASING", Color.blue);
+                    this.print(" ( ");
+                    this.print(this.rFormula.toString());
+                    this.println(")");
+                }
             }
         }
     }
 
-    public void println(String text, Color cor) {
+    private void println(final String text, final Color cor) {
         this.print(text, cor);
         this.print("\n", cor);
     }
 
-    public void println(String text) {
-        this.print(text, Color.black);
-        this.print("\n", Color.black);
+    private void println(final String text) {
+        this.println(text, Color.black);
     }
 
-    public void print(String text) {
+    private void print(final String text) {
         this.print(text, Color.black);
     }
 
-    public void print(String text, Color cor) {
-        SimpleAttributeSet configuraCor = new SimpleAttributeSet();
-        Document doc = jTextPaneP7Gramatica.getDocument();
+    private void print(final String text, final Color cor) {
+        final SimpleAttributeSet configuraCor = new SimpleAttributeSet();
+        final Document doc = this.jTextPaneP7Gramatica.getDocument();
         try {
             if (cor != null) {
                 StyleConstants.setForeground(configuraCor, cor);
             } else {
                 StyleConstants.setForeground(configuraCor, Color.black);
             }
-            //if(palavras.containsKey(text)){
-            //    doc.insertString(doc.getLength(), palavras.getString(text), configuraCor);
-            //}else{
             doc.insertString(doc.getLength(), text, configuraCor);
-            //}
-        } catch (BadLocationException ex) {
-            Logger.getLogger(JSimulacao.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (final BadLocationException ex) {
+            Logger.getLogger(GerarEscalonador.class.getName()).log(Level.SEVERE,
+                    null, ex);
         }
     }
 
-    void setEscalonadores(ManipularArquivos escalonadores) {
-        arquivosEscalonadores = escalonadores;
-        tipoModelo = GRID;
+    void setEscalonadores(final ManipularArquivos escalonadores) {
+        this.schedulerFiles = escalonadores;
+        this.modelType = GerarEscalonador.GRID;
 
     }
 
-    void setEscalonadoresCloud(ManipularArquivosCloud escalonadores) {
-        arquivosEscalonadoresCloud = escalonadores;
-        tipoModelo = IAAS;
-        
+    void setEscalonadoresCloud(final ManipularArquivosCloud escalonadores) {
+        this.cloudSchedulerFiles = escalonadores;
+        this.modelType = GerarEscalonador.IAAS;
+
     }
-    
-    void setAlocadores(ManipularArquivosAlloc alocadores) {
-        arquivosAlocadores = alocadores;
-        tipoModelo = ALLOC;
-        
-     
+
+    void setAlocadores(final ManipularArquivosAlloc alocadores) {
+        this.allocFiles = alocadores;
+        this.modelType = GerarEscalonador.ALLOC;
+
+
     }
 
     public InterpretadorGerador getParse() {
-        return parse;
+        return this.parse;
     }
 
-    private javax.swing.AbstractListModel simplesRecurso() {
-        return new javax.swing.AbstractListModel() {
-
-            String[] strings = {palavras.getString("Round-Robin (circular queue)"),
-                palavras.getString("The most computational power resource"),
-                palavras.getString("Resource with less workload"),
-                palavras.getString("Resource with better communication link")};
-
-            public int getSize() {
-                return strings.length;
-            }
-
-            public Object getElementAt(int i) {
-                return strings[i];
-            }
-        };
+    private static class SpacedPrintList extends LinkedList<String> {
+        @Override
+        public String toString() {
+            return this.stream()
+                    .map(String::toString)
+                    .collect(Collectors.joining(" "));
+        }
     }
 
-    private javax.swing.AbstractListModel simplesTarefa() {
-        return new javax.swing.AbstractListModel() {
+    private class SimpleResourceModel extends AbstractListModel {
+        final String[] strings = { GerarEscalonador.this.translate("Round" +
+                                                                   "-Robin " +
+                                                                   "(circular" +
+                                                                   " " +
+                                                                   "queue)"),
+                GerarEscalonador.this.translate("The " +
+                                                "most " +
+                                                "computational " +
+                                                "power resource"),
+                GerarEscalonador.this.translate(
+                        "Resource with " +
+                        "less " +
+                        "workload"),
+                GerarEscalonador.this.translate(
+                        "Resource with " +
+                        "better " +
+                        "communication link") };
 
-            String[] strings = {palavras.getString("FIFO (First In, First Out)"),
-                palavras.getString("Largest Task First") + " " + palavras.getString("(Cost of Processing)"),
-                palavras.getString("Lowest Task First") + " " + palavras.getString("(Cost of Processing)"),
-                palavras.getString("Largest Task First") + " " + palavras.getString("(Cost of Communication)"),
-                palavras.getString("Lowest Task First") + " " + palavras.getString("(Cost of Communication)"),
-                palavras.getString("User with Less Use of Grid First")};
+        public int getSize() {
+            return this.strings.length;
+        }
 
-            public int getSize() {
-                return strings.length;
-            }
+        public Object getElementAt(final int i) {
+            return this.strings[i];
+        }
+    }
 
-            public Object getElementAt(int i) {
-                return strings[i];
-            }
-        };
+    private class SimpleTaskModel extends AbstractListModel {
+        final String[] strings = {
+                GerarEscalonador.this.translate("FIFO " +
+                                                "(First " +
+                                                "In, " +
+                                                "First" +
+                                                " Out)"),
+                "%s %s".formatted(GerarEscalonador.this.translate(
+                        "Largest" +
+                        " Task " +
+                        "First"), GerarEscalonador.this.translate(
+                        "(Cost of Processing)")),
+                "%s %s".formatted(GerarEscalonador.this.translate("Lowest" +
+                                                                  " " +
+                                                                  "Task " +
+                                                                  "First"),
+                        GerarEscalonador.this.translate(
+                                "(Cost of Processing)")),
+                "%s %s".formatted(GerarEscalonador.this.translate(
+                        "Largest" +
+                        " Task " +
+                        "First"), GerarEscalonador.this.translate(
+                        "(Cost of Communication)")),
+                "%s %s".formatted(GerarEscalonador.this.translate("Lowest" +
+                                                                  " " +
+                                                                  "Task " +
+                                                                  "First"),
+                        GerarEscalonador.this.translate(
+                                "(Cost of Communication)")),
+                GerarEscalonador.this.translate("User " +
+                                                "with Less " +
+                                                "Use of " +
+                                                "Grid " +
+                                                "First"
+                ) };
+
+        public int getSize() {
+            return this.strings.length;
+        }
+
+        public Object getElementAt(final int i) {
+            return this.strings[i];
+        }
+    }
+
+    private class SchedulerNameKeyAdapter extends KeyAdapter {
+        public void keyReleased(final KeyEvent evt) {
+            GerarEscalonador.this.startStepOne();
+        }
     }
 }
