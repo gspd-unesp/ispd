@@ -2,7 +2,8 @@
  * iSPD : iconic Simulator of Parallel and Distributed System
  * ==========================================================
  *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Project Info:  http://gspd.dcce.ibilce.unesp.br/
  *
@@ -10,30 +11,32 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+ *  USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.]
  *
  * ---------------
  * AreaDesenho.java
  * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
+ * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e
+ * Distribuídos da Unesp (GSPD).
  *
  * Original Author:  Denison Menezes (for GSPD);
  * Contributor(s):   -;
  *
  * Changes
  * -------
- * 
+ *
  * 09-Set-2014 : Version 2.0;
  *
  */
@@ -58,10 +61,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 
 /**
- *
  * @author denison
  */
-public abstract class AreaDesenho extends JPanel implements MouseListener, MouseMotionListener {
+public abstract class AreaDesenho extends JPanel implements MouseListener,
+        MouseMotionListener {
 
     //Objetos para apresentar opções
     private boolean popupOn;
@@ -82,12 +85,12 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     private JMenuItem jMenuPainel1;
     //Objetos usados para desenhar a regua e as grades
     private int INCH;
-    private int units;
     private boolean gridOn;
+
+    private Ruler.RulerUnit unit;
     private Ruler columnView;
     private Ruler rowView;
     private JPanel corner;
-    private boolean metric;
     //Objetos para desenhar Retângulo de seleção
     private boolean rectOn;
     private boolean rect = false;
@@ -113,7 +116,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     private String erroMensagem;
     private String erroTitulo;
 
-    public AreaDesenho(boolean popupOn, boolean gridOn, boolean rectOn, boolean posicaoFixa) {
+    public AreaDesenho(boolean popupOn, boolean gridOn, boolean rectOn,
+                       boolean posicaoFixa) {
         vertices = new HashSet<Vertex>();
         arestas = new HashSet<Edge>();
         selecionados = new HashSet<Icon>();
@@ -123,7 +127,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         this.posicaoFixa = posicaoFixa;
         this.INCH = Toolkit.getDefaultToolkit().getScreenResolution();
         this.origemAresta = null;
-        iniciarRegua();
+        this.initRuler();
         iniciarPopupGeral();
         iniciarPopupIcone();
         addMouseListener(this);
@@ -136,10 +140,6 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
 
     public int getPosicaoMouseY() {
         return posicaoMouseY;
-    }
-
-    public boolean isMetric() {
-        return metric;
     }
 
     public boolean isGridOn() {
@@ -192,9 +192,23 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         repaint();
     }
 
-    public void setMetric(boolean metric) {
-        this.metric = metric;
-        setUnits((int) (this.isMetric() ? (INCH / 2.54) : (INCH / 2)));
+    /**
+     * It updates the grid unit.
+     *
+     * @param unit the unit to be updated to
+     */
+    public void updateUnitTo(final Ruler.RulerUnit unit) {
+        this.unit = unit;
+        if (posicaoFixa && vertices != null) {
+            for (Vertex icone : vertices) {
+                ((Vertex) icone).setPosition(getPosFixaX(icone.getX()),
+                        getPosFixaY(icone.getY()));
+            }
+        }
+    }
+
+    public Ruler.RulerUnit getUnit() {
+        return this.unit;
     }
 
     public void setPopupOn(boolean popupOn) {
@@ -209,15 +223,6 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         this.posicaoFixa = posicaoFixa;
     }
 
-    public void setUnits(int units) {
-        this.units = units;
-        if (posicaoFixa && vertices != null) {
-            for (Vertex icone : vertices) {
-                ((Vertex) icone).setPosition(getPosFixaX(icone.getX()), getPosFixaY(icone.getY()));
-            }
-        }
-    }
-
     @Override
     public void mouseClicked(MouseEvent me) {
         if (addAresta) {
@@ -227,14 +232,16 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
                     adicionarAresta(origemAresta, (Vertex) destinoAresta);
                     origemAresta = null;
                 } else {
-                    JOptionPane.showMessageDialog(null, erroMensagem, erroTitulo, JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(null, erroMensagem,
+                            erroTitulo, JOptionPane.WARNING_MESSAGE);
                 }
             } else {
                 Icon icon = getSelecionado(me.getX(), me.getY());
                 if (icon != null && icon instanceof Vertex) {
                     origemAresta = (Vertex) icon;
                 } else {
-                    JOptionPane.showMessageDialog(null, erroMensagem, erroTitulo, JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(null, erroMensagem,
+                            erroTitulo, JOptionPane.WARNING_MESSAGE);
                 }
             }
         } else if (!selecionados.isEmpty()) {
@@ -252,7 +259,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
             }
         } else if (addVertice) {
             if (isPosicaoFixa()) {
-                adicionarVertice(getPosFixaX(me.getX()), getPosFixaY(me.getY()));
+                adicionarVertice(getPosFixaX(me.getX()),
+                        getPosFixaY(me.getY()));
             } else {
                 adicionarVertice(me.getX(), me.getY());
             }
@@ -284,7 +292,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
             if (selecionados.size() > 1) {
                 for (Icon icone : selecionados) {
                     if (icone instanceof Vertex) {
-                        ((Vertex) icone).setBase(icone.getX() - me.getX(), icone.getY() - me.getY());
+                        ((Vertex) icone).setBase(icone.getX() - me.getX(),
+                                icone.getY() - me.getY());
                     }
                 }
             }
@@ -306,7 +315,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         if (posicaoFixa && !selecionados.isEmpty()) {
             for (Icon icone : selecionados) {
                 if (icone instanceof Vertex) {
-                    ((Vertex) icone).setPosition(getPosFixaX(icone.getX()), getPosFixaY(icone.getY()));
+                    ((Vertex) icone).setPosition(getPosFixaX(icone.getX()),
+                            getPosFixaY(icone.getY()));
                 }
             }
         }
@@ -419,7 +429,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         //Desenha a linha da conexão de rede antes dela se estabelcer.
         if (origemAresta != null) {
             g.setColor(new Color(0, 0, 0));
-            g.drawLine(origemAresta.getX(), origemAresta.getY(), posicaoMouseX, posicaoMouseY);
+            g.drawLine(origemAresta.getX(), origemAresta.getY(),
+                    posicaoMouseX, posicaoMouseY);
         }
         drawRect(g);
         // Desenhamos todos os icones
@@ -431,34 +442,40 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         }
     }
 
-    private void iniciarRegua() {
-        //Create the row and column headers.
-        columnView = new Ruler(Ruler.RulerOrientation.HORIZONTAL,
-                Ruler.RulerUnit.CENTIMETERS);
-        rowView = new Ruler(Ruler.RulerOrientation.VERTICAL,
-                Ruler.RulerUnit.CENTIMETERS);
+    /**
+     * It initializes the horizontal and the vertical rulers,
+     * as well as the unit button used to change the both
+     * ruler's unit.
+     */
+    private void initRuler() {
+        /* centimeters (cm) unit set as default */
+        this.updateUnitTo(Ruler.RulerUnit.CENTIMETERS);
 
-        columnView.setPreferredWidth(this.getWidth());
-        rowView.setPreferredHeight(this.getHeight());
+        /* Create the row and column rulers */
+        this.columnView = new Ruler(Ruler.RulerOrientation.HORIZONTAL,
+                this.unit);
+        this.rowView = new Ruler(Ruler.RulerOrientation.VERTICAL,
+                this.unit);
 
-        //Create the corners.
-        corner = new JPanel(); //use FlowLayout
-        JButton isMetric = new JButton("cm");
-        corner.add(isMetric);
-        setMetric(true);
-        isMetric.addActionListener(evt -> {
-            setMetric(!isMetric());
-            if (isMetric()) {
-                //Turn it to metric.
-                ((JButton) evt.getSource()).setText("cm");
-                rowView.updateUnitTo(Ruler.RulerUnit.CENTIMETERS);
-                columnView.updateUnitTo(Ruler.RulerUnit.CENTIMETERS);
-            } else {
-                //Turn it to inches.
-                ((JButton) evt.getSource()).setText(" in ");
-                rowView.updateUnitTo(Ruler.RulerUnit.INCHES);
-                columnView.updateUnitTo(Ruler.RulerUnit.INCHES);
-            }
+        this.columnView.setPreferredWidth(this.getWidth());
+        this.rowView.setPreferredHeight(this.getHeight());
+
+        final var unitButton = new JButton(this.unit.getSymbol());
+
+        /* Create the corner and add the unit button */
+        this.corner = new JPanel();
+        this.corner.add(unitButton);
+
+        /* Add an action that when the unit button is clicked */
+        /* the grid is changed to the next one */
+        unitButton.addActionListener(evt -> {
+            this.updateUnitTo(this.unit.nextUnit());
+            this.rowView.updateUnitTo(this.unit);
+            this.columnView.updateUnitTo(this.unit);
+
+            ((JButton) evt.getSource())
+                    .setText(this.unit.getSymbol());
+
             if (isGridOn()) {
                 repaint();
             }
@@ -543,7 +560,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
         this.erroTitulo = titulo;
     }
 
-    public void setPopupButtonText(String icone, String vertice, String aresta, String painel) {
+    public void setPopupButtonText(String icone, String vertice,
+                                   String aresta, String painel) {
         if (icone != null) {
             jMenuIcone1A.setText(icone);
             jMenuIcone1A.setVisible(true);
@@ -579,7 +597,8 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     }
 
     private void drawBackground(Graphics g) {
-        ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
     }
@@ -590,23 +609,35 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
             g.setColor(Color.BLACK);
             if (retanguloLag < 0 && retanguloAlt < 0) {
                 g.setColor(Color.BLACK);
-                g.drawRect(retanguloX + retanguloLag, retanguloY + retanguloAlt, retanguloLag * -1, retanguloAlt * -1);
-                g.setColor(new Color((float) 0, (float) 0, (float) 1, (float) 0.2));
-                g.fillRect(retanguloX + retanguloLag, retanguloY + retanguloAlt, retanguloLag * -1, retanguloAlt * -1);
+                g.drawRect(retanguloX + retanguloLag,
+                        retanguloY + retanguloAlt, retanguloLag * -1,
+                        retanguloAlt * -1);
+                g.setColor(new Color((float) 0, (float) 0, (float) 1,
+                        (float) 0.2));
+                g.fillRect(retanguloX + retanguloLag,
+                        retanguloY + retanguloAlt, retanguloLag * -1,
+                        retanguloAlt * -1);
             } else if (retanguloLag < 0) {
                 g.setColor(Color.BLACK);
-                g.drawRect(retanguloX + retanguloLag, retanguloY, retanguloLag * -1, retanguloAlt);
-                g.setColor(new Color((float) 0, (float) 0, (float) 1, (float) 0.2));
-                g.fillRect(retanguloX + retanguloLag, retanguloY, retanguloLag * -1, retanguloAlt);
+                g.drawRect(retanguloX + retanguloLag, retanguloY,
+                        retanguloLag * -1, retanguloAlt);
+                g.setColor(new Color((float) 0, (float) 0, (float) 1,
+                        (float) 0.2));
+                g.fillRect(retanguloX + retanguloLag, retanguloY,
+                        retanguloLag * -1, retanguloAlt);
             } else if (retanguloAlt < 0) {
                 g.setColor(Color.BLACK);
-                g.drawRect(retanguloX, retanguloY + retanguloAlt, retanguloLag, retanguloAlt * -1);
-                g.setColor(new Color((float) 0, (float) 0, (float) 1, (float) 0.2));
-                g.fillRect(retanguloX, retanguloY + retanguloAlt, retanguloLag, retanguloAlt * -1);
+                g.drawRect(retanguloX, retanguloY + retanguloAlt,
+                        retanguloLag, retanguloAlt * -1);
+                g.setColor(new Color((float) 0, (float) 0, (float) 1,
+                        (float) 0.2));
+                g.fillRect(retanguloX, retanguloY + retanguloAlt,
+                        retanguloLag, retanguloAlt * -1);
             } else {
                 g.setColor(Color.BLACK);
                 g.drawRect(retanguloX, retanguloY, retanguloLag, retanguloAlt);
-                g.setColor(new Color((float) 0, (float) 0, (float) 1, (float) 0.2));
+                g.setColor(new Color((float) 0, (float) 0, (float) 1,
+                        (float) 0.2));
                 g.fillRect(retanguloX, retanguloY, retanguloLag, retanguloAlt);
             }
         }
@@ -615,11 +646,11 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     private void drawGrid(Graphics g) {
         if (isGridOn()) {
             g.setColor(Color.LIGHT_GRAY);
-            //int units = (int) (this.isMetric() ? (INCH / 2.54) : (INCH / 2));
-            for (int _w = 0; _w <= this.getWidth(); _w += units) {
+            final var increment = this.unit.getIncrement();
+            for (int _w = 0; _w <= this.getWidth(); _w += increment) {
                 g.drawLine(_w, 0, _w, this.getHeight());
             }
-            for (int _h = 0; _h <= this.getHeight(); _h += units) {
+            for (int _h = 0; _h <= this.getHeight(); _h += increment) {
                 g.drawLine(0, _h, this.getWidth(), _h);
             }
         }
@@ -628,9 +659,9 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     private void drawPoints(Graphics g) {
         if (isPosicaoFixa()) {
             g.setColor(Color.GRAY);
-            //int units = (int) (this.isMetric() ? (INCH / 2.54) : (INCH / 2));
-            for (int i = units; i <= this.getWidth(); i += units) {
-                for (int j = units; j <= this.getHeight(); j += units) {
+            final var increment = this.unit.getIncrement();
+            for (int i = increment; i <= this.getWidth(); i += increment) {
+                for (int j = increment; j <= this.getHeight(); j += increment) {
                     g.fillRect(i - 1, j - 1, 3, 3);
                 }
             }
@@ -670,7 +701,7 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
      * Realiza a adição de uma aresta à area de desenho. Este método é chamado
      * quando se realiza a conexão entre dois vertices com o addAresta ativo
      *
-     * @param Origem Vertice de origem da aresta
+     * @param Origem  Vertice de origem da aresta
      * @param Destino Vertice de destino da aresta
      */
     public abstract void adicionarAresta(Vertex Origem, Vertex Destino);
@@ -702,47 +733,49 @@ public abstract class AreaDesenho extends JPanel implements MouseListener, Mouse
     }
 
     private int getPosFixaX(int x) {
+        final var increment = this.unit.getIncrement();
         int novaPosicao = x;
-        int diferenca = (x % units);
-        int indexPosicao = (x / units);
+        int diferenca = (x % increment);
+        int indexPosicao = (x / increment);
         //Verifica se está na posição correta
         if (diferenca != 0) {
             //verifica para qual ponto deve deslocar a posição
-            if (diferenca < units / 2) {
-                novaPosicao = indexPosicao * units;
+            if (diferenca < increment / 2) {
+                novaPosicao = indexPosicao * increment;
             } else {
-                novaPosicao = indexPosicao * units + units;
+                novaPosicao = indexPosicao * increment + increment;
             }
         }
         //Caso ícone saia da tela volta uma posição
         if (novaPosicao >= this.getWidth()) {
-            indexPosicao = this.getWidth() / units;
-            novaPosicao = indexPosicao * units;
+            indexPosicao = this.getWidth() / increment;
+            novaPosicao = indexPosicao * increment;
         } else if (novaPosicao <= 0) {
-            novaPosicao = units;
+            novaPosicao = increment;
         }
         return novaPosicao;
     }
 
     private int getPosFixaY(int y) {
+        final var increment = this.unit.getIncrement();
         int novaPosicao = y;
-        int diferenca = (y % units);
-        int indexPosicao = (y / units);
+        int diferenca = (y % increment);
+        int indexPosicao = (y / increment);
         //Verifica se está na posição correta
         if (diferenca != 0) {
             //verifica para qual ponto deve deslocar a posição
-            if (diferenca < units / 2) {
-                novaPosicao = indexPosicao * units;
+            if (diferenca < increment / 2) {
+                novaPosicao = indexPosicao * increment;
             } else {
-                novaPosicao = indexPosicao * units + units;
+                novaPosicao = indexPosicao * increment + increment;
             }
         }
         //Caso ícone saia da tela volta uma posição
         if (novaPosicao >= this.getHeight()) {
-            indexPosicao = this.getHeight() / units;
-            novaPosicao = indexPosicao * units;
+            indexPosicao = this.getHeight() / increment;
+            novaPosicao = indexPosicao * increment;
         } else if (novaPosicao <= 0) {
-            novaPosicao = units;
+            novaPosicao = increment;
         }
         return novaPosicao;
     }

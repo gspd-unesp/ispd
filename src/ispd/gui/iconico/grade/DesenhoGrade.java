@@ -634,14 +634,14 @@ public class DesenhoGrade extends AreaDesenho {
         gc.fillRect(0, 0, maiorx + 50, maiory + 50);
         gc.setColor(new Color(220, 220, 220));
         int INCH = Toolkit.getDefaultToolkit().getScreenResolution();
-        int units = (int) (this.isMetric() ? (INCH / 2.54) : (INCH / 2));
+        final var increment = this.getUnit().getIncrement();
         if (isGridOn()) {
             for (int _w = 0; _w
-                    <= maiorx + 50; _w += units) {
+                    <= maiorx + 50; _w += increment) {
                 gc.drawLine(_w, 0, _w, maiory + 50);
             }
             for (int _h = 0; _h
-                    <= maiory + 50; _h += units) {
+                    <= maiory + 50; _h += increment) {
                 gc.drawLine(0, _h, maiorx + 50, _h);
             }
         }

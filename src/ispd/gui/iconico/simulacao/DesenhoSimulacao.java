@@ -71,7 +71,6 @@ public class DesenhoSimulacao extends AreaDesenho {
 
     public DesenhoSimulacao(SimulacaoGrafica sim) {
         super(false, false, true, true);
-        this.setUnits(INCREMENTO);
         this.sim = sim;
         this.fonte = new Font(Font.SANS_SERIF, Font.BOLD, 12);
         HashMap<Object, Vertex> posicoes = new HashMap<Object, Vertex>();
