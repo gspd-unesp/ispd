@@ -130,7 +130,7 @@ public class ClusterTable extends AbstractTableModel {
         if (columnIndex == VALUE && cluster != null) {
             switch (rowIndex) {
                 case LABEL:
-                    cluster.getId().setNome(aValue.toString());
+                    cluster.getId().setName(aValue.toString());
                     break;
                 case OWNER:
                     cluster.setProprietario(usuarios.getSelectedItem().toString());
@@ -204,7 +204,7 @@ public class ClusterTable extends AbstractTableModel {
                 if (cluster != null) {
                     switch (rowIndex) {
                         case LABEL:
-                            return cluster.getId().getNome();
+                            return cluster.getId().getName();
                         case OWNER:
                             return usuarios;
                         case NODES:

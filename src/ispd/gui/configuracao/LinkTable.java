@@ -40,7 +40,7 @@
 package ispd.gui.configuracao;
 
 import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Link;
 import java.util.ResourceBundle;
 import javax.swing.table.AbstractTableModel;
@@ -61,14 +61,14 @@ public class LinkTable extends AbstractTableModel {
     private static final int NUMLINHAS = 4;
     private static final int NUMCOLUNAS = 2;
     // Array com os nomes das linhas
-    private ItemGrade link;
+    private GridItem link;
     private ResourceBundle palavras;
 
     public LinkTable(ResourceBundle palavras) {
         this.palavras = palavras;
     }
     
-    public void setLink(ItemGrade link) {
+    public void setLink(GridItem link) {
         this.link = link;
     }
 
@@ -107,7 +107,7 @@ public class LinkTable extends AbstractTableModel {
         if (columnIndex == VALUE && link != null) {
             switch (rowIndex) {
                 case LABEL:
-                    link.getId().setNome(aValue.toString());
+                    link.getId().setName(aValue.toString());
                     break;
                 case BANDW:
                     if (link instanceof Link) {
@@ -153,7 +153,7 @@ public class LinkTable extends AbstractTableModel {
                 if (link != null) {
                     switch (rowIndex) {
                         case LABEL:
-                            return link.getId().getNome();
+                            return link.getId().getName();
                         case BANDW:
                             if (link instanceof Link) {
                                 return ((Link) link).getBanda();

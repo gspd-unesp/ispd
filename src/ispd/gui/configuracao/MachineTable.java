@@ -40,7 +40,7 @@
 package ispd.gui.configuracao;
 
 import ispd.arquivo.Escalonadores;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -94,12 +94,12 @@ public class MachineTable extends AbstractTableModel {
                 //Cria lista com nós escalonaveis
                 if (!selecionadorEscravos.isVisible()) {
                     DefaultListModel listModel = new DefaultListModel();
-                    List<ItemGrade> listaConectados = maquina.getNosEscalonaveis();
-                    for (ItemGrade item : listaConectados) {
+                    List<GridItem> listaConectados = maquina.getNosEscalonaveis();
+                    for (GridItem item : listaConectados) {
                         listModel.addElement(item);
                     }
                     selecionadorEscravos.setModel(listModel);
-                    for (ItemGrade escravo : maquina.getEscravos()) {
+                    for (GridItem escravo : maquina.getEscravos()) {
                         int index = listaConectados.indexOf(escravo);
                         selecionadorEscravos.addSelectionInterval(index, index);
                     }
@@ -113,7 +113,7 @@ public class MachineTable extends AbstractTableModel {
                             JOptionPane.OK_CANCEL_OPTION,
                             JOptionPane.PLAIN_MESSAGE);
                     if (opcao == JOptionPane.OK_OPTION) {
-                        List<ItemGrade> escravosList = new ArrayList<ItemGrade>(selecionadorEscravos.getSelectedValuesList());
+                        List<GridItem> escravosList = new ArrayList<GridItem>(selecionadorEscravos.getSelectedValuesList());
                         maquina.setEscravos(escravosList);
                         escravos.setText(maquina.getEscravos().toString());
                     }
@@ -175,7 +175,7 @@ public class MachineTable extends AbstractTableModel {
         if (columnIndex == VALUE && maquina != null) {
             switch (rowIndex) {
                 case LABEL:
-                    maquina.getId().setNome(aValue.toString());
+                    maquina.getId().setName(aValue.toString());
                     break;
                 case OWNER:
                     maquina.setProprietario(usuarios.getSelectedItem().toString());
@@ -241,7 +241,7 @@ public class MachineTable extends AbstractTableModel {
                 if (maquina != null) {
                     switch (rowIndex) {
                         case LABEL:
-                            return maquina.getId().getNome();
+                            return maquina.getId().getName();
                         case OWNER:
                             return usuarios;
                         case PROCS:
