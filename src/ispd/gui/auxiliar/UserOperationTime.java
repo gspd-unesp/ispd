@@ -3,14 +3,14 @@ package ispd.gui.auxiliar;
 /**
  * Note: this class has a natural ordering that is inconsistent with equals.
  */
-class UserOperationTime implements Comparable<UserOperationTime> {
+public class UserOperationTime implements Comparable<UserOperationTime> {
     // TODO: maybe this should be a record
     private final Double time;
     private final Boolean isStartTime;
     private final Double nodeUse;
     private final Integer userId;
 
-    UserOperationTime(
+    public UserOperationTime(
             final double time,
             final boolean isStartTime,
             final Double nodeUse,
@@ -21,15 +21,15 @@ class UserOperationTime implements Comparable<UserOperationTime> {
         this.userId = userId;
     }
 
-    Integer getUserId() {
+    public Integer getUserId() {
         return this.userId;
     }
 
-    Boolean isStartTime() {
+    public Boolean isStartTime() {
         return this.isStartTime;
     }
 
-    Double getNodeUse() {
+    public Double getNodeUse() {
         return this.nodeUse;
     }
 
@@ -38,7 +38,7 @@ class UserOperationTime implements Comparable<UserOperationTime> {
         return this.time.compareTo(o.getTime());
     }
 
-    Double getTime() {
+    public Double getTime() {
         return this.time;
     }
 }
