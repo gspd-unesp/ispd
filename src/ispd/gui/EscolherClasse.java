@@ -25,19 +25,19 @@ public class EscolherClasse extends JDialog {
     EscolherClasse(final Frame owner, final boolean modal) {
         super(owner, modal);
         this.initWindowProperties();
-        this.makeLayoutAndPack();
         this.jRadioGrid = EscolherClasse.configuredRadioButton(
                 "Grid", this::gridButtonClicked);
         this.jRadioIaaS = EscolherClasse.configuredRadioButton(
                 "Cloud - IaaS", this::iaasButtonClicked);
         this.jRadioPaaS = EscolherClasse.configuredRadioButton(
                 "Cloud - PaaS", this::paasButtonClicked);
+        this.jRadioGrid.setSelected(true);
+        this.makeLayoutAndPack();
     }
 
     private void initWindowProperties() {
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.setFont(EscolherClasse.WINDOW_FONT);
-        this.jRadioGrid.setSelected(true);
     }
 
     private void makeLayoutAndPack() {

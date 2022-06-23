@@ -77,9 +77,9 @@ public class MachineTableIaaS extends AbstractTableModel {
     }
 
     void setMaquina(final Machine machine, final Iterable<String> users) {
+        this.machine = machine;
         this.vmm_policies.setSelectedItem(this.machine.getVMMallocpolicy());
         // TODO: Superclass?
-        this.machine = machine;
         this.schedulers.setSelectedItem(this.machine.getAlgoritmo());
         this.users.removeAllItems();
         for (final var s : users) {

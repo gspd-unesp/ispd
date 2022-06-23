@@ -147,6 +147,7 @@ public class JUsuarios extends JDialog {
                 JOptionPane.QUESTION_MESSAGE
         );
 
+        // TODO: Parse result and error.
         final Double result =
                 Double.parseDouble(JOptionPane.showInputDialog(this,
                 "Enter user power comsumption limit"));
@@ -201,6 +202,7 @@ public class JUsuarios extends JDialog {
     }
 
     HashMap<String, Double> getLimite() {
+        // TODO: Check and throw
         final HashMap<String, Double> ret = new HashMap<>(0);
         for (final List userList : this.users) {
             ret.put(userList.get(0).toString(),

@@ -74,7 +74,7 @@ public class GerarEscalonador extends JDialog {
     private final LinkedList<String> tFormula = new SpacedPrintList();
     private final LinkedList<String> rFormula = new SpacedPrintList();
     private final ResourceBundle translator;
-    private final JScrollPane jScrollPanePrincipal;
+    private final JScrollPane jScrollPanePrincipal = new JScrollPane();
     private int currentStep = 1;
     private String ordering = "Random";
     private String tOrdering = "Random";
@@ -154,7 +154,6 @@ public class GerarEscalonador extends JDialog {
         super(parent, modal);
         this.path = path;
         this.translator = translator;
-        this.jScrollPanePrincipal = new JScrollPane();
         this.initComponents();
         this.jScrollPanePrincipal.setViewportView(this.jPanelPasso1);
         this.startStepOne();
@@ -200,33 +199,33 @@ public class GerarEscalonador extends JDialog {
         final ActionListener jButtonP4AddActionPerformed =
                 this::jButtonP4AddActionPerformed;
         final var button11 = GerarEscalonador.minimalButton(text,
-         jButtonP4AddActionPerformed);
+                jButtonP4AddActionPerformed);
         button11.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Add = button11;
         jButtonP4Add.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
 
         final var button10 = GerarEscalonador.minimalButton("-",
-        this::jButtonP4SubActionPerformed);
+                this::jButtonP4SubActionPerformed);
         button10.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Sub = button10;
 
         final var button9 = GerarEscalonador.minimalButton("(",
-         this::jButtonP4AbreParentActionPerformed);
+                this::jButtonP4AbreParentActionPerformed);
         button9.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4AbreParent = button9;
 
         final var button8 = GerarEscalonador.minimalButton(")",
-this::jButtonP4FechaParentActionPerformed);
+                this::jButtonP4FechaParentActionPerformed);
         button8.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4FechaParent = button8;
 
         final var button7 = GerarEscalonador.minimalButton("/",
-         this::jButtonP4DivActionPerformed);
+                this::jButtonP4DivActionPerformed);
         button7.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Div = button7;
 
         final var button6 = GerarEscalonador.minimalButton("*",
-         this::jButtonP4MultActionPerformed);
+                this::jButtonP4MultActionPerformed);
         button6.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Mult = button6;
         jButtonP4Mult.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
@@ -437,12 +436,8 @@ this::jButtonP4FechaParentActionPerformed);
         this.jRadioButtonP4Crescente = new JRadioButton();
         this.jRadioButtonP4Crescente.setText(this.translate("Crescent"));
 
-        this.jRadioButtonP4Crescente.setToolTipText(this.translate("This " +
-                                                                   "option " +
-                                                                   "schedules" +
-                                                                                                                                                  "generated" +
-                                                                   " formula" +
-                                                                   " in crescent order"));
+        this.jRadioButtonP4Crescente.setToolTipText(this.translate("""
+                This option schedules by the generated formula in crescent order"""));
 
         this.jRadioButtonP4Crescente.addActionListener(this::jRadioButtonP4CrescenteActionPerformed);
 
@@ -575,18 +570,18 @@ this::jButtonP4FechaParentActionPerformed);
                 "Operators and precedence")));
 
         final var button5 = GerarEscalonador.minimalButton("+",
-         this::jButtonP5AddActionPerformed);
+                this::jButtonP5AddActionPerformed);
         button5.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Add = button5;
         jButtonP5Add.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
 
         final var button4 = GerarEscalonador.minimalButton("-",
-this::jButtonP5SubActionPerformed);
+                this::jButtonP5SubActionPerformed);
         button4.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Sub = button4;
 
         final var button3 = GerarEscalonador.minimalButton("(",
-         this::jButtonP5AbreParentActionPerformed);
+                this::jButtonP5AbreParentActionPerformed);
         button3.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5AbreParent = button3;
 
@@ -596,12 +591,12 @@ this::jButtonP5SubActionPerformed);
         final JButton jButtonP5FechaParent = button2;
 
         final var button1 = GerarEscalonador.minimalButton("/",
-         this::jButtonP5DivActionPerformed);
+                this::jButtonP5DivActionPerformed);
         button1.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Div = button1;
 
         final var button = GerarEscalonador.minimalButton("*",
-         this::jButtonP5MultActionPerformed);
+                this::jButtonP5MultActionPerformed);
         button.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Mult = button;
         jButtonP5Mult.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
@@ -734,12 +729,12 @@ this::jButtonP5SubActionPerformed);
         this.jFormattedTextP5DigitaConst.addActionListener(this::jFormattedTextP5DigitaConstActionPerformed);
 
         final JButton jButtonP5MflopExec =
-         GerarEscalonador.minimalButton(this.translate(
-                        "Running " +
-                        "Mflops") +
-                                                                          " -" +
-                                                                          " MFE",
-                this::jButtonP5MflopExecActionPerformed);
+                GerarEscalonador.minimalButton(this.translate(
+                                "Running " +
+                                "Mflops") +
+                                               " -" +
+                                               " MFE",
+                        this::jButtonP5MflopExecActionPerformed);
 
         final GroupLayout jPanel5Layout =
                 new GroupLayout(jPanel5);
@@ -800,12 +795,8 @@ this::jButtonP5SubActionPerformed);
         this.jRadioButtonP5Crescente = new JRadioButton();
         this.jRadioButtonP5Crescente.setText(this.translate("Crescent"));
 
-        this.jRadioButtonP5Crescente.setToolTipText(this.translate("This " +
-                                                                   "option " +
-                                                                   "schedules" +
-                                                                                                                                                  "generated" +
-                                                                   " formula" +
-                                                                   " in crescent order"));
+        this.jRadioButtonP5Crescente.setToolTipText(this.translate("""
+                This option schedules by the generated formula in crescent order"""));
 
         this.jRadioButtonP5Crescente.addActionListener(this::jRadioButtonP5CrescenteActionPerformed);
 

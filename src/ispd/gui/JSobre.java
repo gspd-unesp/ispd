@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 class JSobre extends JDialog {
     //language=HTML
     private static final String ABOUT_TEXT = """
-            <html lang="en">
+            <html>
             <body>
             <p style="margin-left: 20px;">
                 The <strong>"iSPD : iconic Simulator of Parallel and Distributed System"</strong><br/>

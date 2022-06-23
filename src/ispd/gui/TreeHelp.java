@@ -148,9 +148,9 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
         final Object nodeInfo = node.getUserObject();
         if (node.isLeaf()) {
             final var book = (BookInfo) nodeInfo;
-            this.displayURL(book.bookURL);
+            this.displayURL(book.getBookURL());
             if (TreeHelp.DEBUG) {
-                System.out.print(book.bookURL + ":  \n    ");
+                System.out.print(book.getBookURL() + ":  \n    ");
             }
         } else {
             this.displayURL(this.helpURL);
@@ -161,8 +161,8 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
     }
 
     private static class BookInfo {
-        String bookName;
-        URL bookURL;
+        private final String bookName;
+        private final URL bookURL;
 
         private BookInfo(final String book, final String filename) {
             this.bookName = book;
@@ -170,6 +170,15 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
             if (this.bookURL == null) {
                 System.err.println("Couldn't find the file: " + filename);
             }
+        }
+
+        @Override
+        public String toString() {
+            return this.bookName;
+        }
+
+        URL getBookURL() {
+            return this.bookURL;
         }
     }
 }

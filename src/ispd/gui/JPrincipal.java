@@ -89,8 +89,8 @@ public class JPrincipal extends JFrame implements KeyListener {
             { ".ims", ".imsx", ".wmsx" };
     private static final Locale LOCALE_EN_US = new Locale("en", "US");
     private static final Locale LOCALE_PT_BR = new Locale("pt", "BR");
-    private static final String ISPD_LOGO_FILE_PATH = "imagens/Logo_iSPD_25" +
-                                                      ".png";
+    private static final String ISPD_LOGO_FILE_PATH =
+            "imagens/Logo_iSPD_25.png";
     private static final int NOTIFICATION_AREA_COLS = 20;
     private static final int NOTIFICATION_AREA_ROWS = 5;
     private final ConfiguracaoISPD configure = new ConfiguracaoISPD();
@@ -253,8 +253,10 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private static DesenhoGrade emptyDrawingArea() {
-        return new DesenhoGrade(JPrincipal.DRAWING_GRID_START_SIZE,
-                JPrincipal.DRAWING_GRID_START_SIZE);
+        return new DesenhoGrade(
+                JPrincipal.DRAWING_GRID_START_SIZE,
+                JPrincipal.DRAWING_GRID_START_SIZE
+        );
     }
 
     private String translate(final String s) {
@@ -263,12 +265,11 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private void initComponents() {
         this.initWindowProperties();
-
-        this.initFileChooser();
         this.initNotificationArea();
         this.initToolBarAndButtons();
         this.initMenus();
         this.initPanels();
+        this.initFileChooser();
     }
 
     private void initMenus() {
