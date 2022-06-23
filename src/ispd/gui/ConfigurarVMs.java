@@ -2,11 +2,9 @@ package ispd.gui;
 
 import ispd.gui.iconico.grade.VirtualMachine;
 
-import javax.swing.AbstractButton;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -97,19 +95,24 @@ class ConfigurarVMs extends JDialog {
 
     private void makeLayoutAndPack() {
 
-        final var ok = ConfigurarVMs.configuredButton(
-                "OK!", "Apply configurations",
-                this::jButtonOKVmActionPerformed);
-        final var addUser = ConfigurarVMs.configuredButton(
-                "Add User", "Add a new user",
-                this::jButtonAddUserActionPerformed);
-        final var removeVm = ConfigurarVMs.configuredButton(
-                "Remove VM",
-                "Remove the virtual machine selected in the table below",
-                this::jButtonRemoveVMActionPerformed);
-        final var addVm = ConfigurarVMs.configuredButton(
-                "Add VM", "Add the configured virtual machine",
-                this::jButtonAddVMActionPerformed);
+        final var ok = ButtonBuilder.aButton("OK!",
+                        this::jButtonOKVmActionPerformed)
+                .withToolTip("Apply configurations")
+                .build();
+        final var addUser = ButtonBuilder.aButton("Add User"
+                        , this::jButtonAddUserActionPerformed)
+                .withToolTip("Add a new user")
+                .build();
+        final var removeVm = ButtonBuilder.aButton("Remove " +
+                                                   "VM",
+                        this::jButtonRemoveVMActionPerformed)
+                .withToolTip("Remove the virtual machine selected in the " +
+                             "table below")
+                .build();
+        final var addVm = ButtonBuilder.aButton("Add VM",
+                        this::jButtonAddVMActionPerformed)
+                .withToolTip("Add the configured virtual machine")
+                .build();
 
         final var vmm = new JLabel("VMM:");
         final var user = new JLabel("User:");
@@ -288,17 +291,6 @@ class ConfigurarVMs extends JDialog {
     }
 
     private void jVMMComboBoxActionPerformed(final ActionEvent evt) {
-    }
-
-    private static AbstractButton configuredButton(
-            final String text,
-            final String toolTip,
-            final ActionListener action) {
-        final var button = new JButton();
-        button.setText(text);
-        button.setToolTipText(toolTip);
-        button.addActionListener(action);
-        return button;
     }
 
     private void jButtonOKVmActionPerformed(final ActionEvent evt) {
