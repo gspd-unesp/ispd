@@ -8,6 +8,7 @@ import java.util.Optional;
  * Utility class for constructing buttons in a builder-like approach.
  * <p>
  * TODO: Abstract away construction, may want to return AbstractButton instead.
+ * TODO: Optimize 'fixed' build patterns (e.g., basicButton)
  */
 public class ButtonBuilder {
     private final String text;
@@ -22,6 +23,11 @@ public class ButtonBuilder {
     static ButtonBuilder aButton(
             final String text, final ActionListener onClick) {
         return new ButtonBuilder(text, onClick);
+    }
+
+    static JButton basicButton(
+            final String text, final ActionListener onClick) {
+        return ButtonBuilder.aButton(text, onClick).build();
     }
 
     ButtonBuilder withToolTip(final String toolTipText) {
