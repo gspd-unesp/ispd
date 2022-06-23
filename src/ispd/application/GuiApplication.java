@@ -2,7 +2,7 @@ package ispd.application;
 
 import ispd.gui.JPrincipal;
 import ispd.gui.LogExceptions;
-import ispd.gui.SplashWindowBuilder;
+import ispd.gui.SplashWindow;
 
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -19,11 +19,9 @@ public class GuiApplication implements Application {
     }
 
     private static void openGui() {
-        final var splashWindow =
-                SplashWindowBuilder.visibleDefaultSplashWindow();
+        final var splash = new SplashWindow();
         final var mainWindow = GuiApplication.initializeApplication();
-
-        splashWindow.dispose();
+        splash.dispose();
         mainWindow.setVisible(true);
     }
 
