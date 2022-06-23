@@ -21,6 +21,7 @@ public class ButtonBuilder {
     private Optional<ImageIcon> icon = Optional.empty();
     private Optional<Boolean> focusability = Optional.empty();
     private Optional<Dimension> size = Optional.empty();
+    private Optional<Dimension> preferredSize = Optional.empty();
     private Optional<Position> textPosition = Optional.empty();
 
     private ButtonBuilder(final String text, final ActionListener onClick) {
@@ -40,6 +41,7 @@ public class ButtonBuilder {
         this.icon.ifPresent(button::setIcon);
         this.focusability.ifPresent(button::setFocusable);
         this.size.ifPresent(button::setSize);
+        this.preferredSize.ifPresent(button::setPreferredSize);
         this.setButtonTextPosition(button);
         return button;
     }
@@ -73,6 +75,11 @@ public class ButtonBuilder {
 
     ButtonBuilder withSize(final Dimension theSize) {
         this.size = Optional.of(theSize);
+        return this;
+    }
+
+    ButtonBuilder withPreferredSize(final Dimension theSize) {
+        this.preferredSize = Optional.of(theSize);
         return this;
     }
 
