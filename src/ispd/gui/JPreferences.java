@@ -1,404 +1,348 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * JPreferences.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 14-Out-2014 : Create class. Version 2.0.1;
- *
- */
 package ispd.gui;
 
 import ispd.arquivo.xml.ConfiguracaoISPD;
 
-/**
- *
- * @author denison
- */
-public class JPreferences extends javax.swing.JDialog {
+import javax.swing.BorderFactory;
+import javax.swing.GroupLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
+import java.awt.Color;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.text.DecimalFormat;
 
-    ConfiguracaoISPD configuracao;
+class JPreferences extends JDialog {
+    private final ConfiguracaoISPD config;
+    private JCheckBox jCheckBoxBarChartProcessing;
+    private JCheckBox jCheckBoxPieChartCommunication;
+    private JCheckBox jCheckBoxTimeChartMachine;
+    private JCheckBox jCheckBoxTimeChartTask;
+    private JCheckBox jCheckBoxTimeChartUser;
+    private JLabel jLabelNumSim;
+    private JLabel jLabelThread;
+    private JRadioButton jRadioButtonDefault;
+    private JRadioButton jRadioButtonGraphical;
+    private JRadioButton jRadioButtonOptimistic;
+    private JFormattedTextField jTextFieldNumSim;
+    private JFormattedTextField jTextFieldThread;
 
-    /**
-     * Creates new form JPreferences
-     */
-    public JPreferences(java.awt.Frame parent, boolean modal, ConfiguracaoISPD configuracao) {
+    JPreferences(final Frame parent, final boolean modal,
+                 final ConfiguracaoISPD config) {
         super(parent, modal);
-        this.configuracao = configuracao;
-        initComponents();
-        switch (configuracao.getSimulationMode()) {
-            case ConfiguracaoISPD.DEFAULT:
-                jRadioButtonDefaultActionPerformed(null);
-                break;
-            case ConfiguracaoISPD.OPTIMISTIC:
-                jRadioButtonOptimisticActionPerformed(null);
-                break;
-            case ConfiguracaoISPD.GRAPHICAL:
-                jRadioButtonGraphicalActionPerformed(null);
-                break;
-        }
-        jTextFieldNumSim.setValue(configuracao.getNumberOfSimulations());
-        jTextFieldThread.setValue(configuracao.getNumberOfThreads());
-        jCheckBoxBarChartProcessing.setSelected(configuracao.getCreateProcessingChart());
-        jCheckBoxPieChartCommunication.setSelected(configuracao.getCreateCommunicationChart());
-        jCheckBoxTimeChartUser.setSelected(configuracao.getCreateUserThroughTimeChart());
-        jCheckBoxTimeChartMachine.setSelected(configuracao.getCreateMachineThroughTimeChart());
-        jCheckBoxTimeChartTask.setSelected(configuracao.getCreateTaskThroughTimeChart());
+        this.config = config;
+        this.initComponents();
+        this.setSimulationModel(config);
+        this.jTextFieldNumSim.setValue(config.getNumberOfSimulations());
+        this.jTextFieldThread.setValue(config.getNumberOfThreads());
+        this.jCheckBoxBarChartProcessing.setSelected(config.getCreateProcessingChart());
+        this.jCheckBoxPieChartCommunication.setSelected(config.getCreateCommunicationChart());
+        this.jCheckBoxTimeChartUser.setSelected(config.getCreateUserThroughTimeChart());
+        this.jCheckBoxTimeChartMachine.setSelected(config.getCreateMachineThroughTimeChart());
+        this.jCheckBoxTimeChartTask.setSelected(config.getCreateTaskThroughTimeChart());
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void setSimulationModel(final ConfiguracaoISPD configuration) {
+        switch (configuration.getSimulationMode()) {
+            case ConfiguracaoISPD.DEFAULT ->
+                    this.jRadioButtonDefaultActionPerformed(null);
+            case ConfiguracaoISPD.OPTIMISTIC ->
+                    this.jRadioButtonOptimisticActionPerformed(null);
+            case ConfiguracaoISPD.GRAPHICAL ->
+                    this.jRadioButtonGraphicalActionPerformed(null);
+        }
+    }
+
     private void initComponents() {
+        this.jRadioButtonDefault = new JRadioButton();
+        this.jRadioButtonOptimistic = new JRadioButton();
+        this.jRadioButtonGraphical = new JRadioButton();
+        this.jLabelThread = new JLabel();
+        this.jLabelNumSim = new JLabel();
+        this.jTextFieldThread = new JFormattedTextField();
+        this.jTextFieldNumSim = new JFormattedTextField();
+        final JPanel jPanelResults = new JPanel();
+        this.jCheckBoxBarChartProcessing = new JCheckBox();
+        this.jCheckBoxPieChartCommunication = new JCheckBox();
+        this.jCheckBoxTimeChartUser = new JCheckBox();
+        this.jCheckBoxTimeChartMachine = new JCheckBox();
+        this.jCheckBoxTimeChartTask = new JCheckBox();
 
-        jPanelSimulation = new javax.swing.JPanel();
-        jRadioButtonDefault = new javax.swing.JRadioButton();
-        jRadioButtonOptimistic = new javax.swing.JRadioButton();
-        jRadioButtonGraphical = new javax.swing.JRadioButton();
-        jLabelThread = new javax.swing.JLabel();
-        jLabelNumSim = new javax.swing.JLabel();
-        jTextFieldThread = new javax.swing.JFormattedTextField();
-        jTextFieldNumSim = new javax.swing.JFormattedTextField();
-        jPanelResults = new javax.swing.JPanel();
-        jCheckBoxBarChartProcessing = new javax.swing.JCheckBox();
-        jCheckBoxPieChartCommunication = new javax.swing.JCheckBox();
-        jCheckBoxTimeChartUser = new javax.swing.JCheckBox();
-        jCheckBoxTimeChartMachine = new javax.swing.JCheckBox();
-        jCheckBoxTimeChartTask = new javax.swing.JCheckBox();
+        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        final JPanel jPanelSimulation = new JPanel();
+        jPanelSimulation.setBorder(BorderFactory.createTitledBorder(
+                "Simulation"));
 
-        jPanelSimulation.setBorder(javax.swing.BorderFactory.createTitledBorder("Simulation"));
+        this.jRadioButtonDefault.setSelected(true);
+        this.jRadioButtonDefault.setText("Default");
+        this.jRadioButtonDefault.addActionListener(this::jRadioButtonDefaultActionPerformed);
 
-        jRadioButtonDefault.setSelected(true);
-        jRadioButtonDefault.setText("Default");
-        jRadioButtonDefault.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonDefaultActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonOptimistic.setText("Optimistic parallel (trial)");
+        this.jRadioButtonOptimistic.addActionListener(this::jRadioButtonOptimisticActionPerformed);
 
-        jRadioButtonOptimistic.setText("Optimistic parallel (trial)");
-        jRadioButtonOptimistic.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonOptimisticActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonGraphical.setText("Graphical");
+        this.jRadioButtonGraphical.addActionListener(this::jRadioButtonGraphicalActionPerformed);
 
-        jRadioButtonGraphical.setText("Graphical");
-        jRadioButtonGraphical.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonGraphicalActionPerformed(evt);
-            }
-        });
+        this.jLabelThread.setHorizontalAlignment(SwingConstants.CENTER);
+        this.jLabelThread.setText("Number of threads");
 
-        jLabelThread.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabelThread.setText("Number of threads");
+        this.jLabelNumSim.setHorizontalAlignment(SwingConstants.CENTER);
+        this.jLabelNumSim.setText("Number of simulations");
 
-        jLabelNumSim.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabelNumSim.setText("Number of simulations");
+        this.jTextFieldThread.setBackground(new Color(238, 238, 238));
+        this.jTextFieldThread.setBorder(null);
+        this.jTextFieldThread.setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter(new DecimalFormat("#0"))));
+        this.jTextFieldThread.setHorizontalAlignment(SwingConstants.CENTER);
+        this.jTextFieldThread.setText("1");
+        this.jTextFieldThread.addActionListener(this::jTextFieldThreadActionPerformed);
+        this.jTextFieldThread.addFocusListener(new SomeFocusAdapter());
 
-        jTextFieldThread.setBackground(new java.awt.Color(238, 238, 238));
-        jTextFieldThread.setBorder(null);
-        jTextFieldThread.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        jTextFieldThread.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        jTextFieldThread.setText("1");
-        jTextFieldThread.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldThreadActionPerformed(evt);
-            }
-        });
-        jTextFieldThread.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                jTextFieldThreadFocusLost(evt);
-            }
-        });
+        this.jTextFieldNumSim.setBackground(new Color(238, 238, 238));
+        this.jTextFieldNumSim.setBorder(null);
+        this.jTextFieldNumSim.setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter(new DecimalFormat("#0"))));
+        this.jTextFieldNumSim.setHorizontalAlignment(SwingConstants.CENTER);
+        this.jTextFieldNumSim.setText("1");
+        this.jTextFieldNumSim.addActionListener(this::jTextFieldNumSimActionPerformed);
+        this.jTextFieldNumSim.addFocusListener(new SomeOtherFocusAdapter());
 
-        jTextFieldNumSim.setBackground(new java.awt.Color(238, 238, 238));
-        jTextFieldNumSim.setBorder(null);
-        jTextFieldNumSim.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        jTextFieldNumSim.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        jTextFieldNumSim.setText("1");
-        jTextFieldNumSim.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldNumSimActionPerformed(evt);
-            }
-        });
-        jTextFieldNumSim.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                jTextFieldNumSimFocusLost(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanelSimulationLayout = new javax.swing.GroupLayout(jPanelSimulation);
+        final GroupLayout jPanelSimulationLayout =
+                new GroupLayout(jPanelSimulation);
         jPanelSimulation.setLayout(jPanelSimulationLayout);
         jPanelSimulationLayout.setHorizontalGroup(
-            jPanelSimulationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelSimulationLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelSimulationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelSimulationLayout.createSequentialGroup()
-                        .addComponent(jRadioButtonDefault)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jRadioButtonOptimistic)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jRadioButtonGraphical))
-                    .addGroup(jPanelSimulationLayout.createSequentialGroup()
-                        .addGroup(jPanelSimulationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jLabelThread, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabelNumSim, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanelSimulationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextFieldThread, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextFieldNumSim, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(12, Short.MAX_VALUE))
+                jPanelSimulationLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelSimulationLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelSimulationLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanelSimulationLayout.createSequentialGroup()
+                                                .addComponent(this.jRadioButtonDefault)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(this.jRadioButtonOptimistic)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(this.jRadioButtonGraphical))
+                                        .addGroup(jPanelSimulationLayout.createSequentialGroup()
+                                                .addGroup(jPanelSimulationLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                                        .addComponent(this.jLabelThread, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(this.jLabelNumSim, GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE))
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(jPanelSimulationLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(this.jTextFieldThread, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(this.jTextFieldNumSim, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE))))
+                                .addContainerGap(12, Short.MAX_VALUE))
         );
         jPanelSimulationLayout.setVerticalGroup(
-            jPanelSimulationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelSimulationLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelSimulationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jRadioButtonDefault)
-                    .addComponent(jRadioButtonOptimistic)
-                    .addComponent(jRadioButtonGraphical))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanelSimulationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabelThread)
-                    .addComponent(jTextFieldThread, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelSimulationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelNumSim)
-                    .addComponent(jTextFieldNumSim, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                jPanelSimulationLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelSimulationLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelSimulationLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.jRadioButtonDefault)
+                                        .addComponent(this.jRadioButtonOptimistic)
+                                        .addComponent(this.jRadioButtonGraphical))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(jPanelSimulationLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(this.jLabelThread)
+                                        .addComponent(this.jTextFieldThread,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                15, GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanelSimulationLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.jLabelNumSim)
+                                        .addComponent(this.jTextFieldNumSim,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                15, GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap())
         );
 
-        jPanelResults.setBorder(javax.swing.BorderFactory.createTitledBorder("Results"));
+        jPanelResults.setBorder(BorderFactory.createTitledBorder("Results"));
 
-        jCheckBoxBarChartProcessing.setSelected(true);
-        jCheckBoxBarChartProcessing.setText("Chart of Processing");
-        jCheckBoxBarChartProcessing.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxBarChartProcessingActionPerformed(evt);
-            }
-        });
+        this.jCheckBoxBarChartProcessing.setSelected(true);
+        this.jCheckBoxBarChartProcessing.setText("Chart of Processing");
+        this.jCheckBoxBarChartProcessing.addActionListener(this::jCheckBoxBarChartProcessingActionPerformed);
 
-        jCheckBoxPieChartCommunication.setSelected(true);
-        jCheckBoxPieChartCommunication.setText("Chart of Communication");
-        jCheckBoxPieChartCommunication.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxPieChartCommunicationActionPerformed(evt);
-            }
-        });
+        this.jCheckBoxPieChartCommunication.setSelected(true);
+        this.jCheckBoxPieChartCommunication.setText("Chart of Communication");
+        this.jCheckBoxPieChartCommunication.addActionListener(this::jCheckBoxPieChartCommunicationActionPerformed);
 
-        jCheckBoxTimeChartUser.setSelected(true);
-        jCheckBoxTimeChartUser.setText("User computing through time");
-        jCheckBoxTimeChartUser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxTimeChartUserActionPerformed(evt);
-            }
-        });
+        this.jCheckBoxTimeChartUser.setSelected(true);
+        this.jCheckBoxTimeChartUser.setText("User computing through time");
+        this.jCheckBoxTimeChartUser.addActionListener(this::jCheckBoxTimeChartUserActionPerformed);
 
-        jCheckBoxTimeChartMachine.setText("Machine use through time");
-        jCheckBoxTimeChartMachine.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxTimeChartMachineActionPerformed(evt);
-            }
-        });
+        this.jCheckBoxTimeChartMachine.setText("Machine use through time");
+        this.jCheckBoxTimeChartMachine.addActionListener(this::jCheckBoxTimeChartMachineActionPerformed);
 
-        jCheckBoxTimeChartTask.setText("Tasks through time");
-        jCheckBoxTimeChartTask.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxTimeChartTaskActionPerformed(evt);
-            }
-        });
+        this.jCheckBoxTimeChartTask.setText("Tasks through time");
+        this.jCheckBoxTimeChartTask.addActionListener(this::jCheckBoxTimeChartTaskActionPerformed);
 
-        javax.swing.GroupLayout jPanelResultsLayout = new javax.swing.GroupLayout(jPanelResults);
+        final GroupLayout jPanelResultsLayout = new GroupLayout(jPanelResults);
         jPanelResults.setLayout(jPanelResultsLayout);
         jPanelResultsLayout.setHorizontalGroup(
-            jPanelResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelResultsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jCheckBoxTimeChartUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jCheckBoxPieChartCommunication, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jCheckBoxBarChartProcessing, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jCheckBoxTimeChartMachine, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jCheckBoxTimeChartTask, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(158, Short.MAX_VALUE))
+                jPanelResultsLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelResultsLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelResultsLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(this.jCheckBoxTimeChartUser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(this.jCheckBoxPieChartCommunication, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(this.jCheckBoxBarChartProcessing, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(this.jCheckBoxTimeChartMachine, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(this.jCheckBoxTimeChartTask, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap(158, Short.MAX_VALUE))
         );
         jPanelResultsLayout.setVerticalGroup(
-            jPanelResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelResultsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jCheckBoxBarChartProcessing)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jCheckBoxPieChartCommunication)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jCheckBoxTimeChartUser)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jCheckBoxTimeChartMachine)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jCheckBoxTimeChartTask)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                jPanelResultsLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelResultsLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jCheckBoxBarChartProcessing)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jCheckBoxPieChartCommunication)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jCheckBoxTimeChartUser)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jCheckBoxTimeChartMachine)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jCheckBoxTimeChartTask)
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        final GroupLayout layout = new GroupLayout(this.getContentPane());
+        this.getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanelSimulation, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanelResults, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jPanelSimulation,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addComponent(jPanelResults,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE))
+                                .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanelSimulation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanelResults, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jPanelSimulation,
+                                        GroupLayout.PREFERRED_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPanelResults,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE)
+                                .addContainerGap())
         );
 
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
+        this.pack();
+    }
 
-    private void jRadioButtonDefaultActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDefaultActionPerformed
-        jRadioButtonDefault.setSelected(true);
-        jRadioButtonOptimistic.setSelected(false);
-        jRadioButtonGraphical.setSelected(false);
-        textFieldEnable(true);
-        configuracao.setSimulationMode(ConfiguracaoISPD.DEFAULT);
-    }//GEN-LAST:event_jRadioButtonDefaultActionPerformed
+    private void jRadioButtonDefaultActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonDefault.setSelected(true);
+        this.jRadioButtonOptimistic.setSelected(false);
+        this.jRadioButtonGraphical.setSelected(false);
+        this.textFieldEnable(true);
+        this.config.setSimulationMode(ConfiguracaoISPD.DEFAULT);
+    }
 
-    private void jRadioButtonOptimisticActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonOptimisticActionPerformed
-        jRadioButtonDefault.setSelected(false);
-        jRadioButtonOptimistic.setSelected(true);
-        jRadioButtonGraphical.setSelected(false);
-        textFieldEnable(true);
-        configuracao.setSimulationMode(ConfiguracaoISPD.OPTIMISTIC);
-    }//GEN-LAST:event_jRadioButtonOptimisticActionPerformed
+    private void jRadioButtonOptimisticActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonDefault.setSelected(false);
+        this.jRadioButtonOptimistic.setSelected(true);
+        this.jRadioButtonGraphical.setSelected(false);
+        this.textFieldEnable(true);
+        this.config.setSimulationMode(ConfiguracaoISPD.OPTIMISTIC);
+    }
 
-    private void jRadioButtonGraphicalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonGraphicalActionPerformed
-        jRadioButtonDefault.setSelected(false);
-        jRadioButtonOptimistic.setSelected(false);
-        jRadioButtonGraphical.setSelected(true);
-        textFieldEnable(false);
-        configuracao.setSimulationMode(ConfiguracaoISPD.GRAPHICAL);
-    }//GEN-LAST:event_jRadioButtonGraphicalActionPerformed
+    private void jRadioButtonGraphicalActionPerformed(final ActionEvent evt) {
+        this.jRadioButtonDefault.setSelected(false);
+        this.jRadioButtonOptimistic.setSelected(false);
+        this.jRadioButtonGraphical.setSelected(true);
+        this.textFieldEnable(false);
+        this.config.setSimulationMode(ConfiguracaoISPD.GRAPHICAL);
+    }
 
-    private void jTextFieldThreadFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldThreadFocusLost
+    private void jTextFieldThreadFocusLost(final FocusEvent evt) {
         try {
-            Integer valor = Integer.parseInt(jTextFieldThread.getText());
+            final int valor = Integer.parseInt(this.jTextFieldThread.getText());
             if (valor > 0) {
-                configuracao.setNumberOfThreads(valor);
+                this.config.setNumberOfThreads(valor);
             } else {
-                jTextFieldThread.setValue(configuracao.getNumberOfThreads());
+                this.jTextFieldThread.setValue(this.config.getNumberOfThreads());
             }
-        } catch(NumberFormatException ex) {
-            jTextFieldThread.setValue(configuracao.getNumberOfThreads());
+        } catch (final NumberFormatException ex) {
+            this.jTextFieldThread.setValue(this.config.getNumberOfThreads());
         }
-    }//GEN-LAST:event_jTextFieldThreadFocusLost
+    }
 
-    private void jTextFieldThreadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldThreadActionPerformed
-        jTextFieldThread.transferFocus();
-    }//GEN-LAST:event_jTextFieldThreadActionPerformed
+    private void jTextFieldThreadActionPerformed(final ActionEvent evt) {
+        this.jTextFieldThread.transferFocus();
+    }
 
-    private void jTextFieldNumSimFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextFieldNumSimFocusLost
+    private void jTextFieldNumSimFocusLost(final FocusEvent evt) {
         try {
-            Integer valor = Integer.parseInt(jTextFieldNumSim.getText());
+            final int valor = Integer.parseInt(this.jTextFieldNumSim.getText());
             if (valor > 0) {
-                configuracao.setNumberOfSimulations(valor);
+                this.config.setNumberOfSimulations(valor);
             } else {
-                jTextFieldNumSim.setValue(configuracao.getNumberOfSimulations());
+                this.jTextFieldNumSim.setValue(this.config.getNumberOfSimulations());
             }
-        } catch(NumberFormatException ex) {
-            jTextFieldNumSim.setValue(configuracao.getNumberOfSimulations());
+        } catch (final NumberFormatException ex) {
+            this.jTextFieldNumSim.setValue(this.config.getNumberOfSimulations());
         }
-    }//GEN-LAST:event_jTextFieldNumSimFocusLost
+    }
 
-    private void jTextFieldNumSimActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldNumSimActionPerformed
-        jTextFieldNumSim.transferFocus();
-    }//GEN-LAST:event_jTextFieldNumSimActionPerformed
+    private void jTextFieldNumSimActionPerformed(final ActionEvent evt) {
+        this.jTextFieldNumSim.transferFocus();
+    }
 
-    private void jCheckBoxBarChartProcessingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxBarChartProcessingActionPerformed
-        configuracao.setCreateProcessingChart(jCheckBoxBarChartProcessing.isSelected());
-    }//GEN-LAST:event_jCheckBoxBarChartProcessingActionPerformed
+    private void jCheckBoxBarChartProcessingActionPerformed(final ActionEvent evt) {
+        this.config.setCreateProcessingChart(this.jCheckBoxBarChartProcessing.isSelected());
+    }
 
-    private void jCheckBoxPieChartCommunicationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxPieChartCommunicationActionPerformed
-        configuracao.setCreateCommunicationChart(jCheckBoxPieChartCommunication.isSelected());
-    }//GEN-LAST:event_jCheckBoxPieChartCommunicationActionPerformed
+    private void jCheckBoxPieChartCommunicationActionPerformed(final ActionEvent evt) {
+        this.config.setCreateCommunicationChart(this.jCheckBoxPieChartCommunication.isSelected());
+    }
 
-    private void jCheckBoxTimeChartUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxTimeChartUserActionPerformed
-        configuracao.setCreateUserThroughTimeChart(jCheckBoxTimeChartUser.isSelected());
-    }//GEN-LAST:event_jCheckBoxTimeChartUserActionPerformed
+    private void jCheckBoxTimeChartUserActionPerformed(final ActionEvent evt) {
+        this.config.setCreateUserThroughTimeChart(this.jCheckBoxTimeChartUser.isSelected());
+    }
 
-    private void jCheckBoxTimeChartMachineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxTimeChartMachineActionPerformed
-        configuracao.setCreateMachineThroughTimeChart(jCheckBoxTimeChartMachine.isSelected());
-    }//GEN-LAST:event_jCheckBoxTimeChartMachineActionPerformed
+    private void jCheckBoxTimeChartMachineActionPerformed(final ActionEvent evt) {
+        this.config.setCreateMachineThroughTimeChart(this.jCheckBoxTimeChartMachine.isSelected());
+    }
 
-    private void jCheckBoxTimeChartTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxTimeChartTaskActionPerformed
-        configuracao.setCreateTaskThroughTimeChart(jCheckBoxTimeChartTask.isSelected());
-    }//GEN-LAST:event_jCheckBoxTimeChartTaskActionPerformed
+    private void jCheckBoxTimeChartTaskActionPerformed(final ActionEvent evt) {
+        this.config.setCreateTaskThroughTimeChart(this.jCheckBoxTimeChartTask.isSelected());
+    }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox jCheckBoxBarChartProcessing;
-    private javax.swing.JCheckBox jCheckBoxPieChartCommunication;
-    private javax.swing.JCheckBox jCheckBoxTimeChartMachine;
-    private javax.swing.JCheckBox jCheckBoxTimeChartTask;
-    private javax.swing.JCheckBox jCheckBoxTimeChartUser;
-    private javax.swing.JLabel jLabelNumSim;
-    private javax.swing.JLabel jLabelThread;
-    private javax.swing.JPanel jPanelResults;
-    private javax.swing.JPanel jPanelSimulation;
-    private javax.swing.JRadioButton jRadioButtonDefault;
-    private javax.swing.JRadioButton jRadioButtonGraphical;
-    private javax.swing.JRadioButton jRadioButtonOptimistic;
-    private javax.swing.JFormattedTextField jTextFieldNumSim;
-    private javax.swing.JFormattedTextField jTextFieldThread;
-    // End of variables declaration//GEN-END:variables
+    private void textFieldEnable(final boolean enabled) {
+        this.jTextFieldThread.setEnabled(enabled);
+        this.jLabelThread.setEnabled(enabled);
+        this.jTextFieldNumSim.setEnabled(enabled);
+        this.jLabelNumSim.setEnabled(enabled);
+    }
 
-    private void textFieldEnable(boolean b) {
-        jTextFieldThread.setEnabled(b);
-        jLabelThread.setEnabled(b);
-        jTextFieldNumSim.setEnabled(b);
-        jLabelNumSim.setEnabled(b);
+    private class SomeFocusAdapter extends FocusAdapter {
+        public void focusLost(final FocusEvent evt) {
+            JPreferences.this.jTextFieldThreadFocusLost(evt);
+        }
+    }
+
+    private class SomeOtherFocusAdapter extends FocusAdapter {
+        public void focusLost(final FocusEvent evt) {
+            JPreferences.this.jTextFieldNumSimFocusLost(evt);
+        }
     }
 }
