@@ -103,7 +103,7 @@ public class Cluster extends VertexGridItem {
                    final int localId,
                    final int globalId,
                    final Double energyConsumption) {
-        super(x, y, "cluster", localId, globalId);
+        super(localId, globalId, "cluster", x, y);
         this.schedulingAlgorithm = "---";
         this.owner = "user1";
         this.coreCount = 1;
