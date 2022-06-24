@@ -1,395 +1,386 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package ispd.gui;
 
 import ispd.gui.iconico.grade.VirtualMachine;
-import java.util.HashSet;
-import java.util.Vector;
+
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Vector;
+import java.util.stream.Collectors;
 
-/**
- *
- * @author Diogo Tavares
- */
-public class ConfigurarVMs extends javax.swing.JDialog {
+class ConfigurarVMs extends JDialog {
+    private static final String[] OPERATING_SYSTEMS = {
+            "Linux", "Macintosh", "Windows" };
+    private final JComboBox<String> osComboBox =
+            ConfigurarVMs.configuredComboBox(
+                    new DefaultComboBoxModel<>(ConfigurarVMs.OPERATING_SYSTEMS),
+                    "Select the operational system hosted in the virtual " +
+                    "machine",
+                    this::jSOComboBoxActionPerformed);
+    private final JSpinner disk = ConfigurarVMs.spinnerWithTooltip(
+            "Insert the amount of disk that VM " +
+            "allocates in resource's hard disk");
+    private final JSpinner memory = ConfigurarVMs.spinnerWithTooltip(
+            "Insert the amount of  memory that VM " +
+            "allocates in the  resource's primary storage");
+    private final JSpinner processors = ConfigurarVMs.spinnerWithTooltip(
+            "Insert the number of virtual cores that VM " +
+            "allocates in the resource's physical processor");
+    private final Vector<String> tableColumns =
+            new Vector<>(List.of(new String[] {
+                    "VM Label",
+                    "User",
+                    "VMM",
+                    "Proc alloc",
+                    "Mem alloc",
+                    "Disk alloc",
+                    "OS",
+            }));
+    private JScrollPane tableScrollPane;
+    private Vector<Vector<Object>> tableRows;
+    private Vector<String> users;
+    private JTable vmTable;
+    private JComboBox<String> usersComboBox;
+    private JComboBox<String> vmmsComboBox;
+    private int tableIndex;
+    private HashSet<VirtualMachine> virtualMachines;
 
-    /**
-     * Creates new form ConfigurarVMs
-     */
-    public ConfigurarVMs(java.awt.Frame parent, boolean modal, Object[] users, Object[] vmms, HashSet<VirtualMachine> vmList) {
+    ConfigurarVMs(final Frame parent, final boolean modal,
+                  final Object[] users, final Object[] vmms,
+                  final HashSet<VirtualMachine> vmList) {
         super(parent, modal);
-        
-        this.usuarios = new Vector<String>();
-        for (Object object : users)
-            usuarios.add((String) object);
-        this.VMMs = new Vector<String>();
-        for (Object object : vmms)
-            VMMs.add((String) object);
-        this.tabelaLinha = new Vector<Vector>(); //vetor de vetores com os valores dos atributos das máquinas virtuais
-        //a tabela coluna possui os nomes dos atributos exibidos nas colunas
-        this.tabelaColuna.add("VM Label");
-        this.tabelaColuna.add("User");
-        this.tabelaColuna.add("VMM");
-        this.tabelaColuna.add("Proc alloc");
-        this.tabelaColuna.add("Mem alloc");
-        this.tabelaColuna.add("Disk alloc");
-        this.tabelaColuna.add("OS");
-        this.tabelaIndex = 0;
-        if(vmList == null){
-            this.maqVirtuais = new HashSet<VirtualMachine>();
-        } else {
-            this.maqVirtuais = vmList;
-            for(VirtualMachine aux : maqVirtuais){
-                tabelaIndex++;
-                Vector linha = new Vector();
-                linha.add(aux.getNome());
-                linha.add(aux.getProprietario());
-                linha.add(aux.getVMM());
-                linha.add(aux.getPoderComputacional());
-                linha.add(aux.getMemoriaAlocada());
-                linha.add(aux.getDiscoAlocado());
-                linha.add(aux.getOS());
-                tabelaLinha.add(linha);
-            }
-        }
-        initComponents();
-       
+        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        this.initComponents(users, vmms, vmList);
+        this.makeLayoutAndPack();
     }
 
-    public Vector<String> getUsuarios() {
-        return usuarios;
+    private void initComponents(
+            final Object[] users, final Object[] vmms,
+            final HashSet<VirtualMachine> vmList) {
+
+        this.users = ConfigurarVMs.stringVectorFromObjectArray(users);
+
+        this.fillTableAndVms(vmList);
+
+        this.usersComboBox = ConfigurarVMs.configuredComboBox(
+                new DefaultComboBoxModel<>(this.users),
+                "Select the virtual machine owner",
+                this::jUserComboBoxActionPerformed);
+
+        this.vmmsComboBox = ConfigurarVMs.configuredComboBox(
+                new DefaultComboBoxModel<>(ConfigurarVMs.stringVectorFromObjectArray(vmms)),
+                "Select the VMM that coorditates the virtual machine",
+                this::jVMMComboBoxActionPerformed);
+
+        this.vmTable = new JTable(
+                new DefaultTableModel(this.tableRows, this.tableColumns));
+        this.tableScrollPane = new JScrollPane(this.vmTable);
     }
 
-    public void setUsuarios(Vector<String> usuarios) {
-        this.usuarios = usuarios;
-    }
+    private void makeLayoutAndPack() {
 
-    public HashSet<String> atualizaUsuarios(){
-        HashSet<String> users = new HashSet<String>();
-        for(String aux : usuarios){
-            users.add(aux);
-        }
-        return users;
-    }
-    public HashSet<VirtualMachine> getMaqVirtuais() {
-        return maqVirtuais;
-    }
+        final var ok = ButtonBuilder.aButton("OK!",
+                        this::jButtonOKVmActionPerformed)
+                .withToolTip("Apply configurations")
+                .build();
+        final var addUser = ButtonBuilder.aButton("Add User"
+                        , this::jButtonAddUserActionPerformed)
+                .withToolTip("Add a new user")
+                .build();
+        final var removeVm = ButtonBuilder.aButton("Remove " +
+                                                   "VM",
+                        this::jButtonRemoveVMActionPerformed)
+                .withToolTip("Remove the virtual machine selected in the " +
+                             "table below")
+                .build();
+        final var addVm = ButtonBuilder.aButton("Add VM",
+                        this::jButtonAddVMActionPerformed)
+                .withToolTip("Add the configured virtual machine")
+                .build();
 
-    public void setMaqVirtuais(HashSet<VirtualMachine> maqVirtuais) {
-        this.maqVirtuais = maqVirtuais;
-    }
-    
-    
+        final var vmm = new JLabel("VMM:");
+        final var user = new JLabel("User:");
+        final var vConfig = new JLabel("Virtual machines configuration:");
+        final var vCores = new JLabel("Number of virtual cores:");
+        final var vMemory = new JLabel("Memory Allocated (MB):");
+        final var vDisk = new JLabel("Disk Allocated (GB):");
+        final var vOS = new JLabel("Operational System:");
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        VMconfigPanel = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jUserComboBox = new javax.swing.JComboBox();
-        jVMMComboBox = new javax.swing.JComboBox();
-        jLabeluser = new javax.swing.JLabel();
-        jLabelVMM = new javax.swing.JLabel();
-        jSpinnerProc = new javax.swing.JSpinner();
-        jLabel2 = new javax.swing.JLabel();
-        jSpinnerMem = new javax.swing.JSpinner();
-        jSpinnerDisc = new javax.swing.JSpinner();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jSOComboBox = new javax.swing.JComboBox();
-        jButtonAddVM = new javax.swing.JButton();
-        jButtonRemoveVM = new javax.swing.JButton();
-        jScrollPaneTabela = new javax.swing.JScrollPane();
-        jTableVMs = new javax.swing.JTable();
-        jButtonAddUser = new javax.swing.JButton();
-        jButtonOKVm = new javax.swing.JButton();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-
-        jLabel1.setText("Virtual machines configuration:");
-
-        jUserComboBox.setModel(new DefaultComboBoxModel(usuarios)
-        );
-        jUserComboBox.setToolTipText("Select the virtual machine owner");
-        jUserComboBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jUserComboBoxActionPerformed(evt);
-            }
-        });
-
-        jVMMComboBox.setModel(new DefaultComboBoxModel(VMMs)
-        );
-        jVMMComboBox.setToolTipText("Select the VMM that coorditates the virtual machine");
-        jVMMComboBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jVMMComboBoxActionPerformed(evt);
-            }
-        });
-
-        jLabeluser.setText("User:");
-
-        jLabelVMM.setText("VMM:");
-
-        jSpinnerProc.setToolTipText("Insert the number of virtual cores that VM allocates in the resource's physical processor");
-
-        jLabel2.setText("Number of virtual cores:");
-
-        jSpinnerMem.setToolTipText("Insert the amount of  memory that VM allocates in the  resource's primary storage");
-
-        jSpinnerDisc.setToolTipText("Insert the amount of disk that VM allocates in resource's hard disk");
-
-        jLabel3.setText("Memory Allocated (MB):");
-
-        jLabel4.setText("Disk Allocated (GB):");
-
-        jLabel5.setText("Operational System:");
-
-        jSOComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Linux", "Macintosh", "Windows" }));
-        jSOComboBox.setToolTipText("Select the operational system hosted in the virtual machine");
-        jSOComboBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jSOComboBoxActionPerformed(evt);
-            }
-        });
-
-        jButtonAddVM.setText("Add VM");
-        jButtonAddVM.setToolTipText("Add the configured virtual machine");
-        jButtonAddVM.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAddVMActionPerformed(evt);
-            }
-        });
-
-        jButtonRemoveVM.setText("Remove VM");
-        jButtonRemoveVM.setToolTipText("Remove the virtual machine selected in the table below");
-        jButtonRemoveVM.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonRemoveVMActionPerformed(evt);
-            }
-        });
-
-        jTableVMs.setModel(new DefaultTableModel(this.tabelaLinha,this.tabelaColuna));
-        jScrollPaneTabela.setViewportView(jTableVMs);
-
-        jButtonAddUser.setText("Add User");
-        jButtonAddUser.setToolTipText("Add a new user");
-        jButtonAddUser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAddUserActionPerformed(evt);
-            }
-        });
-
-        jButtonOKVm.setText("OK!");
-        jButtonOKVm.setToolTipText("Apply configurations");
-        jButtonOKVm.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonOKVmActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout VMconfigPanelLayout = new javax.swing.GroupLayout(VMconfigPanel);
-        VMconfigPanel.setLayout(VMconfigPanelLayout);
-        VMconfigPanelLayout.setHorizontalGroup(
-            VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(VMconfigPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(VMconfigPanelLayout.createSequentialGroup()
-                        .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addGroup(VMconfigPanelLayout.createSequentialGroup()
-                                .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(VMconfigPanelLayout.createSequentialGroup()
-                                        .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jUserComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(jLabeluser))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabelVMM)
-                                            .addComponent(jVMMComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                    .addComponent(jButtonAddUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(36, 36, 36)
-                                .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel4)
-                                    .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jSpinnerProc)
-                                        .addComponent(jSpinnerDisc)))))
-                        .addGap(18, 18, 18)
-                        .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSpinnerMem, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jSOComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3)
-                            .addGroup(VMconfigPanelLayout.createSequentialGroup()
-                                .addGap(10, 10, 10)
-                                .addComponent(jLabel5))))
-                    .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jScrollPaneTabela, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(VMconfigPanelLayout.createSequentialGroup()
-                            .addComponent(jButtonAddVM, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jButtonRemoveVM, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jButtonOKVm, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        VMconfigPanelLayout.setVerticalGroup(
-            VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(VMconfigPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addGap(18, 18, 18)
-                .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabeluser)
-                    .addComponent(jLabelVMM))
-                .addGap(7, 7, 7)
-                .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jSpinnerProc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSpinnerMem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jUserComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jVMMComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(7, 7, 7)
-                .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(jLabel5))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jSpinnerDisc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSOComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButtonAddUser))
-                .addGap(18, 18, 18)
-                .addGroup(VMconfigPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonAddVM)
-                    .addComponent(jButtonRemoveVM))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPaneTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonOKVm)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        final JPanel vmConfigPanel = new JPanel();
+        final GroupLayout groupLayout = new GroupLayout(vmConfigPanel);
+        vmConfigPanel.setLayout(groupLayout);
+        groupLayout.setHorizontalGroup(
+                groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(groupLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(groupLayout.createSequentialGroup()
+                                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(vConfig)
+                                                        .addGroup(groupLayout.createSequentialGroup()
+                                                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                                                        .addGroup(groupLayout.createSequentialGroup()
+                                                                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                                        .addComponent(this.usersComboBox, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE)
+                                                                                        .addComponent(user))
+                                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                                        .addComponent(vmm)
+                                                                                        .addComponent(this.vmmsComboBox, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE)))
+                                                                        .addComponent(addUser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                                                .addGap(36,
+                                                                        36, 36)
+                                                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(vDisk)
+                                                                        .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                                                                .addComponent(vCores, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                                                .addComponent(this.processors)
+                                                                                .addComponent(this.disk)))))
+                                                .addGap(18, 18, 18)
+                                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(this.memory, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(this.osComboBox, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(vMemory)
+                                                        .addGroup(groupLayout.createSequentialGroup()
+                                                                .addGap(10,
+                                                                        10, 10)
+                                                                .addComponent(vOS))))
+                                        .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                                .addComponent(this.tableScrollPane, GroupLayout.Alignment.LEADING)
+                                                .addGroup(groupLayout.createSequentialGroup()
+                                                        .addComponent(addVm,
+                                                                GroupLayout.PREFERRED_SIZE, 240, GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addComponent(removeVm, GroupLayout.PREFERRED_SIZE, 240, GroupLayout.PREFERRED_SIZE)))
+                                        .addComponent(ok,
+                                                GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 82, GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        groupLayout.setVerticalGroup(
+                groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(groupLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(vConfig)
+                                .addGap(18, 18, 18)
+                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(vCores)
+                                        .addComponent(vMemory)
+                                        .addComponent(user)
+                                        .addComponent(vmm))
+                                .addGap(7, 7, 7)
+                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.processors,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.memory,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.usersComboBox,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.vmmsComboBox,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE))
+                                .addGap(7, 7, 7)
+                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(vDisk)
+                                        .addComponent(vOS))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.disk,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.osComboBox,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(addUser))
+                                .addGap(18, 18, 18)
+                                .addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(addVm)
+                                        .addComponent(removeVm))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.tableScrollPane,
+                                        GroupLayout.PREFERRED_SIZE, 119,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(ok)
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
+        );
+
+        final GroupLayout layout =
+                new GroupLayout(this.getContentPane());
+        this.getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(VMconfigPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(vmConfigPanel,
+                                GroupLayout.DEFAULT_SIZE,
+                                GroupLayout.DEFAULT_SIZE,
+                                Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(VMconfigPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(vmConfigPanel,
+                                GroupLayout.PREFERRED_SIZE,
+                                GroupLayout.DEFAULT_SIZE,
+                                GroupLayout.PREFERRED_SIZE)
         );
 
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-    public Vector<Vector> getTabelaLinha() {
-        return tabelaLinha;
+        this.pack();
     }
 
-    public void setTabelaLinha(Vector<Vector> tabelaLinha) {
-        this.tabelaLinha = tabelaLinha;
+    private static Vector<String> stringVectorFromObjectArray(final Object[] arr) {
+        return Arrays.stream(arr)
+                .map(o -> (String) o)
+                .collect(Collectors.toCollection(Vector::new));
     }
 
-    private void jUserComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jUserComboBoxActionPerformed
-        
-    // TODO add your handling code here:
-    }//GEN-LAST:event_jUserComboBoxActionPerformed
+    private void fillTableAndVms(final HashSet<VirtualMachine> vmList) {
+        this.tableRows = new Vector<>(0);
+        this.tableIndex = 0;
 
-    private void jButtonAddUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddUserActionPerformed
-        // TODO add your handling code here:
-        String newUser = JOptionPane.showInputDialog(this,"Enter the name","Add user", JOptionPane.QUESTION_MESSAGE);
-        if (!usuarios.contains(newUser) && !newUser.equals("")) {
-            usuarios.add(newUser);
+        if (vmList == null) {
+            this.virtualMachines = new HashSet<>(0);
+            return; // TODO: Was this refactor correct?
         }
-    }//GEN-LAST:event_jButtonAddUserActionPerformed
 
-    private void jSOComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSOComboBoxActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jSOComboBoxActionPerformed
+        this.virtualMachines = vmList;
 
-    private void jButtonAddVMActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddVMActionPerformed
-        // TODO add your handling code here:
-        Vector linha = new Vector(7);
-        linha.add("VM"+tabelaIndex);
-        tabelaIndex++;
-        linha.add(jUserComboBox.getSelectedItem());
-        linha.add(jVMMComboBox.getSelectedItem());
-        linha.add(jSpinnerProc.getValue());
-        linha.add(jSpinnerMem.getValue());
-        linha.add(jSpinnerDisc.getValue());
-        linha.add(jSOComboBox.getSelectedItem());
-        tabelaLinha.add(linha);
-        jScrollPaneTabela.setViewportView(jTableVMs);
-    }//GEN-LAST:event_jButtonAddVMActionPerformed
-
-    private void jVMMComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jVMMComboBoxActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jVMMComboBoxActionPerformed
-
-    private void jButtonRemoveVMActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveVMActionPerformed
-        int linha = jTableVMs.getSelectedRow();
-        if (linha >= 0 && linha < tabelaLinha.size()) {
-            tabelaLinha.remove(linha);
+        for (final var aux : this.virtualMachines) {
+            this.tableIndex++;
+            this.tableRows.add(ConfigurarVMs.vmToVector(aux));
         }
-        jScrollPaneTabela.setViewportView(jTableVMs);
-// TODO add your handling code here:
-    }//GEN-LAST:event_jButtonRemoveVMActionPerformed
+    }
 
-    private void jButtonOKVmActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKVmActionPerformed
-        HashSet<VirtualMachine> aux = new HashSet<VirtualMachine>(); 
-        for(Vector linha : tabelaLinha){
-            
-            VirtualMachine VM = new VirtualMachine(linha.get(0).toString(), linha.get(1).toString(), linha.get(2).toString(), Integer.parseInt(linha.get(3).toString()), Double.parseDouble(linha.get(4).toString()), Double.parseDouble(linha.get(5).toString()), linha.get(6).toString());
-            aux.add(VM);
-        }
-        setMaqVirtuais(aux); //adicionando as máquinas virtuais já configuradas..
-        setUsuarios(usuarios);
+    private static JComboBox<String> configuredComboBox(
+            final ComboBoxModel<String> model,
+            final String toolTip,
+            final ActionListener action) {
+        final var box = new JComboBox<String>();
+        box.setModel(model);
+        box.setToolTipText(toolTip);
+        box.addActionListener(action);
+        return box;
+    }
+
+    private void jUserComboBoxActionPerformed(final ActionEvent evt) {
+    }
+
+    private void jVMMComboBoxActionPerformed(final ActionEvent evt) {
+    }
+
+    private void jButtonOKVmActionPerformed(final ActionEvent evt) {
+        this.virtualMachines = this.tableRows.stream()
+                .map(ConfigurarVMs::vmFromTableVector)
+                .collect(Collectors.toCollection(HashSet::new));
         this.setVisible(false);
-    }//GEN-LAST:event_jButtonOKVmActionPerformed
+    }
 
-    /**
-     * @param args the command line arguments
-     */
-   
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel VMconfigPanel;
-    private javax.swing.JButton jButtonAddUser;
-    private javax.swing.JButton jButtonAddVM;
-    private javax.swing.JButton jButtonOKVm;
-    private javax.swing.JButton jButtonRemoveVM;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabelVMM;
-    private javax.swing.JLabel jLabeluser;
-    private javax.swing.JComboBox jSOComboBox;
-    private javax.swing.JScrollPane jScrollPaneTabela;
-    private javax.swing.JSpinner jSpinnerDisc;
-    private javax.swing.JSpinner jSpinnerMem;
-    private javax.swing.JSpinner jSpinnerProc;
-    private javax.swing.JTable jTableVMs;
-    private javax.swing.JComboBox jUserComboBox;
-    private javax.swing.JComboBox jVMMComboBox;
-    // End of variables declaration//GEN-END:variables
-    private Vector<String> usuarios;
-    private Vector<String> VMMs;
-    private Vector<Vector> tabelaLinha;
-    private Vector<String> tabelaColuna = new Vector<String>(7);
-    private int tabelaIndex = 0;
-    private HashSet<VirtualMachine> maqVirtuais;
+    private void jButtonAddUserActionPerformed(final ActionEvent evt) {
+        final var newUser = JOptionPane.showInputDialog(
+                this,
+                "Enter the name",
+                "Add user",
+                JOptionPane.QUESTION_MESSAGE
+        );
 
+        if (this.users.contains(newUser) || newUser.isEmpty()) {
+            return;
+        }
+
+        this.users.add(newUser);
+    }
+
+    private void jButtonRemoveVMActionPerformed(final ActionEvent evt) {
+        final int line = this.vmTable.getSelectedRow();
+        if (line >= 0 && line < this.tableRows.size()) {
+            this.tableRows.remove(line);
+        }
+        this.tableScrollPane.setViewportView(this.vmTable);
+    }
+
+    private void jButtonAddVMActionPerformed(final ActionEvent evt) {
+        this.tableRows.add(this.newTableRow());
+        this.tableScrollPane.setViewportView(this.vmTable);
+    }
+
+    private static Vector<Object> vmToVector(final VirtualMachine aux) {
+        final Vector<Object> line = new Vector<>(7);
+        line.add(aux.getNome());
+        line.add(aux.getProprietario());
+        line.add(aux.getVMM());
+        line.add(aux.getPoderComputacional());
+        line.add(aux.getMemoriaAlocada());
+        line.add(aux.getDiscoAlocado());
+        line.add(aux.getOS());
+        return line;
+    }
+
+    private static VirtualMachine vmFromTableVector(final List<Object> line) {
+        return new VirtualMachine(
+                line.get(0).toString(),
+                line.get(1).toString(),
+                line.get(2).toString(),
+                Integer.parseInt(line.get(3).toString()),
+                Double.parseDouble(line.get(4).toString()),
+                Double.parseDouble(line.get(5).toString()),
+                line.get(6).toString()
+        );
+    }
+
+    private Vector<Object> newTableRow() {
+        final var row =
+                new Vector<>(List.of(new Object[] {
+                        "VM%d".formatted(this.tableIndex),
+                        this.usersComboBox.getSelectedItem(),
+                        this.vmmsComboBox.getSelectedItem(),
+                        this.processors.getValue(),
+                        this.memory.getValue(),
+                        this.disk.getValue(),
+                        this.osComboBox.getSelectedItem()
+                }));
+        this.tableIndex++;
+        return row;
+    }
+
+    private static JSpinner spinnerWithTooltip(final String text) {
+        final var spinner = new JSpinner();
+        spinner.setToolTipText(text);
+        return spinner;
+    }
+
+    private void jSOComboBoxActionPerformed(final ActionEvent evt) {
+    }
+
+    HashSet<String> atualizaUsuarios() {
+        return new HashSet<>(this.users);
+    }
+
+    HashSet<VirtualMachine> getMaqVirtuais() {
+        return this.virtualMachines;
+    }
 }

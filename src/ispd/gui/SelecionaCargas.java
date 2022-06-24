@@ -1,51 +1,42 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * SelecionaCargas.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * Created on 31/05/2011
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui;
 
 import ispd.arquivo.xml.TraceXML;
 import ispd.gui.auxiliar.FiltroDeArquivos;
+import ispd.motor.carga.CargaForNode;
 import ispd.motor.carga.CargaList;
 import ispd.motor.carga.CargaRandom;
-import ispd.motor.carga.CargaForNode;
 import ispd.motor.carga.CargaTrace;
 import ispd.motor.carga.GerarCarga;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.LayoutStyle;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.filechooser.FileView;
+import javax.swing.table.DefaultTableModel;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -54,1165 +45,1178 @@ import java.util.ResourceBundle;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
 
-/**
- *
- * @author denison
- */
-public class SelecionaCargas extends javax.swing.JDialog {
+import static ispd.gui.ButtonBuilder.aButton;
+import static ispd.gui.ButtonBuilder.basicButton;
 
-    private FiltroDeArquivos filtro2;
-    private File file;
-    private final Vector<Vector> dagLinha;
-    private final Vector dagColuna;
+public class SelecionaCargas extends JDialog {
+    private static final ActionListener DO_NOTHING = evt -> {
+    };
+    private static final Dimension PREFERRED_BUTTON_SIZE =
+            new Dimension(80, 30);
+    private static final Dimension PREFERRED_PANEL_SIZE =
+            new Dimension(500, 300);
+    private static final Font TAHOMA_FONT =
+            new Font("Tahoma", Font.PLAIN, 11);
+    private final FiltroDeArquivos traceFileFilter;
+    private final FiltroDeArquivos workloadFileFilter;
+    private final Vector<String> users;
+    private final Vector<String> schedulers;
+    private final Vector<Vector> tableRow = new Vector<>(0);
+    private final Vector<String> tableColumn = new Vector<>(7);
+    private final ResourceBundle translator;
+    private File file = null;
+    private JComboBox comboBoxSchedulers;
+    private JComboBox comboBoxUsers;
+    private JFileChooser jFileExternalTrace;
+    private JFileChooser jOpenTrace;
+    private JPanel jPanelConvertTrace;
+    private JPanel jPanelForNode;
+    private JPanel jPanelRandom;
+    private JPanel jPanelPickTrace;
+    private JPanel jPanelTrace;
+    private JRadioButton jRadioButtonConvTrace;
+    private JRadioButton jRadioButtonForNode;
+    private JRadioButton jRadioButtonRandom;
+    private JRadioButton jRadioButtonTraces;
+    private JRadioButton jRadioButtonWmsx;
+    private JScrollPane jScrollPaneSelecionado;
+    private JScrollPane jScrollPaneTabela;
+    private JSpinner jSpinnerAverageComputacao;
+    private JSpinner jSpinnerAverageComunicacao;
+    private JSpinner jSpinnerMaxCompNo;
+    private JSpinner jSpinnerMaxComputacao;
+    private JSpinner jSpinnerMaxComuNo;
+    private JSpinner jSpinnerMaxComunicacao;
+    private JSpinner jSpinnerMinCompNo;
+    private JSpinner jSpinnerMinComputacao;
+    private JSpinner jSpinnerMinComuNo;
+    private JSpinner jSpinnerMinComunicacao;
+    private JSpinner jSpinnerNumTarefas;
+    private JSpinner jSpinnerNumTarefasNo;
+    private JSpinner jSpinnerProbabilityComputacao;
+    private JSpinner jSpinnerProbabilityComunicacao;
+    private JSpinner jSpinnerTimeOfArrival;
+    private JTable jTable1;
+    private JTextField jTextFieldCaminhoTrace;
+    private JTextField jTextFieldCaminhoWMS;
+    private JTextArea jTextNotifTrace;
+    private JTextArea jTextNotification;
+    private GerarCarga loadGenerator;
+    private int indexTable = 0;
+    private int traceTaskNumber = 0;
+    private String traceType = "";
 
-    /**
-     * Creates new form SelecionaCargas
-     */
-    public SelecionaCargas(java.awt.Frame parent, boolean modal, Object[] users, Object[] masters, GerarCarga gerarcarga, ResourceBundle palavras) {
+    SelecionaCargas(final Frame parent, final boolean modal,
+                    final Object[] users, final Object[] schedulers,
+                    final GerarCarga loadGenerator,
+                    final ResourceBundle translator) {
         super(parent, modal);
-        this.palavras = palavras;
-        this.usuarios = new Vector<String>();
-        for (Object object : users) {
-            usuarios.add((String) object);
-        }
-        this.escalonadores = new Vector<String>();
-        for (Object object : masters) {
-            escalonadores.add((String) object);
-        }
-        this.carga = gerarcarga;
-        this.tabelaLinha = new Vector<Vector>();
-        this.tabelaColuna.add(palavras.getString("Application"));
-        this.tabelaColuna.add(palavras.getString("User"));
-        this.tabelaColuna.add(palavras.getString("Scheduler"));
-        this.tabelaColuna.add(palavras.getString("Tasks"));
-        this.tabelaColuna.add(palavras.getString("Maximum computing"));
-        this.tabelaColuna.add(palavras.getString("Minimum computing"));
-        this.tabelaColuna.add(palavras.getString("Maximum communication"));
-        this.tabelaColuna.add(palavras.getString("Minimum communication"));
-        this.dagLinha = new Vector<Vector>();
-        this.dagColuna = new Vector(5);
-        this.dagColuna.add(palavras.getString("Application"));
-        this.dagColuna.add(palavras.getString("User"));
-        this.dagColuna.add(palavras.getString("Scheduler"));
-        this.dagColuna.add(palavras.getString("Tasks"));
-        this.dagColuna.add("DAG");
-        filtro = new FiltroDeArquivos("Workload Model of Sumulation", "wmsx", true);
-        String[] extenc = {"swf", "gwf"};
-        filtro2 = new FiltroDeArquivos("External Trace Files", extenc, true);
-        initComponents();
-        this.setValores(gerarcarga);
 
+        this.translator = translator;
+
+        this.users = new Vector<>(0);
+        for (final var user : users) {
+            this.users.add((String) user);
+        }
+
+        this.schedulers = new Vector<>(0);
+        for (final var scheduler : schedulers) {
+            this.schedulers.add((String) scheduler);
+        }
+
+        this.loadGenerator = loadGenerator;
+
+        this.tableColumn.add(this.translate("Application"));
+        this.tableColumn.add(this.translate("User"));
+        this.tableColumn.add(this.translate("Scheduler"));
+        this.tableColumn.add(this.translate("Tasks"));
+        this.tableColumn.add(this.translate("Maximum computing"));
+        this.tableColumn.add(this.translate("Minimum computing"));
+        this.tableColumn.add(this.translate("Maximum communication"));
+        this.tableColumn.add(this.translate("Minimum communication"));
+
+        this.workloadFileFilter = new FiltroDeArquivos(
+                "Workload Model of Sumulation",
+                "wmsx",
+                true
+        );
+        this.traceFileFilter = new FiltroDeArquivos(
+                "External Trace Files",
+                new String[] { "swf", "gwf" },
+                true
+        );
+
+        this.initComponents();
+        this.setValores(loadGenerator);
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private String translate(final String text) {
+        return this.translator.getString(text);
+    }
+
     private void initComponents() {
+        this.jPanelRandom = new JPanel();
+        this.jSpinnerNumTarefas = new JSpinner();
+        this.jSpinnerMinComputacao = new JSpinner();
+        this.jSpinnerMinComunicacao = new JSpinner();
+        this.jSpinnerTimeOfArrival = new JSpinner();
+        this.jSpinnerAverageComputacao = new JSpinner();
+        this.jSpinnerAverageComunicacao = new JSpinner();
+        this.jSpinnerMaxComputacao = new JSpinner();
+        this.jSpinnerMaxComunicacao = new JSpinner();
+        this.jSpinnerProbabilityComputacao = new JSpinner();
+        this.jSpinnerProbabilityComunicacao = new JSpinner();
+        this.jPanelForNode = new JPanel();
+        this.comboBoxUsers = new JComboBox();
+        this.comboBoxSchedulers = new JComboBox();
+        this.jSpinnerNumTarefasNo = new JSpinner();
+        this.jSpinnerMaxCompNo = new JSpinner();
+        this.jSpinnerMinCompNo = new JSpinner();
+        this.jSpinnerMinComuNo = new JSpinner();
+        this.jSpinnerMaxComuNo = new JSpinner();
+        this.jScrollPaneTabela = new JScrollPane();
+        this.jTable1 = new JTable();
+        this.jPanelTrace = new JPanel();
+        this.jRadioButtonWmsx = new JRadioButton();
+        this.jRadioButtonConvTrace = new JRadioButton();
+        this.jPanelConvertTrace = new JPanel();
+        this.jTextFieldCaminhoTrace = new JTextField();
+        final JScrollPane jScrollPane2 =
+                new JScrollPane();
+        this.jTextNotifTrace = new JTextArea();
 
-        jPanelRandom = new javax.swing.JPanel();
-        jLabelNumberOfTasks = new javax.swing.JLabel();
-        jSpinnerNumTarefas = new javax.swing.JSpinner();
-        jSpinnerMinComputacao = new javax.swing.JSpinner();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jSpinnerMinComunicacao = new javax.swing.JSpinner();
-        jSpinnerTimeOfArrival = new javax.swing.JSpinner();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jSpinnerAverageComputacao = new javax.swing.JSpinner();
-        jSpinnerAverageComunicacao = new javax.swing.JSpinner();
-        jLabel6 = new javax.swing.JLabel();
-        jSpinnerMaxComputacao = new javax.swing.JSpinner();
-        jSpinnerMaxComunicacao = new javax.swing.JSpinner();
-        jLabel7 = new javax.swing.JLabel();
-        jSpinnerProbabilityComputacao = new javax.swing.JSpinner();
-        jSpinnerProbabilityComunicacao = new javax.swing.JSpinner();
-        jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
-        jPanelForNode = new javax.swing.JPanel();
-        jLabel8 = new javax.swing.JLabel();
-        jComboBoxUsers = new javax.swing.JComboBox();
-        jLabel12 = new javax.swing.JLabel();
-        jComboBoxEscalonadores = new javax.swing.JComboBox();
-        jLabelNumberOfTasks1 = new javax.swing.JLabel();
-        jSpinnerNumTarefasNo = new javax.swing.JSpinner();
-        jLabel13 = new javax.swing.JLabel();
-        jLabel14 = new javax.swing.JLabel();
-        jSpinnerMaxCompNo = new javax.swing.JSpinner();
-        jSpinnerMinCompNo = new javax.swing.JSpinner();
-        jSpinnerMinComuNo = new javax.swing.JSpinner();
-        jSpinnerMaxComuNo = new javax.swing.JSpinner();
-        jButtonAddTabela = new javax.swing.JButton();
-        jScrollPaneTabela = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jLabel15 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
-        jButtonAddTabela1 = new javax.swing.JButton();
-        jPanelTrace = new javax.swing.JPanel();
-        jRadioButtonwmsx = new javax.swing.JRadioButton();
-        jRadioButtonConvTrace = new javax.swing.JRadioButton();
-        jLabel19 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
-        jPanelConvertTrace = new javax.swing.JPanel();
-        jLabel18 = new javax.swing.JLabel();
-        jButtonAbreExterno = new javax.swing.JButton();
-        jLabel17 = new javax.swing.JLabel();
-        jButtonConvertExterno = new javax.swing.JButton();
-        jTextFieldCaminhoTrace = new javax.swing.JTextField();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jTextNotifTrace = new javax.swing.JTextArea();
-        jButtonPrev = new javax.swing.JButton();
-        jOpenTrace = new javax.swing.JFileChooser();
-        jPanelSelecionaTrace = new javax.swing.JPanel();
-        jLabel20 = new javax.swing.JLabel();
-        jLabel21 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextNotification = new javax.swing.JTextArea();
-        jButton3 = new javax.swing.JButton();
-        jButtonOpenWMSX = new javax.swing.JButton();
-        jTextFieldCaminhoWMS = new javax.swing.JTextField();
-        jFileExternalTrace = new javax.swing.JFileChooser();
-        jPanelModo = new javax.swing.JPanel();
-        jRadioButtonTraces = new javax.swing.JRadioButton();
-        jRadioButtonForNode = new javax.swing.JRadioButton();
-        jRadioButtonRandom = new javax.swing.JRadioButton();
-        jButtonCancelar = new javax.swing.JButton();
-        jButtonAddUser = new javax.swing.JButton();
-        jScrollPaneSelecionado = new javax.swing.JScrollPane();
-        jPanel1 = new javax.swing.JPanel();
-        jButtonOK1 = new javax.swing.JButton();
+        this.jOpenTrace = new JFileChooser();
+        this.jPanelPickTrace = new JPanel();
+        final JScrollPane jScrollPane1 =
+                new JScrollPane();
+        this.jTextNotification = new JTextArea();
 
-        jPanelRandom.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanelRandom.setMaximumSize(null);
-        jPanelRandom.setPreferredSize(new java.awt.Dimension(500, 300));
+        this.jTextFieldCaminhoWMS = new JTextField();
+        this.jFileExternalTrace = new JFileChooser();
+        final JPanel jPanelModo = new JPanel();
+        this.jRadioButtonTraces = new JRadioButton();
+        this.jRadioButtonForNode = new JRadioButton();
+        this.jRadioButtonRandom = new JRadioButton();
 
-        jLabelNumberOfTasks.setText(palavras.getString("Number of tasks")); // NOI18N
+        this.jScrollPaneSelecionado = new JScrollPane();
+        final JPanel jPanel1 = new JPanel();
 
-        jSpinnerNumTarefas.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        this.jPanelRandom.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        this.jPanelRandom.setMaximumSize(null);
+        this.jPanelRandom.setPreferredSize(SelecionaCargas.PREFERRED_PANEL_SIZE);
 
-        jSpinnerMinComputacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        final var taskCount = new JLabel(
+                this.translate("Number of tasks"));
 
-        jLabel1.setText(palavras.getString("Computational size")); // NOI18N
 
-        jLabel2.setText(palavras.getString("Communication size")); // NOI18N
+        this.jSpinnerNumTarefas.setModel(new SpinnerNumberModel(0
+                , 0,
+                null, 1));
 
-        jLabel3.setText(palavras.getString("Time of arrival")); // NOI18N
+        this.jSpinnerMinComputacao.setModel(new SpinnerNumberModel(0,
+                0, null, 1));
 
-        jSpinnerMinComunicacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        final var computationalSize = new JLabel(
+                this.translate("Computational size"));
 
-        jSpinnerTimeOfArrival.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        final var communicationSize = new JLabel(
+                this.translate("Communication size"));
 
-        jLabel4.setText(palavras.getString("Minimum")); // NOI18N
+        final var arrivalTime = new JLabel(
+                this.translate("Time of arrival"));
 
-        jLabel5.setText(palavras.getString("Average")); // NOI18N
+        this.jSpinnerMinComunicacao.setModel(new SpinnerNumberModel(0,
+                0, null, 1));
+        this.jSpinnerTimeOfArrival.setModel(new SpinnerNumberModel(0,
+                0, null, 1));
 
-        jSpinnerAverageComputacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        final var minimumLabel = new JLabel(this.translate("Minimum"));
+        final var averageLabel = new JLabel(this.translate("Average"));
 
-        jSpinnerAverageComunicacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        this.jSpinnerAverageComputacao.setModel(new SpinnerNumberModel(0, 0,
+                null, 1));
 
-        jLabel6.setText(palavras.getString("Maximum")); // NOI18N
+        this.jSpinnerAverageComunicacao.setModel(new SpinnerNumberModel(0, 0,
+                null, 1));
 
-        jSpinnerMaxComputacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        final var maximumLabel = new JLabel(this.translate("Maximum"));
 
-        jSpinnerMaxComunicacao.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        this.jSpinnerMaxComputacao.setModel(new SpinnerNumberModel(0,
+                0, null, 1));
 
-        jLabel7.setText(palavras.getString("Probability")); // NOI18N
+        this.jSpinnerMaxComunicacao.setModel(new SpinnerNumberModel(0,
+                0, null, 1));
 
-        jSpinnerProbabilityComputacao.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+        final var probability = new JLabel(this.translate("Probability"));
 
-        jSpinnerProbabilityComunicacao.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+        this.jSpinnerProbabilityComputacao.setModel(new SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
 
-        jLabel9.setText(palavras.getString("MFLOPS")); // NOI18N
+        this.jSpinnerProbabilityComunicacao.setModel(new SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
 
-        jLabel10.setText(palavras.getString("Mbits")); // NOI18N
+        final var mFlops = new JLabel(this.translate("MFLOPS"));
 
-        jLabel11.setText(palavras.getString("Seconds")); // NOI18N
+        final var mBits = new JLabel(this.translate("Mbits"));
 
-        javax.swing.GroupLayout jPanelRandomLayout = new javax.swing.GroupLayout(jPanelRandom);
-        jPanelRandom.setLayout(jPanelRandomLayout);
+        final var seconds = new JLabel(this.translate("Seconds"));
+
+        final GroupLayout jPanelRandomLayout =
+                new GroupLayout(this.jPanelRandom);
+        this.jPanelRandom.setLayout(jPanelRandomLayout);
         jPanelRandomLayout.setHorizontalGroup(
-            jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelRandomLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabelNumberOfTasks, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jSpinnerNumTarefas, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSpinnerTimeOfArrival)
-                    .addComponent(jSpinnerMinComunicacao)
-                    .addComponent(jSpinnerMinComputacao)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelRandomLayout.createSequentialGroup()
-                        .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jSpinnerAverageComunicacao)
-                            .addComponent(jSpinnerAverageComputacao)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jSpinnerMaxComunicacao)
-                            .addComponent(jSpinnerMaxComputacao)
-                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(10, 10, 10)
-                        .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jSpinnerProbabilityComunicacao)
-                            .addComponent(jSpinnerProbabilityComputacao, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel9)
-                            .addComponent(jLabel10)))
-                    .addComponent(jLabel11))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelRandomLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(taskCount,
+                                                GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(computationalSize,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addComponent(communicationSize,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addComponent(arrivalTime,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(this.jSpinnerNumTarefas,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                61, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.jSpinnerTimeOfArrival)
+                                        .addComponent(this.jSpinnerMinComunicacao)
+                                        .addComponent(this.jSpinnerMinComputacao)
+                                        .addComponent(minimumLabel,
+                                                GroupLayout.PREFERRED_SIZE, 0
+                                                , Short.MAX_VALUE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanelRandomLayout.createSequentialGroup()
+                                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(this.jSpinnerAverageComunicacao)
+                                                        .addComponent(this.jSpinnerAverageComputacao)
+                                                        .addComponent(averageLabel
+                                                                ,
+                                                                GroupLayout.PREFERRED_SIZE, 62, GroupLayout.PREFERRED_SIZE))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(this.jSpinnerMaxComunicacao)
+                                                        .addComponent(this.jSpinnerMaxComputacao)
+                                                        .addComponent(maximumLabel
+                                                                ,
+                                                                GroupLayout.PREFERRED_SIZE, 56, GroupLayout.PREFERRED_SIZE))
+                                                .addGap(10, 10, 10)
+                                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(this.jSpinnerProbabilityComunicacao)
+                                                        .addComponent(this.jSpinnerProbabilityComputacao, GroupLayout.Alignment.TRAILING)
+                                                        .addComponent(probability
+                                                                ,
+                                                                GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 59, GroupLayout.PREFERRED_SIZE))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(mFlops)
+                                                        .addComponent(mBits)))
+                                        .addComponent(seconds))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
+
         jPanelRandomLayout.setVerticalGroup(
-            jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelRandomLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanelRandomLayout.createSequentialGroup()
-                        .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabelNumberOfTasks)
-                            .addComponent(jSpinnerNumTarefas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel4)
-                        .addGap(15, 15, 15)
-                        .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel1)
-                            .addComponent(jSpinnerMinComputacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel2)
-                            .addComponent(jSpinnerMinComunicacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(jPanelRandomLayout.createSequentialGroup()
-                            .addComponent(jLabel6)
-                            .addGap(15, 15, 15)
-                            .addComponent(jSpinnerMaxComputacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jSpinnerMaxComunicacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(jPanelRandomLayout.createSequentialGroup()
-                            .addComponent(jLabel5)
-                            .addGap(15, 15, 15)
-                            .addComponent(jSpinnerAverageComputacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jSpinnerAverageComunicacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(jPanelRandomLayout.createSequentialGroup()
-                            .addComponent(jLabel7)
-                            .addGap(15, 15, 15)
-                            .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jSpinnerProbabilityComputacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel9))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jSpinnerProbabilityComunicacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel10)))))
-                .addGap(18, 18, 18)
-                .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelRandomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel3)
-                        .addComponent(jSpinnerTimeOfArrival, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel11))
-                .addContainerGap(134, Short.MAX_VALUE))
+                                .addContainerGap()
+                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                        .addGroup(jPanelRandomLayout.createSequentialGroup()
+                                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(taskCount)
+                                                        .addComponent(this.jSpinnerNumTarefas, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(minimumLabel)
+                                                .addGap(15, 15, 15)
+                                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(computationalSize)
+                                                        .addComponent(this.jSpinnerMinComputacao, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(communicationSize)
+                                                        .addComponent(this.jSpinnerMinComunicacao, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                                        .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                .addGroup(jPanelRandomLayout.createSequentialGroup()
+                                                        .addComponent(maximumLabel)
+                                                        .addGap(15, 15, 15)
+                                                        .addComponent(this.jSpinnerMaxComputacao, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addComponent(this.jSpinnerMaxComunicacao, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                                .addGroup(jPanelRandomLayout.createSequentialGroup()
+                                                        .addComponent(averageLabel)
+                                                        .addGap(15, 15, 15)
+                                                        .addComponent(this.jSpinnerAverageComputacao, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addComponent(this.jSpinnerAverageComunicacao, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                                .addGroup(jPanelRandomLayout.createSequentialGroup()
+                                                        .addComponent(probability)
+                                                        .addGap(15, 15, 15)
+                                                        .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                                .addComponent(this.jSpinnerProbabilityComputacao, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                                .addComponent(mFlops))
+                                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                                .addComponent(this.jSpinnerProbabilityComunicacao, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                                .addComponent(mBits)))))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanelRandomLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                .addComponent(arrivalTime)
+                                                .addComponent(this.jSpinnerTimeOfArrival, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(seconds))
+                                .addContainerGap(134, Short.MAX_VALUE))
         );
 
-        jPanelForNode.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanelForNode.setMaximumSize(null);
-        jPanelForNode.setPreferredSize(new java.awt.Dimension(500, 300));
+        this.jPanelForNode.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        this.jPanelForNode.setMaximumSize(null);
+        this.jPanelForNode.setPreferredSize(SelecionaCargas.PREFERRED_PANEL_SIZE);
 
-        jLabel8.setText(palavras.getString("User")); // NOI18N
+        final var userLabel = new JLabel(this.translate("User"));
 
-        jComboBoxUsers.setModel(new DefaultComboBoxModel(usuarios));
-        jComboBoxUsers.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBoxUsersActionPerformed(evt);
-            }
-        });
+        this.comboBoxUsers.setModel(new DefaultComboBoxModel(this.users));
+        this.comboBoxUsers.addActionListener(SelecionaCargas.DO_NOTHING);
 
-        jLabel12.setText(palavras.getString("Scheduler")); // NOI18N
+        final var scheduler = new JLabel(this.translate("Scheduler"));
 
-        jComboBoxEscalonadores.setModel(new DefaultComboBoxModel(escalonadores));
+        this.comboBoxSchedulers.setModel(new DefaultComboBoxModel(this.schedulers));
 
-        jLabelNumberOfTasks1.setText(palavras.getString("Number of tasks")); // NOI18N
+        final var numberOfTasks = new JLabel(this.translate("Number of" +
+                                                            " tasks"));
 
-        jSpinnerNumTarefasNo.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
-        jLabel13.setText(palavras.getString("Computational")); // NOI18N
+        this.jSpinnerNumTarefasNo.setModel(new SpinnerNumberModel(0, 0
+                , null, 1));
 
-        jLabel14.setText(palavras.getString("Communication")); // NOI18N
+        final var computational = new JLabel(this.translate("Computational"));
 
-        jSpinnerMaxCompNo.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+        final var communication = new JLabel(this.translate("Communication"));
 
-        jSpinnerMinCompNo.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+        this.jSpinnerMaxCompNo.setModel(new SpinnerNumberModel(0.0f,
+                0.0f, null, 1.0f));
 
-        jSpinnerMinComuNo.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+        this.jSpinnerMinCompNo.setModel(new SpinnerNumberModel(0.0f,
+                0.0f, null, 1.0f));
 
-        jSpinnerMaxComuNo.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+        this.jSpinnerMinComuNo.setModel(new SpinnerNumberModel(0.0f,
+                0.0f, null, 1.0f));
 
-        jButtonAddTabela.setText(palavras.getString("Add")); // NOI18N
-        jButtonAddTabela.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAddTabelaActionPerformed(evt);
-            }
-        });
+        this.jSpinnerMaxComuNo.setModel(new SpinnerNumberModel(0.0f,
+                0.0f, null, 1.0f));
 
-        jTable1.setModel(new DefaultTableModel(this.tabelaLinha,this.tabelaColuna));
-        jScrollPaneTabela.setViewportView(jTable1);
+        final var tableAdd =
+                basicButton(this.translate("Add"), this::onTableAddClick);
 
-        jLabel15.setText(palavras.getString("Maximum")); // NOI18N
+        this.jTable1.setModel(new DefaultTableModel(this.tableRow,
+                this.tableColumn));
+        this.jScrollPaneTabela.setViewportView(this.jTable1);
 
-        jLabel16.setText(palavras.getString("Minimum")); // NOI18N
+        final var maximum = new JLabel(this.translate("Maximum"));
 
-        jButtonAddTabela1.setText(palavras.getString("Remove")); // NOI18N
-        jButtonAddTabela1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAddTabela1ActionPerformed(evt);
-            }
-        });
+        final var minimum = new JLabel(this.translate("Minimum"));
 
-        javax.swing.GroupLayout jPanelForNodeLayout = new javax.swing.GroupLayout(jPanelForNode);
-        jPanelForNode.setLayout(jPanelForNodeLayout);
+        final var remove =
+                basicButton(this.translate("Remove"), this::onTableAddClick1);
+
+        final var jPanelForNodeLayout = new GroupLayout(this.jPanelForNode);
+        this.jPanelForNode.setLayout(jPanelForNodeLayout);
+
         jPanelForNodeLayout.setHorizontalGroup(
-            jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jScrollPaneTabela, javax.swing.GroupLayout.Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelForNodeLayout.createSequentialGroup()
-                        .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                                .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jComboBoxUsers, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel8))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jComboBoxEscalonadores, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel12)))
-                            .addComponent(jButtonAddTabela, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabelNumberOfTasks1))
-                            .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addComponent(jSpinnerNumTarefasNo))
-                            .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonAddTabela1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                                .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel15)
-                                    .addComponent(jLabel16))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jSpinnerMaxCompNo, javax.swing.GroupLayout.DEFAULT_SIZE, 87, Short.MAX_VALUE)
-                                    .addComponent(jSpinnerMinCompNo)))
-                            .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSpinnerMaxComuNo)
-                            .addComponent(jLabel14, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jSpinnerMinComuNo))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(this.jScrollPaneTabela,
+                                                GroupLayout.Alignment.LEADING
+                                                , 0, 0, Short.MAX_VALUE)
+                                        .addGroup(GroupLayout.Alignment.LEADING, jPanelForNodeLayout.createSequentialGroup()
+                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(this.comboBoxUsers, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                                        .addComponent(userLabel))
+                                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(this.comboBoxSchedulers, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                                        .addComponent(scheduler)))
+                                                        .addComponent(tableAdd, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addComponent(numberOfTasks))
+                                                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                                                .addGap(4, 4, 4)
+                                                                .addComponent(this.jSpinnerNumTarefasNo))
+                                                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addComponent(remove, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(maximum)
+                                                                        .addComponent(minimum))
+                                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(this.jSpinnerMaxCompNo, GroupLayout.DEFAULT_SIZE, 87, Short.MAX_VALUE)
+                                                                        .addComponent(this.jSpinnerMinCompNo)))
+                                                        .addComponent(computational, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(this.jSpinnerMaxComuNo)
+                                                        .addComponent(communication, GroupLayout.Alignment.TRAILING)
+                                                        .addComponent(this.jSpinnerMinComuNo))))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
+
         jPanelForNodeLayout.setVerticalGroup(
-            jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel8)
-                    .addComponent(jLabel12)
-                    .addComponent(jLabelNumberOfTasks1)
-                    .addComponent(jLabel14)
-                    .addComponent(jLabel13))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBoxUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBoxEscalonadores, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSpinnerNumTarefasNo, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel15)
-                    .addComponent(jSpinnerMaxCompNo, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSpinnerMaxComuNo, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                        .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel16)
-                            .addComponent(jSpinnerMinCompNo, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE)
-                            .addComponent(jSpinnerMinComuNo, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE))
-                        .addGap(18, 18, 18))
-                    .addGroup(jPanelForNodeLayout.createSequentialGroup()
-                        .addGroup(jPanelForNodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButtonAddTabela)
-                            .addComponent(jButtonAddTabela1))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addComponent(jScrollPaneTabela, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(userLabel)
+                                        .addComponent(scheduler)
+                                        .addComponent(numberOfTasks)
+                                        .addComponent(communication)
+                                        .addComponent(computational))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.comboBoxUsers,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                25, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.comboBoxSchedulers,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                25, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.jSpinnerNumTarefasNo,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                29, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(maximum)
+                                        .addComponent(this.jSpinnerMaxCompNo,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                25, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.jSpinnerMaxComuNo,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                24, GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(minimum)
+                                                        .addComponent(this.jSpinnerMinCompNo, GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE)
+                                                        .addComponent(this.jSpinnerMinComuNo, GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE))
+                                                .addGap(18, 18, 18))
+                                        .addGroup(jPanelForNodeLayout.createSequentialGroup()
+                                                .addGroup(jPanelForNodeLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(tableAdd)
+                                                        .addComponent(remove))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addComponent(this.jScrollPaneTabela,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        177, Short.MAX_VALUE)
+                                .addContainerGap())
         );
 
-        jPanelTrace.setPreferredSize(new java.awt.Dimension(500, 300));
+        this.jPanelTrace.setPreferredSize(SelecionaCargas.PREFERRED_PANEL_SIZE);
 
-        jRadioButtonwmsx.setSelected(true);
-        jRadioButtonwmsx.setText(palavras.getString("Open an existing iSPD trace file")); // NOI18N
-        jRadioButtonwmsx.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonwmsxActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonWmsx.setSelected(true);
+        this.jRadioButtonWmsx.setText(this.translate("Open an existing iSPD " +
+                                                     "trace file"));
+        this.jRadioButtonWmsx.addActionListener(this::jRadioButtonwmsxActionPerformed);
 
-        jRadioButtonConvTrace.setText(palavras.getString("Convert an external trace file to iSPD trace format")); // NOI18N
-        jRadioButtonConvTrace.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonConvTraceActionPerformed(evt);
-            }
-        });
+        this.jRadioButtonConvTrace.setText(this.translate("Convert an " +
+                                                          "external" +
+                                                          " trace file to " +
+                                                          "iSPD" +
+                                                          " trace format"));
 
-        jLabel19.setText(palavras.getString("Select the desired option")); // NOI18N
+        this.jRadioButtonConvTrace.addActionListener(this::jRadioButtonConvTraceActionPerformed);
 
-        jButton2.setText(palavras.getString("Next")+" >>"); // NOI18N
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
+        final var optionSelect = new JLabel(this.translate(
+                "Select the desired option"));
 
-        javax.swing.GroupLayout jPanelTraceLayout = new javax.swing.GroupLayout(jPanelTrace);
-        jPanelTrace.setLayout(jPanelTraceLayout);
+        final var next = basicButton(
+                "%s >>".formatted(this.translate("Next")), this::onNextClick);
+
+        final GroupLayout jPanelTraceLayout = new GroupLayout(this.jPanelTrace);
+        this.jPanelTrace.setLayout(jPanelTraceLayout);
+
         jPanelTraceLayout.setHorizontalGroup(
-            jPanelTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelTraceLayout.createSequentialGroup()
-                .addGroup(jPanelTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelTraceLayout.createSequentialGroup()
-                        .addGroup(jPanelTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanelTraceLayout.createSequentialGroup()
-                                .addGap(29, 29, 29)
-                                .addComponent(jLabel19))
-                            .addGroup(jPanelTraceLayout.createSequentialGroup()
-                                .addGap(61, 61, 61)
-                                .addGroup(jPanelTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jRadioButtonConvTrace)
-                                    .addComponent(jRadioButtonwmsx))))
-                        .addGap(0, 48, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelTraceLayout.createSequentialGroup()
-                        .addContainerGap(422, Short.MAX_VALUE)
-                        .addComponent(jButton2)))
-                .addContainerGap())
+                jPanelTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelTraceLayout.createSequentialGroup()
+                                .addGroup(jPanelTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanelTraceLayout.createSequentialGroup()
+                                                .addGroup(jPanelTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addGroup(jPanelTraceLayout.createSequentialGroup()
+                                                                .addGap(29,
+                                                                        29, 29)
+                                                                .addComponent(optionSelect))
+                                                        .addGroup(jPanelTraceLayout.createSequentialGroup()
+                                                                .addGap(61,
+                                                                        61, 61)
+                                                                .addGroup(jPanelTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(this.jRadioButtonConvTrace)
+                                                                        .addComponent(this.jRadioButtonWmsx))))
+                                                .addGap(0, 48, Short.MAX_VALUE))
+                                        .addGroup(GroupLayout.Alignment.TRAILING, jPanelTraceLayout.createSequentialGroup()
+                                                .addContainerGap(422,
+                                                        Short.MAX_VALUE)
+                                                .addComponent(next)))
+                                .addContainerGap())
         );
+
         jPanelTraceLayout.setVerticalGroup(
-            jPanelTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelTraceLayout.createSequentialGroup()
-                .addGap(24, 24, 24)
-                .addComponent(jLabel19)
-                .addGap(62, 62, 62)
-                .addComponent(jRadioButtonwmsx)
-                .addGap(18, 18, 18)
-                .addComponent(jRadioButtonConvTrace)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 66, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(44, 44, 44))
+                jPanelTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelTraceLayout.createSequentialGroup()
+                                .addGap(24, 24, 24)
+                                .addComponent(optionSelect)
+                                .addGap(62, 62, 62)
+                                .addComponent(this.jRadioButtonWmsx)
+                                .addGap(18, 18, 18)
+                                .addComponent(this.jRadioButtonConvTrace)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 66, Short.MAX_VALUE)
+                                .addComponent(next)
+                                .addGap(44, 44, 44))
         );
 
-        jPanelConvertTrace.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanelConvertTrace.setPreferredSize(new java.awt.Dimension(500, 300));
+        this.jPanelConvertTrace.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        this.jPanelConvertTrace.setPreferredSize(SelecionaCargas.PREFERRED_PANEL_SIZE);
 
-        jLabel18.setText(palavras.getString("Select a external format trace file to convert:")); // NOI18N
+        final var externalSelect = new JLabel(this.translate(
+                "Select a external format trace file to convert:"));
 
-        jButtonAbreExterno.setText(palavras.getString("Open")); // NOI18N
-        jButtonAbreExterno.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAbreExternoActionPerformed(evt);
-            }
-        });
+        final var openExternal = basicButton(
+                this.translate("Open"), this::onOpenExternalClicked);
 
-        jLabel17.setText(palavras.getString("Notifications")); // NOI18N
+        final var notifications = new JLabel(this.translate("Notifications"));
 
-        jButtonConvertExterno.setText(palavras.getString("Convert")); // NOI18N
-        jButtonConvertExterno.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonConvertExternoActionPerformed(evt);
-            }
-        });
+        final var convertExternal = basicButton(
+                this.translate("Convert"), this::onConvertExternalClicked);
 
-        jTextFieldCaminhoTrace.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldCaminhoTraceActionPerformed(evt);
-            }
-        });
+        this.jTextFieldCaminhoTrace.addActionListener(SelecionaCargas.DO_NOTHING);
 
-        jTextNotifTrace.setColumns(20);
-        jTextNotifTrace.setRows(5);
-        jTextNotifTrace.setPreferredSize(new java.awt.Dimension(164, 74));
-        jScrollPane2.setViewportView(jTextNotifTrace);
+        this.jTextNotifTrace.setColumns(20);
+        this.jTextNotifTrace.setRows(5);
+        this.jTextNotifTrace.setPreferredSize(new Dimension(164, 74));
+        jScrollPane2.setViewportView(this.jTextNotifTrace);
 
-        jButtonPrev.setText("<< "+palavras.getString("Previous")); // NOI18N
-        jButtonPrev.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonPrevActionPerformed(evt);
-            }
-        });
+        final var previous = basicButton(
+                "<< %s".formatted(this.translate("Previous")),
+                this::onPreviousClick);
 
-        javax.swing.GroupLayout jPanelConvertTraceLayout = new javax.swing.GroupLayout(jPanelConvertTrace);
-        jPanelConvertTrace.setLayout(jPanelConvertTraceLayout);
+        final GroupLayout jPanelConvertTraceLayout =
+                new GroupLayout(this.jPanelConvertTrace);
+        this.jPanelConvertTrace.setLayout(jPanelConvertTraceLayout);
         jPanelConvertTraceLayout.setHorizontalGroup(
-            jPanelConvertTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelConvertTraceLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelConvertTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 474, Short.MAX_VALUE)
-                    .addComponent(jLabel18)
-                    .addComponent(jLabel17)
-                    .addGroup(jPanelConvertTraceLayout.createSequentialGroup()
-                        .addComponent(jButtonAbreExterno, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldCaminhoTrace, javax.swing.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonConvertExterno))
-                    .addComponent(jButtonPrev, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addContainerGap())
+                jPanelConvertTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelConvertTraceLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelConvertTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jScrollPane2,
+                                                GroupLayout.DEFAULT_SIZE, 474
+                                                , Short.MAX_VALUE)
+                                        .addComponent(externalSelect)
+                                        .addComponent(notifications)
+                                        .addGroup(jPanelConvertTraceLayout.createSequentialGroup()
+                                                .addComponent(openExternal,
+                                                        GroupLayout.PREFERRED_SIZE, 78, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(this.jTextFieldCaminhoTrace, GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(convertExternal))
+                                        .addComponent(previous,
+                                                GroupLayout.Alignment.TRAILING))
+                                .addContainerGap())
         );
         jPanelConvertTraceLayout.setVerticalGroup(
-            jPanelConvertTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelConvertTraceLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel18)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanelConvertTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonAbreExterno)
-                    .addComponent(jTextFieldCaminhoTrace, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButtonConvertExterno))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel17)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButtonPrev)
-                .addGap(65, 65, 65))
+                jPanelConvertTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelConvertTraceLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(externalSelect)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(jPanelConvertTraceLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(openExternal)
+                                        .addComponent(this.jTextFieldCaminhoTrace,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(convertExternal))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(notifications)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane2,
+                                        GroupLayout.PREFERRED_SIZE, 142,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(previous)
+                                .addGap(65, 65, 65))
         );
 
-        jOpenTrace.setAcceptAllFileFilterUsed(false);
-        jOpenTrace.setFileFilter(filtro);
-        jOpenTrace.setFileView(new javax.swing.filechooser.FileView() {@Override
-            public Icon getIcon(File f) {
-                String ext = null;
-                String s = f.getName();
-                int i = s.lastIndexOf('.');
-                if (i > 0 && i < s.length() - 1) {
-                    ext = s.substring(i + 1).toLowerCase();
-                }
-                if (ext != null) {
-                    if (ext.equals("wmsx")) {
-                        java.net.URL imgURL = JPrincipal.class.getResource("imagens/Logo_iSPD_25.png");
-                        if (imgURL != null) {
-                            return new ImageIcon(imgURL);
-                        }
-                    }
-                }
-                return null;
-            }});
+        this.jOpenTrace.setAcceptAllFileFilterUsed(false);
+        this.jOpenTrace.setFileFilter(this.workloadFileFilter);
+        this.jOpenTrace.setFileView(new SomeFileView());
 
-            jPanelSelecionaTrace.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
-            jPanelSelecionaTrace.setPreferredSize(new java.awt.Dimension(500, 300));
+        this.jPanelPickTrace.setCursor(new Cursor(Cursor.TEXT_CURSOR));
+        this.jPanelPickTrace.setPreferredSize(SelecionaCargas.PREFERRED_PANEL_SIZE);
 
-            jLabel20.setText(palavras.getString("Select an iSPD trace file to open:")); // NOI18N
+        final var jLabel20 = new JLabel(this.translate("Select an iSPD trace " +
+                                                       "file to open:"));
 
-            jLabel21.setText(palavras.getString("Notifications")); // NOI18N
+        final var jLabel21 = new JLabel(this.translate("Notifications"));
 
-            jTextNotification.setColumns(20);
-            jTextNotification.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
-            jTextNotification.setRows(5);
-            jTextNotification.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-            jScrollPane1.setViewportView(jTextNotification);
+        this.jTextNotification.setColumns(20);
+        this.jTextNotification.setFont(SelecionaCargas.TAHOMA_FONT);
+        this.jTextNotification.setRows(5);
+        this.jTextNotification.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
-            jButton3.setText("<< "+palavras.getString("Previous")); // NOI18N
-            jButton3.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jButton3ActionPerformed(evt);
-                }
-            });
+        jScrollPane1.setViewportView(this.jTextNotification);
 
-            jButtonOpenWMSX.setText(palavras.getString("Open")); // NOI18N
-            jButtonOpenWMSX.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jButtonOpenWMSXActionPerformed(evt);
-                }
-            });
+        final var previous2 = basicButton(
+                "<< %s".formatted(this.translate("Previous")),
+                this::onPrevious2Click);
 
-            javax.swing.GroupLayout jPanelSelecionaTraceLayout = new javax.swing.GroupLayout(jPanelSelecionaTrace);
-            jPanelSelecionaTrace.setLayout(jPanelSelecionaTraceLayout);
-            jPanelSelecionaTraceLayout.setHorizontalGroup(
-                jPanelSelecionaTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanelSelecionaTraceLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(jPanelSelecionaTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jLabel20)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 476, Short.MAX_VALUE)
-                        .addComponent(jButton3, javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(jLabel21)
+        final var openWmsx = basicButton(
+                this.translate("Open"), this::onOpenWmsxClick);
+
+        final GroupLayout jPanelSelecionaTraceLayout =
+                new GroupLayout(this.jPanelPickTrace);
+        this.jPanelPickTrace.setLayout(jPanelSelecionaTraceLayout);
+
+        jPanelSelecionaTraceLayout.setHorizontalGroup(
+                jPanelSelecionaTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(jPanelSelecionaTraceLayout.createSequentialGroup()
-                            .addComponent(jButtonOpenWMSX, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jTextFieldCaminhoWMS, javax.swing.GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE)))
-                    .addContainerGap())
-            );
-            jPanelSelecionaTraceLayout.setVerticalGroup(
-                jPanelSelecionaTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanelSelecionaTraceLayout.createSequentialGroup()
-                    .addGap(12, 12, 12)
-                    .addComponent(jLabel20)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(jPanelSelecionaTraceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jButtonOpenWMSX)
-                        .addComponent(jTextFieldCaminhoWMS, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                    .addComponent(jLabel21)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jButton3)
-                    .addContainerGap(31, Short.MAX_VALUE))
-            );
+                                .addContainerGap()
+                                .addGroup(jPanelSelecionaTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel20)
+                                        .addComponent(jScrollPane1,
+                                                GroupLayout.DEFAULT_SIZE, 476
+                                                , Short.MAX_VALUE)
+                                        .addComponent(previous2,
+                                                GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jLabel21)
+                                        .addGroup(jPanelSelecionaTraceLayout.createSequentialGroup()
+                                                .addComponent(openWmsx
+                                                        ,
+                                                        GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(this.jTextFieldCaminhoWMS, GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE)))
+                                .addContainerGap())
+        );
+        jPanelSelecionaTraceLayout.setVerticalGroup(
+                jPanelSelecionaTraceLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelSelecionaTraceLayout.createSequentialGroup()
+                                .addGap(12, 12, 12)
+                                .addComponent(jLabel20)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanelSelecionaTraceLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(openWmsx)
+                                        .addComponent(this.jTextFieldCaminhoWMS,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jLabel21)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane1,
+                                        GroupLayout.PREFERRED_SIZE, 147,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(previous2)
+                                .addContainerGap(31, Short.MAX_VALUE))
+        );
 
-            jFileExternalTrace.setAcceptAllFileFilterUsed(false);
-            jFileExternalTrace.setFileFilter(filtro2);
+        this.jFileExternalTrace.setAcceptAllFileFilterUsed(false);
+        this.jFileExternalTrace.setFileFilter(this.traceFileFilter);
 
-            setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-            setTitle(palavras.getString("Random Workloads")); // NOI18N
-            setMinimumSize(new java.awt.Dimension(550, 450));
-            setResizable(false);
+        this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        this.setTitle(this.translate("Random Workloads"));
+        this.setMinimumSize(new Dimension(550, 450));
+        this.setResizable(false);
 
-            jPanelModo.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), palavras.getString("Insertion mode for the workloads"))); // NOI18N
-            jPanelModo.setMaximumSize(new java.awt.Dimension(500, 60));
-            jPanelModo.setMinimumSize(new java.awt.Dimension(500, 60));
-            jPanelModo.setPreferredSize(new java.awt.Dimension(500, 60));
+        jPanelModo.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)), this.translate("Insertion mode for the workloads")));
+        jPanelModo.setMaximumSize(new Dimension(500, 60));
+        jPanelModo.setMinimumSize(new Dimension(500, 60));
+        jPanelModo.setPreferredSize(new Dimension(500, 60));
 
-            jRadioButtonTraces.setText(palavras.getString("Traces")); // NOI18N
-            jRadioButtonTraces.setOpaque(false);
-            jRadioButtonTraces.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jRadioButtonTracesActionPerformed(evt);
-                }
-            });
+        this.jRadioButtonTraces.setText(this.translate("Traces"));
+        this.jRadioButtonTraces.setOpaque(false);
+        this.jRadioButtonTraces.addActionListener(this::jRadioButtonTracesActionPerformed);
 
-            jRadioButtonForNode.setText(palavras.getString("For each node")); // NOI18N
-            jRadioButtonForNode.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jRadioButtonForNodeActionPerformed(evt);
-                }
-            });
+        this.jRadioButtonForNode.setText(this.translate("For each node"));
+        this.jRadioButtonForNode.addActionListener(this::jRadioButtonForNodeActionPerformed);
 
-            jRadioButtonRandom.setSelected(true);
-            jRadioButtonRandom.setText(palavras.getString("Random")); // NOI18N
-            jRadioButtonRandom.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jRadioButtonRandomActionPerformed(evt);
-                }
-            });
+        this.jRadioButtonRandom.setSelected(true);
+        this.jRadioButtonRandom.setText(this.translate("Random"));
+        this.jRadioButtonRandom.addActionListener(this::jRadioButtonRandomActionPerformed);
 
-            javax.swing.GroupLayout jPanelModoLayout = new javax.swing.GroupLayout(jPanelModo);
-            jPanelModo.setLayout(jPanelModoLayout);
-            jPanelModoLayout.setHorizontalGroup(
-                jPanelModoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanelModoLayout.createSequentialGroup()
-                    .addGap(62, 62, 62)
-                    .addComponent(jRadioButtonRandom)
-                    .addGap(37, 37, 37)
-                    .addComponent(jRadioButtonForNode, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(31, 31, 31)
-                    .addComponent(jRadioButtonTraces, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            );
-            jPanelModoLayout.setVerticalGroup(
-                jPanelModoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanelModoLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(jPanelModoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jRadioButtonRandom)
-                        .addComponent(jRadioButtonTraces, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jRadioButtonForNode))
-                    .addGap(9, 9, 9))
-            );
+        final GroupLayout jPanelModoLayout = new GroupLayout(jPanelModo);
+        jPanelModo.setLayout(jPanelModoLayout);
 
-            jButtonCancelar.setText(palavras.getString("Cancel")); // NOI18N
-            jButtonCancelar.setMaximumSize(new java.awt.Dimension(80, 30));
-            jButtonCancelar.setMinimumSize(new java.awt.Dimension(80, 30));
-            jButtonCancelar.setPreferredSize(new java.awt.Dimension(80, 30));
-            jButtonCancelar.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jButtonCancelarActionPerformed(evt);
-                }
-            });
+        jPanelModoLayout.setHorizontalGroup(
+                jPanelModoLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelModoLayout.createSequentialGroup()
+                                .addGap(62, 62, 62)
+                                .addComponent(this.jRadioButtonRandom)
+                                .addGap(37, 37, 37)
+                                .addComponent(this.jRadioButtonForNode,
+                                        GroupLayout.PREFERRED_SIZE, 126,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addGap(31, 31, 31)
+                                .addComponent(this.jRadioButtonTraces,
+                                        GroupLayout.PREFERRED_SIZE, 72,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
+        );
 
-            jButtonAddUser.setText(palavras.getString("Add user")); // NOI18N
-            jButtonAddUser.setPreferredSize(new java.awt.Dimension(80, 30));
-            jButtonAddUser.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jButtonAddUserActionPerformed(evt);
-                }
-            });
+        jPanelModoLayout.setVerticalGroup(
+                jPanelModoLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanelModoLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanelModoLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(this.jRadioButtonRandom)
+                                        .addComponent(this.jRadioButtonTraces,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                25, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(this.jRadioButtonForNode))
+                                .addGap(9, 9, 9))
+        );
 
-            jScrollPaneSelecionado.setPreferredSize(new java.awt.Dimension(500, 300));
+        this.jScrollPaneSelecionado.setPreferredSize(SelecionaCargas.PREFERRED_PANEL_SIZE);
 
-            javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-            jPanel1.setLayout(jPanel1Layout);
-            jPanel1Layout.setHorizontalGroup(
-                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGap(0, 498, Short.MAX_VALUE)
-            );
-            jPanel1Layout.setVerticalGroup(
-                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGap(0, 309, Short.MAX_VALUE)
-            );
+        final GroupLayout jPanel1Layout =
+                new GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+                jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGap(0, 498, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+                jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGap(0, 309, Short.MAX_VALUE)
+        );
 
-            jScrollPaneSelecionado.setViewportView(jPanel1);
+        this.jScrollPaneSelecionado.setViewportView(jPanel1);
 
-            jButtonOK1.setText(palavras.getString("OK")); // NOI18N
-            jButtonOK1.setPreferredSize(new java.awt.Dimension(80, 30));
-            jButtonOK1.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jButtonOK1ActionPerformed(evt);
-                }
-            });
-
-            javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-            getContentPane().setLayout(layout);
-            layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(37, 37, 37)
-                            .addComponent(jButtonCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(28, 28, 28)
-                            .addComponent(jButtonAddUser, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(32, 32, 32)
-                            .addComponent(jButtonOK1, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(jScrollPaneSelecionado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jPanelModo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addContainerGap())
-            );
-            layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(jPanelModo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jScrollPaneSelecionado, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jButtonCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jButtonAddUser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jButtonOK1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addContainerGap())
-            );
-
-            pack();
-        }// </editor-fold>//GEN-END:initComponents
-
-    /*
-     *O trecho dos radiobuttons abaixo faz set para o tipo de configuração de carga de trabalho a ser selecionada 
-     *  
-     */
-   
-    
-    private void jRadioButtonRandomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonRandomActionPerformed
-        setTipo(GerarCarga.RANDOM);
-    }//GEN-LAST:event_jRadioButtonRandomActionPerformed
-
-    private void jRadioButtonForNodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonForNodeActionPerformed
-        setTipo(GerarCarga.FORNODE);
-    }//GEN-LAST:event_jRadioButtonForNodeActionPerformed
-
-    private void jRadioButtonTracesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonTracesActionPerformed
-        setTipo(GerarCarga.TRACE);
-    }//GEN-LAST:event_jRadioButtonTracesActionPerformed
-
-    private void jButtonAddUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddUserActionPerformed
-        // TODO add your handling code here:
-        String newUser = JOptionPane.showInputDialog(this, palavras.getString("Enter the name"), palavras.getString("Add user"), JOptionPane.QUESTION_MESSAGE);
-        if (newUser != null && !newUser.equals("") && !usuarios.contains(newUser)) {
-            usuarios.add(newUser);
-        }
-    }//GEN-LAST:event_jButtonAddUserActionPerformed
-
-    private void jButtonAddTabelaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddTabelaActionPerformed
-        // TODO add your handling code here:
-        Vector linha = new Vector(8);
-        linha.add("app" + tabelaIndex);
-        tabelaIndex++;
-        linha.add(jComboBoxUsers.getSelectedItem());
-        linha.add(jComboBoxEscalonadores.getSelectedItem());
-        linha.add(jSpinnerNumTarefasNo.getValue());
-        linha.add(jSpinnerMaxCompNo.getValue());
-        linha.add(jSpinnerMinCompNo.getValue());
-        linha.add(jSpinnerMaxComuNo.getValue());
-        linha.add(jSpinnerMinComuNo.getValue());
-        tabelaLinha.add(linha);
-        jScrollPaneTabela.setViewportView(jTable1);
-    }//GEN-LAST:event_jButtonAddTabelaActionPerformed
-
-    private void jButtonOK1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOK1ActionPerformed
-        // TODO add your handling code here:
-        if (jRadioButtonRandom.isSelected()) {
-            try {
-                int numTaref = (Integer) jSpinnerNumTarefas.getValue();
-                int minComp = (Integer) jSpinnerMinComputacao.getValue();
-                int maxComp = (Integer) jSpinnerMaxComputacao.getValue();
-                int aveComp = (Integer) jSpinnerAverageComputacao.getValue();
-                double probComp = Double.parseDouble(jSpinnerProbabilityComputacao.getValue().toString());
-                int minComun = (Integer) jSpinnerMinComunicacao.getValue();
-                int maxComun = (Integer) jSpinnerMaxComunicacao.getValue();
-                int aveComun = (Integer) jSpinnerAverageComunicacao.getValue();
-                double probComun = Double.parseDouble(jSpinnerProbabilityComunicacao.getValue().toString());
-                int timeArriv = (Integer) jSpinnerTimeOfArrival.getValue();
-                this.carga = new CargaRandom(numTaref, minComp, maxComp, aveComp, probComp, minComun, maxComun, aveComun, probComun, timeArriv);
-            } catch (Exception ex) {
-                Logger.getLogger(SelecionaCargas.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else if (jRadioButtonForNode.isSelected()) {
-            try {
-                List<GerarCarga> configuracaoNo = new ArrayList(tabelaLinha.size());
-                for (Vector item : tabelaLinha) {
-                    String aplicacao = item.get(0).toString();
-                    String proprietario = item.get(1).toString();
-                    String escalonador = item.get(2).toString();
-                    int numeroTarefas = Integer.parseInt(item.get(3).toString());
-                    double maxComputacao = Double.parseDouble(item.get(4).toString());
-                    double minComputacao = Double.parseDouble(item.get(5).toString());
-                    double maxComunicacao = Double.parseDouble(item.get(6).toString());
-                    double minComunicacao = Double.parseDouble(item.get(7).toString());
-                    GerarCarga novoItem = new CargaForNode(aplicacao, proprietario, escalonador, numeroTarefas, maxComputacao, minComputacao, maxComunicacao, minComunicacao);
-                    configuracaoNo.add(novoItem);
-                }
-                this.carga = new CargaList(configuracaoNo, GerarCarga.FORNODE);
-            } catch (Exception ex) {
-                Logger.getLogger(SelecionaCargas.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else if (jRadioButtonTraces.isSelected()) {
-            //configura a carga apartir do arquivo aberto..
-            this.carga = new CargaTrace(file, NumTaskTrace, TipoTrace);
-        }
-        this.setVisible(false);
-    }//GEN-LAST:event_jButtonOK1ActionPerformed
-
-    private void jButtonCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelarActionPerformed
-        // TODO add your handling code here:
-        this.setVisible(false);
-    }//GEN-LAST:event_jButtonCancelarActionPerformed
-
-    private void jButtonAddTabela1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddTabela1ActionPerformed
-        int linha = jTable1.getSelectedRow();
-        if (linha >= 0 && linha < tabelaLinha.size()) {
-            tabelaLinha.remove(linha);
-        }
-        jScrollPaneTabela.setViewportView(jTable1);
-    }//GEN-LAST:event_jButtonAddTabela1ActionPerformed
-
-private void jButtonConvertExternoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConvertExternoActionPerformed
-// TODO add your handling code here:
-    
-    try {
-        TraceXML interpret = new TraceXML(jTextFieldCaminhoTrace.getText());
-        try {//inicia a conversão do arquivo
-            double t1 = System.currentTimeMillis();
-            interpret.convert();
-            double t2 = System.currentTimeMillis();
-            System.out.println((t2 - t1) / 1000);
-            file = new File(interpret.getSaida());
-            NumTaskTrace = interpret.getNum_Tasks();
-            TipoTrace = interpret.getTipo();
-        } catch (Exception e) {
-            jTextNotifTrace.setText(palavras.getString("Badly formatted file"));
-        }
-        jTextNotifTrace.setText(interpret.toString());
-    } catch (Exception e) {
-        jTextNotifTrace.setText(palavras.getString("There is no file selected"));
-    };
-}//GEN-LAST:event_jButtonConvertExternoActionPerformed
-
-private void jTextFieldCaminhoTraceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCaminhoTraceActionPerformed
-// TODO add your handling code here:
-}//GEN-LAST:event_jTextFieldCaminhoTraceActionPerformed
-
-    private void jRadioButtonwmsxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonwmsxActionPerformed
-        // TODO add your handling code here:
-        if (jRadioButtonwmsx.isSelected()) {
-            jRadioButtonwmsx.setSelected(true);
-            jRadioButtonConvTrace.setSelected(false);
-            file = null;
-            jTextFieldCaminhoTrace.setText("");
-            jTextNotifTrace.setText("");
-            NumTaskTrace = 0;
-
-        } else if (jRadioButtonConvTrace.isSelected()) {
-            jRadioButtonConvTrace.setSelected(true);
-            jRadioButtonwmsx.setSelected(false);
-        }
-    }//GEN-LAST:event_jRadioButtonwmsxActionPerformed
-
-    private void jRadioButtonConvTraceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonConvTraceActionPerformed
-        // TODO add your handling code here:
-        if (jRadioButtonConvTrace.isSelected()) {
-            jRadioButtonwmsx.setSelected(false);
-            jRadioButtonConvTrace.setSelected(true);
-            file = null;
-            jTextFieldCaminhoWMS.setText("");
-            jTextNotification.setText("");
-            NumTaskTrace = 0;
-        } else {
-            jRadioButtonConvTrace.setSelected(false);
-            jRadioButtonwmsx.setSelected(true);
-        }
-    }//GEN-LAST:event_jRadioButtonConvTraceActionPerformed
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-        if (jRadioButtonwmsx.isSelected()) {
-            jScrollPaneSelecionado.setViewportView(jPanelSelecionaTrace);
-        } else {
-            jScrollPaneSelecionado.setViewportView(jPanelConvertTrace);
-        }
-    }//GEN-LAST:event_jButton2ActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
-        jScrollPaneSelecionado.setViewportView(jPanelTrace);
-
-    }//GEN-LAST:event_jButton3ActionPerformed
-
-    private void jButtonPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPrevActionPerformed
-        // TODO add your handling code here:
-        jScrollPaneSelecionado.setViewportView(jPanelTrace);
-    }//GEN-LAST:event_jButtonPrevActionPerformed
-
-    private void jButtonOpenWMSXActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenWMSXActionPerformed
-        // TODO add your handling code here:
-        filtro.setDescricao(palavras.getString("Workload Model of Simulation"));
-        String ext = ".wmsx";
-        filtro.setExtensao(ext);
-        jOpenTrace.setAcceptAllFileFilterUsed(false);
-        int returnVal = jOpenTrace.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            file = jOpenTrace.getSelectedFile();
-            jTextFieldCaminhoWMS.setText(file.getAbsolutePath());
-            TraceXML interpret = new TraceXML(file.getAbsolutePath());
-            jTextNotification.setText(interpret.LerCargaWMS());
-            NumTaskTrace = interpret.getNum_Tasks();
-            TipoTrace = interpret.getTipo();
-
-            //This is where a real application would open the file.
-            //Abrir arquivo.
-
-        }
-    }//GEN-LAST:event_jButtonOpenWMSXActionPerformed
-
-    private void jButtonAbreExternoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAbreExternoActionPerformed
-        // TODO add your handling code here:
-        filtro2.setDescricao(palavras.getString("External Trace File"));
-        String[] exts = {".swf", ".gwf"};
-        filtro2.setExtensao(exts);
-        jFileExternalTrace.setAcceptAllFileFilterUsed(false);
-        int returnVal = jFileExternalTrace.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            file = jFileExternalTrace.getSelectedFile();
-            jTextFieldCaminhoTrace.setText(file.getAbsolutePath());
-        }
-
-    }//GEN-LAST:event_jButtonAbreExternoActionPerformed
-
-    private void jComboBoxUsersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxUsersActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBoxUsersActionPerformed
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButtonAbreExterno;
-    private javax.swing.JButton jButtonAddTabela;
-    private javax.swing.JButton jButtonAddTabela1;
-    private javax.swing.JButton jButtonAddUser;
-    private javax.swing.JButton jButtonCancelar;
-    private javax.swing.JButton jButtonConvertExterno;
-    private javax.swing.JButton jButtonOK1;
-    private javax.swing.JButton jButtonOpenWMSX;
-    private javax.swing.JButton jButtonPrev;
-    private javax.swing.JComboBox jComboBoxEscalonadores;
-    private javax.swing.JComboBox jComboBoxUsers;
-    private javax.swing.JFileChooser jFileExternalTrace;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
-    private javax.swing.JLabel jLabel18;
-    private javax.swing.JLabel jLabel19;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel20;
-    private javax.swing.JLabel jLabel21;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
-    private javax.swing.JLabel jLabelNumberOfTasks;
-    private javax.swing.JLabel jLabelNumberOfTasks1;
-    private javax.swing.JFileChooser jOpenTrace;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanelConvertTrace;
-    private javax.swing.JPanel jPanelForNode;
-    private javax.swing.JPanel jPanelModo;
-    private javax.swing.JPanel jPanelRandom;
-    private javax.swing.JPanel jPanelSelecionaTrace;
-    private javax.swing.JPanel jPanelTrace;
-    private javax.swing.JRadioButton jRadioButtonConvTrace;
-    private javax.swing.JRadioButton jRadioButtonForNode;
-    private javax.swing.JRadioButton jRadioButtonRandom;
-    private javax.swing.JRadioButton jRadioButtonTraces;
-    private javax.swing.JRadioButton jRadioButtonwmsx;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPaneSelecionado;
-    private javax.swing.JScrollPane jScrollPaneTabela;
-    private javax.swing.JSpinner jSpinnerAverageComputacao;
-    private javax.swing.JSpinner jSpinnerAverageComunicacao;
-    private javax.swing.JSpinner jSpinnerMaxCompNo;
-    private javax.swing.JSpinner jSpinnerMaxComputacao;
-    private javax.swing.JSpinner jSpinnerMaxComuNo;
-    private javax.swing.JSpinner jSpinnerMaxComunicacao;
-    private javax.swing.JSpinner jSpinnerMinCompNo;
-    private javax.swing.JSpinner jSpinnerMinComputacao;
-    private javax.swing.JSpinner jSpinnerMinComuNo;
-    private javax.swing.JSpinner jSpinnerMinComunicacao;
-    private javax.swing.JSpinner jSpinnerNumTarefas;
-    private javax.swing.JSpinner jSpinnerNumTarefasNo;
-    private javax.swing.JSpinner jSpinnerProbabilityComputacao;
-    private javax.swing.JSpinner jSpinnerProbabilityComunicacao;
-    private javax.swing.JSpinner jSpinnerTimeOfArrival;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextFieldCaminhoTrace;
-    private javax.swing.JTextField jTextFieldCaminhoWMS;
-    private javax.swing.JTextArea jTextNotifTrace;
-    private javax.swing.JTextArea jTextNotification;
-    // End of variables declaration//GEN-END:variables
-    private FiltroDeArquivos filtro;
-    private GerarCarga carga;
-    private Vector<String> usuarios;
-    private Vector<String> escalonadores;
-    private Vector<Vector> tabelaLinha;
-    private Vector<String> tabelaColuna = new Vector<String>(7);
-    private int tabelaIndex = 0;
-    private ResourceBundle palavras;
-    private int NumTaskTrace = 0;
-    private String TipoTrace = "";
-
-    GerarCarga getCargasConfiguracao() {
-        return carga;
+        this.makeLayoutAndPack(jPanelModo);
     }
 
     /**
-     * Carrega os valores do gerador de cargas nos componentes da janela
+     * Load properties from load generator into window components.
      *
-     * @param gerarcarga
+     * @param loadGenerator The load generator.
      */
-    private void setValores(GerarCarga gerarcarga) {
-        if (gerarcarga != null) {
-            switch (gerarcarga.getTipo()) {
-                case GerarCarga.RANDOM:
-                    CargaRandom random = (CargaRandom) gerarcarga;
-                    jSpinnerNumTarefas.setValue(random.getNumeroTarefas());
-                    jSpinnerMinComputacao.setValue(random.getMinComputacao());
-                    jSpinnerMaxComputacao.setValue(random.getMaxComputacao());
-                    jSpinnerAverageComputacao.setValue(random.getAverageComputacao());
-                    jSpinnerProbabilityComputacao.setValue(random.getProbabilityComputacao());
-                    jSpinnerMinComunicacao.setValue(random.getMinComunicacao());
-                    jSpinnerMaxComunicacao.setValue(random.getMaxComunicacao());
-                    jSpinnerAverageComunicacao.setValue(random.getAverageComunicacao());
-                    jSpinnerProbabilityComunicacao.setValue(random.getProbabilityComunicacao());
-                    jSpinnerTimeOfArrival.setValue(random.getTimeToArrival());
-                    setTipo(GerarCarga.RANDOM);
-                    break;
-                case GerarCarga.FORNODE:
-                    CargaList nodes = (CargaList) gerarcarga;
-                    for (GerarCarga item : nodes.getList()) {
-                        CargaForNode node = (CargaForNode) item;
-                        this.tabelaLinha.add(node.toVector());
-                    }
-                    this.tabelaIndex = tabelaLinha.size();
-                    setTipo(GerarCarga.FORNODE);
-                    break;
-                case GerarCarga.TRACE:
-                    CargaTrace trace = (CargaTrace) gerarcarga;
-                    file = trace.getFile();
-                    TipoTrace = trace.getTraceType();
-                    NumTaskTrace = trace.getNumberTasks();
-                    jTextFieldCaminhoWMS.setText(file.getAbsolutePath());
-                    jTextNotification.setText("File " + file.getName() + "\n"
-                            + "\t- File format: " + TipoTrace + "\n"
-                            + "\t- File has a workload of " + NumTaskTrace + " tasks");
-                    setTipo(GerarCarga.TRACE);
-                    break;
-            }
-        } else {
-            setTipo(GerarCarga.RANDOM);
+    private void setValores(final GerarCarga loadGenerator) {
+        if (loadGenerator == null) {
+            this.setTipo(GerarCarga.RANDOM);
+            return;
         }
+
+        switch (loadGenerator.getTipo()) {
+            case GerarCarga.RANDOM -> {
+                final CargaRandom random = (CargaRandom) loadGenerator;
+                this.jSpinnerNumTarefas.setValue(random.getNumeroTarefas());
+                this.jSpinnerMinComputacao.setValue(random.getMinComputacao());
+                this.jSpinnerMaxComputacao.setValue(random.getMaxComputacao());
+                this.jSpinnerAverageComputacao.setValue(random.getAverageComputacao());
+                this.jSpinnerProbabilityComputacao.setValue(random.getProbabilityComputacao());
+                this.jSpinnerMinComunicacao.setValue(random.getMinComunicacao());
+                this.jSpinnerMaxComunicacao.setValue(random.getMaxComunicacao());
+                this.jSpinnerAverageComunicacao.setValue(random.getAverageComunicacao());
+                this.jSpinnerProbabilityComunicacao.setValue(random.getProbabilityComunicacao());
+                this.jSpinnerTimeOfArrival.setValue(random.getTimeToArrival());
+                this.setTipo(GerarCarga.RANDOM);
+            }
+            case GerarCarga.FORNODE -> {
+                final CargaList nodes = (CargaList) loadGenerator;
+                for (final GerarCarga item : nodes.getList()) {
+                    final CargaForNode node = (CargaForNode) item;
+                    this.tableRow.add(node.toVector());
+                }
+                this.indexTable = this.tableRow.size();
+                this.setTipo(GerarCarga.FORNODE);
+            }
+            case GerarCarga.TRACE -> {
+                final CargaTrace trace = (CargaTrace) loadGenerator;
+                this.file = trace.getFile();
+                this.traceType = trace.getTraceType();
+                this.traceTaskNumber = trace.getNumberTasks();
+                this.jTextFieldCaminhoWMS.setText(this.file.getAbsolutePath());
+                this.jTextNotification.setText("""
+                        File %s
+                        \t- File format: %s
+                        \t- File has a workload of %d tasks"""
+                        .formatted(
+                                this.file.getName(),
+                                this.traceType,
+                                this.traceTaskNumber));
+                this.setTipo(GerarCarga.TRACE);
+            }
+        }
+    }
+
+    private void onTableAddClick(final ActionEvent evt) {
+
+        final Vector linha = new Vector(8);
+        linha.add("app" + this.indexTable);
+        this.indexTable++;
+        linha.add(this.comboBoxUsers.getSelectedItem());
+        linha.add(this.comboBoxSchedulers.getSelectedItem());
+        linha.add(this.jSpinnerNumTarefasNo.getValue());
+        linha.add(this.jSpinnerMaxCompNo.getValue());
+        linha.add(this.jSpinnerMinCompNo.getValue());
+        linha.add(this.jSpinnerMaxComuNo.getValue());
+        linha.add(this.jSpinnerMinComuNo.getValue());
+        this.tableRow.add(linha);
+        this.jScrollPaneTabela.setViewportView(this.jTable1);
+    }
+
+    private void onTableAddClick1(final ActionEvent evt) {
+        final int linha = this.jTable1.getSelectedRow();
+        if (linha >= 0 && linha < this.tableRow.size()) {
+            this.tableRow.remove(linha);
+        }
+        this.jScrollPaneTabela.setViewportView(this.jTable1);
+    }
+
+    private void jRadioButtonwmsxActionPerformed(final ActionEvent evt) {
+
+        if (this.jRadioButtonWmsx.isSelected()) {
+            this.jRadioButtonWmsx.setSelected(true);
+            this.jRadioButtonConvTrace.setSelected(false);
+            this.file = null;
+            this.jTextFieldCaminhoTrace.setText("");
+            this.jTextNotifTrace.setText("");
+            this.traceTaskNumber = 0;
+
+        } else if (this.jRadioButtonConvTrace.isSelected()) {
+            this.jRadioButtonConvTrace.setSelected(true);
+            this.jRadioButtonWmsx.setSelected(false);
+        }
+    }
+
+    private void jRadioButtonConvTraceActionPerformed(final ActionEvent evt) {
+
+        if (this.jRadioButtonConvTrace.isSelected()) {
+            this.jRadioButtonWmsx.setSelected(false);
+            this.jRadioButtonConvTrace.setSelected(true);
+            this.file = null;
+            this.jTextFieldCaminhoWMS.setText("");
+            this.jTextNotification.setText("");
+            this.traceTaskNumber = 0;
+        } else {
+            this.jRadioButtonConvTrace.setSelected(false);
+            this.jRadioButtonWmsx.setSelected(true);
+        }
+    }
+
+    private void onNextClick(final ActionEvent evt) {
+        final JPanel panel = this.jRadioButtonWmsx.isSelected() ?
+                this.jPanelPickTrace : this.jPanelConvertTrace;
+        this.jScrollPaneSelecionado.setViewportView(panel);
+    }
+
+    private void onOpenExternalClicked(final ActionEvent evt) {
+
+        this.traceFileFilter.setDescricao(this.translate("External Trace " +
+                                                         "File"));
+        final String[] exts = { ".swf", ".gwf" };
+        this.traceFileFilter.setExtensao(exts);
+        this.jFileExternalTrace.setAcceptAllFileFilterUsed(false);
+        final int returnVal = this.jFileExternalTrace.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            this.file = this.jFileExternalTrace.getSelectedFile();
+            this.jTextFieldCaminhoTrace.setText(this.file.getAbsolutePath());
+        }
+
+    }
+
+    private void onConvertExternalClicked(final ActionEvent evt) {
+
+
+        try {
+            final TraceXML interpret =
+                    new TraceXML(this.jTextFieldCaminhoTrace.getText());
+            try {//inicia a conversão do arquivo
+                final double t1 = System.currentTimeMillis();
+                interpret.convert();
+                final double t2 = System.currentTimeMillis();
+                System.out.println((t2 - t1) / 1000);
+                this.file = new File(interpret.getSaida());
+                this.traceTaskNumber = interpret.getNum_Tasks();
+                this.traceType = interpret.getTipo();
+            } catch (final Exception e) {
+                this.jTextNotifTrace.setText(this.translate("Badly formatted " +
+                                                            "file"));
+            }
+            this.jTextNotifTrace.setText(interpret.toString());
+        } catch (final Exception e) {
+            this.jTextNotifTrace.setText(this.translate("There is no file " +
+                                                        "selected"));
+        }
+    }
+
+    private void onPreviousClick(final ActionEvent evt) {
+        this.jScrollPaneSelecionado.setViewportView(this.jPanelTrace);
+    }
+
+    private void onPrevious2Click(final ActionEvent evt) {
+        this.jScrollPaneSelecionado.setViewportView(this.jPanelTrace);
+    }
+
+    private void onOpenWmsxClick(final ActionEvent evt) {
+        this.workloadFileFilter.setDescricao(
+                this.translate("Workload Model of Simulation"));
+
+        this.workloadFileFilter.setExtensao(".wmsx");
+        this.jOpenTrace.setAcceptAllFileFilterUsed(false);
+        final int returnVal = this.jOpenTrace.showOpenDialog(this);
+
+        if (returnVal != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        this.file = this.jOpenTrace.getSelectedFile();
+        this.jTextFieldCaminhoWMS.setText(this.file.getAbsolutePath());
+        final TraceXML interpret =
+                new TraceXML(this.file.getAbsolutePath());
+        this.jTextNotification.setText(interpret.LerCargaWMS());
+        this.traceTaskNumber = interpret.getNum_Tasks();
+        this.traceType = interpret.getTipo();
+    }
+
+    private void jRadioButtonTracesActionPerformed(final ActionEvent evt) {
+        this.setTipo(GerarCarga.TRACE);
+    }
+
+    private void jRadioButtonForNodeActionPerformed(final ActionEvent evt) {
+        this.setTipo(GerarCarga.FORNODE);
+    }
+
+    private void jRadioButtonRandomActionPerformed(final ActionEvent evt) {
+        this.setTipo(GerarCarga.RANDOM);
+    }
+
+    private void makeLayoutAndPack(final Component panel) {
+        final var addUser =
+                aButton(this.translate("Add user"), this::onAddUserClick)
+                        .withPreferredSize(SelecionaCargas.PREFERRED_BUTTON_SIZE)
+                        .build();
+
+        final var ok =
+                aButton(this.translate("OK"), this::onOkClick)
+                        .withPreferredSize(SelecionaCargas.PREFERRED_BUTTON_SIZE)
+                        .build();
+
+        final var cancel =
+                aButton(this.translate("Cancel"), this::onCancelClick)
+                        .withSize(SelecionaCargas.PREFERRED_BUTTON_SIZE)
+                        .build();
+
+        final var layout = new GroupLayout(this.getContentPane());
+        this.getContentPane().setLayout(layout);
+
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addGap(37, 37, 37)
+                                                .addComponent(cancel
+                                                        ,
+                                                        GroupLayout.PREFERRED_SIZE, 120, GroupLayout.PREFERRED_SIZE)
+                                                .addGap(28, 28, 28)
+                                                .addComponent(addUser,
+                                                        GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE)
+                                                .addGap(32, 32, 32)
+                                                .addComponent(ok,
+                                                        GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(this.jScrollPaneSelecionado,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addComponent(panel,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE))
+                                .addContainerGap())
+        );
+
+        layout.setVerticalGroup(
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING,
+                                layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(panel,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(this.jScrollPaneSelecionado,
+                                                GroupLayout.PREFERRED_SIZE,
+                                                311, GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                .addComponent(cancel,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(addUser,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(ok,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                        .addContainerGap())
+        );
+
+        this.pack();
+    }
+
+    /**
+     * Shows window and selects the needed radio button based on the given type.
+     *
+     * @param type Type selected by user
+     */
+    private void setTipo(final int type) {
+        switch (type) {
+            case GerarCarga.RANDOM -> {
+                this.jRadioButtonForNode.setSelected(false);
+                this.jRadioButtonTraces.setSelected(false);
+                this.jRadioButtonRandom.setSelected(true);
+                this.jScrollPaneSelecionado.setViewportView(this.jPanelRandom);
+            }
+            case GerarCarga.FORNODE -> {
+                this.jRadioButtonForNode.setSelected(true);
+                this.jRadioButtonTraces.setSelected(false);
+                this.jRadioButtonRandom.setSelected(false);
+                this.jScrollPaneSelecionado.setViewportView(this.jPanelForNode);
+            }
+            case GerarCarga.TRACE -> {
+                this.jRadioButtonForNode.setSelected(false);
+                this.jRadioButtonTraces.setSelected(true);
+                this.jRadioButtonRandom.setSelected(false);
+                this.jScrollPaneSelecionado.setViewportView(this.jPanelTrace);
+            }
+        }
+    }
+
+    private void onAddUserClick(final ActionEvent evt) {
+        final String newUser = JOptionPane.showInputDialog(this,
+                this.translate("Enter the name"), this.translate("Add user"),
+                JOptionPane.QUESTION_MESSAGE);
+        if (newUser != null && !newUser.isEmpty() && !this.users.contains(newUser)) {
+            this.users.add(newUser);
+        }
+    }
+
+    private void onOkClick(final ActionEvent evt) {
+        if (this.jRadioButtonRandom.isSelected()) {
+            try {
+                final int numTaref =
+                        (Integer) this.jSpinnerNumTarefas.getValue();
+                final int minComp =
+                        (Integer) this.jSpinnerMinComputacao.getValue();
+                final int maxComp =
+                        (Integer) this.jSpinnerMaxComputacao.getValue();
+                final int aveComp =
+                        (Integer) this.jSpinnerAverageComputacao.getValue();
+                final double probComp =
+                        Double.parseDouble(this.jSpinnerProbabilityComputacao.getValue().toString());
+                final int minComun =
+                        (Integer) this.jSpinnerMinComunicacao.getValue();
+                final int maxComun =
+                        (Integer) this.jSpinnerMaxComunicacao.getValue();
+                final int aveComun =
+                        (Integer) this.jSpinnerAverageComunicacao.getValue();
+                final double probComun =
+                        Double.parseDouble(this.jSpinnerProbabilityComunicacao.getValue().toString());
+                final int timeArriv =
+                        (Integer) this.jSpinnerTimeOfArrival.getValue();
+                this.loadGenerator = new CargaRandom(numTaref, minComp, maxComp,
+                        aveComp, probComp, minComun, maxComun, aveComun,
+                        probComun, timeArriv);
+            } catch (final Exception ex) {
+                Logger.getLogger(SelecionaCargas.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (this.jRadioButtonForNode.isSelected()) {
+            try {
+                final List<GerarCarga> configuracaoNo =
+                        new ArrayList(this.tableRow.size());
+                for (final List item : this.tableRow) {
+                    configuracaoNo.add(SelecionaCargas.loadGeneratorFromTableRow(item));
+                }
+                this.loadGenerator = new CargaList(configuracaoNo,
+                        GerarCarga.FORNODE);
+            } catch (final Exception ex) {
+                Logger.getLogger(SelecionaCargas.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (this.jRadioButtonTraces.isSelected()) {
+            //configura a carga apartir do arquivo aberto..
+            this.loadGenerator = new CargaTrace(this.file, this.traceTaskNumber,
+                    this.traceType);
+        }
+        this.setVisible(false);
+    }
+
+    private void onCancelClick(final ActionEvent evt) {
+        this.setVisible(false);
+    }
+
+    private static GerarCarga loadGeneratorFromTableRow(final List row) {
+        return new CargaForNode(
+                row.get(0).toString(),
+                row.get(1).toString(),
+                row.get(2).toString(),
+                Integer.parseInt(row.get(3).toString()),
+                Double.parseDouble(row.get(4).toString()),
+                Double.parseDouble(row.get(5).toString()),
+                Double.parseDouble(row.get(6).toString()),
+                Double.parseDouble(row.get(7).toString())
+        );
+    }
+
+    GerarCarga getCargasConfiguracao() {
+        return this.loadGenerator;
     }
 
     public HashSet<String> getUsuarios() {
-        return new HashSet<String>(usuarios);
+        return new HashSet<>(this.users);
     }
 
-    /**
-     * Apresenta na janela jPanel e seta valores dos jRadioButton de acordo com
-     * tipo informado
-     *
-     * @param tipo jRadioButton selecionado
-     */
-    private void setTipo(int tipo) {
-        switch (tipo) {
-            case GerarCarga.RANDOM:
-                jRadioButtonForNode.setSelected(false);
-                jRadioButtonTraces.setSelected(false);
-                jRadioButtonRandom.setSelected(true);
-                jScrollPaneSelecionado.setViewportView(jPanelRandom);
-                break;
-            case GerarCarga.FORNODE:
-                jRadioButtonForNode.setSelected(true);
-                jRadioButtonTraces.setSelected(false);
-                jRadioButtonRandom.setSelected(false);
-                jScrollPaneSelecionado.setViewportView(jPanelForNode);
-                break;
-            case GerarCarga.TRACE:
-                jRadioButtonForNode.setSelected(false);
-                jRadioButtonTraces.setSelected(true);
-                jRadioButtonRandom.setSelected(false);
-                jScrollPaneSelecionado.setViewportView(jPanelTrace);
-                break;
+    private static class SomeFileView extends FileView {
+        static final char FILE_EXTENSION_SEPARATOR = '.';
+
+        @Override
+        public Icon getIcon(final File filePath) {
+            if (!"wmsx".equals(SomeFileView.getFileExtension(filePath))) {
+                return null;
+            }
+
+            final var url =
+                    JPrincipal.class.getResource("imagens/Logo_iSPD_25.png");
+
+            if (url == null) {
+                return null;
+            }
+
+            return new ImageIcon(url);
+        }
+
+        private static String getFileExtension(final File file) {
+            final var s = file.getName();
+            final int i = s.lastIndexOf(SomeFileView.FILE_EXTENSION_SEPARATOR);
+
+            if (i <= 0 || i >= s.length() - 1) {
+                return null;
+            }
+
+            return s.substring(i + 1).toLowerCase();
         }
     }
 }

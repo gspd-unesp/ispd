@@ -1,492 +1,525 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * JPanelConfigIcon.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui.configuracao;
 
-import ispd.escalonador.ManipularArquivos;
 import ispd.alocacaoVM.ManipularArquivosAlloc;
-import ispd.arquivo.Alocadores;
-import ispd.arquivo.EscalonadoresCloud;
 import ispd.escalonador.ManipularArquivos;
 import ispd.escalonadorCloud.ManipularArquivosCloud;
+import ispd.gui.EscolherClasse;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.Internet;
 import ispd.gui.iconico.grade.ItemGrade;
 import ispd.gui.iconico.grade.Link;
 import ispd.gui.iconico.grade.Machine;
-import java.util.HashSet;
+
+import javax.swing.GroupLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.table.TableModel;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import ispd.gui.EscolherClasse;
-import java.awt.event.MouseEvent;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-/**
- *
- * @author denison
- */
-public class JPanelConfigIcon extends javax.swing.JPanel {
+public class JPanelConfigIcon extends JPanel {
 
-    /**
-     * Creates new form JPanelConfigIcon
-     */
-    private VariedRowTable Tmachine;
-    private VariedRowTable TmachineIaaS;
-    private VariedRowTable Tcluster;
-    private VariedRowTable TclusterIaaS;
-    private VariedRowTable Tlink;
-    private ResourceBundle palavras;
-    private ManipularArquivos escalonadores;
-    private ManipularArquivosCloud escalonadoresCloud;
-    private ManipularArquivosAlloc alocadores;
+    private static final int ROW_HEIGHT = 20;
+    private static final Font TAHOMA_FONT_BOLD = new Font("Tahoma", 1, 12);
+    private final JLabel jLabelIconName = new JLabel(
+            "Configuration for the icon # 0");
+    private final JLabel jLabelTitle = JPanelConfigIcon.makeTitleLabel();
+    private final JScrollPane jScrollPane = new JScrollPane();
+    private ResourceBundle words = ResourceBundle.getBundle(
+            "ispd.idioma.Idioma", new Locale("en", "US"));
+    private final VariedRowTable machineTable = this.createTableWith(
+            MachineVariedRowTable::new,
+            MachineTable::new);
+    private final VariedRowTable iassMachineTable = this.createTableWith(
+            IaasMachineVariedRowTable::new,
+            MachineTableIaaS::new);
+    private final VariedRowTable clusterTable = this.createTableWith(
+            ClusterVariedRowTable::new,
+            ClusterTable::new);
+    private final VariedRowTable iassClusterTable = this.createTableWith(
+            IaasClusterVariedRowTable::new,
+            ClusterTableIaaS::new);
+    private final VariedRowTable linkTable = this.createTableWith(
+            LinkVariedRowTable::new,
+            LinkTable::new);
+    private ManipularArquivos schedulers = null;
+    private ManipularArquivosCloud cloudSchedulers = null;
+    private ManipularArquivosAlloc allocators = null;
 
     public JPanelConfigIcon() {
-        palavras = ResourceBundle.getBundle("ispd.idioma.Idioma", new Locale("en", "US"));
-        Tmachine = new VariedRowTable(){
-            //Implementa as dicas para cada célula da tabela          
-            public String getToolTipText(MouseEvent e) {
-                String tip = null;
-                java.awt.Point p = e.getPoint();
-                int rowIndex = rowAtPoint(p);
-                int colIndex = columnAtPoint(p);
-
-                try {
-                    if(colIndex==1){
-                        if(rowIndex==0){
-                            tip = "Insert the label name of the resource";
-                        }else if(rowIndex==1){
-                            tip = "Select the resource owner";
-                        }else if(rowIndex==2){
-                            tip = "Insert the amount of computing power of the resource in MFlops";
-                        }else if(rowIndex==3){
-                            tip = "Insert the percentage of background computing in decimal notation";
-                        }else if(rowIndex==4){
-                            tip = "Insert the number of precessing cores of the resource";
-                        }else if(rowIndex==5){
-                            tip = "Insert the amount of memory of the resource in MBytes";
-                        }else if(rowIndex==6){
-                            tip = "Insert the amount of hard disk of the resource in GBytes";
-                        }else if(rowIndex==7){
-                            tip = "Select if the resource is master node";
-                        }else if(rowIndex==8){
-                            tip = "Select the task scheduling policy of the master";
-                        }else if(rowIndex==9){
-                            tip = "Select the slave nodes that will be coordinated by this master";
-                        }
-                    }
-                } catch (RuntimeException e1) {
-                    //catch null pointer exception if mouse is over an empty line
-                }
-
-                return tip;
-            }
-        };
-        Tmachine.setModel(new MachineTable(palavras));
-        Tmachine.setRowHeight(20);
-        TmachineIaaS = new VariedRowTable(){
-            //Implementa as dicas para cada célula da tabela          
-            public String getToolTipText(MouseEvent e) {
-                String tip = null;
-                java.awt.Point p = e.getPoint();
-                int rowIndex = rowAtPoint(p);
-                int colIndex = columnAtPoint(p);
-
-                try {
-                    if(colIndex==1){
-                        if(rowIndex==0){
-                            tip = "Insert the label name of the resource";
-                        }else if(rowIndex==1){
-                            tip = "Select the resource owner";
-                        }else if(rowIndex==2){
-                            tip = "Insert the amount of computing power of the resource in MFlops";
-                        }else if(rowIndex==3){
-                            tip = "Insert the percentage of background computing in decimal notation";
-                        }else if(rowIndex==4){
-                            tip = "Insert the number of precessing cores of the resource";
-                        }else if(rowIndex==5){
-                            tip = "Insert the amount of memory of the resource in MBytes";
-                        }else if(rowIndex==6){
-                            tip = "Insert the amount of hard disk of the resource in GBytes";
-                        }else if(rowIndex==7){
-                            tip = "Insert the cost of processing utilization ($/cores/h)";
-                        }else if(rowIndex==8){
-                            tip = "Insert the cost of memory utilization ($/MB/h)";
-                        }else if(rowIndex==9){
-                            tip = "Insert the cost of disk utilization ($/GB/h)";
-                        }else if(rowIndex==10){
-                            tip = "Select if the resource is a virtual machine monitor";
-                        }else if(rowIndex==11){
-                            tip = "Select the task scheduling policy of the VMM";
-                        }else if(rowIndex==12){
-                            tip = "Select the virtual machine allocation policy of the VMM";
-                        }else if(rowIndex==13){
-                            tip = "Select the nodes that will be coordinated by this VMM";
-                        }
-                    }
-                } catch (RuntimeException e1) {
-                    //catch null pointer exception if mouse is over an empty line
-                }
-
-                return tip;
-            }
-        };
-
-        TmachineIaaS.setModel(new MachineTableIaaS(palavras));
-        TmachineIaaS.setRowHeight(20);
-        Tcluster = new VariedRowTable(){
-            //Implementa as dicas para cada célula da tabela          
-            public String getToolTipText(MouseEvent e) {
-                String tip = null;
-                java.awt.Point p = e.getPoint();
-                int rowIndex = rowAtPoint(p);
-                int colIndex = columnAtPoint(p);
-
-                try {
-                    if(colIndex==1){
-                        if(rowIndex==0){
-                            tip = "Insert the label name of the resource";
-                        }else if(rowIndex==1){
-                            tip = "Select the resource owner";
-                        }else if(rowIndex==2){
-                            tip = "Insert the number of nodes that composes the cluster";
-                        }else if(rowIndex==3){
-                             tip = "Insert the amount of computing power of the resource in MFlops";
-                        }else if(rowIndex==4){
-                            tip = "Insert the number of precessing cores of the resource";
-                        }else if(rowIndex==5){
-                            tip = "Insert the amount of memory of the resource in MBytes";
-                        }else if(rowIndex==6){
-                            tip = "Insert the amount of hard disk of the resource in GBytes";
-                        }else if(rowIndex==7){
-                            tip = "Insert the amount of bandwidth that connect the cluster nodes in Mbps";
-                        }else if(rowIndex==8){
-                            tip = "Insert the latency time of the links that connect the cluster nodes in seconds";
-                        }else if(rowIndex==9){
-                            tip = "Select if the resource is a master node";
-                        }else if(rowIndex==10){
-                            tip = "Select the task scheduling policy of the master node";
-                        }else if(rowIndex==11){
-                            tip = "Select the slave nodes that will be coordinated by this master";
-                        }
-                    }
-                } catch (RuntimeException e1) {
-                    //catch null pointer exception if mouse is over an empty line
-                }
-
-                return tip;
-            }
-        };
-        Tcluster.setModel(new ClusterTable(palavras));
-        Tcluster.setRowHeight(20);
-        TclusterIaaS = new VariedRowTable(){
-            //Implementa as dicas para cada célula da tabela          
-            public String getToolTipText(MouseEvent e) {
-                String tip = null;
-                java.awt.Point p = e.getPoint();
-                int rowIndex = rowAtPoint(p);
-                int colIndex = columnAtPoint(p);
-
-                try {
-                    if(colIndex==1){
-                        if(rowIndex==0){
-                            tip = "Insert the label name of the resource";
-                        }else if(rowIndex==1){
-                            tip = "Select the resource owner";
-                        }else if(rowIndex==2){
-                            tip = "Insert the number of nodes that composes the cluster";
-                        }else if(rowIndex==3){
-                             tip = "Insert the amount of computing power of the resource in MFlops";
-                        }else if(rowIndex==4){
-                            tip = "Insert the number of precessing cores of the resource";
-                        }else if(rowIndex==5){
-                            tip = "Insert the amount of memory of the resource in MBytes";
-                        }else if(rowIndex==6){
-                            tip = "Insert the amount of hard disk of the resource in GBytes";
-                        }else if(rowIndex==7){
-                            tip = "Insert the cost of processing utilization ($/cores/h)";
-                        }else if(rowIndex==8){
-                            tip = "Insert the cost of memory utilization ($/MB/h)";
-                        }else if(rowIndex==9){
-                            tip = "Insert the cost of disk utilization ($/GB/h)";
-                        }else if(rowIndex==10){
-                            tip = "Insert the amount of bandwidth that connect the cluster nodes in Mbps";
-                        }else if(rowIndex==11){
-                            tip = "Insert the latency time of the links that connect the cluster nodes in seconds";
-                        }else if(rowIndex==12){
-                            tip = "Select if the resource is a virtual machine monitor";
-                        }else if(rowIndex==13){
-                            tip = "Select the task scheduling policy of the VMM";
-                        }else if(rowIndex==14){
-                            tip = "Select the virtual machine allocation policy of the VMM";
-                        }else if(rowIndex==15){
-                            tip = "Select the nodes that will be coordinated by this VMM";
-                        }
-                    }
-                } catch (RuntimeException e1) {
-                    //catch null pointer exception if mouse is over an empty line
-                }
-
-                return tip;
-            }
-        };
-        TclusterIaaS.setModel(new ClusterTableIaaS(palavras));
-        TclusterIaaS.setRowHeight(20);
-        Tlink = new VariedRowTable(){
-            //Implementa as dicas para cada célula da tabela          
-            public String getToolTipText(MouseEvent e) {
-                String tip = null;
-                java.awt.Point p = e.getPoint();
-                int rowIndex = rowAtPoint(p);
-                int colIndex = columnAtPoint(p);
-
-                try {
-                    if(colIndex==1){
-                        if(rowIndex==0){
-                            tip = "Insert the label name of the resource";
-                        }else if(rowIndex==1){
-                             tip = "Insert the latency time of the resource in seconds";
-                        }else if(rowIndex==2){
-                            tip = "Insert the percentage of background communication in decimal notation";
-                        }else if(rowIndex==3){
-                            tip = "Insert the amount of bandwidth of the resource in seconds";
-                        }
-                    }
-                } catch (RuntimeException e1) {
-                    //catch null pointer exception if mouse is over an empty line
-                }
-
-                return tip;
-            }
-        };
-        Tlink.setModel(new LinkTable(palavras));
-        Tlink.setRowHeight(20);
-        initComponents();
+        this.setLayout();
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jLabelTitle = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jLabelIconName = new javax.swing.JLabel();
-
-        jLabelTitle.setFont(new java.awt.Font("Tahoma", 1, 12));
-        jLabelTitle.setText("Machine icon configuration");
-
-        jLabelIconName.setText("Configuration for the icon # 0");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+    private void setLayout() {
+        final var layout = new GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabelTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabelIconName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(this.jScrollPane,
+                                GroupLayout.PREFERRED_SIZE, 0,
+                                Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(this.jLabelTitle,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
+                                        .addComponent(this.jLabelIconName,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelTitle)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelIconName)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE))
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.jLabelTitle)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jLabelIconName)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jScrollPane,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        158, Short.MAX_VALUE))
         );
-    }// </editor-fold>//GEN-END:initComponents
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabelIconName;
-    private javax.swing.JLabel jLabelTitle;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    // End of variables declaration//GEN-END:variables
-
-    public void setEscalonadores(ManipularArquivos escalonadores) {
-        this.escalonadores = escalonadores;
-        for (Object escal : escalonadores.listar()) {
-            getTabelaMaquina().getEscalonadores().addItem(escal);
-            //getTabelaMaquinaIaaS().getEscalonadores().addItem(escal);
-            getTabelaCluster().getEscalonadores().addItem(escal);
-        }
     }
 
-    public void setEscalonadoresCloud(ManipularArquivosCloud escalonadoresCloud) {
-        this.escalonadoresCloud = escalonadoresCloud;
-        for (Object escal : escalonadoresCloud.listar()) {
-            getTabelaMaquinaIaaS().getEscalonadores().addItem(escal);
-            getTabelaClusterIaaS().getEscalonadores().addItem(escal);
-        }
+    private static JLabel makeTitleLabel() {
+        final JLabel label = new JLabel(
+                "Machine icon configuration");
+        label.setFont(JPanelConfigIcon.TAHOMA_FONT_BOLD);
+        return label;
     }
 
-    public void setAlocadores(ManipularArquivosAlloc alocadores) {
-        this.alocadores = alocadores;
-        for (Object alloc : alocadores.listar()) {
-            getTabelaMaquinaIaaS().getAlocadores().addItem(alloc);
-            getTabelaClusterIaaS().getAlocadores().addItem(alloc);
-        }
+    private VariedRowTable createTableWith(
+            final Supplier<? extends VariedRowTable> makeTable,
+            final Function<? super ResourceBundle, ? extends TableModel> makeModel) {
+        final var t = makeTable.get();
+        t.setModel(makeModel.apply(this.words));
+        t.setRowHeight(JPanelConfigIcon.ROW_HEIGHT);
+        return t;
     }
 
-    public void setIcone(ItemGrade icone) {
-        if (icone instanceof Link) {
-            jLabelTitle.setText(palavras.getString("Network icon configuration"));
-            System.out.println(palavras.getLocale() + " - " + palavras.getString("Network icon configuration"));
-        } else if (icone instanceof Internet) {
-            jLabelTitle.setText(palavras.getString("Internet icon configuration"));
-        }
-        jLabelIconName.setText(palavras.getString("Configuration for the icon") + "#: " + icone.getId().getIdGlobal());
-        getTabelaLink().setLink(icone);
-        jScrollPane1.setViewportView(Tlink);
+    public void setEscalonadores(final ManipularArquivos schedulers) {
+        this.schedulers = schedulers;
+        schedulers.listar().forEach(sch -> {
+            this.getTabelaMaquina().getEscalonadores().addItem(sch);
+            this.getTabelaCluster().getEscalonadores().addItem(sch);
+        });
     }
 
-    public void setIcone(ItemGrade icone, HashSet<String> usuarios, int escolha) {
-        if (escolha == EscolherClasse.GRID) {
-            if (!escalonadores.listarRemovidos().isEmpty()) {
-                for (Object escal : escalonadores.listarRemovidos()) {
-                    getTabelaMaquina().getEscalonadores().removeItem(escal);
+    private MachineTable getTabelaMaquina() {
+        return (MachineTable) this.machineTable.getModel();
+    }
+
+    private ClusterTable getTabelaCluster() {
+        return (ClusterTable) this.clusterTable.getModel();
+    }
+
+    public void setEscalonadoresCloud(final ManipularArquivosCloud cloudSchedulers) {
+        this.cloudSchedulers = cloudSchedulers;
+        cloudSchedulers.listar().forEach(sch -> {
+            this.getTabelaMaquinaIaaS().getEscalonadores().addItem(sch);
+            this.getTabelaClusterIaaS().getEscalonadores().addItem(sch);
+        });
+    }
+
+    private MachineTableIaaS getTabelaMaquinaIaaS() {
+        return (MachineTableIaaS) this.iassMachineTable.getModel();
+    }
+
+    private ClusterTableIaaS getTabelaClusterIaaS() {
+        return (ClusterTableIaaS) this.iassClusterTable.getModel();
+    }
+
+    public void setAlocadores(final ManipularArquivosAlloc allocators) {
+        this.allocators = allocators;
+        allocators.listar().forEach(alloc -> {
+            this.getTabelaMaquinaIaaS().getAlocadores().addItem(alloc);
+            this.getTabelaClusterIaaS().getAlocadores().addItem(alloc);
+        });
+    }
+
+    public void setIcone(final ItemGrade icon) {
+        if (icon instanceof Link) {
+            String text = this.translate(
+                    "Network icon configuration");
+            this.jLabelTitle.setText(text);
+            System.out.printf("%s - %s%n", this.words.getLocale(), text);
+        } else if (icon instanceof Internet) {
+            this.jLabelTitle.setText(this.translate(
+                    "Internet icon configuration"));
+        }
+        this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
+                "Configuration for the icon"), icon.getId().getIdGlobal()));
+        this.getTabelaLink().setLink(icon);
+        this.jScrollPane.setViewportView(this.linkTable);
+    }
+
+    private String translate(final String text) {
+        return this.words.getString(text);
+    }
+
+    private LinkTable getTabelaLink() {
+        return (LinkTable) this.linkTable.getModel();
+    }
+
+    public void setIcone(
+            final ItemGrade icon,
+            final Iterable<String> users,
+            final int choice) {
+        if (choice == EscolherClasse.GRID) {
+            if (!this.schedulers.listarRemovidos().isEmpty()) {
+                for (final Object escal : this.schedulers.listarRemovidos()) {
+                    this.getTabelaMaquina().getEscalonadores().removeItem(escal);
 
                 }
-                escalonadores.listarRemovidos().clear();
+                this.schedulers.listarRemovidos().clear();
             }
-            if (!escalonadores.listarAdicionados().isEmpty()) {
-                for (Object escal : escalonadores.listarAdicionados()) {
-                    getTabelaMaquina().getEscalonadores().addItem(escal);
+            if (!this.schedulers.listarAdicionados().isEmpty()) {
+                for (final Object escal : this.schedulers.listarAdicionados()) {
+                    this.getTabelaMaquina().getEscalonadores().addItem(escal);
                 }
-                escalonadores.listarAdicionados().clear();
+                this.schedulers.listarAdicionados().clear();
             }
-            jLabelIconName.setText(palavras.getString("Configuration for the icon") + "#: " + icone.getId().getIdGlobal());
-            if (icone instanceof Machine) {
-                jLabelTitle.setText(palavras.getString("Machine icon configuration"));
-                getTabelaMaquina().setMaquina((Machine) icone, usuarios);
-                jScrollPane1.setViewportView(Tmachine);
+            this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
+                    "Configuration for the icon"), icon.getId().getIdGlobal()));
+            if (icon instanceof Machine) {
+                this.jLabelTitle.setText(this.translate(
+                        "Machine icon configuration"));
+                this.getTabelaMaquina().setMaquina((Machine) icon, users);
+                this.jScrollPane.setViewportView(this.machineTable);
             }
-            if (icone instanceof Cluster) {
-                jLabelTitle.setText(palavras.getString("Cluster icon configuration"));
-                getTabelaCluster().setCluster((Cluster) icone, usuarios);
-                jScrollPane1.setViewportView(Tcluster);
+            if (icon instanceof Cluster) {
+                this.jLabelTitle.setText(this.translate(
+                        "Cluster icon configuration"));
+                this.getTabelaCluster().setCluster((Cluster) icon, users);
+                this.jScrollPane.setViewportView(this.clusterTable);
             }
-        } else if (escolha == EscolherClasse.IAAS) {
-            if (!escalonadoresCloud.listarRemovidos().isEmpty()) {
-                for (Object escal : escalonadoresCloud.listarRemovidos()) {
-                    getTabelaMaquinaIaaS().getEscalonadores().removeItem(escal);
-                    getTabelaClusterIaaS().getEscalonadores().removeItem(escal);
+        } else if (choice == EscolherClasse.IAAS) {
+            if (!this.cloudSchedulers.listarRemovidos().isEmpty()) {
+                for (final Object escal :
+                        this.cloudSchedulers.listarRemovidos()) {
+                    this.getTabelaMaquinaIaaS().getEscalonadores().removeItem(escal);
+                    this.getTabelaClusterIaaS().getEscalonadores().removeItem(escal);
                 }
-                escalonadoresCloud.listarRemovidos().clear();
+                this.cloudSchedulers.listarRemovidos().clear();
             }
-            if (!escalonadoresCloud.listarAdicionados().isEmpty()) {
-                for (Object escal : escalonadoresCloud.listarAdicionados()) {
-                    getTabelaMaquinaIaaS().getEscalonadores().addItem(escal);
-                    getTabelaClusterIaaS().getEscalonadores().addItem(escal);
+            if (!this.cloudSchedulers.listarAdicionados().isEmpty()) {
+                for (final Object escal :
+                        this.cloudSchedulers.listarAdicionados()) {
+                    this.getTabelaMaquinaIaaS().getEscalonadores().addItem(escal);
+                    this.getTabelaClusterIaaS().getEscalonadores().addItem(escal);
                 }
-                escalonadoresCloud.listarAdicionados().clear();
+                this.cloudSchedulers.listarAdicionados().clear();
             }
 
-            if (!alocadores.listarRemovidos().isEmpty()) {
-                for (Object alloc : alocadores.listarRemovidos()) {
-                    getTabelaMaquinaIaaS().getAlocadores().removeItem(alloc);
-                    getTabelaClusterIaaS().getAlocadores().removeItem(alloc);
+            if (!this.allocators.listarRemovidos().isEmpty()) {
+                for (final Object alloc : this.allocators.listarRemovidos()) {
+                    this.getTabelaMaquinaIaaS().getAlocadores().removeItem(alloc);
+                    this.getTabelaClusterIaaS().getAlocadores().removeItem(alloc);
                 }
-                alocadores.listarRemovidos().clear();
+                this.allocators.listarRemovidos().clear();
             }
-            if (!alocadores.listarAdicionados().isEmpty()){
-                for (Object alloc : alocadores.listarAdicionados()){
-                    getTabelaMaquinaIaaS().getAlocadores().addItem(alloc);
-                    getTabelaClusterIaaS().getAlocadores().addItem(alloc);
+            if (!this.allocators.listarAdicionados().isEmpty()) {
+                for (final Object alloc : this.allocators.listarAdicionados()) {
+                    this.getTabelaMaquinaIaaS().getAlocadores().addItem(alloc);
+                    this.getTabelaClusterIaaS().getAlocadores().addItem(alloc);
                 }
-                alocadores.listarAdicionados().clear();
+                this.allocators.listarAdicionados().clear();
             }
-            
-            jLabelIconName.setText(palavras.getString("Configuration for the icon") + "#: " + icone.getId().getIdGlobal());
-            if (icone instanceof Machine) {
-                jLabelTitle.setText(palavras.getString("Machine icon configuration"));
-                getTabelaMaquinaIaaS().setMaquina((Machine) icone, usuarios);
-                jScrollPane1.setViewportView(TmachineIaaS);
+
+            this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
+                    "Configuration for the icon"), icon.getId().getIdGlobal()));
+            if (icon instanceof Machine) {
+                this.jLabelTitle.setText(this.translate("Machine icon configuration"));
+                this.getTabelaMaquinaIaaS().setMaquina((Machine) icon, users);
+                this.jScrollPane.setViewportView(this.iassMachineTable);
             }
-            if (icone instanceof Cluster) {
-                jLabelTitle.setText(palavras.getString("Cluster icon configuration"));
-                getTabelaClusterIaaS().setCluster((Cluster) icone, usuarios);
-                jScrollPane1.setViewportView(TclusterIaaS);
+            if (icon instanceof Cluster) {
+                this.jLabelTitle.setText(this.translate("Cluster icon configuration"));
+                this.getTabelaClusterIaaS().setCluster((Cluster) icon, users);
+                this.jScrollPane.setViewportView(this.iassClusterTable);
             }
         }
 
     }
 
     public String getTitle() {
-        return jLabelTitle.getText();
+        return this.jLabelTitle.getText();
     }
 
-    public MachineTable getTabelaMaquina() {
-        return (MachineTable) Tmachine.getModel();
+    public void setPalavras(final ResourceBundle words) {
+        this.words = words;
+        ((MachineTable) this.machineTable.getModel()).setPalavras(words);
+        ((MachineTableIaaS) this.iassMachineTable.getModel()).setPalavras(words);
+        ((ClusterTable) this.clusterTable.getModel()).setPalavras(words);
+        ((ClusterTableIaaS) this.iassClusterTable.getModel()).setPalavras(words);
+        ((LinkTable) this.linkTable.getModel()).setPalavras(words);
     }
 
-    public MachineTableIaaS getTabelaMaquinaIaaS() {
-        return (MachineTableIaaS) TmachineIaaS.getModel();
+    private static class MachineVariedRowTable extends VariedRowTable {
+
+        private static final String[] TOOL_TIPS = {
+                "Insert the label name of the resource",
+                "Select the resource owner",
+                "Insert the amount of computing power of the resource in " +
+                        "MFlops",
+                "Insert the percentage of background computing in decimal " +
+                        "notation",
+                "Insert the number of precessing cores of the resource",
+                "Insert the amount of memory of the resource in MBytes",
+                "Insert the amount of hard disk of the resource in GBytes",
+                "Select if the resource is master node",
+                "Select the task scheduling policy of the master",
+                "Select the slave nodes that will be coordinated by this " +
+                        "master",
+        };
+
+        public String getToolTipText(final MouseEvent e) {
+            final Point p = e.getPoint();
+            final int rowIndex = this.rowAtPoint(p);
+            final int colIndex = this.columnAtPoint(p);
+            return this.getToolTip(rowIndex, colIndex);
+        }
+
+        private String getToolTip(final int rowIndex, final int colIndex) {
+            try {
+                if (colIndex != 1) {
+                    return null;
+                }
+                return MachineVariedRowTable.getRowToolTip(rowIndex);
+            } catch (final RuntimeException ignored) {
+                return null;
+            }
+        }
+
+        private static String getRowToolTip(final int rowIndex) {
+            if (rowIndex >= MachineVariedRowTable.TOOL_TIPS.length)
+                return null;
+            return MachineVariedRowTable.TOOL_TIPS[rowIndex];
+        }
     }
 
-    public ClusterTable getTabelaCluster() {
-        return (ClusterTable) Tcluster.getModel();
+    private static class IaasMachineVariedRowTable extends VariedRowTable {
+
+        public String getToolTipText(final MouseEvent e) {
+            String tip = null;
+            final Point p = e.getPoint();
+            final int rowIndex = this.rowAtPoint(p);
+            final int colIndex = this.columnAtPoint(p);
+
+            try {
+                if (colIndex == 1) {
+                    if (rowIndex == 0) {
+                        tip = "Insert the label name of the resource";
+                    } else if (rowIndex == 1) {
+                        tip = "Select the resource owner";
+                    } else if (rowIndex == 2) {
+                        tip = "Insert the amount of computing power of " +
+                                "the resource in MFlops";
+                    } else if (rowIndex == 3) {
+                        tip = "Insert the percentage of background " +
+                                "computing in decimal notation";
+                    } else if (rowIndex == 4) {
+                        tip = "Insert the number of precessing cores of " +
+                                "the resource";
+                    } else if (rowIndex == 5) {
+                        tip = "Insert the amount of memory of the " +
+                                "resource in MBytes";
+                    } else if (rowIndex == 6) {
+                        tip = "Insert the amount of hard disk of the " +
+                                "resource in GBytes";
+                    } else if (rowIndex == 7) {
+                        tip = "Insert the cost of processing utilization " +
+                                "($/cores/h)";
+                    } else if (rowIndex == 8) {
+                        tip = "Insert the cost of memory utilization " +
+                                "($/MB/h)";
+                    } else if (rowIndex == 9) {
+                        tip = "Insert the cost of disk utilization " +
+                                "($/GB/h)";
+                    } else if (rowIndex == 10) {
+                        tip = "Select if the resource is a virtual " +
+                                "machine monitor";
+                    } else if (rowIndex == 11) {
+                        tip = "Select the task scheduling policy of the " +
+                                "VMM";
+                    } else if (rowIndex == 12) {
+                        tip = "Select the virtual machine allocation " +
+                                "policy of the VMM";
+                    } else if (rowIndex == 13) {
+                        tip = "Select the nodes that will be coordinated " +
+                                "by this VMM";
+                    }
+                }
+            } catch (final RuntimeException e1) {
+
+
+            }
+
+            return tip;
+        }
     }
 
-    public ClusterTableIaaS getTabelaClusterIaaS() {
-        return (ClusterTableIaaS) TclusterIaaS.getModel();
+    private static class ClusterVariedRowTable extends VariedRowTable {
+
+        public String getToolTipText(final MouseEvent e) {
+            String tip = null;
+            final Point p = e.getPoint();
+            final int rowIndex = this.rowAtPoint(p);
+            final int colIndex = this.columnAtPoint(p);
+
+            try {
+                if (colIndex == 1) {
+                    if (rowIndex == 0) {
+                        tip = "Insert the label name of the resource";
+                    } else if (rowIndex == 1) {
+                        tip = "Select the resource owner";
+                    } else if (rowIndex == 2) {
+                        tip = "Insert the number of nodes that composes " +
+                                "the cluster";
+                    } else if (rowIndex == 3) {
+                        tip = "Insert the amount of computing power of " +
+                                "the resource in MFlops";
+                    } else if (rowIndex == 4) {
+                        tip = "Insert the number of precessing cores of " +
+                                "the resource";
+                    } else if (rowIndex == 5) {
+                        tip = "Insert the amount of memory of the " +
+                                "resource in MBytes";
+                    } else if (rowIndex == 6) {
+                        tip = "Insert the amount of hard disk of the " +
+                                "resource in GBytes";
+                    } else if (rowIndex == 7) {
+                        tip = "Insert the amount of bandwidth that " +
+                                "connect the cluster nodes in Mbps";
+                    } else if (rowIndex == 8) {
+                        tip = "Insert the latency time of the links that " +
+                                "connect the cluster nodes in seconds";
+                    } else if (rowIndex == 9) {
+                        tip = "Select if the resource is a master node";
+                    } else if (rowIndex == 10) {
+                        tip = "Select the task scheduling policy of the " +
+                                "master node";
+                    } else if (rowIndex == 11) {
+                        tip = "Select the slave nodes that will be " +
+                                "coordinated by this master";
+                    }
+                }
+            } catch (final RuntimeException e1) {
+
+
+            }
+
+            return tip;
+        }
     }
 
-    public LinkTable getTabelaLink() {
-        return (LinkTable) Tlink.getModel();
+    private static class IaasClusterVariedRowTable extends VariedRowTable {
+
+        public String getToolTipText(final MouseEvent e) {
+            String tip = null;
+            final Point p = e.getPoint();
+            final int rowIndex = this.rowAtPoint(p);
+            final int colIndex = this.columnAtPoint(p);
+
+            try {
+                if (colIndex == 1) {
+                    if (rowIndex == 0) {
+                        tip = "Insert the label name of the resource";
+                    } else if (rowIndex == 1) {
+                        tip = "Select the resource owner";
+                    } else if (rowIndex == 2) {
+                        tip = "Insert the number of nodes that composes " +
+                                "the cluster";
+                    } else if (rowIndex == 3) {
+                        tip = "Insert the amount of computing power of " +
+                                "the resource in MFlops";
+                    } else if (rowIndex == 4) {
+                        tip = "Insert the number of precessing cores of " +
+                                "the resource";
+                    } else if (rowIndex == 5) {
+                        tip = "Insert the amount of memory of the " +
+                                "resource in MBytes";
+                    } else if (rowIndex == 6) {
+                        tip = "Insert the amount of hard disk of the " +
+                                "resource in GBytes";
+                    } else if (rowIndex == 7) {
+                        tip = "Insert the cost of processing utilization " +
+                                "($/cores/h)";
+                    } else if (rowIndex == 8) {
+                        tip = "Insert the cost of memory utilization " +
+                                "($/MB/h)";
+                    } else if (rowIndex == 9) {
+                        tip = "Insert the cost of disk utilization " +
+                                "($/GB/h)";
+                    } else if (rowIndex == 10) {
+                        tip = "Insert the amount of bandwidth that " +
+                                "connect the cluster nodes in Mbps";
+                    } else if (rowIndex == 11) {
+                        tip = "Insert the latency time of the links that " +
+                                "connect the cluster nodes in seconds";
+                    } else if (rowIndex == 12) {
+                        tip = "Select if the resource is a virtual " +
+                                "machine monitor";
+                    } else if (rowIndex == 13) {
+                        tip = "Select the task scheduling policy of the " +
+                                "VMM";
+                    } else if (rowIndex == 14) {
+                        tip = "Select the virtual machine allocation " +
+                                "policy of the VMM";
+                    } else if (rowIndex == 15) {
+                        tip = "Select the nodes that will be coordinated " +
+                                "by this VMM";
+                    }
+                }
+            } catch (final RuntimeException e1) {
+
+
+            }
+
+            return tip;
+        }
     }
 
-    public void setPalavras(ResourceBundle palavras) {
-        this.palavras = palavras;
-        ((MachineTable) Tmachine.getModel()).setPalavras(palavras);
-        ((MachineTableIaaS) TmachineIaaS.getModel()).setPalavras(palavras);
-        ((ClusterTable) Tcluster.getModel()).setPalavras(palavras);
-        ((ClusterTableIaaS) TclusterIaaS.getModel()).setPalavras(palavras);
-        ((LinkTable) Tlink.getModel()).setPalavras(palavras);
+    private static class LinkVariedRowTable extends VariedRowTable {
+
+        public String getToolTipText(final MouseEvent e) {
+            String tip = null;
+            final Point p = e.getPoint();
+            final int rowIndex = this.rowAtPoint(p);
+            final int colIndex = this.columnAtPoint(p);
+
+            try {
+                if (colIndex == 1) {
+                    if (rowIndex == 0) {
+                        tip = "Insert the label name of the resource";
+                    } else if (rowIndex == 1) {
+                        tip = "Insert the latency time of the resource in" +
+                                " seconds";
+                    } else if (rowIndex == 2) {
+                        tip = "Insert the percentage of background " +
+                                "communication in decimal notation";
+                    } else if (rowIndex == 3) {
+                        tip = "Insert the amount of bandwidth of the " +
+                                "resource in seconds";
+                    }
+                }
+            } catch (final RuntimeException e1) {
+
+
+            }
+
+            return tip;
+        }
     }
 }

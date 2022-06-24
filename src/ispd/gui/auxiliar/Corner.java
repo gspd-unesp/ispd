@@ -27,21 +27,20 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */ 
+ */
 
 package ispd.gui.auxiliar;
 
-import java.awt.*;
-import javax.swing.*;
-
-/* Corner.java is used by ScrollDemo.java. */
+import javax.swing.JComponent;
+import java.awt.Color;
+import java.awt.Graphics;
 
 public class Corner extends JComponent {
+    private static final Color DEFAULT_COLOR = new Color(240, 240, 240);
+
     @Override
-    protected void paintComponent(Graphics g) {
-        // Fill me with dirty brown/orange.
-        //g.setColor(new Color(230, 163, 4));
-	g.setColor(new Color(240, 240, 240));
-        g.fillRect(0, 0, getWidth(), getHeight());
+    protected void paintComponent(final Graphics g) {
+        g.setColor(Corner.DEFAULT_COLOR);
+        g.fillRect(0, 0, this.getWidth(), this.getHeight());
     }
 }
