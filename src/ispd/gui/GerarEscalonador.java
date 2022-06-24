@@ -91,7 +91,7 @@ public class GerarEscalonador extends JDialog {
     private ManipularArquivosAlloc allocFiles = null;
     private InterpretadorGerador parse = null;
     private int modelType = 0;
-    private JButton buttonFinalize;
+    private JButton buttonFinish;
     private JButton buttonNext;
     private JButton buttonPrevious;
     private JFormattedTextField jFormattedTextFieldP2Tempo;
@@ -159,15 +159,6 @@ public class GerarEscalonador extends JDialog {
         this.startStepOne();
     }
 
-    private static JButton minimalButton(
-            final String text,
-            final ActionListener action) {
-        final var button = new JButton();
-        button.setText(text);
-        button.addActionListener(action);
-        return button;
-    }
-
     private void initComponents() {
 
         this.initStepOneComponents();
@@ -198,39 +189,39 @@ public class GerarEscalonador extends JDialog {
         final String text = "+";
         final ActionListener jButtonP4AddActionPerformed =
                 this::jButtonP4AddActionPerformed;
-        final var button11 = GerarEscalonador.minimalButton(text,
+        final var button11 = ButtonBuilder.basicButton(text,
                 jButtonP4AddActionPerformed);
         button11.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Add = button11;
         jButtonP4Add.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
 
-        final var button10 = GerarEscalonador.minimalButton("-",
+        final var button10 = ButtonBuilder.basicButton("-",
                 this::jButtonP4SubActionPerformed);
         button10.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Sub = button10;
 
-        final var button9 = GerarEscalonador.minimalButton("(",
+        final var button9 = ButtonBuilder.basicButton("(",
                 this::jButtonP4AbreParentActionPerformed);
         button9.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4AbreParent = button9;
 
-        final var button8 = GerarEscalonador.minimalButton(")",
+        final var button8 = ButtonBuilder.basicButton(")",
                 this::jButtonP4FechaParentActionPerformed);
         button8.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4FechaParent = button8;
 
-        final var button7 = GerarEscalonador.minimalButton("/",
+        final var button7 = ButtonBuilder.basicButton("/",
                 this::jButtonP4DivActionPerformed);
         button7.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Div = button7;
 
-        final var button6 = GerarEscalonador.minimalButton("*",
+        final var button6 = ButtonBuilder.basicButton("*",
                 this::jButtonP4MultActionPerformed);
         button6.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Mult = button6;
         jButtonP4Mult.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
 
-        final JButton jButtonP4Voltar = GerarEscalonador.minimalButton("←",
+        final JButton jButtonP4Voltar = ButtonBuilder.basicButton("←",
                 this::jButtonP4VoltarActionPerformed);
 
         final GroupLayout jPanel1Layout =
@@ -303,65 +294,72 @@ public class GerarEscalonador extends JDialog {
                 "Variables")));
 
         final JButton jButtonP4TComputacao =
-                this.configuredButton(this.translate(
-                                "Computational size") +
+                ButtonBuilder.aButton(this.translate(
+                                        "Computational size") +
                                       " - TCP",
-                        this.translate("Computational " +
-                                       "size"),
-                        this::jButtonP4TComputacaoActionPerformed);
+                                this::jButtonP4TComputacaoActionPerformed)
+                        .withToolTip(this.translate("Computational " +
+                                                    "size"))
+                        .build();
 
         final JButton jButtonP4TComunicacao =
-                this.configuredButton(this.translate("Communication size") +
+                ButtonBuilder.aButton(this.translate("Communication size") +
                                       " - TC",
-                        this.translate("Communication " +
-                                       "size"),
-                        this::jButtonP4TComunicacaoActionPerformed);
+                                this::jButtonP4TComunicacaoActionPerformed)
+                        .withToolTip(this.translate("Communication " +
+                                                    "size"))
+                        .build();
 
         final JButton jButtonP4NTSubmetidas =
-                this.configuredButton(this.translate("Number of" +
+                ButtonBuilder.aButton(this.translate("Number of" +
                                                      " submitted" +
                                                      " tasks") + " - " +
                                       "NTS",
-                        this.translate("Number of " +
-                                       "submitted tasks " +
-                                       "by the user"),
-                        this::jButtonP4NTSubmetidasActionPerformed);
+                                this::jButtonP4NTSubmetidasActionPerformed)
+                        .withToolTip(this.translate("Number of " +
+                                                    "submitted tasks " +
+                                                    "by the user"))
+                        .build();
 
         final JButton jButtonP4NTConcluidas =
-                this.configuredButton(this.translate("Number of" +
+                ButtonBuilder.aButton(this.translate("Number of" +
                                                      " completed" +
                                                      " tasks") + " - " +
-                                      "NTC", "Número" +
-                                             " de tarefas " +
-                                             "conclu" +
-                                             "ídas " +
-                                             "do" +
-                                             " usuário",
-                        this::jButtonP4NTConcluidasActionPerformed);
+                                      "NTC",
+                                this::jButtonP4NTConcluidasActionPerformed)
+                        .withToolTip("Número" +
+                                     " de tarefas " +
+                                     "conclu" +
+                                     "ídas " +
+                                     "do" +
+                                     " usuário")
+                        .build();
 
         final JButton jButtonP4PComputUser =
-                this.configuredButton(this.translate(
-                                "User's " +
-                                "computational" +
-                                " power") + " - " +
+                ButtonBuilder.aButton(this.translate(
+                                        "User's " +
+                                        "computational" +
+                                        " power") + " - " +
                                       "PCU",
-                        this.translate(
+                                this::jButtonP4PComputUserActionPerformed)
+                        .withToolTip(this.translate(
                                 "Computational" +
                                 " power " +
                                 "given " +
                                 "by " +
                                 "the user " +
                                 "to " +
-                                "grid"),
-                        this::jButtonP4PComputUserActionPerformed);
+                                "grid"))
+                        .build();
 
         final String aConst = "Const";
         final String translate = this.translate("Numerical" +
                                                 " constant");
         final ActionListener action =
                 this::jButtonP4ConstActionPerformed;
-        final JButton jButtonP4Const = this.configuredButton(aConst, translate,
-                action);
+        final JButton jButtonP4Const = ButtonBuilder.aButton(aConst, action)
+                .withToolTip(translate)
+                .build();
 
         this.jFormattedTextP4DigitaConst = new JFormattedTextField();
         this.jFormattedTextP4DigitaConst.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
@@ -369,14 +367,15 @@ public class GerarEscalonador extends JDialog {
         this.jFormattedTextP4DigitaConst.addActionListener(this::jFormattedTextP4DigitaConstActionPerformed);
 
         final JButton jButtonP4PTempoCriacao =
-                this.configuredButton(this.translate("Task " +
+                ButtonBuilder.aButton(this.translate("Task " +
                                                      "creation" +
                                                      " " +
                                                      "time") + " - " +
                                       "TCR",
-                        this.translate("Task " +
-                                       "creation time"),
-                        this::jButtonP4PTempoCriacaoActionPerformed);
+                                this::jButtonP4PTempoCriacaoActionPerformed)
+                        .withToolTip(this.translate("Task " +
+                                                    "creation time"))
+                        .build();
 
         final GroupLayout jPanel2Layout =
                 new GroupLayout(jPanel2);
@@ -569,34 +568,34 @@ public class GerarEscalonador extends JDialog {
         jPanel4.setBorder(BorderFactory.createTitledBorder(this.translate(
                 "Operators and precedence")));
 
-        final var button5 = GerarEscalonador.minimalButton("+",
+        final var button5 = ButtonBuilder.basicButton("+",
                 this::jButtonP5AddActionPerformed);
         button5.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Add = button5;
         jButtonP5Add.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
 
-        final var button4 = GerarEscalonador.minimalButton("-",
+        final var button4 = ButtonBuilder.basicButton("-",
                 this::jButtonP5SubActionPerformed);
         button4.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Sub = button4;
 
-        final var button3 = GerarEscalonador.minimalButton("(",
+        final var button3 = ButtonBuilder.basicButton("(",
                 this::jButtonP5AbreParentActionPerformed);
         button3.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5AbreParent = button3;
 
-        final var button2 = GerarEscalonador.minimalButton(")",
+        final var button2 = ButtonBuilder.basicButton(")",
                 this::jButtonP5FechaParentActionPerformed);
         button2.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5FechaParent = button2;
 
-        final var button1 = GerarEscalonador.minimalButton("/",
-                this::jButtonP5DivActionPerformed);
+        final var button1 = ButtonBuilder.basicButton("/",
+         this::jButtonP5DivActionPerformed);
         button1.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Div = button1;
 
-        final var button = GerarEscalonador.minimalButton("*",
-                this::jButtonP5MultActionPerformed);
+        final var button = ButtonBuilder.basicButton("*",
+         this::jButtonP5MultActionPerformed);
         button.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Mult = button;
         jButtonP5Mult.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
@@ -604,7 +603,7 @@ public class GerarEscalonador extends JDialog {
         final String text1 = "←";
         final ActionListener jButtonP5VoltarActionPerformed =
                 this::jButtonP5VoltarActionPerformed;
-        final JButton jButtonP5Voltar = GerarEscalonador.minimalButton(text1,
+        final JButton jButtonP5Voltar = ButtonBuilder.basicButton(text1,
                 jButtonP5VoltarActionPerformed);
 
         final GroupLayout jPanel4Layout =
@@ -672,56 +671,63 @@ public class GerarEscalonador extends JDialog {
                 "Variables")));
 
         final JButton jButtonP5PProcessamento =
-                this.configuredButton(this.translate("Processing power") +
+                ButtonBuilder.aButton(this.translate("Processing power") +
                                       " - PP",
-                        this.translate("Resource " +
-                                       "processing " +
-                                       "power"),
-                        this::jButtonP5PProcessamentoActionPerformed);
+                                this::jButtonP5PProcessamentoActionPerformed)
+                        .withToolTip(this.translate("Resource " +
+                                                    "processing " +
+                                                    "power"))
+                        .build();
 
         final JButton jButtonP5LinkComunicacao =
-                this.configuredButton(this.translate("Communication " +
+                ButtonBuilder.aButton(this.translate("Communication " +
                                                      "link") + " - LC",
-                        this.translate("Band of " +
-                                       "the communication link"),
-                        this::jButtonP5LinkComunicacaoActionPerformed);
+                                this::jButtonP5LinkComunicacaoActionPerformed)
+                        .withToolTip(this.translate("Band of " +
+                                                    "the communication link"))
+                        .build();
 
         final JButton jButtonP5TCompTarefa =
-                this.configuredButton(this.translate(
-                                "Task " +
-                                "computational " +
-                                "size") +
+                ButtonBuilder.aButton(this.translate(
+                                        "Task " +
+                                        "computational " +
+                                        "size") +
                                       " - TCT",
-                        this.translate("Computational" +
-                                       " size of the " +
-                                       "submitted task"),
-                        this::jButtonP5TCompTarefaActionPerformed);
+                                this::jButtonP5TCompTarefaActionPerformed)
+                        .withToolTip(this.translate("Computational" +
+                                                    " size of the " +
+                                                    "submitted task"))
+                        .build();
 
-        final JButton jButtonP5NumTExec = this.configuredButton(this.translate(
-                        "Number of " +
-                        "running taks") + " - " +
+        final JButton jButtonP5NumTExec = ButtonBuilder.aButton(this.translate(
+                                "Number of " +
+                                "running taks") + " - " +
                                                                 "NTE",
-                this.translate(
+                        this::jButtonP5NumTExecActionPerformed)
+                .withToolTip(this.translate(
                         "Number" +
                         " of " +
                         "running tasks " +
                         "in the " +
-                        "resource"), this::jButtonP5NumTExecActionPerformed);
+                        "resource"))
+                .build();
 
         final JButton jButtonP5TComunTarefa =
-                this.configuredButton(this.translate("Task " +
+                ButtonBuilder.aButton(this.translate("Task " +
                                                      "communication " +
                                                      "size") +
                                       " - TCMT",
-                        this.translate("Commnication" +
-                                       " size of the " +
-                                       "submmited task"),
-                        this::jButtonP5TComunTarefaActionPerformed);
+                                this::jButtonP5TComunTarefaActionPerformed)
+                        .withToolTip(this.translate("Commnication" +
+                                                    " size of the " +
+                                                    "submmited task"))
+                        .build();
 
-        final JButton jButtonP5Const1 = this.configuredButton("Const",
-                this.translate("Numerical " +
-                               "constant"),
-                this::jButtonP5Const1ActionPerformed);
+        final JButton jButtonP5Const1 = ButtonBuilder.aButton("Const",
+                        this::jButtonP5Const1ActionPerformed)
+                .withToolTip(this.translate("Numerical " +
+                                            "constant"))
+                .build();
 
         this.jFormattedTextP5DigitaConst = new JFormattedTextField();
         this.jFormattedTextP5DigitaConst.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
@@ -729,12 +735,12 @@ public class GerarEscalonador extends JDialog {
         this.jFormattedTextP5DigitaConst.addActionListener(this::jFormattedTextP5DigitaConstActionPerformed);
 
         final JButton jButtonP5MflopExec =
-                GerarEscalonador.minimalButton(this.translate(
-                                "Running " +
-                                "Mflops") +
-                                               " -" +
-                                               " MFE",
-                        this::jButtonP5MflopExecActionPerformed);
+                ButtonBuilder.basicButton(this.translate(
+                        "Running " +
+                        "Mflops") +
+                                          " -" +
+                                          " MFE",
+                                          this::jButtonP5MflopExecActionPerformed);
 
         final GroupLayout jPanel5Layout =
                 new GroupLayout(jPanel5);
@@ -1249,24 +1255,26 @@ public class GerarEscalonador extends JDialog {
         final JPanel jPanelControle = new JPanel();
         jPanelControle.setBorder(BorderFactory.createEtchedBorder());
 
-        this.buttonPrevious = new JButton();
-        this.buttonPrevious.setText("< " + this.translate("Back"));
-        this.buttonPrevious.addActionListener(this::jButtonVoltarActionPerformed);
-        this.buttonPrevious.setEnabled(false);
+        this.buttonPrevious = ButtonBuilder
+                .aButton("< %s".formatted(this.translate("Back")),
+                        this::onPreviousClick)
+                .disabled()
+                .build();
 
-        this.buttonNext = new JButton();
-        this.buttonNext.setText(this.translate("Next") + " >");
-        this.buttonNext.setActionCommand(this.translate("Next") + " >");
-        this.buttonNext.addActionListener(this::jButtonProximoActionPerformed);
+        this.buttonNext = ButtonBuilder
+                .aButton("%s >".formatted(this.translate("Next")),
+                        this::onNextClick)
+                .withActionCommand("%s >".formatted(this.translate("Next")))
+                .build();
 
-        this.buttonFinalize = new JButton();
-        this.buttonFinalize.setText(this.translate("Finish"));
-        this.buttonFinalize.setEnabled(false);
-        this.buttonFinalize.addActionListener(this::jButtonFinalizarActionPerformed);
+        this.buttonFinish = ButtonBuilder
+                .aButton(this.translate("Finish"), this::onFinishClick)
+                .disabled()
+                .build();
 
-        final JButton jButtonCancelar =
-                GerarEscalonador.minimalButton(this.translate("Cancel"),
-                        this::jButtonCancelarActionPerformed);
+        final JButton cancel =
+                ButtonBuilder.basicButton(this.translate("Cancel"),
+                 this::onCancelClick);
 
         final GroupLayout jPanelControleLayout =
                 new GroupLayout(jPanelControle);
@@ -1279,9 +1287,9 @@ public class GerarEscalonador extends JDialog {
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(this.buttonNext)
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(this.buttonFinalize)
+                                .addComponent(this.buttonFinish)
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonCancelar)
+                                .addComponent(cancel)
                                 .addContainerGap(380, Short.MAX_VALUE))
         );
         jPanelControleLayout.setVerticalGroup(
@@ -1291,23 +1299,13 @@ public class GerarEscalonador extends JDialog {
                                 .addGroup(jPanelControleLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                         .addComponent(this.buttonPrevious)
                                         .addComponent(this.buttonNext)
-                                        .addComponent(this.buttonFinalize)
-                                        .addComponent(jButtonCancelar))
+                                        .addComponent(this.buttonFinish)
+                                        .addComponent(cancel))
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE,
                                         Short.MAX_VALUE))
         );
 
         this.makeLayoutAndPack(jPanelPassos, jPanelControle);
-    }
-
-    private JButton configuredButton(final String aConst,
-                                     final String translate,
-                                     final ActionListener action) {
-        final JButton jButtonP4Const = new JButton();
-        jButtonP4Const.setText(aConst);
-        jButtonP4Const.setToolTipText(translate);
-        jButtonP4Const.addActionListener(action);
-        return jButtonP4Const;
     }
 
     private void initStepThreeComponents() {
@@ -1699,7 +1697,7 @@ public class GerarEscalonador extends JDialog {
         return this.translator.getString(text);
     }
 
-    private void jButtonProximoActionPerformed(final ActionEvent evt) {
+    private void onNextClick(final ActionEvent evt) {
         switch (this.currentStep) {
             case 1 -> {
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso2);
@@ -1758,12 +1756,12 @@ public class GerarEscalonador extends JDialog {
                 this.jLabelPasso7.setEnabled(true);
                 this.currentStep = 7;
                 this.buttonNext.setEnabled(false);
-                this.buttonFinalize.setEnabled(true);
+                this.buttonFinish.setEnabled(true);
             }
         }
     }
 
-    private void jButtonVoltarActionPerformed(final ActionEvent evt) {
+    private void onPreviousClick(final ActionEvent evt) {
         switch (this.currentStep) {
             case 2 -> {
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso1);
@@ -1821,7 +1819,7 @@ public class GerarEscalonador extends JDialog {
                 this.jLabelPasso6.setEnabled(true);
                 this.jScrollPanePrincipal.setViewportView(this.jPanelPasso6);
                 this.buttonNext.setEnabled(true);
-                this.buttonFinalize.setEnabled(false);
+                this.buttonFinish.setEnabled(false);
                 this.currentStep = 6;
             }
         }
@@ -2134,7 +2132,7 @@ public class GerarEscalonador extends JDialog {
         this.jButtonP4VoltarActionPerformed(evt);
     }
 
-    private void jButtonFinalizarActionPerformed(final ActionEvent evt) {
+    private void onFinishClick(final ActionEvent evt) {
 
         final String codigo = this.jTextPaneP7Gramatica.getText();
         this.parse = new InterpretadorGerador(codigo);
@@ -2201,7 +2199,7 @@ public class GerarEscalonador extends JDialog {
         }
     }
 
-    private void jButtonCancelarActionPerformed(final ActionEvent evt) {
+    private void onCancelClick(final ActionEvent evt) {
 
         this.dispose();
     }

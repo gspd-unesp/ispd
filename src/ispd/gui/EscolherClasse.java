@@ -1,7 +1,6 @@
 package ispd.gui;
 
 import javax.swing.GroupLayout;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -40,9 +39,32 @@ public class EscolherClasse extends JDialog {
         this.setFont(EscolherClasse.WINDOW_FONT);
     }
 
+    private static JRadioButton configuredRadioButton(
+            final String text,
+            final ActionListener action) {
+        final var button = new JRadioButton();
+        button.setText(text);
+        button.addActionListener(action);
+        return button;
+    }
+
+    private void gridButtonClicked(final ActionEvent evt) {
+        this.deselectAllButtons();
+        this.jRadioGrid.setSelected(true);
+    }
+
+    private void iaasButtonClicked(final ActionEvent evt) {
+        this.deselectAllButtons();
+        this.jRadioIaaS.setSelected(true);
+    }
+
+    private void paasButtonClicked(final ActionEvent evt) {
+        this.deselectAllButtons();
+        this.jRadioPaaS.setSelected(true);
+    }
+
     private void makeLayoutAndPack() {
-        final var ok = EscolherClasse.configuredButton(
-                "OK!", this::okButtonClicked);
+        final var ok = ButtonBuilder.basicButton("OK!", this::onOkClick);
         final var title = new JLabel(
                 "Choose the service that do you want to model");
         final var pickModelType = new JPanel();
@@ -114,47 +136,15 @@ public class EscolherClasse extends JDialog {
         this.pack();
     }
 
-    private static JRadioButton configuredRadioButton(
-            final String text,
-            final ActionListener action) {
-        final var button = new JRadioButton();
-        button.setText(text);
-        button.addActionListener(action);
-        return button;
-    }
-
-    private void gridButtonClicked(final ActionEvent evt) {
-        this.deselectAllButtons();
-        this.jRadioGrid.setSelected(true);
-    }
-
-    private void iaasButtonClicked(final ActionEvent evt) {
-        this.deselectAllButtons();
-        this.jRadioIaaS.setSelected(true);
-    }
-
-    private void paasButtonClicked(final ActionEvent evt) {
-        this.deselectAllButtons();
-        this.jRadioPaaS.setSelected(true);
-    }
-
-    private static JButton configuredButton(
-            final String text,
-            final ActionListener action) {
-        final var button = new JButton(text);
-        button.addActionListener(action);
-        return button;
-    }
-
-    private void okButtonClicked(final ActionEvent evt) {
-        this.choice = this.getChoiceForSelectedButton();
-        this.setVisible(false);
-    }
-
     private void deselectAllButtons() {
         this.jRadioGrid.setSelected(false);
         this.jRadioIaaS.setSelected(false);
         this.jRadioPaaS.setSelected(false);
+    }
+
+    private void onOkClick(final ActionEvent evt) {
+        this.choice = this.getChoiceForSelectedButton();
+        this.setVisible(false);
     }
 
     private int getChoiceForSelectedButton() {

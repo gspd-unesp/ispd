@@ -7,7 +7,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -73,7 +72,7 @@ public class JUsuarios extends JDialog {
                 .withIcon(new ImageIcon(this.getResource(
                         "/ispd/gui/imagens/insert-object.png")))
                 .withSize(JUsuarios.BUTTON_PREFERRED_SIZE)
-                .withTextPosition(SwingConstants.CENTER, SwingConstants.BOTTOM)
+                .withCenterBottomTextPosition()
                 .build());
 
         toolbar.add(ButtonBuilder
@@ -82,7 +81,7 @@ public class JUsuarios extends JDialog {
                 .withIcon(new ImageIcon(this.getResource(
                         "/ispd/gui/imagens/window-close.png")))
                 .withSize(JUsuarios.BUTTON_PREFERRED_SIZE)
-                .withTextPosition(SwingConstants.CENTER, SwingConstants.BOTTOM)
+                .withCenterBottomTextPosition()
                 .build());
 
         final var jButtonOk = ButtonBuilder.basicButton(
