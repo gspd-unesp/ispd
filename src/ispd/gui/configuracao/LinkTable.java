@@ -1,7 +1,7 @@
 package ispd.gui.configuracao;
 
 import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Link;
 
 import javax.swing.table.AbstractTableModel;
@@ -16,14 +16,14 @@ public class LinkTable extends AbstractTableModel {
     private static final int LOAD_FACTOR = 3;
     private static final int ROW_COUNT = 4;
     private static final int COLUMN_COUNT = 2;
-    private ItemGrade link = null;
+    private GridItem link = null;
     private ResourceBundle words;
 
     LinkTable(final ResourceBundle words) {
         this.words = words;
     }
 
-    public void setLink(final ItemGrade link) {
+    public void setLink(final GridItem link) {
         this.link = link;
     }
 
@@ -72,7 +72,7 @@ public class LinkTable extends AbstractTableModel {
 
         switch (rowIndex) {
             case LinkTable.LABEL:
-                return this.link.getId().getNome();
+                return this.link.getId().getName();
 
             case LinkTable.BANDWIDTH:
                 if (this.link instanceof Link) {
@@ -129,7 +129,7 @@ public class LinkTable extends AbstractTableModel {
     private void updateValue(final Object aValue, final int rowIndex) {
 
         if (rowIndex == LinkTable.LABEL) {
-            this.link.getId().setNome(aValue.toString());
+            this.link.getId().setName(aValue.toString());
             return;
         }
 

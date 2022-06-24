@@ -45,7 +45,7 @@ import ispd.gui.EscolherClasse;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Link;
 import ispd.gui.iconico.grade.Machine;
 import ispd.gui.iconico.grade.VirtualMachine;
@@ -800,7 +800,7 @@ public class IconicoXML {
         return cargasConfiguracao;
     }
 
-    private static void setCaracteristicas(ItemGrade item, NodeList elementsByTagName) {
+    private static void setCaracteristicas(GridItem item, NodeList elementsByTagName) {
         Machine maq = null;
         Cluster clust = null;
         if (item instanceof Machine) {
@@ -811,17 +811,17 @@ public class IconicoXML {
         if (elementsByTagName.getLength() > 0 && clust != null) {
             Element caracteristicas = (Element) elementsByTagName.item(0);
             Element process = (Element) caracteristicas.getElementsByTagName("process").item(0);
-            clust.setPoderComputacional(Double.valueOf(process.getAttribute("power")));
-            clust.setNucleosProcessador(Integer.valueOf(process.getAttribute("number")));
+            clust.setComputationalPower(Double.valueOf(process.getAttribute("power")));
+            clust.setCoreCount(Integer.valueOf(process.getAttribute("number")));
             Element memory = (Element) caracteristicas.getElementsByTagName("memory").item(0);
-            clust.setMemoriaRAM(Double.valueOf(memory.getAttribute("size")));
+            clust.setRam(Double.valueOf(memory.getAttribute("size")));
             Element disk = (Element) caracteristicas.getElementsByTagName("hard_disk").item(0);
-            clust.setDiscoRigido(Double.valueOf(disk.getAttribute("size")));
+            clust.setHardDisk(Double.valueOf(disk.getAttribute("size")));
             if (caracteristicas.getElementsByTagName("cost").getLength() > 0) {
                 Element cost = (Element) caracteristicas.getElementsByTagName("cost").item(0);
-                clust.setCostperprocessing(Double.valueOf(cost.getAttribute("cost_proc")));
-                clust.setCostpermemory(Double.valueOf(cost.getAttribute("cost_mem")));
-                clust.setCostperdisk(Double.valueOf(cost.getAttribute("cost_disk")));
+                clust.setCostPerProcessing(Double.valueOf(cost.getAttribute("cost_proc")));
+                clust.setCostPerMemory(Double.valueOf(cost.getAttribute("cost_mem")));
+                clust.setCostPerDisk(Double.valueOf(cost.getAttribute("cost_disk")));
             }
         } else if (elementsByTagName.getLength() > 0 && maq != null) {
             Element caracteristicas = (Element) elementsByTagName.item(0);
@@ -861,17 +861,17 @@ public class IconicoXML {
             clust.setSelected(false);
             vertices.add(clust);
             icones.put(global, clust);
-            clust.getId().setNome(cluster.getAttribute("id"));
-            ValidaValores.addNomeIcone(clust.getId().getNome());
-            clust.setPoderComputacional(Double.parseDouble(cluster.getAttribute("power")));
+            clust.getId().setName(cluster.getAttribute("id"));
+            ValidaValores.addNomeIcone(clust.getId().getName());
+            clust.setComputationalPower(Double.parseDouble(cluster.getAttribute("power")));
             setCaracteristicas(clust, cluster.getElementsByTagName("characteristic"));
-            clust.setNumeroEscravos(Integer.parseInt(cluster.getAttribute("nodes")));
-            clust.setBanda(Double.parseDouble(cluster.getAttribute("bandwidth")));
-            clust.setLatencia(Double.parseDouble(cluster.getAttribute("latency")));
-            clust.setAlgoritmo(cluster.getAttribute("scheduler"));
-            clust.setVMMallocpolicy(cluster.getAttribute("vm_alloc"));
-            clust.setProprietario(cluster.getAttribute("owner"));
-            clust.setMestre(Boolean.parseBoolean(cluster.getAttribute("master")));
+            clust.setSlaveCount(Integer.parseInt(cluster.getAttribute("nodes")));
+            clust.setBandwidth(Double.parseDouble(cluster.getAttribute("bandwidth")));
+            clust.setLatency(Double.parseDouble(cluster.getAttribute("latency")));
+            clust.setSchedulingAlgorithm(cluster.getAttribute("scheduler"));
+            clust.setVmmAllocationPolicy(cluster.getAttribute("vm_alloc"));
+            clust.setOwner(cluster.getAttribute("owner"));
+            clust.setMaster(Boolean.parseBoolean(cluster.getAttribute("master")));
         }
         //Realiza leitura dos icones de internet
         for (int i = 0; i < internet.getLength(); i++) {
@@ -886,8 +886,8 @@ public class IconicoXML {
             net.setSelected(false);
             vertices.add(net);
             icones.put(global, net);
-            net.getId().setNome(inet.getAttribute("id"));
-            ValidaValores.addNomeIcone(net.getId().getNome());
+            net.getId().setName(inet.getAttribute("id"));
+            ValidaValores.addNomeIcone(net.getId().getName());
             net.setBanda(Double.parseDouble(inet.getAttribute("bandwidth")));
             net.setTaxaOcupacao(Double.parseDouble(inet.getAttribute("load")));
             net.setLatencia(Double.parseDouble(inet.getAttribute("latency")));
@@ -906,8 +906,8 @@ public class IconicoXML {
                 maq.setSelected(false);
                 icones.put(global, maq);
                 vertices.add(maq);
-                maq.getId().setNome(maquina.getAttribute("id"));
-                ValidaValores.addNomeIcone(maq.getId().getNome());
+                maq.getId().setName(maquina.getAttribute("id"));
+                ValidaValores.addNomeIcone(maq.getId().getName());
                 maq.setPoderComputacional(Double.parseDouble(maquina.getAttribute("power")));
                 setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
                 maq.setTaxaOcupacao(Double.parseDouble(maquina.getAttribute("load")));
@@ -932,8 +932,8 @@ public class IconicoXML {
                 int global = Integer.parseInt(id.getAttribute("global"));
                 Machine maq = (Machine) icones.get(global);
                 vertices.add(maq);
-                maq.getId().setNome(maquina.getAttribute("id"));
-                ValidaValores.addNomeIcone(maq.getId().getNome());
+                maq.getId().setName(maquina.getAttribute("id"));
+                ValidaValores.addNomeIcone(maq.getId().getName());
                 maq.setPoderComputacional(Double.parseDouble(maquina.getAttribute("power")));
                 setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
                 maq.setTaxaOcupacao(Double.parseDouble(maquina.getAttribute("load")));
@@ -943,10 +943,10 @@ public class IconicoXML {
                 maq.setVMMallocpolicy(master.getAttribute("vm_alloc"));
                 maq.setMestre(true);
                 NodeList slaves = master.getElementsByTagName("slave");
-                List<ItemGrade> escravos = new ArrayList<ItemGrade>(slaves.getLength());
+                List<GridItem> escravos = new ArrayList<GridItem>(slaves.getLength());
                 for (int j = 0; j < slaves.getLength(); j++) {
                     Element slave = (Element) slaves.item(j);
-                    ItemGrade escravo = (ItemGrade) icones.get(Integer.parseInt(slave.getAttribute("id")));
+                    GridItem escravo = (GridItem) icones.get(Integer.parseInt(slave.getAttribute("id")));
                     if (escravo != null) {
                         escravos.add(escravo);
                     }
@@ -966,11 +966,11 @@ public class IconicoXML {
             Vertex destino = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("destination")));
             Link lk = new Link(origem, destino, local, global);
             lk.setSelected(false);
-            ((ItemGrade) origem).getConexoesSaida().add(lk);
-            ((ItemGrade) destino).getConexoesEntrada().add(lk);
+            ((GridItem) origem).getOutboundConnections().add(lk);
+            ((GridItem) destino).getInboundConnections().add(lk);
             arestas.add(lk);
-            lk.getId().setNome(link.getAttribute("id"));
-            ValidaValores.addNomeIcone(lk.getId().getNome());
+            lk.getId().setName(link.getAttribute("id"));
+            ValidaValores.addNomeIcone(lk.getId().getName());
             lk.setBanda(Double.parseDouble(link.getAttribute("bandwidth")));
             lk.setTaxaOcupacao(Double.parseDouble(link.getAttribute("load")));
             lk.setLatencia(Double.parseDouble(link.getAttribute("latency")));

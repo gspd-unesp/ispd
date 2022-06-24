@@ -1,7 +1,7 @@
 package ispd.gui.configuracao;
 
 import ispd.arquivo.Escalonadores;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 
 import javax.swing.DefaultListModel;
@@ -35,7 +35,7 @@ public class MachineTable extends AbstractTableModel {
     private final JComboBox<?> schedulers =
             new JComboBox<Object>(Escalonadores.ESCALONADORES);
     private final JComboBox<String> users = new JComboBox<>();
-    private final JList<ItemGrade> slaveList = new JList<>();
+    private final JList<GridItem> slaveList = new JList<>();
     private ResourceBundle words;
     private Machine machine = null;
 
@@ -121,7 +121,7 @@ public class MachineTable extends AbstractTableModel {
         }
 
         return switch (rowIndex) {
-            case MachineTable.LABEL -> this.machine.getId().getNome();
+            case MachineTable.LABEL -> this.machine.getId().getName();
             case MachineTable.OWNER -> this.users;
             case MachineTable.PROCESSOR -> this.machine.getPoderComputacional();
             case MachineTable.LOAD_FACTOR -> this.machine.getTaxaOcupacao();
@@ -165,7 +165,7 @@ public class MachineTable extends AbstractTableModel {
     private void setValueAtIndex(final Object value, final int rowIndex) {
         switch (rowIndex) {
             case MachineTable.LABEL ->
-                    this.machine.getId().setNome(value.toString());
+                    this.machine.getId().setName(value.toString());
             case MachineTable.OWNER ->
                     this.machine.setProprietario(this.users.getSelectedItem().toString());
             case MachineTable.PROCESSOR ->
@@ -208,7 +208,7 @@ public class MachineTable extends AbstractTableModel {
                 return;
             }
 
-            final var modelList = new DefaultListModel<ItemGrade>();
+            final var modelList = new DefaultListModel<GridItem>();
             final var connectedList =
                     MachineTable.this.machine.getNosEscalonaveis();
 

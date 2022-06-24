@@ -9,9 +9,9 @@ import java.awt.Polygon;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-public class Link extends Edge implements ItemGrade {
+public class Link extends Edge implements GridItem {
 
-    private IdentificadorItemGrade id;
+    private GridItemIdentifier id;
     private boolean selected;
     private Polygon areaSeta;
     private static Color DARK_GREEN = new Color(0, 130, 0);
@@ -24,36 +24,36 @@ public class Link extends Edge implements ItemGrade {
         super(origem, destino);
         this.selected = true;
         this.areaSeta = new Polygon();
-        this.id = new IdentificadorItemGrade(idLocal, idGlobal, "link" + idGlobal);
+        this.id = new GridItemIdentifier(idLocal, idGlobal, "link" + idGlobal);
     }
 
     @Override
-    public IdentificadorItemGrade getId() {
+    public GridItemIdentifier getId() {
         return this.id;
     }
 
     @Override
-    public Set<ItemGrade> getConexoesEntrada() {
+    public Set<GridItem> getInboundConnections() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Set<ItemGrade> getConexoesSaida() {
+    public Set<GridItem> getOutboundConnections() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public String getAtributos(ResourceBundle palavras) {
-        String texto = palavras.getString("Local ID:") + " " + getId().getIdLocal()
-                + "<br>" + palavras.getString("Global ID:") + " " + getId().getIdGlobal()
-                + "<br>" + palavras.getString("Label") + ": " + getId().getNome()
-                + "<br>" + palavras.getString("X1-coordinate:") + " " + getSource().getX()
-                + "<br>" + palavras.getString("Y1-coordinate:") + " " + getSource().getY()
-                + "<br>" + palavras.getString("X2-coordinate:") + " " + getDestination().getY()
-                + "<br>" + palavras.getString("Y2-coordinate:") + " " + getDestination().getX()
-                + "<br>" + palavras.getString("Bandwidth") + ": " + getBanda()
-                + "<br>" + palavras.getString("Latency") + ": " + getLatencia()
-                + "<br>" + palavras.getString("Load Factor") + ": " + getTaxaOcupacao();
+    public String getAttributes(ResourceBundle resourceBundle) {
+        String texto = resourceBundle.getString("Local ID:") + " " + getId().getLocalId()
+                + "<br>" + resourceBundle.getString("Global ID:") + " " + getId().getGlobalId()
+                + "<br>" + resourceBundle.getString("Label") + ": " + getId().getName()
+                + "<br>" + resourceBundle.getString("X1-coordinate:") + " " + getSource().getX()
+                + "<br>" + resourceBundle.getString("Y1-coordinate:") + " " + getSource().getY()
+                + "<br>" + resourceBundle.getString("X2-coordinate:") + " " + getDestination().getY()
+                + "<br>" + resourceBundle.getString("Y2-coordinate:") + " " + getDestination().getX()
+                + "<br>" + resourceBundle.getString("Bandwidth") + ": " + getBanda()
+                + "<br>" + resourceBundle.getString("Latency") + ": " + getLatencia()
+                + "<br>" + resourceBundle.getString("Load Factor") + ": " + getTaxaOcupacao();
         return texto;
     }
 
@@ -65,7 +65,7 @@ public class Link extends Edge implements ItemGrade {
      * @param idLocal the value of idLocal
      */
     @Override
-    public Link criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
+    public Link makeCopy(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
         Link temp = new Link(null, null, idGlobal, idLocal);
         temp.banda = this.banda;
         temp.latencia = this.latencia;
@@ -75,7 +75,7 @@ public class Link extends Edge implements ItemGrade {
     }
 
     @Override
-    public boolean isConfigurado() {
+    public boolean isConfigured() {
         return configurado;
     }
 
@@ -135,7 +135,7 @@ public class Link extends Edge implements ItemGrade {
 
         if (isSelected()) {
             g.setColor(Color.BLACK);
-        } else if (isConfigurado()) {
+        } else if (isConfigured()) {
             g.setColor(DARK_GREEN);
         } else {
             g.setColor(Color.RED);

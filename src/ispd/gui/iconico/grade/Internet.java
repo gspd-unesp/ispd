@@ -8,11 +8,11 @@ import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-public class Internet extends Vertex implements ItemGrade {
+public class Internet extends Vertex implements GridItem {
     
-    private IdentificadorItemGrade id;
-    private HashSet<ItemGrade> conexoesEntrada;
-    private HashSet<ItemGrade> conexoesSaida;
+    private GridItemIdentifier id;
+    private HashSet<GridItem> conexoesEntrada;
+    private HashSet<GridItem> conexoesSaida;
     private double banda;
     private double ocupacao;
     private double latencia;
@@ -20,36 +20,36 @@ public class Internet extends Vertex implements ItemGrade {
 
     public Internet(int x, int y, int idLocal, int idGlobal) {
         super(x, y);
-        this.id = new IdentificadorItemGrade(idLocal, idGlobal, "net" + idGlobal);
-        this.conexoesEntrada = new HashSet<ItemGrade>();
-        this.conexoesSaida = new HashSet<ItemGrade>();
+        this.id = new GridItemIdentifier(idLocal, idGlobal, "net" + idGlobal);
+        this.conexoesEntrada = new HashSet<GridItem>();
+        this.conexoesSaida = new HashSet<GridItem>();
     }
 
     @Override
-    public IdentificadorItemGrade getId() {
+    public GridItemIdentifier getId() {
         return this.id;
     }
     
     @Override
-    public Set<ItemGrade> getConexoesEntrada() {
+    public Set<GridItem> getInboundConnections() {
         return conexoesEntrada;
     }
 
     @Override
-    public Set<ItemGrade> getConexoesSaida() {
+    public Set<GridItem> getOutboundConnections() {
         return conexoesSaida;
     }
     
     @Override
-    public String getAtributos(ResourceBundle palavras) {
-        String texto = palavras.getString("Local ID:") + " " + id.getIdLocal()
-         + "<br>" + palavras.getString("Global ID:") + " " + id.getIdGlobal()
-         + "<br>" + palavras.getString("Label") + ": " + id.getNome()
-         + "<br>" + palavras.getString("X-coordinate:") + " " + getX()
-         + "<br>" + palavras.getString("Y-coordinate:") + " " + getY()
-         + "<br>" + palavras.getString("Bandwidth") + ": " + getBanda()
-         + "<br>" + palavras.getString("Latency") + ": " + getLatencia()
-         + "<br>" + palavras.getString("Load Factor") + ": " + getTaxaOcupacao();
+    public String getAttributes(ResourceBundle resourceBundle) {
+        String texto = resourceBundle.getString("Local ID:") + " " + id.getLocalId()
+         + "<br>" + resourceBundle.getString("Global ID:") + " " + id.getGlobalId()
+         + "<br>" + resourceBundle.getString("Label") + ": " + id.getName()
+         + "<br>" + resourceBundle.getString("X-coordinate:") + " " + getX()
+         + "<br>" + resourceBundle.getString("Y-coordinate:") + " " + getY()
+         + "<br>" + resourceBundle.getString("Bandwidth") + ": " + getBanda()
+         + "<br>" + resourceBundle.getString("Latency") + ": " + getLatencia()
+         + "<br>" + resourceBundle.getString("Load Factor") + ": " + getTaxaOcupacao();
          return texto;
     }
     
@@ -61,7 +61,7 @@ public class Internet extends Vertex implements ItemGrade {
      * @param idLocal the value of idLocal
      */
     @Override
-    public Internet criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
+    public Internet makeCopy(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
         Internet temp = new Internet(posicaoMouseX, posicaoMouseY, idGlobal, idLocal);
         temp.banda = this.banda;
         temp.ocupacao = this.ocupacao;
@@ -71,21 +71,21 @@ public class Internet extends Vertex implements ItemGrade {
     }
     
     @Override
-    public boolean isConfigurado() {
+    public boolean isConfigured() {
         return configurado;
     }
 
     @Override
     public void draw(Graphics g) {
         g.drawImage(DesenhoGrade.IINTERNET, getX() - 15, getY() - 15, null);
-        if (isConfigurado()) {
+        if (isConfigured()) {
             g.drawImage(DesenhoGrade.IVERDE, getX() + 15, getY() + 15, null);
         } else {
             g.drawImage(DesenhoGrade.IVERMELHO, getX() + 15, getY() + 15, null);
         }
 
         g.setColor(Color.BLACK);
-        g.drawString(String.valueOf(getId().getIdGlobal()), getX(), getY() + 30);
+        g.drawString(String.valueOf(getId().getGlobalId()), getX(), getY() + 30);
         // Se o icone estiver ativo, desenhamos uma margem nele.
         if (isSelected()) {
             g.setColor(Color.RED);

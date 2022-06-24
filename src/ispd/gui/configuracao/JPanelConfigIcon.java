@@ -6,7 +6,7 @@ import ispd.escalonadorCloud.ManipularArquivosCloud;
 import ispd.gui.EscolherClasse;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Link;
 import ispd.gui.iconico.grade.Machine;
 
@@ -148,7 +148,7 @@ public class JPanelConfigIcon extends JPanel {
         });
     }
 
-    public void setIcone(final ItemGrade icon) {
+    public void setIcone(final GridItem icon) {
         if (icon instanceof Link) {
             String text = this.translate(
                     "Network icon configuration");
@@ -159,7 +159,7 @@ public class JPanelConfigIcon extends JPanel {
                     "Internet icon configuration"));
         }
         this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
-                "Configuration for the icon"), icon.getId().getIdGlobal()));
+                "Configuration for the icon"), icon.getId().getGlobalId()));
         this.getTabelaLink().setLink(icon);
         this.jScrollPane.setViewportView(this.linkTable);
     }
@@ -173,7 +173,7 @@ public class JPanelConfigIcon extends JPanel {
     }
 
     public void setIcone(
-            final ItemGrade icon,
+            final GridItem icon,
             final Iterable<String> users,
             final int choice) {
         if (choice == EscolherClasse.GRID) {
@@ -191,7 +191,7 @@ public class JPanelConfigIcon extends JPanel {
                 this.schedulers.listarAdicionados().clear();
             }
             this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
-                    "Configuration for the icon"), icon.getId().getIdGlobal()));
+                    "Configuration for the icon"), icon.getId().getGlobalId()));
             if (icon instanceof Machine) {
                 this.jLabelTitle.setText(this.translate(
                         "Machine icon configuration"));
@@ -238,7 +238,7 @@ public class JPanelConfigIcon extends JPanel {
             }
 
             this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
-                    "Configuration for the icon"), icon.getId().getIdGlobal()));
+                    "Configuration for the icon"), icon.getId().getGlobalId()));
             if (icon instanceof Machine) {
                 this.jLabelTitle.setText(this.translate("Machine icon configuration"));
                 this.getTabelaMaquinaIaaS().setMaquina((Machine) icon, users);

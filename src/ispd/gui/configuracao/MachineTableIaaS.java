@@ -2,7 +2,7 @@ package ispd.gui.configuracao;
 
 import ispd.arquivo.Alocadores;
 import ispd.arquivo.EscalonadoresCloud;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 
 import javax.swing.DefaultListModel;
@@ -51,7 +51,7 @@ public class MachineTableIaaS extends AbstractTableModel {
                     Alocadores.ALOCACAO,
                     "Select the virtual machine allocation policy"
             );
-    private final JList<ItemGrade> slaveList = new JList<>();
+    private final JList<GridItem> slaveList = new JList<>();
     private ResourceBundle words;
     private Machine machine = null;
 
@@ -152,7 +152,7 @@ public class MachineTableIaaS extends AbstractTableModel {
         }
 
         return switch (rowIndex) {
-            case MachineTableIaaS.LABEL -> this.machine.getId().getNome();
+            case MachineTableIaaS.LABEL -> this.machine.getId().getName();
             case MachineTableIaaS.OWNER -> this.users;
             case MachineTableIaaS.PROCESSOR ->
                     this.machine.getPoderComputacional();
@@ -204,7 +204,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     private void setValueAtIndex(final Object aValue, final int rowIndex) {
         switch (rowIndex) {
             case MachineTableIaaS.LABEL ->
-                    this.machine.getId().setNome(aValue.toString());
+                    this.machine.getId().setName(aValue.toString());
             case MachineTableIaaS.OWNER ->
                     this.machine.setProprietario(this.users.getSelectedItem().toString());
             case MachineTableIaaS.PROCESSOR ->
@@ -258,7 +258,7 @@ public class MachineTableIaaS extends AbstractTableModel {
                 return;
             }
 
-            final var modelList = new DefaultListModel<ItemGrade>();
+            final var modelList = new DefaultListModel<GridItem>();
             final var connectedList =
                     MachineTableIaaS.this.machine.getNosEscalonaveis();
 

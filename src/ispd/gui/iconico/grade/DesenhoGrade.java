@@ -146,11 +146,11 @@ public class DesenhoGrade extends AreaDesenho {
     @Override
     public void adicionarAresta(Vertex origem, Vertex destino) {
         Link link = new Link(origem, destino, numArestas, numIcones);
-        ((ItemGrade) origem).getConexoesSaida().add(link);
-        ((ItemGrade) destino).getConexoesEntrada().add(link);
+        ((GridItem) origem).getOutboundConnections().add(link);
+        ((GridItem) destino).getInboundConnections().add(link);
         numArestas++;
         numIcones++;
-        ValidaValores.addNomeIcone(link.getId().getNome());
+        ValidaValores.addNomeIcone(link.getId().getName());
         arestas.add(link);
         for (Icon icon : selecionados) {
             icon.setSelected(false);
@@ -164,21 +164,21 @@ public class DesenhoGrade extends AreaDesenho {
 
     @Override
     public void adicionarVertice(int x, int y) {
-        ItemGrade vertice = null;
+        GridItem vertice = null;
         switch (tipoDeVertice) {
             case MACHINE:
                 vertice = new Machine(x, y, numVertices, numIcones, 0.0);
-                ValidaValores.addNomeIcone(vertice.getId().getNome());
+                ValidaValores.addNomeIcone(vertice.getId().getName());
                 this.janelaPrincipal.appendNotificacao(palavras.getString("Machine icon added."));
                 break;
             case CLUSTER:
                 vertice = new Cluster(x, y, numVertices, numIcones, 0.0);
-                ValidaValores.addNomeIcone(vertice.getId().getNome());
+                ValidaValores.addNomeIcone(vertice.getId().getName());
                 this.janelaPrincipal.appendNotificacao(palavras.getString("Cluster icon added."));
                 break;
             case INTERNET:
                 vertice = new Internet(x, y, numVertices, numIcones);
-                ValidaValores.addNomeIcone(vertice.getId().getNome());
+                ValidaValores.addNomeIcone(vertice.getId().getName());
                 this.janelaPrincipal.appendNotificacao(palavras.getString("Internet icon added."));
                 break;
         }
@@ -268,28 +268,28 @@ public class DesenhoGrade extends AreaDesenho {
             if (opcao == JOptionPane.YES_OPTION) {
                 for (Icon iconeRemover : selecionados) {
                     if (iconeRemover instanceof Edge) {
-                        ItemGrade or = (ItemGrade) ((Edge) iconeRemover).getSource();
-                        or.getConexoesSaida().remove((ItemGrade) iconeRemover);
-                        ItemGrade de = (ItemGrade) ((Edge) iconeRemover).getDestination();
-                        de.getConexoesEntrada().remove((ItemGrade) iconeRemover);
-                        ValidaValores.removeNomeIcone(((ItemGrade) iconeRemover).getId().getNome());
+                        GridItem or = (GridItem) ((Edge) iconeRemover).getSource();
+                        or.getOutboundConnections().remove((GridItem) iconeRemover);
+                        GridItem de = (GridItem) ((Edge) iconeRemover).getDestination();
+                        de.getInboundConnections().remove((GridItem) iconeRemover);
+                        ValidaValores.removeNomeIcone(((GridItem) iconeRemover).getId().getName());
                         arestas.remove((Edge) iconeRemover);
                         this.janelaPrincipal.modificar();
                     } else {
                         int cont = 0;
                         //Remover dados das conexoes q entram
-                        Set<ItemGrade> listanos = ((ItemGrade) iconeRemover).getConexoesEntrada();
-                        for (ItemGrade I : listanos) {
+                        Set<GridItem> listanos = ((GridItem) iconeRemover).getInboundConnections();
+                        for (GridItem I : listanos) {
                             arestas.remove((Edge) I);
-                            ValidaValores.removeNomeIcone(I.getId().getNome());
+                            ValidaValores.removeNomeIcone(I.getId().getName());
                         }
                         //Remover dados das conexoes q saem
-                        listanos = ((ItemGrade) iconeRemover).getConexoesSaida();
-                        for (ItemGrade I : listanos) {
+                        listanos = ((GridItem) iconeRemover).getOutboundConnections();
+                        for (GridItem I : listanos) {
                             arestas.remove((Edge) I);
-                            ValidaValores.removeNomeIcone(I.getId().getNome());
+                            ValidaValores.removeNomeIcone(I.getId().getName());
                         }
-                        ValidaValores.removeNomeIcone(((ItemGrade) iconeRemover).getId().getNome());
+                        ValidaValores.removeNomeIcone(((GridItem) iconeRemover).getId().getName());
                         vertices.remove((Vertex) iconeRemover);
                         this.janelaPrincipal.modificar();
                     }
@@ -321,9 +321,9 @@ public class DesenhoGrade extends AreaDesenho {
     @Override
     public void botaoPainelActionPerformed(java.awt.event.ActionEvent evt) {
         if (iconeCopiado != null) {
-            ItemGrade copy = ((ItemGrade) iconeCopiado).criarCopia(getPosicaoMouseX(), getPosicaoMouseY(), numIcones, numVertices);
+            GridItem copy = ((GridItem) iconeCopiado).makeCopy(getPosicaoMouseX(), getPosicaoMouseY(), numIcones, numVertices);
             vertices.add((Vertex) copy);
-            ValidaValores.addNomeIcone(copy.getId().getNome());
+            ValidaValores.addNomeIcone(copy.getId().getName());
             numIcones++;
             numVertices++;
             selecionados.add((Icon) copy);
@@ -339,15 +339,15 @@ public class DesenhoGrade extends AreaDesenho {
             Link link = (Link) selecionados.iterator().next();
             selecionados.remove(link);
             link.setSelected(false);
-            Link temp = link.criarCopia(0, 0, numIcones, numArestas);
+            Link temp = link.makeCopy(0, 0, numIcones, numArestas);
             numArestas++;
             numIcones++;
             temp.setPosition(link.getDestination(), link.getSource());
-            ((ItemGrade) temp.getSource()).getConexoesSaida().add(temp);
-            ((ItemGrade) temp.getDestination()).getConexoesSaida().add(temp);
+            ((GridItem) temp.getSource()).getOutboundConnections().add(temp);
+            ((GridItem) temp.getDestination()).getOutboundConnections().add(temp);
             selecionados.add(temp);
             arestas.add(temp);
-            ValidaValores.addNomeIcone(temp.getId().getNome());
+            ValidaValores.addNomeIcone(temp.getId().getName());
             this.janelaPrincipal.appendNotificacao(palavras.getString("Network connection added."));
             this.janelaPrincipal.modificar();
             this.setLabelAtributos(temp);
@@ -360,13 +360,13 @@ public class DesenhoGrade extends AreaDesenho {
         for (Icon icon : vertices) {
             if (icon instanceof Machine) {
                 Machine I = (Machine) icon;
-                saida.append(String.format("MAQ %s %f %f ", I.getId().getNome(), I.getPoderComputacional(), I.getTaxaOcupacao()));
+                saida.append(String.format("MAQ %s %f %f ", I.getId().getName(), I.getPoderComputacional(), I.getTaxaOcupacao()));
                 if (((Machine) icon).isMestre()) {
                     saida.append(String.format("MESTRE " + I.getAlgoritmo() + " LMAQ"));
-                    List<ItemGrade> lista = ((Machine) icon).getEscravos();
-                    for (ItemGrade slv : lista) {
+                    List<GridItem> lista = ((Machine) icon).getEscravos();
+                    for (GridItem slv : lista) {
                         if (vertices.contains((Vertex) slv)) {
-                            saida.append(" ").append(slv.getId().getNome());
+                            saida.append(" ").append(slv.getId().getName());
                         }
                     }
                 } else {
@@ -378,20 +378,20 @@ public class DesenhoGrade extends AreaDesenho {
         for (Icon icon : vertices) {
             if (icon instanceof Cluster) {
                 Cluster I = (Cluster) icon;
-                saida.append(String.format("CLUSTER %s %d %f %f %f %s\n", I.getId().getNome(), I.getNumeroEscravos(), I.getPoderComputacional(), I.getBanda(), I.getLatencia(), I.getAlgoritmo()));
+                saida.append(String.format("CLUSTER %s %d %f %f %f %s\n", I.getId().getName(), I.getSlaveCount(), I.getComputationalPower(), I.getBandwidth(), I.getLatency(), I.getSchedulingAlgorithm()));
             }
         }
         for (Icon icon : vertices) {
             if (icon instanceof Internet) {
                 Internet I = (Internet) icon;
-                saida.append(String.format("INET %s %f %f %f\n", I.getId().getNome(), I.getBanda(), I.getLatencia(), I.getTaxaOcupacao()));
+                saida.append(String.format("INET %s %f %f %f\n", I.getId().getName(), I.getBanda(), I.getLatencia(), I.getTaxaOcupacao()));
             }
         }
         for (Edge icon : arestas) {
             Link I = (Link) icon;
-            saida.append(String.format("REDE %s %f %f %f CONECTA", I.getId().getNome(), I.getBanda(), I.getLatencia(), I.getTaxaOcupacao()));
-            saida.append(" ").append(((ItemGrade) icon.getSource()).getId().getNome());
-            saida.append(" ").append(((ItemGrade) icon.getDestination()).getId().getNome());
+            saida.append(String.format("REDE %s %f %f %f CONECTA", I.getId().getName(), I.getBanda(), I.getLatencia(), I.getTaxaOcupacao()));
+            saida.append(" ").append(((GridItem) icon.getSource()).getId().getName());
+            saida.append(" ").append(((GridItem) icon.getDestination()).getId().getName());
             saida.append("\n");
         }
         saida.append("CARGA");
@@ -411,53 +411,53 @@ public class DesenhoGrade extends AreaDesenho {
         return saida.toString();
     }
 
-    public void setLabelAtributos(ItemGrade icon) {
+    public void setLabelAtributos(GridItem icon) {
         String Texto = "<html>";
-        Texto += icon.getAtributos(palavras);
+        Texto += icon.getAttributes(palavras);
         if (imprimeNosConectados && icon instanceof Vertex) {
             Texto = Texto + "<br>" + palavras.getString("Output Connection:");
-            for (ItemGrade i : icon.getConexoesSaida()) {
-                ItemGrade saida = (ItemGrade) ((Link) i).getDestination();
-                Texto = Texto + "<br>" + saida.getId().getNome();
+            for (GridItem i : icon.getOutboundConnections()) {
+                GridItem saida = (GridItem) ((Link) i).getDestination();
+                Texto = Texto + "<br>" + saida.getId().getName();
             }
             Texto = Texto + "<br>" + palavras.getString("Input Connection:");
-            for (ItemGrade i : icon.getConexoesEntrada()) {
-                ItemGrade entrada = (ItemGrade) ((Link) i).getSource();
-                Texto = Texto + "<br>" + entrada.getId().getNome();
+            for (GridItem i : icon.getInboundConnections()) {
+                GridItem entrada = (GridItem) ((Link) i).getSource();
+                Texto = Texto + "<br>" + entrada.getId().getName();
             }
         }
         if (imprimeNosConectados && icon instanceof Edge) {
-            for (ItemGrade i : icon.getConexoesEntrada()) {
-                Texto = Texto + "<br>" + palavras.getString("Source Node:") + " " + i.getConexoesEntrada();
+            for (GridItem i : icon.getInboundConnections()) {
+                Texto = Texto + "<br>" + palavras.getString("Source Node:") + " " + i.getInboundConnections();
             }
-            for (ItemGrade i : icon.getConexoesEntrada()) {
-                Texto = Texto + "<br>" + palavras.getString("Destination Node:") + " " + i.getConexoesSaida();
+            for (GridItem i : icon.getInboundConnections()) {
+                Texto = Texto + "<br>" + palavras.getString("Destination Node:") + " " + i.getOutboundConnections();
             }
         }
         if (imprimeNosIndiretos && icon instanceof Machine) {
             Machine I = (Machine) icon;
-            Set<ItemGrade> listaEntrada = I.getNosIndiretosEntrada();
-            Set<ItemGrade> listaSaida = I.getNosIndiretosSaida();
+            Set<GridItem> listaEntrada = I.getNosIndiretosEntrada();
+            Set<GridItem> listaSaida = I.getNosIndiretosSaida();
             Texto = Texto + "<br>" + palavras.getString("Output Nodes Indirectly Connected:");
-            for (ItemGrade i : listaSaida) {
-                Texto = Texto + "<br>" + String.valueOf(i.getId().getIdGlobal());
+            for (GridItem i : listaSaida) {
+                Texto = Texto + "<br>" + String.valueOf(i.getId().getGlobalId());
             }
             Texto = Texto + "<br>" + palavras.getString("Input Nodes Indirectly Connected:");
-            for (ItemGrade i : listaEntrada) {
-                Texto = Texto + "<br>" + String.valueOf(i.getId().getIdGlobal());
+            for (GridItem i : listaEntrada) {
+                Texto = Texto + "<br>" + String.valueOf(i.getId().getGlobalId());
             }
         }
         if (imprimeNosEscalonaveis && icon instanceof Machine) {
             Machine I = (Machine) icon;
             Texto = Texto + "<br>" + palavras.getString("Schedulable Nodes:");
-            for (ItemGrade i : I.getNosEscalonaveis()) {
-                Texto = Texto + "<br>" + String.valueOf(i.getId().getIdGlobal());
+            for (GridItem i : I.getNosEscalonaveis()) {
+                Texto = Texto + "<br>" + String.valueOf(i.getId().getGlobalId());
             }
             if (I.isMestre()) {
-                List<ItemGrade> escravos = ((Machine) icon).getEscravos();
+                List<GridItem> escravos = ((Machine) icon).getEscravos();
                 Texto = Texto + "<br>" + palavras.getString("Slave Nodes:");
-                for (ItemGrade i : escravos) {
-                    Texto = Texto + "<br>" + i.getId().getNome();
+                for (GridItem i : escravos) {
+                    Texto = Texto + "<br>" + i.getId().getName();
                 }
             }
         }
@@ -475,44 +475,46 @@ public class DesenhoGrade extends AreaDesenho {
             if (vertice instanceof Machine) {
                 Machine I = (Machine) vertice;
                 ArrayList<Integer> escravos = new ArrayList<Integer>();
-                for (ItemGrade slv : I.getEscravos()) {
+                for (GridItem slv : I.getEscravos()) {
                     if (vertices.contains((Vertex) slv)) {
-                        escravos.add(slv.getId().getIdGlobal());
+                        escravos.add(slv.getId().getGlobalId());
                     }
                 }
                 if(tipoModelo == EscolherClasse.GRID){
                     xml.addMachine(I.getX(), I.getY(),
-                            I.getId().getIdLocal(), I.getId().getIdGlobal(), I.getId().getNome(),
+                            I.getId().getLocalId(), I.getId().getGlobalId(), I.getId().getName(),
                             I.getPoderComputacional(), I.getTaxaOcupacao(), I.getAlgoritmo(), I.getProprietario(),
                             I.getNucleosProcessador(), I.getMemoriaRAM(), I.getDiscoRigido(),
                             I.isMestre(), escravos);
                 }
                 else if(tipoModelo == EscolherClasse.IAAS){
-                    xml.addMachineIaaS(I.getX(), I.getY(), I.getId().getIdLocal(),I.getId().getIdGlobal(), I.getId().getNome(),
+                    xml.addMachineIaaS(I.getX(), I.getY(), I.getId().getLocalId(),I.getId().getGlobalId(), I.getId().getName(),
                             I.getPoderComputacional(), I.getTaxaOcupacao(),I.getVMMallocpolicy(), I.getAlgoritmo(), I.getProprietario(), I.getNucleosProcessador(), I.getMemoriaRAM(),
                             I.getDiscoRigido(), I.getCostperprocessing(), I.getCostpermemory(), I.getCostperdisk(), I.isMestre(), escravos);
                 }
             } else if (vertice instanceof Cluster) {
                 if(tipoModelo == EscolherClasse.GRID){
                     Cluster I = (Cluster) vertice;
-                    xml.addCluster(I.getX(), I.getY(),
-                            I.getId().getIdLocal(), I.getId().getIdGlobal(), I.getId().getNome(),
-                            I.getNumeroEscravos(), I.getPoderComputacional(), I.getNucleosProcessador(),
-                            I.getMemoriaRAM(), I.getDiscoRigido(),
-                            I.getBanda(), I.getLatencia(),
-                            I.getAlgoritmo(), I.getProprietario(), I.isMestre());
+                    xml.addCluster(
+                            I.getX(), I.getY(),
+                            I.getId().getLocalId(), I.getId().getGlobalId(), I.getId().getName(),
+                            I.getSlaveCount(), I.getComputationalPower(), I.getCoreCount(),
+                            I.getRam(), I.getHardDisk(),
+                            I.getBandwidth(), I.getLatency(),
+                            I.getSchedulingAlgorithm(), I.getOwner(), I.isMaster());
                 }
                 else if(tipoModelo == EscolherClasse.IAAS){
                     Cluster I = (Cluster) vertice;
-                    xml.addClusterIaaS(I.getX(), I.getY(),
-                            I.getId().getIdLocal(), I.getId().getIdGlobal(),
-                            I.getId().getNome(), I.getNumeroEscravos(),
-                            I.getPoderComputacional(), I.getNucleosProcessador(),
-                            I.getMemoriaRAM(), I.getDiscoRigido(),
-                            I.getBanda(), I.getLatencia(),
-                            I.getAlgoritmo(),I.getVMMallocpolicy(), I.getCostperprocessing(),
-                            I.getCostpermemory(), I.getCostperdisk(),
-                            I.getProprietario(), I.isMestre());
+                    xml.addClusterIaaS(
+                            I.getX(), I.getY(),
+                            I.getId().getLocalId(), I.getId().getGlobalId(),
+                            I.getId().getName(), I.getSlaveCount(),
+                            I.getComputationalPower(), I.getCoreCount(),
+                            I.getRam(), I.getHardDisk(),
+                            I.getBandwidth(), I.getLatency(),
+                            I.getSchedulingAlgorithm(),I.getVmmAllocationPolicy(), I.getCostPerProcessing(),
+                            I.getCostPerMemory(), I.getCostPerDisk(),
+                            I.getOwner(), I.isMaster());
                 }
 /* TODO: Para GRID
                 xml.addMachine(I.getX(), I.getY(),
@@ -533,16 +535,16 @@ public class DesenhoGrade extends AreaDesenho {
                 Internet I = (Internet) vertice;
                 xml.addInternet(
                         I.getX(), I.getY(),
-                        I.getId().getIdLocal(), I.getId().getIdGlobal(), I.getId().getNome(),
+                        I.getId().getLocalId(), I.getId().getGlobalId(), I.getId().getName(),
                         I.getBanda(), I.getTaxaOcupacao(), I.getLatencia());
             }
         }
         for (Edge link : arestas) {
             Link I = (Link) link;
             xml.addLink(I.getSource().getX(), I.getSource().getY(), I.getDestination().getX(), I.getDestination().getY(),
-                    I.getId().getIdLocal(), I.getId().getIdGlobal(), I.getId().getNome(),
+                    I.getId().getLocalId(), I.getId().getGlobalId(), I.getId().getName(),
                     I.getBanda(), I.getTaxaOcupacao(), I.getLatencia(),
-                    ((ItemGrade) I.getSource()).getId().getIdGlobal(), ((ItemGrade) I.getDestination()).getId().getIdGlobal());
+                    ((GridItem) I.getSource()).getId().getGlobalId(), ((GridItem) I.getDestination()).getId().getGlobalId());
         }
         //trecho de escrita das máquinas virtuais
         if(maquinasVirtuais != null){
@@ -771,10 +773,10 @@ public class DesenhoGrade extends AreaDesenho {
         List<String> maquinas = new ArrayList<String>();
         for (Icon icon : vertices) {
             if (icon instanceof Machine && ((Machine) icon).isMestre()) {
-                maquinas.add(((ItemGrade) icon).getId().getNome());
+                maquinas.add(((GridItem) icon).getId().getName());
             }
-            if (icon instanceof Cluster && ((Cluster) icon).isMestre()) {
-                maquinas.add(((ItemGrade) icon).getId().getNome());
+            if (icon instanceof Cluster && ((Cluster) icon).isMaster()) {
+                maquinas.add(((GridItem) icon).getId().getName());
             }
         }
         return maquinas;
@@ -782,28 +784,28 @@ public class DesenhoGrade extends AreaDesenho {
 
     @Override
     public void showSelectionIcon(MouseEvent me, Icon icon) {
-        this.setLabelAtributos((ItemGrade) icon);
+        this.setLabelAtributos((GridItem) icon);
     }
 
     @Override
     public void showActionIcon(MouseEvent me, Icon icon) {
         this.janelaPrincipal.modificar();
         if (icon instanceof Machine || icon instanceof Cluster) {
-            this.janelaPrincipal.getjPanelConfiguracao().setIcone((ItemGrade) icon, usuarios, tipoModelo);
+            this.janelaPrincipal.getjPanelConfiguracao().setIcone((GridItem) icon, usuarios, tipoModelo);
             JOptionPane.showMessageDialog(
                     janelaPrincipal,
                     this.janelaPrincipal.getjPanelConfiguracao(),
                     this.janelaPrincipal.getjPanelConfiguracao().getTitle(),
                     JOptionPane.PLAIN_MESSAGE);
         } else {
-            this.janelaPrincipal.getjPanelConfiguracao().setIcone((ItemGrade) icon);
+            this.janelaPrincipal.getjPanelConfiguracao().setIcone((GridItem) icon);
             JOptionPane.showMessageDialog(
                     janelaPrincipal,
                     this.janelaPrincipal.getjPanelConfiguracao(),
                     this.janelaPrincipal.getjPanelConfiguracao().getTitle(),
                     JOptionPane.PLAIN_MESSAGE);
         }
-        this.setLabelAtributos((ItemGrade) icon);
+        this.setLabelAtributos((GridItem) icon);
     }
 
     public void setIconeSelecionado(Integer object) {
@@ -849,20 +851,20 @@ public class DesenhoGrade extends AreaDesenho {
         //Atuasliza número de vertices e arestas
         for (Icon icone : arestas) {
             Link link = (Link) icone;
-            if (this.numArestas < link.getId().getIdLocal()) {
-                this.numArestas = link.getId().getIdLocal();
+            if (this.numArestas < link.getId().getLocalId()) {
+                this.numArestas = link.getId().getLocalId();
             }
-            if (this.numIcones < link.getId().getIdGlobal()) {
-                this.numIcones = link.getId().getIdGlobal();
+            if (this.numIcones < link.getId().getGlobalId()) {
+                this.numIcones = link.getId().getGlobalId();
             }
         }
         for (Icon icone : vertices) {
-            ItemGrade vertc = (ItemGrade) icone;
-            if (this.numVertices < vertc.getId().getIdLocal()) {
-                this.numVertices = vertc.getId().getIdLocal();
+            GridItem vertc = (GridItem) icone;
+            if (this.numVertices < vertc.getId().getLocalId()) {
+                this.numVertices = vertc.getId().getLocalId();
             }
-            if (this.numIcones < vertc.getId().getIdGlobal()) {
-                this.numIcones = vertc.getId().getIdGlobal();
+            if (this.numIcones < vertc.getId().getGlobalId()) {
+                this.numIcones = vertc.getId().getGlobalId();
             }
         }
         this.numIcones++;
