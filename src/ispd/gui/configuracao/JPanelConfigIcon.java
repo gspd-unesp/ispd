@@ -15,9 +15,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.table.TableModel;
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.function.Function;
@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 public class JPanelConfigIcon extends JPanel {
 
     private static final int ROW_HEIGHT = 20;
+    private static final Font TAHOMA_FONT_BOLD = new Font("Tahoma", 1, 12);
     private final JLabel jLabelIconName = new JLabel(
             "Configuration for the icon # 0");
     private final JLabel jLabelTitle = JPanelConfigIcon.makeTitleLabel();
@@ -94,7 +95,7 @@ public class JPanelConfigIcon extends JPanel {
     private static JLabel makeTitleLabel() {
         final JLabel label = new JLabel(
                 "Machine icon configuration");
-        label.setFont(new java.awt.Font("Tahoma", 1, 12));
+        label.setFont(JPanelConfigIcon.TAHOMA_FONT_BOLD);
         return label;
     }
 
@@ -149,18 +150,22 @@ public class JPanelConfigIcon extends JPanel {
 
     public void setIcone(final ItemGrade icon) {
         if (icon instanceof Link) {
-            this.jLabelTitle.setText(this.words.getString("Network icon " +
-                    "configuration"));
-            System.out.println(this.words.getLocale() + " - " + this.words.getString("Network icon configuration"));
+            String text = this.translate(
+                    "Network icon configuration");
+            this.jLabelTitle.setText(text);
+            System.out.printf("%s - %s%n", this.words.getLocale(), text);
         } else if (icon instanceof Internet) {
-            this.jLabelTitle.setText(this.words.getString("Internet icon " +
-                    "configuration"));
+            this.jLabelTitle.setText(this.translate(
+                    "Internet icon configuration"));
         }
-        this.jLabelIconName.setText(this.words.getString("Configuration for " +
-                "the " +
-                "icon") + "#: " + icon.getId().getIdGlobal());
+        this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
+                "Configuration for the icon"), icon.getId().getIdGlobal()));
         this.getTabelaLink().setLink(icon);
         this.jScrollPane.setViewportView(this.linkTable);
+    }
+
+    private String translate(final String text) {
+        return this.words.getString(text);
     }
 
     private LinkTable getTabelaLink() {
@@ -169,7 +174,7 @@ public class JPanelConfigIcon extends JPanel {
 
     public void setIcone(
             final ItemGrade icon,
-            final HashSet<String> users,
+            final Iterable<String> users,
             final int choice) {
         if (choice == EscolherClasse.GRID) {
             if (!this.schedulers.listarRemovidos().isEmpty()) {
@@ -185,18 +190,17 @@ public class JPanelConfigIcon extends JPanel {
                 }
                 this.schedulers.listarAdicionados().clear();
             }
-            this.jLabelIconName.setText(this.words.getString("Configuration " +
-                    "for the " +
-                    "icon") + "#: " + icon.getId().getIdGlobal());
+            this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
+                    "Configuration for the icon"), icon.getId().getIdGlobal()));
             if (icon instanceof Machine) {
-                this.jLabelTitle.setText(this.words.getString("Machine icon " +
-                        "configuration"));
+                this.jLabelTitle.setText(this.translate(
+                        "Machine icon configuration"));
                 this.getTabelaMaquina().setMaquina((Machine) icon, users);
                 this.jScrollPane.setViewportView(this.machineTable);
             }
             if (icon instanceof Cluster) {
-                this.jLabelTitle.setText(this.words.getString("Cluster icon " +
-                        "configuration"));
+                this.jLabelTitle.setText(this.translate(
+                        "Cluster icon configuration"));
                 this.getTabelaCluster().setCluster((Cluster) icon, users);
                 this.jScrollPane.setViewportView(this.clusterTable);
             }
@@ -233,17 +237,15 @@ public class JPanelConfigIcon extends JPanel {
                 this.allocators.listarAdicionados().clear();
             }
 
-            this.jLabelIconName.setText(this.words.getString(
-                    "Configuration for the icon") + "#: " + icon.getId().getIdGlobal());
+            this.jLabelIconName.setText("%s#: %d".formatted(this.translate(
+                    "Configuration for the icon"), icon.getId().getIdGlobal()));
             if (icon instanceof Machine) {
-                this.jLabelTitle.setText(this.words.getString(
-                        "Machine icon configuration"));
+                this.jLabelTitle.setText(this.translate("Machine icon configuration"));
                 this.getTabelaMaquinaIaaS().setMaquina((Machine) icon, users);
                 this.jScrollPane.setViewportView(this.iassMachineTable);
             }
             if (icon instanceof Cluster) {
-                this.jLabelTitle.setText(this.words.getString(
-                        "Cluster icon configuration"));
+                this.jLabelTitle.setText(this.translate("Cluster icon configuration"));
                 this.getTabelaClusterIaaS().setCluster((Cluster) icon, users);
                 this.jScrollPane.setViewportView(this.iassClusterTable);
             }
@@ -266,7 +268,7 @@ public class JPanelConfigIcon extends JPanel {
 
     private static class MachineVariedRowTable extends VariedRowTable {
 
-        static final String[] TOOL_TIPS = {
+        private static final String[] TOOL_TIPS = {
                 "Insert the label name of the resource",
                 "Select the resource owner",
                 "Insert the amount of computing power of the resource in " +
@@ -294,13 +296,13 @@ public class JPanelConfigIcon extends JPanel {
                 if (colIndex != 1) {
                     return null;
                 }
-                return this.getRowToolTip(rowIndex);
+                return MachineVariedRowTable.getRowToolTip(rowIndex);
             } catch (final RuntimeException ignored) {
                 return null;
             }
         }
 
-        private String getRowToolTip(final int rowIndex) {
+        private static String getRowToolTip(final int rowIndex) {
             if (rowIndex >= MachineVariedRowTable.TOOL_TIPS.length)
                 return null;
             return MachineVariedRowTable.TOOL_TIPS[rowIndex];
