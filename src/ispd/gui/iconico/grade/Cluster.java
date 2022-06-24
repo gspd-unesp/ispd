@@ -39,10 +39,9 @@
  */
 package ispd.gui.iconico.grade;
 
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -51,7 +50,7 @@ import java.util.Set;
  *
  * @author denison
  */
-public class Cluster extends Vertice implements ItemGrade {
+public class Cluster extends Vertex implements ItemGrade {
 
     private IdentificadorItemGrade id;
     private HashSet<ItemGrade> conexoesEntrada;

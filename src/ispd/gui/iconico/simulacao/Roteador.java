@@ -39,7 +39,7 @@
  */
 package ispd.gui.iconico.simulacao;
 
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
 import ispd.motor.filas.servidores.implementacao.CS_Internet;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -48,7 +48,7 @@ import java.awt.Graphics;
  *
  * @author denison
  */
-public class Roteador extends Vertice {
+public class Roteador extends Vertex {
 
     private final int TAMANHO = 50;
     private CS_Internet net;

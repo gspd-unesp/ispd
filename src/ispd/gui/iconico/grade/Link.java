@@ -39,8 +39,8 @@
  */
 package ispd.gui.iconico.grade;
 
-import ispd.gui.iconico.Aresta;
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Edge;
+import ispd.gui.iconico.Vertex;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Polygon;
@@ -51,7 +51,7 @@ import java.util.Set;
  *
  * @author denison
  */
-public class Link extends Aresta implements ItemGrade {
+public class Link extends Edge implements ItemGrade {
 
     private IdentificadorItemGrade id;
     private boolean selected;
@@ -62,7 +62,7 @@ public class Link extends Aresta implements ItemGrade {
     private double latencia;
     private boolean configurado;
 
-    public Link(Vertice origem, Vertice destino, int idLocal, int idGlobal) {
+    public Link(Vertex origem, Vertex destino, int idLocal, int idGlobal) {
         super(origem, destino);
         this.selected = true;
         this.areaSeta = new Polygon();
@@ -89,10 +89,10 @@ public class Link extends Aresta implements ItemGrade {
         String texto = palavras.getString("Local ID:") + " " + getId().getIdLocal()
                 + "<br>" + palavras.getString("Global ID:") + " " + getId().getIdGlobal()
                 + "<br>" + palavras.getString("Label") + ": " + getId().getNome()
-                + "<br>" + palavras.getString("X1-coordinate:") + " " + getOrigem().getX()
-                + "<br>" + palavras.getString("Y1-coordinate:") + " " + getOrigem().getY()
-                + "<br>" + palavras.getString("X2-coordinate:") + " " + getDestino().getY()
-                + "<br>" + palavras.getString("Y2-coordinate:") + " " + getDestino().getX()
+                + "<br>" + palavras.getString("X1-coordinate:") + " " + getSource().getX()
+                + "<br>" + palavras.getString("Y1-coordinate:") + " " + getSource().getY()
+                + "<br>" + palavras.getString("X2-coordinate:") + " " + getDestination().getY()
+                + "<br>" + palavras.getString("Y2-coordinate:") + " " + getDestination().getX()
                 + "<br>" + palavras.getString("Bandwidth") + ": " + getBanda()
                 + "<br>" + palavras.getString("Latency") + ": " + getLatencia()
                 + "<br>" + palavras.getString("Load Factor") + ": " + getTaxaOcupacao();
@@ -148,8 +148,8 @@ public class Link extends Aresta implements ItemGrade {
         yPoints[0] = (int) getY();
 
         // build the line vector
-        vecLine[0] = (double) xPoints[ 0] - getOrigem().getX();
-        vecLine[1] = (double) yPoints[ 0] - getOrigem().getY();
+        vecLine[0] = (double) xPoints[ 0] - getSource().getX();
+        vecLine[1] = (double) yPoints[ 0] - getSource().getY();
 
         // build the arrow base vector - normal to the line
         vecLeft[0] = -vecLine[1];
@@ -182,7 +182,7 @@ public class Link extends Aresta implements ItemGrade {
         } else {
             g.setColor(Color.RED);
         }
-        g.drawLine(getOrigem().getX(), getOrigem().getY(), getDestino().getX(), getDestino().getY());
+        g.drawLine(getSource().getX(), getSource().getY(), getDestination().getX(), getDestination().getY());
         g.fillPolygon(areaSeta);
     }
 
@@ -219,12 +219,12 @@ public class Link extends Aresta implements ItemGrade {
 
     @Override
     public Integer getX() {
-        return (((((getOrigem().getX() + getDestino().getX()) / 2) + getDestino().getX()) / 2) + getDestino().getX()) / 2;
+        return (((((getSource().getX() + getDestination().getX()) / 2) + getDestination().getX()) / 2) + getDestination().getX()) / 2;
     }
 
     @Override
     public Integer getY() {
-        return (((((getOrigem().getY() + getDestino().getY()) / 2) + getDestino().getY()) / 2) + getDestino().getY()) / 2;
+        return (((((getSource().getY() + getDestination().getY()) / 2) + getDestination().getY()) / 2) + getDestination().getY()) / 2;
     }
 
     private void verificaConfiguracao() {

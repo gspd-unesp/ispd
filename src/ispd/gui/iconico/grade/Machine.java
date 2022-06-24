@@ -39,7 +39,7 @@
  */
 package ispd.gui.iconico.grade;
 
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ import java.util.Set;
  *
  * @author denison
  */
-public class Machine extends Vertice implements ItemGrade {
+public class Machine extends Vertex implements ItemGrade {
 
     private IdentificadorItemGrade id;
     private HashSet<ItemGrade> conexoesEntrada;
@@ -218,7 +218,7 @@ public class Machine extends Vertice implements ItemGrade {
         List<ItemGrade> escalonaveis = new ArrayList<ItemGrade>();
         Set internet = new HashSet();
         for (ItemGrade link : conexoesSaida) {
-            ItemGrade itemGrade = (ItemGrade) ((Link) link).getDestino();
+            ItemGrade itemGrade = (ItemGrade) ((Link) link).getDestination();
             if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
                 if (!escalonaveis.contains(itemGrade)) {
                     escalonaveis.add(itemGrade);
@@ -234,7 +234,7 @@ public class Machine extends Vertice implements ItemGrade {
 
     private void getIndiretosEscalonaveis(ItemGrade itemGrade, List<ItemGrade> escalonaveis, Set internet) {
         for (ItemGrade link : itemGrade.getConexoesSaida()) {
-            ItemGrade item = (ItemGrade) ((Link) link).getDestino();
+            ItemGrade item = (ItemGrade) ((Link) link).getDestination();
             if (item instanceof Cluster || item instanceof Machine) {
                 if (!escalonaveis.contains(item)) {
                     escalonaveis.add(item);
@@ -356,7 +356,7 @@ public class Machine extends Vertice implements ItemGrade {
     protected Set<ItemGrade> getNosIndiretosSaida() {
         Set<ItemGrade> indiretosSaida = new HashSet<ItemGrade>();
         for (ItemGrade link : conexoesSaida) {
-            ItemGrade itemGrade = (ItemGrade) ((Link) link).getDestino();
+            ItemGrade itemGrade = (ItemGrade) ((Link) link).getDestination();
             if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
                 indiretosSaida.add(itemGrade);
             } else if (itemGrade instanceof Internet) {
@@ -369,7 +369,7 @@ public class Machine extends Vertice implements ItemGrade {
 
     private void getIndiretosSaida(ItemGrade internet, Set<ItemGrade> indiretosSaida) {
         for (ItemGrade link : internet.getConexoesSaida()) {
-            ItemGrade item = (ItemGrade) ((Link) link).getDestino();
+            ItemGrade item = (ItemGrade) ((Link) link).getDestination();
             if (item instanceof Cluster || item instanceof Machine) {
                 indiretosSaida.add(item);
             } else if (item instanceof Internet) {
@@ -384,7 +384,7 @@ public class Machine extends Vertice implements ItemGrade {
     protected Set<ItemGrade> getNosIndiretosEntrada() {
         Set<ItemGrade> indiretosEntrada = new HashSet<ItemGrade>();
         for (ItemGrade link : conexoesEntrada) {
-            ItemGrade itemGrade = (ItemGrade) ((Link) link).getOrigem();
+            ItemGrade itemGrade = (ItemGrade) ((Link) link).getSource();
             if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
                 indiretosEntrada.add(itemGrade);
             } else if (itemGrade instanceof Internet) {
@@ -397,7 +397,7 @@ public class Machine extends Vertice implements ItemGrade {
 
     private void getIndiretosEntrada(ItemGrade internet, Set<ItemGrade> indiretosEntrada) {
         for (ItemGrade link : internet.getConexoesEntrada()) {
-            ItemGrade item = (ItemGrade) ((Link) link).getOrigem();
+            ItemGrade item = (ItemGrade) ((Link) link).getSource();
             if (item instanceof Cluster || item instanceof Machine) {
                 indiretosEntrada.add(item);
             } else if (item instanceof Internet) {

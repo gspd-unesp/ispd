@@ -39,9 +39,10 @@
  */
 package ispd.arquivo.xml;
 
+import ispd.gui.iconico.Vertex;
 import ispd.utils.ValidaValores;
 import ispd.gui.EscolherClasse;
-import ispd.gui.iconico.Aresta;
+import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.Internet;
 import ispd.gui.iconico.grade.ItemGrade;
@@ -841,7 +842,7 @@ public class IconicoXML {
         }
     }
 
-    public static void newGrade(Document descricao, Set<ispd.gui.iconico.Vertice> vertices, Set<Aresta> arestas) {
+    public static void newGrade(Document descricao, Set<Vertex> vertices, Set<Edge> arestas) {
         HashMap<Integer, Object> icones = new HashMap<Integer, Object>();
         NodeList maquinas = descricao.getElementsByTagName("machine");
         NodeList clusters = descricao.getElementsByTagName("cluster");
@@ -961,8 +962,8 @@ public class IconicoXML {
             int local = Integer.parseInt(id.getAttribute("local"));
             int x = 0, y = 0, px = 0, py = 0;
             Element connect = (Element) link.getElementsByTagName("connect").item(0);
-            ispd.gui.iconico.Vertice origem = (ispd.gui.iconico.Vertice) icones.get(Integer.parseInt(connect.getAttribute("origination")));
-            ispd.gui.iconico.Vertice destino = (ispd.gui.iconico.Vertice) icones.get(Integer.parseInt(connect.getAttribute("destination")));
+            Vertex origem = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("origination")));
+            Vertex destino = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("destination")));
             Link lk = new Link(origem, destino, local, global);
             lk.setSelected(false);
             ((ItemGrade) origem).getConexoesSaida().add(lk);

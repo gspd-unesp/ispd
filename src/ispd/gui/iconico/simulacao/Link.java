@@ -39,8 +39,8 @@
  */
 package ispd.gui.iconico.simulacao;
 
-import ispd.gui.iconico.Aresta;
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Edge;
+import ispd.gui.iconico.Vertex;
 import ispd.motor.filas.servidores.implementacao.CS_Link;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -49,12 +49,12 @@ import java.awt.Graphics;
  *
  * @author denison
  */
-public class Link extends Aresta {
+public class Link extends Edge {
 
     public CS_Link link;
     private DesenhoSimulacao aDesenho;
 
-    public Link(Vertice origem, Vertice destino, CS_Link link, DesenhoSimulacao aDesenho) {
+    public Link(Vertex origem, Vertex destino, CS_Link link, DesenhoSimulacao aDesenho) {
         super(origem, destino);
         this.aDesenho = aDesenho;
         this.link = link;
@@ -73,28 +73,28 @@ public class Link extends Aresta {
     public void draw(Graphics g) {
         g.setColor(Color.GREEN);
         //g.drawLine(getOrigem().getX() + TAMANHO / 2 + 2, getOrigem().getY() + TAMANHO / 2 + 2, getDestino().getX() + TAMANHO / 2 - 2, getDestino().getY() + TAMANHO / 2 - 2);
-        g.drawLine(getOrigem().getX(), getOrigem().getY(), getDestino().getX(), getDestino().getY());
+        g.drawLine(getSource().getX(), getSource().getY(), getDestination().getX(), getDestination().getY());
         //Desenha tarefas
         if (link != null) {
             int num = link.getCargaTarefas();
             if (num > 0) {
                 String seta;
-                if (getOrigem().getX() < getDestino().getX()) {
+                if (getSource().getX() < getDestination().getX()) {
                     seta = "▶";
-                } else if (getOrigem().getX() > getDestino().getX()) {
+                } else if (getSource().getX() > getDestination().getX()) {
                     seta = "◀";
-                } else if (getOrigem().getY() < getDestino().getY()) {
+                } else if (getSource().getY() < getDestination().getY()) {
                     seta = "▼";
                 } else {
                     seta = "▲";
                 }
                 //Movimento
-                int incX = (getDestino().getX() - getOrigem().getX()) / aDesenho.getSetas();
-                int incY = (getDestino().getY() - getOrigem().getY()) / aDesenho.getSetas();
-                g.drawString(seta, getOrigem().getX() + incX, getOrigem().getY() + incY    );
-                g.drawString(seta, getOrigem().getX() + incX * 2, getOrigem().getY() + incY * 2);
-                g.drawString(seta, getOrigem().getX() + incX * 3, getOrigem().getY() + incY * 3);
-                g.drawString(seta, getOrigem().getX() + incX * 4, getOrigem().getY() + incY * 4);
+                int incX = (getDestination().getX() - getSource().getX()) / aDesenho.getSetas();
+                int incY = (getDestination().getY() - getSource().getY()) / aDesenho.getSetas();
+                g.drawString(seta, getSource().getX() + incX, getSource().getY() + incY    );
+                g.drawString(seta, getSource().getX() + incX * 2, getSource().getY() + incY * 2);
+                g.drawString(seta, getSource().getX() + incX * 3, getSource().getY() + incY * 3);
+                g.drawString(seta, getSource().getX() + incX * 4, getSource().getY() + incY * 4);
                 //Tarefas
                 g.setColor(Color.YELLOW);
                 g.fillRect(getX(), getY(), 30, 30);
