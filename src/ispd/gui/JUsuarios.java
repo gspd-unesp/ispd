@@ -1,234 +1,227 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * JUsuarios.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * Created on 01/06/2011
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui;
 
+import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.table.DefaultTableModel;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.Vector;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
 
 /**
- * Janela usada para adicionar e remover os usuarios da simulação modelada
- * @author denison
+ * Window to add and remove users from modeled simulation.
  */
-public class JUsuarios extends javax.swing.JDialog {
+public class JUsuarios extends JDialog {
+    private static final Dimension BUTTON_PREFERRED_SIZE =
+            new Dimension(45, 45);
+    private final ResourceBundle translator;
+    private final Vector<Vector> users;
+    private final Vector<String> profiles;
+    private final Set<? super String> userSet;
+    private JScrollPane jScrollPane1;
+    private JTable table;
 
-    private ResourceBundle palavras;
-
-    /** Creates new form ControleUsuarios */
-
-    public JUsuarios(java.awt.Frame parent, boolean modal, HashSet<String> usuarios, ResourceBundle palavras, HashMap<String, Double> perfil) {
+    JUsuarios(final Frame parent, final boolean modal,
+              final Set<? super String> users,
+              final ResourceBundle translator,
+              final Map<String, Double> profiles) {
         super(parent, modal);
-        this.usuarios = new Vector<Vector>();
-        this.perfis = new Vector<String>();
-        this.perfis.add("Users");
-        this.perfis.add("Limite de Consumo (Porcentagem do consumo da porção)");
-        for (String usuario : usuarios) {
-            Vector user = new Vector<String>();
-            user.add(usuario);
-            user.add(perfil.get(usuario));
-            this.usuarios.add(user);
+
+        this.users = new Vector<>(0);
+
+        this.profiles = new Vector<>(0);
+        this.profiles.add("Users");
+        this.profiles.add(
+                "Limite de Consumo (Porcentagem do consumo da porção)");
+
+        for (final var user : users) {
+            final Vector userAndDouble = new Vector<String>(0);
+            userAndDouble.add(user);
+            userAndDouble.add(profiles.get(user));
+            this.users.add(userAndDouble);
         }
-        this.usuario = usuarios;
-        this.palavras = palavras;
-        initComponents();
+
+        this.userSet = users;
+        this.translator = translator;
+        this.initComponents();
     }
 
-    public HashSet<String> getUsuarios(){
-        HashSet<String> ret = new HashSet<String>();
-        for (Vector user : usuarios) {
-            ret.add(user.get(0).toString());
-        }
-        return ret;
-    }
-
-    public HashMap<String,Double> getLimite(){
-        HashMap<String,Double> ret = new HashMap<String,Double>();
-        for (Vector user : usuarios) {
-            ret.put(user.get(0).toString(), Double.parseDouble(user.get(1).toString()));
-        }
-        return ret;
-    }
-
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">
     private void initComponents() {
 
-        jToolBar = new javax.swing.JToolBar();
-        jButtonAdicionar = new javax.swing.JButton();
-        jButtonRemover = new javax.swing.JButton();
-        jButtonOk = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        this.setTitle(this.translate("Manage Users"));
+        this.setResizable(false);
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(palavras.getString("Manage Users")); // NOI18N
-        setResizable(false);
+        final JToolBar toolbar = new JToolBar();
+        toolbar.setFloatable(false);
+        toolbar.add(ButtonBuilder
+                .aButton(this.translate("Add"), this::onAddClick)
+                .nonFocusable()
+                .withIcon(new ImageIcon(this.getResource(
+                        "/ispd/gui/imagens/insert-object.png")))
+                .withSize(JUsuarios.BUTTON_PREFERRED_SIZE)
+                .withCenterBottomTextPosition()
+                .build());
 
-        jToolBar.setFloatable(false);
+        toolbar.add(ButtonBuilder
+                .aButton(this.translate("Remove"), this::onRemoveClick)
+                .nonFocusable()
+                .withIcon(new ImageIcon(this.getResource(
+                        "/ispd/gui/imagens/window-close.png")))
+                .withSize(JUsuarios.BUTTON_PREFERRED_SIZE)
+                .withCenterBottomTextPosition()
+                .build());
 
-        jButtonAdicionar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ispd/gui/imagens/insert-object.png"))); // NOI18N
-        jButtonAdicionar.setText(palavras.getString("Add")); // NOI18N
-        jButtonAdicionar.setFocusable(false);
-        jButtonAdicionar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonAdicionar.setMaximumSize(new java.awt.Dimension(45, 45));
-        jButtonAdicionar.setMinimumSize(new java.awt.Dimension(45, 45));
-        jButtonAdicionar.setPreferredSize(new java.awt.Dimension(45, 45));
-        jButtonAdicionar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jButtonAdicionar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAdicionarActionPerformed(evt);
-            }
-        });
-        jToolBar.add(jButtonAdicionar);
+        final var jButtonOk = ButtonBuilder.basicButton(
+                this.translate("OK"), (e) -> this.setVisible(false));
 
-        jButtonRemover.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ispd/gui/imagens/window-close.png"))); // NOI18N
-        jButtonRemover.setText(palavras.getString("Remove")); // NOI18N
-        jButtonRemover.setFocusable(false);
-        jButtonRemover.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonRemover.setMaximumSize(new java.awt.Dimension(45, 45));
-        jButtonRemover.setMinimumSize(new java.awt.Dimension(45, 45));
-        jButtonRemover.setPreferredSize(new java.awt.Dimension(45, 45));
-        jButtonRemover.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jButtonRemover.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonRemoverActionPerformed(evt);
-            }
-        });
-        jToolBar.add(jButtonRemover);
+        this.table = new JTable();
+        this.table.setModel(new SomeDefaultTableModel(
+                this.users, this.profiles));
 
-        jButtonOk.setText(palavras.getString("OK")); // NOI18N
-        jButtonOk.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonOkActionPerformed(evt);
-            }
-        });
+        this.jScrollPane1 = new JScrollPane();
+        this.jScrollPane1.setViewportView(this.table);
 
-        jTable1.setModel(new DefaultTableModel(this.usuarios,this.perfis){ public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return true;
-        }});
-        jScrollPane1.setViewportView(jTable1);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        final var layout = new GroupLayout(this.getContentPane());
+        this.getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(jToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 145, Short.MAX_VALUE)
-                        .addComponent(jButtonOk, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(145, 145, 145)))
-                .addContainerGap())
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(this.jScrollPane1,
+                                                GroupLayout.PREFERRED_SIZE, 0
+                                                , Short.MAX_VALUE)
+                                        .addComponent(toolbar,
+                                                GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                .addGap(0, 145, Short.MAX_VALUE)
+                                                .addComponent(jButtonOk,
+                                                        GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE)
+                                                .addGap(145, 145, 145)))
+                                .addContainerGap())
         );
+
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(4, 4, 4)
-                .addComponent(jToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonOk)
-                .addContainerGap())
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addGap(4, 4, 4)
+                                .addComponent(toolbar,
+                                        GroupLayout.PREFERRED_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(this.jScrollPane1,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        213, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonOk)
+                                .addContainerGap())
         );
 
-        pack();
-    }// </editor-fold>
+        this.pack();
+    }
 
-    private void jButtonAdicionarActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-        String add = JOptionPane.showInputDialog(this, palavras.getString("Enter the name"), palavras.getString("Add"), JOptionPane.QUESTION_MESSAGE);
-        //String[] ops = {"Consumo mínimo", "No Perfil", "Desempenho Máximo"};
-        Double result = Double.parseDouble(JOptionPane.showInputDialog(this, "Enter user power comsumption limit"));
+    private String translate(final String word) {
+        return this.translator.getString(word);
+    }
 
-        if(!usuario.contains(add) && !add.equals("")){
-            usuario.add(add);
-            Vector user = new Vector<String>();
+    private void onAddClick(final ActionEvent evt) {
+        final String add = JOptionPane.showInputDialog(
+                this,
+                this.translate("Enter the name"),
+                this.translate("Add"),
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        // TODO: Parse result and error.
+        final Double result =
+                Double.parseDouble(JOptionPane.showInputDialog(this,
+                "Enter user power comsumption limit"));
+
+        if (!this.userSet.contains(add) && !add.isEmpty()) {
+            this.userSet.add(add);
+            final Vector user = new Vector<String>();
             user.add(add);
             user.add(result);
-            this.usuarios.add(user);
-            jScrollPane1.setViewportView(jTable1);
+            this.users.add(user);
+            this.jScrollPane1.setViewportView(this.table);
         }
     }
 
-    private void jButtonRemoverActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-        if (jTable1.getSelectedRow() != -1) {
-            String perfil = jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString();
-            int escolha = JOptionPane.showConfirmDialog(this, palavras.getString("Are you sure want delete this user:") + perfil, null, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-            if (escolha == JOptionPane.YES_OPTION) {
-                usuario.remove(perfil);
-                usuarios.remove(jTable1.getSelectedRow());
-                jScrollPane1.setViewportView(jTable1);
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, palavras.getString("A user should be selected"));
+    private URL getResource(final String name) {
+        return this.getClass().getResource(name);
+    }
+
+    private void onRemoveClick(final ActionEvent evt) {
+        if (this.table.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this,
+                    this.translate("A user should be selected"));
+            return;
+        }
+
+        final var profile =
+                this.table.getValueAt(this.table.getSelectedRow(), 0).toString();
+        final int choice = JOptionPane.showConfirmDialog(
+                this,
+                "%s%s".formatted(this.translate(
+                        "Are you sure want delete this user:"), profile),
+                null,
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (choice != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        this.userSet.remove(profile);
+        this.users.remove(this.table.getSelectedRow());
+        this.jScrollPane1.setViewportView(this.table);
+    }
+
+    public HashSet<String> getUsuarios() {
+        final HashSet<String> ret = new HashSet<>(0);
+        for (final List userList : this.users) {
+            ret.add(userList.get(0).toString());
+        }
+        return ret;
+    }
+
+    HashMap<String, Double> getLimite() {
+        // TODO: Check and throw
+        final HashMap<String, Double> ret = new HashMap<>(0);
+        for (final List userList : this.users) {
+            ret.put(userList.get(0).toString(),
+                    Double.parseDouble(userList.get(1).toString()));
+        }
+        return ret;
+    }
+
+    private static class SomeDefaultTableModel extends DefaultTableModel {
+        SomeDefaultTableModel(
+                final Vector<Vector> users,
+                final Vector<String> profiles) {
+            super(users, profiles);
+        }
+
+        @Override
+        public boolean isCellEditable(
+                final int rowIndex,
+                final int columnIndex) {
+            return true;
         }
     }
-
-    private void jButtonOkActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-        this.setVisible(false);
-    }
-
-    // Variables declaration - do not modify
-    private javax.swing.JButton jButtonAdicionar;
-    private javax.swing.JButton jButtonOk;
-    private javax.swing.JButton jButtonRemover;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JToolBar jToolBar;
-    // End of variables declaration
-    private Vector<Vector> usuarios;
-    private Vector<String> perfis;
-    private HashSet<String> usuario;
 }
-
