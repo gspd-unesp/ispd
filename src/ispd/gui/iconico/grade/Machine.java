@@ -52,11 +52,11 @@ import java.util.Set;
  *
  * @author denison
  */
-public class Machine extends Vertex implements GridItem {
+public class Machine extends Vertex implements ItemGrade {
 
-    private GridItemIdentifier id;
-    private HashSet<GridItem> conexoesEntrada;
-    private HashSet<GridItem> conexoesSaida;
+    private IdentificadorItemGrade id;
+    private HashSet<ItemGrade> conexoesEntrada;
+    private HashSet<ItemGrade> conexoesSaida;
     private String algoritmo;
     private Double poderComputacional;
     private Integer nucleosProcessador;
@@ -66,7 +66,7 @@ public class Machine extends Vertex implements GridItem {
     private Double discoRigido;
     private boolean configurado;
     private String proprietario;
-    private List<GridItem> escravos;
+    private List<ItemGrade> escravos;
     private Double costperprocessing;
     private Double costpermemory; 
     private Double costperdisk;
@@ -84,8 +84,8 @@ public class Machine extends Vertex implements GridItem {
 
     public Machine(int x, int y, int idLocal, int idGlobal, Double energia) {
         super(x, y);
-        this.id = new GridItemIdentifier(idLocal, idGlobal, "mac" + idGlobal);
-        this.escravos = new ArrayList<GridItem>();
+        this.id = new IdentificadorItemGrade(idLocal, idGlobal, "mac" + idGlobal);
+        this.escravos = new ArrayList<ItemGrade>();
         this.proprietario = "user1";
         this.algoritmo = "---";
         this.poderComputacional = 0.0;
@@ -98,13 +98,13 @@ public class Machine extends Vertex implements GridItem {
         this.costpermemory = 0.0;
         this.costperdisk = 0.0;
         this.VMMallocpolicy = "---";
-        conexoesEntrada = new HashSet<GridItem>();
-        conexoesSaida = new HashSet<GridItem>();
+        conexoesEntrada = new HashSet<ItemGrade>();
+        conexoesSaida = new HashSet<ItemGrade>();
         this.consumoEnergia = energia;
     }
 
     @Override
-    public GridItemIdentifier getId() {
+    public IdentificadorItemGrade getId() {
         return this.id;
     }
     
@@ -117,25 +117,25 @@ public class Machine extends Vertex implements GridItem {
     }
 
     @Override
-    public Set<GridItem> getInboundConnections() {
+    public Set<ItemGrade> getConexoesEntrada() {
         return conexoesEntrada;
     }
 
     @Override
-    public Set<GridItem> getOutboundConnections() {
+    public Set<ItemGrade> getConexoesSaida() {
         return conexoesSaida;
     }
 
     @Override
     public String toString() {
-        return "id: " + getId().getGlobalId() + " " + getId().getName();
+        return "id: " + getId().getIdGlobal() + " " + getId().getNome();
     }
 
     @Override
-    public String getAttributes(ResourceBundle palavras) {
-        String texto = palavras.getString("Local ID:") + " " + String.valueOf(getId().getLocalId())
-                + "<br>" + palavras.getString("Global ID:") + " " + String.valueOf(getId().getGlobalId())
-                + "<br>" + palavras.getString("Label") + ": " + getId().getName()
+    public String getAtributos(ResourceBundle palavras) {
+        String texto = palavras.getString("Local ID:") + " " + String.valueOf(getId().getIdLocal())
+                + "<br>" + palavras.getString("Global ID:") + " " + String.valueOf(getId().getIdGlobal())
+                + "<br>" + palavras.getString("Label") + ": " + getId().getNome()
                 + "<br>" + palavras.getString("X-coordinate:") + " " + String.valueOf(getX())
                 + "<br>" + palavras.getString("Y-coordinate:") + " " + String.valueOf(getY())
                 + "<br>" + palavras.getString("Computing power") + ": " + String.valueOf(getPoderComputacional())
@@ -152,8 +152,8 @@ public class Machine extends Vertex implements GridItem {
     }
 
     @Override
-    public Machine makeCopy(int mousePosX, int mousePosY, int globalId, int localId) {
-        Machine temp = new Machine(mousePosX, mousePosY, globalId, localId, this.consumoEnergia);
+    public Machine criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
+        Machine temp = new Machine(posicaoMouseX, posicaoMouseY, idGlobal, idLocal, this.consumoEnergia);
         temp.algoritmo = this.algoritmo;
         //temp.VMMallocpolicy = this.VMMallocpolicy;
         temp.poderComputacional = this.poderComputacional;
@@ -165,21 +165,21 @@ public class Machine extends Vertex implements GridItem {
     }
 
     @Override
-    public boolean isConfigured() {
+    public boolean isConfigurado() {
         return configurado;
     }
 
     @Override
     public void draw(Graphics g) {
         g.drawImage(DesenhoGrade.IMACHINE, getX() - 15, getY() - 15, null);
-        if (isConfigured()) {
+        if (isConfigurado()) {
             g.drawImage(DesenhoGrade.IVERDE, getX() + 15, getY() + 15, null);
         } else {
             g.drawImage(DesenhoGrade.IVERMELHO, getX() + 15, getY() + 15, null);
         }
 
         g.setColor(Color.BLACK);
-        g.drawString(String.valueOf(getId().getGlobalId()), getX(), getY() + 30);
+        g.drawString(String.valueOf(getId().getIdGlobal()), getX(), getY() + 30);
         // Se o icone estiver ativo, desenhamos uma margem nele.
         if (isSelected()) {
             g.setColor(Color.RED);
@@ -206,19 +206,19 @@ public class Machine extends Vertex implements GridItem {
         return mestre;
     }
 
-    public List<GridItem> getEscravos() {
+    public List<ItemGrade> getEscravos() {
         return escravos;
     }
 
-    public void setEscravos(List<GridItem> escravos) {
+    public void setEscravos(List<ItemGrade> escravos) {
         this.escravos = escravos;
     }
 
-    public List<GridItem> getNosEscalonaveis() {
-        List<GridItem> escalonaveis = new ArrayList<GridItem>();
+    public List<ItemGrade> getNosEscalonaveis() {
+        List<ItemGrade> escalonaveis = new ArrayList<ItemGrade>();
         Set internet = new HashSet();
-        for (GridItem link : conexoesSaida) {
-            GridItem itemGrade = (GridItem) ((Link) link).getDestination();
+        for (ItemGrade link : conexoesSaida) {
+            ItemGrade itemGrade = (ItemGrade) ((Link) link).getDestination();
             if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
                 if (!escalonaveis.contains(itemGrade)) {
                     escalonaveis.add(itemGrade);
@@ -232,9 +232,9 @@ public class Machine extends Vertex implements GridItem {
         return escalonaveis;
     }
 
-    private void getIndiretosEscalonaveis(GridItem itemGrade, List<GridItem> escalonaveis, Set internet) {
-        for (GridItem link : itemGrade.getOutboundConnections()) {
-            GridItem item = (GridItem) ((Link) link).getDestination();
+    private void getIndiretosEscalonaveis(ItemGrade itemGrade, List<ItemGrade> escalonaveis, Set internet) {
+        for (ItemGrade link : itemGrade.getConexoesSaida()) {
+            ItemGrade item = (ItemGrade) ((Link) link).getDestination();
             if (item instanceof Cluster || item instanceof Machine) {
                 if (!escalonaveis.contains(item)) {
                     escalonaveis.add(item);
@@ -353,10 +353,10 @@ public class Machine extends Vertex implements GridItem {
         }
     }
 
-    protected Set<GridItem> getNosIndiretosSaida() {
-        Set<GridItem> indiretosSaida = new HashSet<GridItem>();
-        for (GridItem link : conexoesSaida) {
-            GridItem itemGrade = (GridItem) ((Link) link).getDestination();
+    protected Set<ItemGrade> getNosIndiretosSaida() {
+        Set<ItemGrade> indiretosSaida = new HashSet<ItemGrade>();
+        for (ItemGrade link : conexoesSaida) {
+            ItemGrade itemGrade = (ItemGrade) ((Link) link).getDestination();
             if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
                 indiretosSaida.add(itemGrade);
             } else if (itemGrade instanceof Internet) {
@@ -367,9 +367,9 @@ public class Machine extends Vertex implements GridItem {
         return indiretosSaida;
     }
 
-    private void getIndiretosSaida(GridItem internet, Set<GridItem> indiretosSaida) {
-        for (GridItem link : internet.getOutboundConnections()) {
-            GridItem item = (GridItem) ((Link) link).getDestination();
+    private void getIndiretosSaida(ItemGrade internet, Set<ItemGrade> indiretosSaida) {
+        for (ItemGrade link : internet.getConexoesSaida()) {
+            ItemGrade item = (ItemGrade) ((Link) link).getDestination();
             if (item instanceof Cluster || item instanceof Machine) {
                 indiretosSaida.add(item);
             } else if (item instanceof Internet) {
@@ -381,10 +381,10 @@ public class Machine extends Vertex implements GridItem {
         }
     }
 
-    protected Set<GridItem> getNosIndiretosEntrada() {
-        Set<GridItem> indiretosEntrada = new HashSet<GridItem>();
-        for (GridItem link : conexoesEntrada) {
-            GridItem itemGrade = (GridItem) ((Link) link).getSource();
+    protected Set<ItemGrade> getNosIndiretosEntrada() {
+        Set<ItemGrade> indiretosEntrada = new HashSet<ItemGrade>();
+        for (ItemGrade link : conexoesEntrada) {
+            ItemGrade itemGrade = (ItemGrade) ((Link) link).getSource();
             if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
                 indiretosEntrada.add(itemGrade);
             } else if (itemGrade instanceof Internet) {
@@ -395,9 +395,9 @@ public class Machine extends Vertex implements GridItem {
         return indiretosEntrada;
     }
 
-    private void getIndiretosEntrada(GridItem internet, Set<GridItem> indiretosEntrada) {
-        for (GridItem link : internet.getInboundConnections()) {
-            GridItem item = (GridItem) ((Link) link).getSource();
+    private void getIndiretosEntrada(ItemGrade internet, Set<ItemGrade> indiretosEntrada) {
+        for (ItemGrade link : internet.getConexoesEntrada()) {
+            ItemGrade item = (ItemGrade) ((Link) link).getSource();
             if (item instanceof Cluster || item instanceof Machine) {
                 indiretosEntrada.add(item);
             } else if (item instanceof Internet) {

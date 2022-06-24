@@ -50,11 +50,11 @@ import java.util.Set;
  *
  * @author denison
  */
-public class Cluster extends Vertex implements GridItem {
+public class Cluster extends Vertex implements ItemGrade {
 
-    private GridItemIdentifier id;
-    private HashSet<GridItem> conexoesEntrada;
-    private HashSet<GridItem> conexoesSaida;
+    private IdentificadorItemGrade id;
+    private HashSet<ItemGrade> conexoesEntrada;
+    private HashSet<ItemGrade> conexoesSaida;
     private Double banda;
     private Double latencia;
     private String algoritmo;
@@ -74,7 +74,7 @@ public class Cluster extends Vertex implements GridItem {
 
     public Cluster(Integer x, Integer y, int idLocal, int idGlobal, Double energia) {
         super(x, y);
-        this.id = new GridItemIdentifier(idLocal, idGlobal, "cluster" + idGlobal);
+        this.id = new IdentificadorItemGrade(idLocal, idGlobal, "cluster" + idGlobal);
         this.algoritmo = "---";
         this.proprietario = "user1";
         this.numeroEscravos = 0;
@@ -89,13 +89,13 @@ public class Cluster extends Vertex implements GridItem {
         this.costpermemory = 0.0;
         this.costperdisk = 0.0;
         this.VMMallocpolicy = "---";
-        this.conexoesEntrada = new HashSet<GridItem>();
-        this.conexoesSaida = new HashSet<GridItem>();
+        this.conexoesEntrada = new HashSet<ItemGrade>();
+        this.conexoesSaida = new HashSet<ItemGrade>();
         this.consumoEnergia = energia;//Consumo de energia de cada uma das máquinas do cluster
     }
 
     @Override
-    public GridItemIdentifier getId() {
+    public IdentificadorItemGrade getId() {
         return this.id;
     }
     
@@ -108,25 +108,25 @@ public class Cluster extends Vertex implements GridItem {
     }
     
     @Override
-    public Set<GridItem> getInboundConnections() {
+    public Set<ItemGrade> getConexoesEntrada() {
         return conexoesEntrada;
     }
 
     @Override
-    public Set<GridItem> getOutboundConnections() {
+    public Set<ItemGrade> getConexoesSaida() {
         return conexoesSaida;
     }
 
     @Override
     public String toString() {
-        return "id: " + getId().getGlobalId() + " " + getId().getName();
+        return "id: " + getId().getIdGlobal() + " " + getId().getNome();
     }
 
     @Override
-    public String getAttributes(ResourceBundle palavras) {
-        String texto = palavras.getString("Local ID:") + " " + this.getId().getLocalId()
-                + "<br>" + palavras.getString("Global ID:") + " " + this.getId().getGlobalId()
-                + "<br>" + palavras.getString("Label") + ": " + this.getId().getName()
+    public String getAtributos(ResourceBundle palavras) {
+        String texto = palavras.getString("Local ID:") + " " + this.getId().getIdLocal()
+                + "<br>" + palavras.getString("Global ID:") + " " + this.getId().getIdGlobal()
+                + "<br>" + palavras.getString("Label") + ": " + this.getId().getNome()
                 + "<br>" + palavras.getString("X-coordinate:") + " " + this.getX()
                 + "<br>" + palavras.getString("Y-coordinate:") + " " + this.getY()
                 + "<br>" + palavras.getString("Number of slaves") + ": " + getNumeroEscravos()
@@ -139,14 +139,14 @@ public class Cluster extends Vertex implements GridItem {
 
     /**
      *
-     * @param mousePosX the value of X position
-     * @param mousePosY the value of Y position
-     * @param globalId the value of idGlobal
-     * @param localId the value of idLocal
+     * @param posicaoMouseX the value of X position
+     * @param posicaoMouseY the value of Y position
+     * @param idGlobal the value of idGlobal
+     * @param idLocal the value of idLocal
      */
     @Override
-    public Cluster makeCopy(int mousePosX, int mousePosY, int globalId, int localId) {
-        Cluster temp = new Cluster(mousePosX, mousePosY, globalId, localId, this.consumoEnergia);
+    public Cluster criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
+        Cluster temp = new Cluster(posicaoMouseX, posicaoMouseY, idGlobal, idLocal, this.consumoEnergia);
         temp.algoritmo = this.algoritmo;
         temp.poderComputacional = this.poderComputacional;
         temp.mestre = this.mestre;
@@ -159,21 +159,21 @@ public class Cluster extends Vertex implements GridItem {
     }
 
     @Override
-    public boolean isConfigured() {
+    public boolean isConfigurado() {
         return configurado;
     }
 
     @Override
     public void draw(Graphics g) {
         g.drawImage(DesenhoGrade.ICLUSTER, getX() - 15, getY() - 15, null);
-        if (isConfigured()) {
+        if (isConfigurado()) {
             g.drawImage(DesenhoGrade.IVERDE, getX() + 15, getY() + 15, null);
         } else {
             g.drawImage(DesenhoGrade.IVERMELHO, getX() + 15, getY() + 15, null);
         }
 
         g.setColor(Color.BLACK);
-        g.drawString(String.valueOf(getId().getGlobalId()), getX(), getY() + 30);
+        g.drawString(String.valueOf(getId().getIdGlobal()), getX(), getY() + 30);
         // Se o icone estiver ativo, desenhamos uma margem nele.
         if (isSelected()) {
             g.setColor(Color.RED);

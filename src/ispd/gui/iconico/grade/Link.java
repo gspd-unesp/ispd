@@ -51,9 +51,9 @@ import java.util.Set;
  *
  * @author denison
  */
-public class Link extends Edge implements GridItem {
+public class Link extends Edge implements ItemGrade {
 
-    private GridItemIdentifier id;
+    private IdentificadorItemGrade id;
     private boolean selected;
     private Polygon areaSeta;
     private static Color DARK_GREEN = new Color(0, 130, 0);
@@ -66,29 +66,29 @@ public class Link extends Edge implements GridItem {
         super(origem, destino);
         this.selected = true;
         this.areaSeta = new Polygon();
-        this.id = new GridItemIdentifier(idLocal, idGlobal, "link" + idGlobal);
+        this.id = new IdentificadorItemGrade(idLocal, idGlobal, "link" + idGlobal);
     }
 
     @Override
-    public GridItemIdentifier getId() {
+    public IdentificadorItemGrade getId() {
         return this.id;
     }
 
     @Override
-    public Set<GridItem> getInboundConnections() {
+    public Set<ItemGrade> getConexoesEntrada() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Set<GridItem> getOutboundConnections() {
+    public Set<ItemGrade> getConexoesSaida() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public String getAttributes(ResourceBundle palavras) {
-        String texto = palavras.getString("Local ID:") + " " + getId().getLocalId()
-                + "<br>" + palavras.getString("Global ID:") + " " + getId().getGlobalId()
-                + "<br>" + palavras.getString("Label") + ": " + getId().getName()
+    public String getAtributos(ResourceBundle palavras) {
+        String texto = palavras.getString("Local ID:") + " " + getId().getIdLocal()
+                + "<br>" + palavras.getString("Global ID:") + " " + getId().getIdGlobal()
+                + "<br>" + palavras.getString("Label") + ": " + getId().getNome()
                 + "<br>" + palavras.getString("X1-coordinate:") + " " + getSource().getX()
                 + "<br>" + palavras.getString("Y1-coordinate:") + " " + getSource().getY()
                 + "<br>" + palavras.getString("X2-coordinate:") + " " + getDestination().getY()
@@ -101,14 +101,14 @@ public class Link extends Edge implements GridItem {
 
     /**
      *
-     * @param mousePosX the value of posicaoMouseX
-     * @param mousePosY the value of posicaoMouseY
-     * @param globalId the value of idGlobal
-     * @param localId the value of idLocal
+     * @param posicaoMouseX the value of posicaoMouseX
+     * @param posicaoMouseY the value of posicaoMouseY
+     * @param idGlobal the value of idGlobal
+     * @param idLocal the value of idLocal
      */
     @Override
-    public Link makeCopy(int mousePosX, int mousePosY, int globalId, int localId) {
-        Link temp = new Link(null, null, globalId, localId);
+    public Link criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
+        Link temp = new Link(null, null, idGlobal, idLocal);
         temp.banda = this.banda;
         temp.latencia = this.latencia;
         temp.ocupacao = this.ocupacao;
@@ -117,7 +117,7 @@ public class Link extends Edge implements GridItem {
     }
 
     @Override
-    public boolean isConfigured() {
+    public boolean isConfigurado() {
         return configurado;
     }
 
@@ -177,7 +177,7 @@ public class Link extends Edge implements GridItem {
 
         if (isSelected()) {
             g.setColor(Color.BLACK);
-        } else if (isConfigured()) {
+        } else if (isConfigurado()) {
             g.setColor(DARK_GREEN);
         } else {
             g.setColor(Color.RED);

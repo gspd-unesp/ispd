@@ -6,7 +6,7 @@ package ispd.gui.configuracao;
 
 import ispd.arquivo.Alocadores;
 import ispd.arquivo.EscalonadoresCloud;
-import ispd.gui.iconico.grade.GridItem;
+import ispd.gui.iconico.grade.ItemGrade;
 import ispd.gui.iconico.grade.Machine;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -64,12 +64,12 @@ public class MachineTableIaaS extends AbstractTableModel {
                 //Cria lista com nós escalonaveis
                 if (!selecionadorEscravos.isVisible()) {
                     DefaultListModel listModel = new DefaultListModel();
-                    List<GridItem> listaConectados = maquina.getNosEscalonaveis();
-                    for (GridItem item : listaConectados) {
+                    List<ItemGrade> listaConectados = maquina.getNosEscalonaveis();
+                    for (ItemGrade item : listaConectados) {
                         listModel.addElement(item);
                     }
                     selecionadorEscravos.setModel(listModel);
-                    for (GridItem escravo : maquina.getEscravos()) {
+                    for (ItemGrade escravo : maquina.getEscravos()) {
                         int index = listaConectados.indexOf(escravo);
                         selecionadorEscravos.addSelectionInterval(index, index);
                     }
@@ -83,7 +83,7 @@ public class MachineTableIaaS extends AbstractTableModel {
                             JOptionPane.OK_CANCEL_OPTION,
                             JOptionPane.PLAIN_MESSAGE);
                     if (opcao == JOptionPane.OK_OPTION) {
-                        List<GridItem> escravosList = new ArrayList<GridItem>(selecionadorEscravos.getSelectedValuesList());
+                        List<ItemGrade> escravosList = new ArrayList<ItemGrade>(selecionadorEscravos.getSelectedValuesList());
                         maquina.setEscravos(escravosList);
                         escravos.setText(maquina.getEscravos().toString());
                     }
@@ -155,7 +155,7 @@ public class MachineTableIaaS extends AbstractTableModel {
         if (columnIndex == VALUE && maquina != null) {
             switch (rowIndex) {
                 case LABEL:
-                    maquina.getId().setName(aValue.toString());
+                    maquina.getId().setNome(aValue.toString());
                     break;
                 case OWNER:
                     maquina.setProprietario(usuarios.getSelectedItem().toString());
@@ -236,7 +236,7 @@ public class MachineTableIaaS extends AbstractTableModel {
                 if (maquina != null) {
                     switch (rowIndex) {
                         case LABEL:
-                            return maquina.getId().getName();
+                            return maquina.getId().getNome();
                         case OWNER:
                             return usuarios;
                         case PROCS:

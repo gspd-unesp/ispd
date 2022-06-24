@@ -45,7 +45,7 @@ import ispd.gui.EscolherClasse;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.GridItem;
+import ispd.gui.iconico.grade.ItemGrade;
 import ispd.gui.iconico.grade.Link;
 import ispd.gui.iconico.grade.Machine;
 import ispd.gui.iconico.grade.VirtualMachine;
@@ -800,7 +800,7 @@ public class IconicoXML {
         return cargasConfiguracao;
     }
 
-    private static void setCaracteristicas(GridItem item, NodeList elementsByTagName) {
+    private static void setCaracteristicas(ItemGrade item, NodeList elementsByTagName) {
         Machine maq = null;
         Cluster clust = null;
         if (item instanceof Machine) {
@@ -861,8 +861,8 @@ public class IconicoXML {
             clust.setSelected(false);
             vertices.add(clust);
             icones.put(global, clust);
-            clust.getId().setName(cluster.getAttribute("id"));
-            ValidaValores.addNomeIcone(clust.getId().getName());
+            clust.getId().setNome(cluster.getAttribute("id"));
+            ValidaValores.addNomeIcone(clust.getId().getNome());
             clust.setPoderComputacional(Double.parseDouble(cluster.getAttribute("power")));
             setCaracteristicas(clust, cluster.getElementsByTagName("characteristic"));
             clust.setNumeroEscravos(Integer.parseInt(cluster.getAttribute("nodes")));
@@ -886,8 +886,8 @@ public class IconicoXML {
             net.setSelected(false);
             vertices.add(net);
             icones.put(global, net);
-            net.getId().setName(inet.getAttribute("id"));
-            ValidaValores.addNomeIcone(net.getId().getName());
+            net.getId().setNome(inet.getAttribute("id"));
+            ValidaValores.addNomeIcone(net.getId().getNome());
             net.setBanda(Double.parseDouble(inet.getAttribute("bandwidth")));
             net.setTaxaOcupacao(Double.parseDouble(inet.getAttribute("load")));
             net.setLatencia(Double.parseDouble(inet.getAttribute("latency")));
@@ -906,8 +906,8 @@ public class IconicoXML {
                 maq.setSelected(false);
                 icones.put(global, maq);
                 vertices.add(maq);
-                maq.getId().setName(maquina.getAttribute("id"));
-                ValidaValores.addNomeIcone(maq.getId().getName());
+                maq.getId().setNome(maquina.getAttribute("id"));
+                ValidaValores.addNomeIcone(maq.getId().getNome());
                 maq.setPoderComputacional(Double.parseDouble(maquina.getAttribute("power")));
                 setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
                 maq.setTaxaOcupacao(Double.parseDouble(maquina.getAttribute("load")));
@@ -932,8 +932,8 @@ public class IconicoXML {
                 int global = Integer.parseInt(id.getAttribute("global"));
                 Machine maq = (Machine) icones.get(global);
                 vertices.add(maq);
-                maq.getId().setName(maquina.getAttribute("id"));
-                ValidaValores.addNomeIcone(maq.getId().getName());
+                maq.getId().setNome(maquina.getAttribute("id"));
+                ValidaValores.addNomeIcone(maq.getId().getNome());
                 maq.setPoderComputacional(Double.parseDouble(maquina.getAttribute("power")));
                 setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
                 maq.setTaxaOcupacao(Double.parseDouble(maquina.getAttribute("load")));
@@ -943,10 +943,10 @@ public class IconicoXML {
                 maq.setVMMallocpolicy(master.getAttribute("vm_alloc"));
                 maq.setMestre(true);
                 NodeList slaves = master.getElementsByTagName("slave");
-                List<GridItem> escravos = new ArrayList<GridItem>(slaves.getLength());
+                List<ItemGrade> escravos = new ArrayList<ItemGrade>(slaves.getLength());
                 for (int j = 0; j < slaves.getLength(); j++) {
                     Element slave = (Element) slaves.item(j);
-                    GridItem escravo = (GridItem) icones.get(Integer.parseInt(slave.getAttribute("id")));
+                    ItemGrade escravo = (ItemGrade) icones.get(Integer.parseInt(slave.getAttribute("id")));
                     if (escravo != null) {
                         escravos.add(escravo);
                     }
@@ -966,11 +966,11 @@ public class IconicoXML {
             Vertex destino = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("destination")));
             Link lk = new Link(origem, destino, local, global);
             lk.setSelected(false);
-            ((GridItem) origem).getOutboundConnections().add(lk);
-            ((GridItem) destino).getInboundConnections().add(lk);
+            ((ItemGrade) origem).getConexoesSaida().add(lk);
+            ((ItemGrade) destino).getConexoesEntrada().add(lk);
             arestas.add(lk);
-            lk.getId().setName(link.getAttribute("id"));
-            ValidaValores.addNomeIcone(lk.getId().getName());
+            lk.getId().setNome(link.getAttribute("id"));
+            ValidaValores.addNomeIcone(lk.getId().getNome());
             lk.setBanda(Double.parseDouble(link.getAttribute("bandwidth")));
             lk.setTaxaOcupacao(Double.parseDouble(link.getAttribute("load")));
             lk.setLatencia(Double.parseDouble(link.getAttribute("latency")));

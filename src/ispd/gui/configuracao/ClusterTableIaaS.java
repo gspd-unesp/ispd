@@ -5,13 +5,17 @@
 package ispd.gui.configuracao;
 
 import ispd.arquivo.Alocadores;
+import ispd.arquivo.Escalonadores;
 import ispd.arquivo.EscalonadoresCloud;
 import ispd.gui.iconico.grade.Cluster;
-
+import java.awt.Component;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import javax.swing.JComboBox;
+import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 
 /**
  *
@@ -110,7 +114,7 @@ public class ClusterTableIaaS extends AbstractTableModel{
         if (columnIndex == VALUE && cluster != null) {
             switch (rowIndex) {
                 case LABEL:
-                    cluster.getId().setName(aValue.toString());
+                    cluster.getId().setNome(aValue.toString());
                     break;
                 case OWNER:
                     cluster.setProprietario(usuarios.getSelectedItem().toString());
@@ -200,7 +204,7 @@ public class ClusterTableIaaS extends AbstractTableModel{
                 if (cluster != null) {
                     switch (rowIndex) {
                         case LABEL:
-                            return cluster.getId().getName();
+                            return cluster.getId().getNome();
                         case OWNER:
                             return usuarios;
                         case NODES:
