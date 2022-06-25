@@ -2,8 +2,7 @@ package ispd.gui.iconico.grade;
 
 import ispd.alocacaoVM.VMM;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.Image;
 import java.util.ResourceBundle;
 
 public class Cluster extends VertexGridItem {
@@ -11,66 +10,66 @@ public class Cluster extends VertexGridItem {
     /**
      * It represents the bandwidth.
      */
-    private Double bandwidth;
+    private double bandwidth;
 
     /**
      * It represents the latency.
      */
-    private Double latency;
+    private double latency;
 
     /**
      * It represents the amount of memory RAM in
      * <em>gigabytes (GB)</em>.
      */
-    private Double ram;
+    private double ram;
 
     /**
      * It represents the amount of hard disk in
      * <em>gigabytes (GB)</em>.
      */
-    private Double hardDisk;
+    private double hardDisk;
 
     /**
      * It represents the computational power.
      */
-    private Double computationalPower;
+    private double computationalPower;
 
     /**
      * It represents the energy consumption.
      */
-    private Double energyConsumption;
+    private double energyConsumption;
 
     /**
      * It represents the cost per processing.
      */
-    private Double costPerProcessing;
+    private double costPerProcessing;
 
     /**
      * It represents the cost per memory.
      */
-    private Double costPerMemory;
+    private double costPerMemory;
 
     /**
      * It represents the cost per disk.
      */
-    private Double costPerDisk;
+    private double costPerDisk;
 
     /**
      * It represents the amount of cores in the chip.
      */
-    private Integer coreCount;
+    private int coreCount;
 
     /**
      * It represents the amount of slaves.
      */
-    private Integer slaveCount;
+    private int slaveCount;
 
     /**
      * It represents if this cluster acts as master, that is,
      * if this variable is {@code true}, then this cluster is
      * a master; otherwise {@code false}.
      */
-    private Boolean master;
+    private boolean master;
 
     /**
      * It contains the scheduling algorithm used.
@@ -102,7 +101,7 @@ public class Cluster extends VertexGridItem {
                    final Integer y,
                    final int localId,
                    final int globalId,
-                   final Double energyConsumption) {
+                   final double energyConsumption) {
         super(localId, globalId, "cluster", x, y);
         this.schedulingAlgorithm = "---";
         this.owner = "user1";
@@ -110,36 +109,6 @@ public class Cluster extends VertexGridItem {
         this.master = true;
         this.vmmAllocationPolicy = "---";
         this.energyConsumption = energyConsumption;
-    }
-
-    /**
-     * It draws the cluster icon and some additional stateful
-     * information (cluster well configured e.g.).
-     */
-    @Override
-    public void draw(final Graphics g) {
-        final var configuredStatusImage = this.configured ?
-                DesenhoGrade.IVERDE : DesenhoGrade.IVERMELHO;
-
-        g.drawImage(DesenhoGrade.ICLUSTER, this.getX() - 15,
-                this.getY() - 15, null);
-        g.drawImage(configuredStatusImage, this.getX() + 15,
-                this.getY() + 15, null);
-
-        g.setColor(Color.BLACK);
-        g.drawString(String.valueOf(this.id.getGlobalId()),
-                this.getX(), this.getY() + 30);
-
-        /* If the icon is active, then a margin is drawn */
-        if (this.isSelected()) {
-            final var offset = this.getOffset();
-            final var squareSize = 34;
-
-            g.setColor(Color.RED);
-            g.drawRect(this.getX() - offset,
-                    this.getY() - offset,
-                    squareSize, squareSize);
-        }
     }
 
     /**
@@ -209,7 +178,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the bandwidth
      */
-    public Double getBandwidth() {
+    public double getBandwidth() {
         return this.bandwidth;
     }
 
@@ -218,7 +187,7 @@ public class Cluster extends VertexGridItem {
      *
      * @param bandwidth the bandwidth to be set
      */
-    public void setBandwidth(final Double bandwidth) {
+    public void setBandwidth(final double bandwidth) {
         this.bandwidth = bandwidth;
         this.checkConfiguration();
     }
@@ -228,7 +197,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the latency
      */
-    public Double getLatency() {
+    public double getLatency() {
         return this.latency;
     }
 
@@ -237,7 +206,7 @@ public class Cluster extends VertexGridItem {
      *
      * @param latency the latency to be set
      */
-    public void setLatency(final Double latency) {
+    public void setLatency(final double latency) {
         this.latency = latency;
         this.checkConfiguration();
     }
@@ -247,7 +216,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the amount of RAM memory in <em>gigabytes (GB)</em>
      */
-    public Double getRam() {
+    public double getRam() {
         return this.ram;
     }
 
@@ -256,7 +225,7 @@ public class Cluster extends VertexGridItem {
      *
      * @param ram the amount of RAM memory to be set
      */
-    public void setRam(final Double ram) {
+    public void setRam(final double ram) {
         this.ram = ram;
     }
 
@@ -265,7 +234,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the amount of hard disk in <em>gigabytes (GB)</em>
      */
-    public Double getHardDisk() {
+    public double getHardDisk() {
         return this.hardDisk;
     }
 
@@ -274,7 +243,7 @@ public class Cluster extends VertexGridItem {
      *
      * @param hardDisk the amount of hard disk to be set to
      */
-    public void setHardDisk(final Double hardDisk) {
+    public void setHardDisk(final double hardDisk) {
         this.hardDisk = hardDisk;
     }
 
@@ -283,7 +252,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the computational power.
      */
-    public Double getComputationalPower() {
+    public double getComputationalPower() {
         return this.computationalPower;
     }
 
@@ -294,7 +263,7 @@ public class Cluster extends VertexGridItem {
      *                           be set
      */
     public void setComputationalPower(
-            final Double computationalPower) {
+            final double computationalPower) {
         this.computationalPower = computationalPower;
         this.checkConfiguration();
     }
@@ -304,7 +273,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the energy consumption
      */
-    public Double getEnergyConsumption() {
+    public double getEnergyConsumption() {
         return this.energyConsumption;
     }
 
@@ -315,7 +284,7 @@ public class Cluster extends VertexGridItem {
      *                          be set
      */
     public void setEnergyConsumption(
-            final Double energyConsumption) {
+            final double energyConsumption) {
         this.energyConsumption = energyConsumption;
     }
 
@@ -324,7 +293,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the cost per processing
      */
-    public Double getCostPerProcessing() {
+    public double getCostPerProcessing() {
         return this.costPerProcessing;
     }
 
@@ -335,7 +304,7 @@ public class Cluster extends VertexGridItem {
      *                          to be set
      */
     public void setCostPerProcessing(
-            final Double costPerProcessing) {
+            final double costPerProcessing) {
         this.costPerProcessing = costPerProcessing;
     }
 
@@ -344,7 +313,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the cost per memory
      */
-    public Double getCostPerMemory() {
+    public double getCostPerMemory() {
         return this.costPerMemory;
     }
 
@@ -354,7 +323,7 @@ public class Cluster extends VertexGridItem {
      * @param costPerMemory the cost per memory to be set
      */
     public void setCostPerMemory(
-            final Double costPerMemory) {
+            final double costPerMemory) {
         this.costPerMemory = costPerMemory;
     }
 
@@ -363,7 +332,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the cost per disk
      */
-    public Double getCostPerDisk() {
+    public double getCostPerDisk() {
         return this.costPerDisk;
     }
 
@@ -372,7 +341,7 @@ public class Cluster extends VertexGridItem {
      *
      * @param costPerDisk the cost per disk
      */
-    public void setCostPerDisk(final Double costPerDisk) {
+    public void setCostPerDisk(final double costPerDisk) {
         this.costPerDisk = costPerDisk;
     }
 
@@ -381,7 +350,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the amount of cores in the chip
      */
-    public Integer getCoreCount() {
+    public int getCoreCount() {
         return this.coreCount;
     }
 
@@ -401,7 +370,7 @@ public class Cluster extends VertexGridItem {
      *
      * @return the amount of slaves
      */
-    public Integer getSlaveCount() {
+    public int getSlaveCount() {
         return this.slaveCount;
 
     }
@@ -423,7 +392,7 @@ public class Cluster extends VertexGridItem {
      * @return {@code true} since this cluster is master;
      *         otherwise, {@code false} is returned.
      */
-    public Boolean isMaster() {
+    public boolean isMaster() {
         return this.master;
     }
 
@@ -495,6 +464,18 @@ public class Cluster extends VertexGridItem {
     public void setVmmAllocationPolicy(
             final String vmmAllocationPolicy) {
         this.vmmAllocationPolicy = vmmAllocationPolicy;
+    }
+
+    /* getImage */
+
+    /**
+     * Returns the cluster image.
+     *
+     * @return the cluster image
+     */
+    @Override
+    public Image getImage() {
+        return DesenhoGrade.ICLUSTER;
     }
 
     /* toString */
