@@ -826,17 +826,17 @@ public class IconicoXML {
         } else if (elementsByTagName.getLength() > 0 && maq != null) {
             Element caracteristicas = (Element) elementsByTagName.item(0);
             Element process = (Element) caracteristicas.getElementsByTagName("process").item(0);
-            maq.setPoderComputacional(Double.valueOf(process.getAttribute("power")));
-            maq.setNucleosProcessador(Integer.valueOf(process.getAttribute("number")));
+            maq.setComputationalPower(Double.valueOf(process.getAttribute("power")));
+            maq.setCoreCount(Integer.valueOf(process.getAttribute("number")));
             Element memory = (Element) caracteristicas.getElementsByTagName("memory").item(0);
-            maq.setMemoriaRAM(Double.valueOf(memory.getAttribute("size")));
+            maq.setRam(Double.valueOf(memory.getAttribute("size")));
             Element disk = (Element) caracteristicas.getElementsByTagName("hard_disk").item(0);
-            maq.setDiscoRigido(Double.valueOf(disk.getAttribute("size")));
+            maq.setHardDisk(Double.valueOf(disk.getAttribute("size")));
             if (caracteristicas.getElementsByTagName("cost").getLength() > 0) {
                 Element cost = (Element) caracteristicas.getElementsByTagName("cost").item(0);
-                maq.setCostperprocessing(Double.valueOf(cost.getAttribute("cost_proc")));
-                maq.setCostpermemory(Double.valueOf(cost.getAttribute("cost_mem")));
-                maq.setCostperdisk(Double.valueOf(cost.getAttribute("cost_disk")));
+                maq.setCostPerProcessing(Double.valueOf(cost.getAttribute("cost_proc")));
+                maq.setCostPerMemory(Double.valueOf(cost.getAttribute("cost_mem")));
+                maq.setCostPerDisk(Double.valueOf(cost.getAttribute("cost_disk")));
             }
 
         }
@@ -888,9 +888,9 @@ public class IconicoXML {
             icones.put(global, net);
             net.getId().setName(inet.getAttribute("id"));
             ValidaValores.addNomeIcone(net.getId().getName());
-            net.setBanda(Double.parseDouble(inet.getAttribute("bandwidth")));
-            net.setTaxaOcupacao(Double.parseDouble(inet.getAttribute("load")));
-            net.setLatencia(Double.parseDouble(inet.getAttribute("latency")));
+            net.setBandwidth(Double.parseDouble(inet.getAttribute("bandwidth")));
+            net.setLoadFactor(Double.parseDouble(inet.getAttribute("load")));
+            net.setLatency(Double.parseDouble(inet.getAttribute("latency")));
         }
         //Realiza leitura dos icones de máquina
         for (int i = 0; i < maquinas.getLength(); i++) {
@@ -908,10 +908,10 @@ public class IconicoXML {
                 vertices.add(maq);
                 maq.getId().setName(maquina.getAttribute("id"));
                 ValidaValores.addNomeIcone(maq.getId().getName());
-                maq.setPoderComputacional(Double.parseDouble(maquina.getAttribute("power")));
+                maq.setComputationalPower(Double.parseDouble(maquina.getAttribute("power")));
                 setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
-                maq.setTaxaOcupacao(Double.parseDouble(maquina.getAttribute("load")));
-                maq.setProprietario(maquina.getAttribute("owner"));
+                maq.setLoadFactor(Double.parseDouble(maquina.getAttribute("load")));
+                maq.setOwner(maquina.getAttribute("owner"));
             } else {
                 Element pos = (Element) maquina.getElementsByTagName("position").item(0);
                 int x = Integer.parseInt(pos.getAttribute("x"));
@@ -934,14 +934,14 @@ public class IconicoXML {
                 vertices.add(maq);
                 maq.getId().setName(maquina.getAttribute("id"));
                 ValidaValores.addNomeIcone(maq.getId().getName());
-                maq.setPoderComputacional(Double.parseDouble(maquina.getAttribute("power")));
+                maq.setComputationalPower(Double.parseDouble(maquina.getAttribute("power")));
                 setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
-                maq.setTaxaOcupacao(Double.parseDouble(maquina.getAttribute("load")));
-                maq.setProprietario(maquina.getAttribute("owner"));
+                maq.setLoadFactor(Double.parseDouble(maquina.getAttribute("load")));
+                maq.setOwner(maquina.getAttribute("owner"));
                 Element master = (Element) maquina.getElementsByTagName("master").item(0);
-                maq.setAlgoritmo(master.getAttribute("scheduler"));
-                maq.setVMMallocpolicy(master.getAttribute("vm_alloc"));
-                maq.setMestre(true);
+                maq.setSchedulingAlgorithm(master.getAttribute("scheduler"));
+                maq.setVmmAllocationPolicy(master.getAttribute("vm_alloc"));
+                maq.setMaster(true);
                 NodeList slaves = master.getElementsByTagName("slave");
                 List<GridItem> escravos = new ArrayList<GridItem>(slaves.getLength());
                 for (int j = 0; j < slaves.getLength(); j++) {
@@ -951,7 +951,7 @@ public class IconicoXML {
                         escravos.add(escravo);
                     }
                 }
-                maq.setEscravos(escravos);
+                maq.setSlaves(escravos);
             }
         }
         //Realiza leitura dos icones de rede
@@ -971,9 +971,9 @@ public class IconicoXML {
             arestas.add(lk);
             lk.getId().setName(link.getAttribute("id"));
             ValidaValores.addNomeIcone(lk.getId().getName());
-            lk.setBanda(Double.parseDouble(link.getAttribute("bandwidth")));
-            lk.setTaxaOcupacao(Double.parseDouble(link.getAttribute("load")));
-            lk.setLatencia(Double.parseDouble(link.getAttribute("latency")));
+            lk.setBandwidth(Double.parseDouble(link.getAttribute("bandwidth")));
+            lk.setLoadFactor(Double.parseDouble(link.getAttribute("load")));
+            lk.setLatency(Double.parseDouble(link.getAttribute("latency")));
         }
     }
 

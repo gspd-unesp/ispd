@@ -2,6 +2,8 @@ package ispd.gui.iconico.grade;
 
 import ispd.gui.iconico.Vertex;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -82,6 +84,35 @@ import java.util.Set;
             final Integer x,
             final Integer y) {
         this(localId, globalId, name, x, y, false);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void draw(final Graphics g) {
+        final var configuredStatusImage = this.configured ?
+                DesenhoGrade.IVERDE : DesenhoGrade.IVERMELHO;
+
+        g.drawImage(this.getImage(), this.getX() - 15,
+                this.getY() - 15, null);
+        g.drawImage(configuredStatusImage, this.getX() + 15,
+                this.getY() + 15, null);
+
+        g.setColor(Color.BLACK);
+        g.drawString(String.valueOf(this.id.getGlobalId()),
+                this.getX(), this.getY() + 30);
+
+        /* If the icon is active, then a margin is drawn */
+        if (this.isSelected()) {
+            final var offset = this.getOffset();
+            final var squareSize = 34;
+
+            g.setColor(Color.RED);
+            g.drawRect(this.getX() - offset,
+                    this.getY() - offset,
+                    squareSize, squareSize);
+        }
     }
 
     /**

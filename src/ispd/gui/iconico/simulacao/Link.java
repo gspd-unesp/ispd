@@ -6,6 +6,7 @@ import ispd.motor.filas.servidores.implementacao.CS_Link;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
 
 public class Link extends Edge {
 
@@ -25,6 +26,11 @@ public class Link extends Edge {
 
     @Override
     public void setSelected(boolean selected) {
+    }
+
+    @Override
+    public Image getImage() {
+        return null;
     }
 
     @Override

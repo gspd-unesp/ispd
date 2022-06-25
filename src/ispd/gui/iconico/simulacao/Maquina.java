@@ -5,6 +5,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
 
 public class Maquina extends Vertex {
 
@@ -54,5 +55,10 @@ public class Maquina extends Vertex {
             }
         }
         return false;
+    }
+
+    @Override
+    public Image getImage() {
+        return null;
     }
 }

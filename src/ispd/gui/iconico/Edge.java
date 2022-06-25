@@ -15,6 +15,32 @@ public abstract class Edge implements Icon {
     private Vertex destination;
 
     /**
+     * It marks whether the edge is selected. If this variable
+     * is {@code true}, then this edge is selected; otherwise,
+     * it is not selected.
+     */
+    private boolean selected;
+
+    /**
+     * Constructor of {@link Edge} which specifies the source,
+     * destination and whether the edge is selected. Mathematically
+     * speaking, the source vertex is which this edge is
+     * <em>incident from</em> and the destination vertex is
+     * whcih this edge is <em>incident to</em>.
+     *
+     * @param source      the source vertex
+     * @param destination the destination vertex
+     * @param selected    whether the edge is selected
+     */
+    public Edge(final Vertex source,
+                final Vertex destination,
+                final boolean selected) {
+        this.source = source;
+        this.destination = destination;
+        this.selected = selected;
+    }
+
+    /**
      * Constructor of {@link Edge} which specifies the source
      * and destination vertices. Mathematically speaking, the
      * source vertex is which this edge is <em>incident
@@ -26,8 +52,7 @@ public abstract class Edge implements Icon {
      */
     public Edge(final Vertex source,
                 final Vertex destination) {
-        this.source = source;
-        this.destination = destination;
+        this(source, destination, false);
     }
 
     /**
@@ -58,6 +83,29 @@ public abstract class Edge implements Icon {
                             final Vertex destination) {
         this.source = source;
         this.destination = destination;
+    }
+
+    /**
+     * Returns {@code true} if this edge is selected.
+     * Otherwise, returns {@code false}.
+     *
+     * @return {@code true} if this edge is selected;
+     *         otherwise, returns {@code false}.
+     */
+    @Override
+    public boolean isSelected() {
+        return this.selected;
+    }
+
+    /**
+     * It sets the edge as selected or not.
+     *
+     * @param selected if {@code true}, set this edge as selected;
+     *                 otherwise, set this edge as not selected.
+     */
+    @Override
+    public void setSelected(final boolean selected) {
+        this.selected = selected;
     }
 
     /**

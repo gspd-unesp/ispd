@@ -52,14 +52,14 @@ public class MachineTable extends AbstractTableModel {
 
     void setMaquina(final Machine machine, final Iterable<String> users) {
         this.machine = machine;
-        this.schedulers.setSelectedItem(this.machine.getAlgoritmo());
+        this.schedulers.setSelectedItem(this.machine.getSchedulingAlgorithm());
         this.users.removeAllItems();
         for (final var s : users) {
             this.users.addItem(s);
         }
-        this.users.setSelectedItem(machine.getProprietario());
+        this.users.setSelectedItem(machine.getOwner());
         this.slaveList.setVisible(false);
-        this.slaves.setText(machine.getEscravos().toString());
+        this.slaves.setText(machine.getSlaves().toString());
     }
 
     @Override
@@ -123,15 +123,15 @@ public class MachineTable extends AbstractTableModel {
         return switch (rowIndex) {
             case MachineTable.LABEL -> this.machine.getId().getName();
             case MachineTable.OWNER -> this.users;
-            case MachineTable.PROCESSOR -> this.machine.getPoderComputacional();
-            case MachineTable.LOAD_FACTOR -> this.machine.getTaxaOcupacao();
-            case MachineTable.RAM -> this.machine.getMemoriaRAM();
-            case MachineTable.DISK -> this.machine.getDiscoRigido();
-            case MachineTable.CORES -> this.machine.getNucleosProcessador();
-            case MachineTable.MASTER -> this.machine.isMestre();
+            case MachineTable.PROCESSOR -> this.machine.getComputationalPower();
+            case MachineTable.LOAD_FACTOR -> this.machine.getLoadFactor();
+            case MachineTable.RAM -> this.machine.getRam();
+            case MachineTable.DISK -> this.machine.getHardDisk();
+            case MachineTable.CORES -> this.machine.getCoreCount();
+            case MachineTable.MASTER -> this.machine.isMaster();
             case MachineTable.SCHEDULER -> this.schedulers;
             case MachineTable.SLAVE -> this.slaves;
-            case MachineTable.ENERGY -> this.machine.getConsumoEnergia();
+            case MachineTable.ENERGY -> this.machine.getEnergyConsumption();
             default -> null;
         };
     }
@@ -167,23 +167,23 @@ public class MachineTable extends AbstractTableModel {
             case MachineTable.LABEL ->
                     this.machine.getId().setName(value.toString());
             case MachineTable.OWNER ->
-                    this.machine.setProprietario(this.users.getSelectedItem().toString());
+                    this.machine.setOwner(this.users.getSelectedItem().toString());
             case MachineTable.PROCESSOR ->
-                    this.machine.setPoderComputacional(Double.valueOf(value.toString()));
+                    this.machine.setComputationalPower(Double.valueOf(value.toString()));
             case MachineTable.LOAD_FACTOR ->
-                    this.machine.setTaxaOcupacao(Double.valueOf(value.toString()));
+                    this.machine.setLoadFactor(Double.valueOf(value.toString()));
             case MachineTable.RAM ->
-                    this.machine.setMemoriaRAM(Double.valueOf(value.toString()));
+                    this.machine.setRam(Double.valueOf(value.toString()));
             case MachineTable.DISK ->
-                    this.machine.setDiscoRigido(Double.valueOf(value.toString()));
+                    this.machine.setHardDisk(Double.valueOf(value.toString()));
             case MachineTable.CORES ->
-                    this.machine.setNucleosProcessador(Integer.valueOf(value.toString()));
+                    this.machine.setCoreCount(Integer.valueOf(value.toString()));
             case MachineTable.ENERGY ->
-                    this.machine.setConsumoEnergia(Double.valueOf(value.toString()));
+                    this.machine.setEnergyConsumption(Double.valueOf(value.toString()));
             case MachineTable.MASTER ->
-                    this.machine.setMestre(Boolean.valueOf(value.toString()));
+                    this.machine.setMaster(Boolean.valueOf(value.toString()));
             case MachineTable.SCHEDULER ->
-                    this.machine.setAlgoritmo(this.schedulers.getSelectedItem().toString());
+                    this.machine.setSchedulingAlgorithm(this.schedulers.getSelectedItem().toString());
         }
     }
 
@@ -210,7 +210,7 @@ public class MachineTable extends AbstractTableModel {
 
             final var modelList = new DefaultListModel<GridItem>();
             final var connectedList =
-                    MachineTable.this.machine.getNosEscalonaveis();
+                    MachineTable.this.machine.connectedSchedulableNodes();
 
             for (final var item : connectedList) {
                 modelList.addElement(item);
@@ -218,7 +218,7 @@ public class MachineTable extends AbstractTableModel {
 
             MachineTable.this.slaveList.setModel(modelList);
 
-            MachineTable.this.machine.getEscravos().stream()
+            MachineTable.this.machine.getSlaves().stream()
                     .mapToInt(connectedList::indexOf)
                     .forEachOrdered(i -> MachineTable.this.slaveList.addSelectionInterval(i, i));
 
@@ -242,11 +242,11 @@ public class MachineTable extends AbstractTableModel {
                 return;
             }
 
-            MachineTable.this.machine.setEscravos(
+            MachineTable.this.machine.setSlaves(
                     new ArrayList<>(MachineTable.this.slaveList.getSelectedValuesList())
             );
 
-            MachineTable.this.slaves.setText(MachineTable.this.machine.getEscravos().toString());
+            MachineTable.this.slaves.setText(MachineTable.this.machine.getSlaves().toString());
         }
     }
 }

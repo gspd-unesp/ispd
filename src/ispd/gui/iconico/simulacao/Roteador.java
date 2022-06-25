@@ -5,6 +5,7 @@ import ispd.motor.filas.servidores.implementacao.CS_Internet;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
 
 public class Roteador extends Vertex {
 
@@ -43,5 +44,10 @@ public class Roteador extends Vertex {
         }
         return false;
     }
-    
+
+    @Override
+    public Image getImage() {
+        return null;
+    }
+
 }

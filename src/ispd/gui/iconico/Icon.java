@@ -1,6 +1,7 @@
 package ispd.gui.iconico;
 
 import java.awt.Graphics;
+import java.awt.Image;
 
 public interface Icon {
 
@@ -61,5 +62,14 @@ public interface Icon {
      * @return the icon y-coordinate in cartesian coordinates
      */
     Integer getY();
+
+
+    /**
+     * Returns the icon image; that is, the image that is
+     * going to be representing this icon.
+     *
+     * @return this icon image
+     */
+    Image getImage();
 
 }

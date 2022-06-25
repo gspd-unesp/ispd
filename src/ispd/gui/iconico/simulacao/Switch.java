@@ -5,6 +5,7 @@ import ispd.motor.filas.servidores.implementacao.CS_Switch;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
 
 public class Switch extends Vertex {
 
@@ -46,5 +47,10 @@ public class Switch extends Vertex {
             }
         }
         return false;
+    }
+
+    @Override
+    public Image getImage() {
+        return null;
     }
 }

@@ -330,13 +330,13 @@ class ConfigurarVMs extends JDialog {
 
     private static Vector<Object> vmToVector(final VirtualMachine aux) {
         final Vector<Object> line = new Vector<>(7);
-        line.add(aux.getNome());
-        line.add(aux.getProprietario());
+        line.add(aux.getName());
+        line.add(aux.getOwner());
         line.add(aux.getVMM());
-        line.add(aux.getPoderComputacional());
-        line.add(aux.getMemoriaAlocada());
-        line.add(aux.getDiscoAlocado());
-        line.add(aux.getOS());
+        line.add(aux.getCoreCount());
+        line.add(aux.getAllocatedMemory());
+        line.add(aux.getAllocatedDisk());
+        line.add(aux.getOperatingSystem());
         return line;
     }
 
