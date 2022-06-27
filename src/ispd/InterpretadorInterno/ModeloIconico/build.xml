@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!--
+    Configuramos como default o nosso target "all", nele temos um atributo chamado depends, que indica uma depend ncia em rela  o a outro alvo. Cada alvo ser  executado na ordem em que for chamado respeitando a ordem de suas depend ncias.
+    -->
+<project name="Gera parser" default="all" basedir=".">
+	
+	
+	<!--
+	    target all - target respons vel por gerar o .jar execut vel do proj to no diret rio dist.
+	    -->
+	
+	<target name="clear">
+		<echo> Apagando arquivos antigos.</echo>    
+		<delete file="InterpretadorConstants.java" />
+		<delete file="Interpretador.java" />
+		<delete file="InterpretadorTokenManager.java" />
+		<delete file="ParseException.java" />
+		<delete file="SimpleCharStream.java" />
+		<delete file="Token.java" />	
+		<delete file="TokenMgrError.java" />
+	</target>
+	
+	<!--
+	    target all - target respons vel por gerar o .jar execut vel do proj to no diret rio dist.
+	    -->
+	
+	<target name="all" depends="clear">
+		<echo> Gerando parser em InterpretadorInterno.ModeloIconico</echo>    
+		<exec executable="javacc">
+			<arg line="Interpretador.jj"/>
+		</exec>
+	</target>
+	
+	<target name="win" depends="clear">
+		<echo> Gerando parser em InterpretadorInterno.ModeloIconico</echo>    
+		<exec executable="javacc.bat">
+			<arg line="Interpretador.jj"/>
+		</exec>
+	</target>
+	
+</project>
+

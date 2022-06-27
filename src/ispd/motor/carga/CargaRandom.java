@@ -39,7 +39,7 @@
  */
 package ispd.motor.carga;
 
-import NumerosAleatorios.GeracaoNumAleatorios;
+import ispd.NumerosAleatorios.GeracaoNumAleatorios;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;

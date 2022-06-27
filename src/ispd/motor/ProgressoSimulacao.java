@@ -41,8 +41,8 @@
  */
 package ispd.motor;
 
-import InterpretadorInterno.ModeloIconico.InterpretadorIconico;
-import InterpretadorInterno.ModeloSimulavel.InterpretadorSimulavel;
+import ispd.InterpretadorInterno.ModeloIconico.InterpretadorIconico;
+import ispd.InterpretadorInterno.ModeloSimulavel.InterpretadorSimulavel;
 import ispd.arquivo.xml.IconicoXML;
 import org.w3c.dom.Document;
 
