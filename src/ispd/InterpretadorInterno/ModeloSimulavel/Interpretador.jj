@@ -1,0 +1,559 @@
+
+options {
+  STATIC = false;
+}
+
+PARSER_BEGIN(Interpretador)
+
+package InterpretadorInterno.ModeloSimulavel;
+
+import javax.swing.*;
+import javax.swing.filechooser.*;
+import java.awt.*;
+import java.util.*;
+import java.io.*;
+import java.awt.event.*;
+import java.awt.image.*;  
+import java.net.*;  
+import javax.imageio.*;
+import java.awt.*;
+import java.util.HashSet;
+import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
+import javax.swing.*;
+import java.io.*;
+import RedesDeFilas.*;
+
+class Interpretador{
+
+	public boolean verbose;
+	private String textoVerbose = "Saida do Verbose:";
+	public boolean erroEncontrado = false;
+	private String erros = "Erros Encontrados durante o parser do Modelo Simulavel:";
+	private RedesDeFilas redeFilas = new RedesDeFilas();
+	private String tarefas = "";
+	private String char253 = new Character((char)253).toString();
+	private String char252 = new Character((char)252).toString();
+	private String char254 = new Character((char)254).toString();
+	private int idCs;
+	private List<String> listaCS = new ArrayList<String>();
+	private List<String> listaConecta = new ArrayList<String>();
+	private List<Escravos> listaEscravos = new ArrayList<Escravos>();
+	
+	public Interpretador(){
+	}
+
+	public void printv(String msg){
+		textoVerbose = textoVerbose+"\n>"+msg;
+	}
+
+	public void addErro(String msg){
+		erros = erros+"\n"+msg;
+	}
+
+	public void resuladoParser(){
+		if(erroEncontrado){
+			MostraSaida saida = new MostraSaida("Found Errors",erros);
+			saida.setVisible(true);
+		}
+		else{
+			//JOptionPane.showOptionDialog(null,"Modelo simulavel reconhecido com sucesso","Arquivo Reconhecido", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+			if(verbose){ MostraSaida saida = new MostraSaida("Saida do Reconhecimento",textoVerbose); saida.setVisible(true); }
+		}
+	}
+
+	public void consomeTokens(){
+		Token t = getToken(1);
+		while( t.kind != CS0 && t.kind != CS1 && t.kind != CS2 && t.kind != CS3 && t.kind != TAREFA && t.kind != CENTROS_DE_SERVICOS && t.kind != CONEXOES && t.kind != FILAS && t.kind != SERVIDORES && t.kind != EOF){
+			getNextToken();
+			t = getToken(1);
+		}
+	}
+
+	public void resetaObjetosParser(){
+		textoVerbose = "";
+		erroEncontrado = false;
+		String erros = "Foram encontrados os seguintes erros durante o parser:";
+		redeFilas = new RedesDeFilas();
+		String tarefas = "";
+		listaCS = new ArrayList<String>();
+		listaConecta = new ArrayList<String>();
+		listaEscravos = new ArrayList<Escravos>();		
+	}
+	
+	public void converterEscravos(){
+		addErro("Durante conversão de escravos:");
+		for(Escravos temp:listaEscravos){
+			int id = temp.getNumCs();
+			List<String> maquinas = temp.getMaquinas();
+			int maqInt[] = new int[maquinas.size()];
+			int posicao = 0;
+			for(String tempMaq:maquinas){
+				if(!listaCS.contains(tempMaq)){
+					addErro("Nome de centro de serviço não encontrado: "+tempMaq);
+					erroEncontrado = true;
+				}
+				maqInt[posicao] = (listaCS.indexOf(tempMaq));
+				posicao++;
+			}
+			redeFilas.setVetorEscravos(maqInt,id);
+		}
+	}
+	
+	public void constroiMatrizRedeFilas(){
+		redeFilas.instanciaMatrizVetor( listaConecta.size() );
+		for(String temp:listaConecta){
+			String lista[] = temp.split(char254);
+			if(!listaCS.contains(lista[0])){
+				addErro("Nome de centro de serviço não encontrado: "+lista[0]);
+				erroEncontrado = true;
+			}
+			if(!listaCS.contains(lista[1])){
+				addErro("Nome de centro de serviço não encontrado: "+lista[1]);
+				erroEncontrado = true;
+			}
+			redeFilas.inteligaCSs( listaCS.indexOf(lista[0]), listaCS.indexOf(lista[1]) );
+		}	
+	}
+	
+	public RedesDeFilas getRedeFilas(){
+		return redeFilas;
+	}
+	
+	public List<String> getNomeId(){
+		return listaCS;
+	}
+	
+	public void converterTarefas(){
+		addErro("Durante conversão de tarefas:");
+		String vetor[] = tarefas.split(char252);
+		if(Integer.parseInt(vetor[0]) == 1){
+			String vetor2[] = vetor[1].split(char254);
+			int tamanho = vetor2.length;
+			for(int i=0;i<tamanho;i++){
+				String vetor3[] = vetor2[i].split(char253);
+				if(!listaCS.contains(vetor3[0])){
+					addErro("Nome de centro de serviço não encontrado: "+vetor3[0]);
+					erroEncontrado = true;
+				}
+				vetor3[0] = String.valueOf(listaCS.indexOf(vetor3[0]));
+				vetor2[i] = vetor3[0]+char253+vetor3[1]+char253+vetor3[2]+char253+vetor3[3]+char253+vetor3[4]+char253+vetor3[5]+char253+vetor3[6]+char253+vetor3[7];
+			}
+			vetor[1] = "";
+			for(int i=0;i<tamanho;i++){
+				vetor[1] = vetor[1] + vetor2[i] + char254;
+			}
+		}
+		tarefas = vetor[0]+ char252 + vetor[1];
+		if(Integer.parseInt(vetor[0]) == 0){
+			String vetor2[] = vetor[1].split(char253);
+			tarefas += char252+vetor2[10];
+		}
+	}
+	
+	public String getTarefas(){
+		return tarefas;
+	}
+	
+	private class Escravos{
+	
+		private int numCs;
+		private List<String> maquinas = new ArrayList<String>();
+	
+		Escravos(int numCs, List<String> maquinas){
+			this.numCs = numCs;
+			this.maquinas = maquinas;
+		}
+		
+		public int getNumCs(){
+			return numCs;
+		}
+		
+		public List<String> getMaquinas(){
+			return maquinas;
+		}
+	}
+	
+}
+PARSER_END(Interpretador)
+
+
+
+TOKEN_MGR_DECLS:
+{
+	private int contaErrosLex = 0;
+	private String erros = new String("");
+
+	public int encontrouErroLex(){
+		return contaErrosLex;
+	}
+	public void addErro(String msg){
+		erros = erros+"\n"+msg;
+	}
+	public String getErros(){
+		return erros;
+	}
+}
+
+
+TOKEN:	{ 
+	<RR: "RR"> |
+	<CS0: "CS_0"> |
+	<CS1: "CS_1"> |
+	<CS2: "CS_2"> |
+	<CS3: "CS_3"> |
+	<VAZIO: "---"> |
+	<LMAQ: "LMAQ"> |	
+	<TRACE: "TRACE"> |
+	<FILAS: "FILAS"> |
+	<MESTRE: "MESTRE"> |
+	<RANDOM: "RANDOM"> |
+	<MODELO: "MODELO"> |
+	<TAREFA: "TAREFA"> |
+	<POISSON: "POISSON"> |
+	<ESCRAVO: "ESCRAVO"> |
+	<MAQUINA: "MAQUINA"> |
+	<CONEXOES: "CONEXOES"> |
+	<TWOSTAGE: "TWOSTAGE"> |
+	<WORKQUEUE: "WORKQUEUE"> |
+	<FIM_TAREFA: "FIM_TAREFA"> |
+	<SERVIDORES: "SERVIDORES"> |
+	<FIM_MODELO: "FIM_MODELO"> |
+	<EXPONENCIAL: "EXPONENCIAL"> |
+	<FIM_CONEXOES: "FIM_CONEXOES"> |
+	<CENTROS_DE_SERVICOS: "CENTROS_DE_SERVICOS"> |
+	<FIM_CENTROS_DE_SERVICOS: "FIM_CENTROS_DE_SERVICOS">
+} 
+//strings mais curtas antes para melhorar o desempenho do lexer
+
+TOKEN:	{< especial: ( "!" | "@" | "#" | "$" | "%" | "&" | "(" | ")" | "-" | "_" | "+" | "=" | "{" | "}" | "[" | "]" | "~" | "^" | ";" | "." | "," | "|" | ":" | "\\" | "/" ) >}
+
+TOKEN:	{< nome: (["A"-"Z","a"-"z"])+((<especial>) | (["0"-"9"]) | (["A"-"Z","a"-"z"]))* >}
+
+TOKEN:	{< inteiro: (["0"-"9"])+ >}
+
+TOKEN:	{< flutuante: (["0"-"9"])+("."|",")(["0"-"9"])+ >}
+
+SKIP: { "\n" | " " | "\t" | "\b" | < "#" (~["\r","\n"])* ("\n" | "\r" | "\r\n") > }
+
+SPECIAL_TOKEN:
+{
+<invalido: (~["A"-"Z","a"-"z","0"-"9","!" , "@" , "#" , "$" , "%" , "&" , "(" , ")" , "-" , "_" , "+" , "=" , "{" , "}" , "[" , "]" , "~" , "^" , ";" , "." , "," , "|" , ":" , "\\" , "/", "\n" , " " , "\t" , "\b" , "#" ])+>
+	{
+		addErro("Erro na linha "+input_stream.getEndLine()+". Caracter "+image+" não é aceito.");
+		contaErrosLex++;
+	}
+}
+
+
+void Modelo():
+{
+	resetaObjetosParser();
+}
+{
+	try{
+		<MODELO> (PartesModelo())+ <FIM_MODELO> <EOF> 
+		{
+			printv("Reconheceu Modelo()");
+			converterEscravos();
+			converterTarefas();
+			constroiMatrizRedeFilas();
+			resuladoParser();
+		}
+	}
+	catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+		resuladoParser();
+	}
+}
+
+void PartesModelo():
+{
+
+}
+{
+	 Tarefa() 
+		{ printv("Reconheceu Tarefa"); }
+	 | Centros() 
+		{ printv("Reconheceu Centros"); }
+	 | Conexao() 
+		{ printv("Reconheceu Conexao"); }
+}
+
+void Tarefa():
+{
+}
+{
+	try{
+		<TAREFA> TipoCarga() <FIM_TAREFA>
+			{}
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+void TipoCarga():
+{
+}
+{
+		<RANDOM> {tarefas = "0"+char252;} TipoRandom()
+	|	<MAQUINA> {tarefas = "1"+char252;} (TipoMaquina())+
+	|	<TRACE> {tarefas = "2"+char252;} TipoTrace()
+}
+
+void TipoRandom():
+{
+	Integer dist;
+	Token t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11;
+}
+{
+	t1=<inteiro> t2=<inteiro> t3=<inteiro> t4=<flutuante> t5=<inteiro> t6=<inteiro> t7=<inteiro> t8=<flutuante> t9=<inteiro> t10=<inteiro> t11=<inteiro> 
+	{
+		tarefas = tarefas+t1.image+char253+t2.image+char253+t3.image+char253+t4.image+char253+t5.image+char253+t6.image+char253+t7.image+char253+t8.image+char253+t9.image+char253+t10.image+char253+t11.image;
+	}
+}
+
+Integer Distribuicao():
+{
+	Token t;
+}
+{
+		t=<POISSON> {return 1;} 
+	|	t=<EXPONENCIAL> {return 2;}
+	|	t=<TWOSTAGE> {return 0;}
+}
+
+void TipoMaquina():
+{
+	Integer dist;
+	Token t1,t2,t3,t4,t5,t6;
+}
+{
+	t1=<nome> t2=<inteiro> t3=<flutuante> t4=<flutuante> t5=<flutuante> t6=<flutuante>
+	{
+		Double minComp = Double.parseDouble(t3.image);
+		Double maxComp = Double.parseDouble(t4.image);
+		Double minComc = Double.parseDouble(t5.image);
+		Double maxComc = Double.parseDouble(t6.image);
+		Double mediaComp = (minComp+maxComp)/2;
+		Double mediaComc = (minComc+maxComc)/2;
+		tarefas = tarefas+t1.image+char253+t2.image+char253+String.valueOf(minComp)+char253+String.valueOf(maxComp)+char253+String.valueOf(mediaComp)+char253+String.valueOf(minComc)+char253+String.valueOf(maxComc)+char253+String.valueOf(mediaComc)+char254;
+	}
+}
+
+void TipoTrace():
+{
+	Token t;
+}
+{
+	t=<nome>
+	{
+		
+	}
+}
+
+void Centros():
+{
+
+}
+{
+	try{
+		<CENTROS_DE_SERVICOS> (CentrosServ())+ <FIM_CENTROS_DE_SERVICOS>
+			{}
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+void CentrosServ():
+{
+	Token t1,t2,t3;
+	int temp[] = {-1};
+}
+{
+	try{
+		<CS0> t1=<nome> t2=<inteiro> t3=<inteiro> 
+			{idCs = redeFilas.adicionaCentroServico(0,Integer.parseInt(t3.image),Integer.parseInt(t2.image),0,temp);
+			 if(listaCS.contains(t1.image)){
+				addErro("Nome de centro de serviço duplicado na linha "+t1.endLine+", coluna "+t1.endColumn);
+				erroEncontrado = true;			
+			 }
+			 listaCS.add(idCs,t1.image);
+			}
+			Filas() Servidores0()
+			{}
+		| <CS1> t1=<nome> t2=<inteiro> t3=<inteiro> <nome>
+			{idCs = redeFilas.adicionaCentroServico(1,Integer.parseInt(t3.image),Integer.parseInt(t2.image),0,temp);
+			 if(listaCS.contains(t1.image)){
+				addErro("Nome de centro de serviço duplicado na linha "+t1.endLine+", coluna "+t1.endColumn);
+				erroEncontrado = true;			
+			 }			
+			 listaCS.add(idCs,t1.image);
+			}
+			Filas() Servidores1()
+			{}
+		| <CS2> t1=<nome> t2=<inteiro> t3=<inteiro> 
+			{idCs = redeFilas.adicionaCentroServico(2,Integer.parseInt(t3.image),Integer.parseInt(t2.image));
+			 if(listaCS.contains(t1.image)){
+				addErro("Nome de centro de serviço duplicado na linha "+t1.endLine+", coluna "+t1.endColumn);
+				erroEncontrado = true;			
+			 }			
+			 listaCS.add(idCs,t1.image);
+			}
+			Filas() Servidores()
+			{}
+		| <CS3> t1=<nome> t2=<inteiro> t3=<inteiro> 
+			{idCs = redeFilas.adicionaCentroServico(3,Integer.parseInt(t3.image),Integer.parseInt(t2.image));
+			 if(listaCS.contains(t1.image)){
+				addErro("Nome de centro de serviço duplicado na linha "+t1.endLine+", coluna "+t1.endColumn);
+				erroEncontrado = true;			
+			 }			
+			 listaCS.add(idCs,t1.image);
+			}
+			Filas() Servidores()
+			{}
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+void Filas():
+{
+}
+{
+	try{
+		<FILAS> (<nome> { redeFilas.adicionaFila( idCs );})+
+			
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+void Servidores0():
+{
+	Token t1,t2,t3,t4;
+	boolean mestre;
+}
+{
+	try{
+		<SERVIDORES> t1=<nome> t2=<inteiro> t3=<flutuante> t4=<flutuante> mestre=Mestre()
+			{ redeFilas.adicionaServidorProcto(idCs, 0, mestre, Double.parseDouble(t3.image));
+			}
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+void Servidores():
+{
+	Token t1,t2,t3,t4,t5;
+}
+{
+	try{
+		<SERVIDORES> (t1=<nome> t2=<inteiro> t3=<flutuante> t4=<flutuante> t5=<flutuante>
+			{ redeFilas.adicionaServidorCom( idCs, Integer.parseInt(t2.image), Double.parseDouble(t3.image), Double.parseDouble(t5.image), Double.parseDouble(t4.image));
+			} )+
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+void Servidores1():
+{
+	Token t1,t2,t3,t4,t5;
+}
+{
+	try{
+		<SERVIDORES> t1=<nome> t2=<inteiro> t3=<flutuante> t4=<flutuante> t5=<flutuante>
+			{ redeFilas.adicionaServidoresClr( idCs, Integer.parseInt(t2.image), Double.parseDouble(t3.image), Double.parseDouble(t4.image), Double.parseDouble(t5.image), 0.0 );	
+			}
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+boolean Mestre():
+{
+}
+{
+	try{
+		<MESTRE> <nome> <LMAQ> NomesEscravos()
+			{return true;}
+		| <ESCRAVO>
+			{return false;}
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+void NomesEscravos():
+{
+	List<String> temp = new ArrayList<String>();
+	Token t;
+}
+{
+	(t=<nome> {temp.add(t.image);})+
+	{	Escravos esc = new Escravos(idCs,temp);
+		listaEscravos.add(esc);
+	}
+}
+
+void Conexao():
+{
+
+}
+{
+	try{
+		<CONEXOES> (Conexoes())+ <FIM_CONEXOES>
+			{}
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
+
+void Conexoes():
+{
+	Token t1,t2;
+}
+{
+	try{
+		t1=<nome> t2=<nome>
+			{listaConecta.add(t1.image+char254+t2.image);}
+	}catch(ParseException e){
+		Token t = getToken(1);
+		addErro("Erro semantico encontrado na linha "+t.endLine+", coluna "+t.endColumn);
+		erroEncontrado = true;
+		consomeTokens();
+	}
+}
