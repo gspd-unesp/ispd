@@ -47,7 +47,7 @@ import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.URL;
 
-public class TreeHelp extends JFrame implements TreeSelectionListener {
+public class HelpWindow extends JFrame implements TreeSelectionListener {
     private static final boolean DEBUG = false;
     private static final Dimension CONVENIENT_SIZE =
             new Dimension(700, 400);
@@ -56,9 +56,9 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
     private final JTree tree;
     private URL helpURL;
 
-    TreeHelp() {
+    HelpWindow() {
         this.setTitle("Help");
-        this.setMinimumSize(TreeHelp.CONVENIENT_SIZE);
+        this.setMinimumSize(HelpWindow.CONVENIENT_SIZE);
         final var image =
                 Toolkit.getDefaultToolkit().getImage(
                         this.getClass().getResource(
@@ -68,7 +68,7 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
         //Create the nodes.
         final var top = new DefaultMutableTreeNode(
                 "This Project");
-        TreeHelp.createNodes(top);
+        HelpWindow.createNodes(top);
 
         //Create a tree that allows one selection at a time.
         this.tree = new JTree(top);
@@ -94,8 +94,8 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
         final var minimumSize = new Dimension(50, 50);
         htmlView.setMinimumSize(minimumSize);
         treeView.setMinimumSize(minimumSize);
-        splitPane.setDividerLocation(TreeHelp.DIVIDER_LOCATION);
-        splitPane.setPreferredSize(TreeHelp.CONVENIENT_SIZE);
+        splitPane.setDividerLocation(HelpWindow.DIVIDER_LOCATION);
+        splitPane.setPreferredSize(HelpWindow.CONVENIENT_SIZE);
 
         //Add the split pane to this panel.
         this.add(splitPane);
@@ -114,7 +114,7 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
         this.helpURL = this.getClass().getResource(s);
         if (this.helpURL == null) {
             System.err.println("Couldn't open help file: " + s);
-        } else if (TreeHelp.DEBUG) {
+        } else if (HelpWindow.DEBUG) {
             System.out.println("Help URL is " + this.helpURL);
         }
         this.displayURL(this.helpURL);
@@ -128,7 +128,7 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
             }
 
             this.htmlPane.setText("File Not Found");
-            if (TreeHelp.DEBUG) {
+            if (HelpWindow.DEBUG) {
                 System.out.println("Attempted to display a null URL.");
             }
         } catch (final IOException e) {
@@ -149,13 +149,13 @@ public class TreeHelp extends JFrame implements TreeSelectionListener {
         if (node.isLeaf()) {
             final var book = (BookInfo) nodeInfo;
             this.displayURL(book.getBookURL());
-            if (TreeHelp.DEBUG) {
+            if (HelpWindow.DEBUG) {
                 System.out.print(book.getBookURL() + ":  \n    ");
             }
         } else {
             this.displayURL(this.helpURL);
         }
-        if (TreeHelp.DEBUG) {
+        if (HelpWindow.DEBUG) {
             System.out.println(nodeInfo.toString());
         }
     }

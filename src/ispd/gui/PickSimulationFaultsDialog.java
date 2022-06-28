@@ -14,7 +14,7 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 
-public class JSelecionarFalhas extends JFrame {
+public class PickSimulationFaultsDialog extends JFrame {
     public int OmissaoHardware = 0;
     public int OmissaoSoftware = 0;
     public JCheckBox cbkOmissaoHardware;
@@ -38,7 +38,7 @@ public class JSelecionarFalhas extends JFrame {
     private JCheckBox ckbOmissao;
     private JCheckBox cbxDiversas;
 
-    public JSelecionarFalhas() {
+    public PickSimulationFaultsDialog() {
         this.initComponents();
     }
 
@@ -412,10 +412,10 @@ public class JSelecionarFalhas extends JFrame {
         } catch (final ClassNotFoundException |
                        UnsupportedLookAndFeelException |
                        IllegalAccessException | InstantiationException ex) {
-            java.util.logging.Logger.getLogger(JSelecionarFalhas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PickSimulationFaultsDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
         /* Create and display the form */
-        EventQueue.invokeLater(() -> new JSelecionarFalhas().setVisible(true));
+        EventQueue.invokeLater(() -> new PickSimulationFaultsDialog().setVisible(true));
     }
 }

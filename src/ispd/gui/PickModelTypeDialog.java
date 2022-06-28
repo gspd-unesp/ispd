@@ -1,5 +1,7 @@
 package ispd.gui;
 
+import ispd.gui.utils.ButtonBuilder;
+
 import javax.swing.GroupLayout;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -11,24 +13,25 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class EscolherClasse extends JDialog {
+public class PickModelTypeDialog extends JDialog {
     public static final int GRID = 0;
     public static final int IAAS = 1;
     public static final int PAAS = 2;
-    private static final Font WINDOW_FONT = new Font("Tahoma", 0, 12);
+    private static final Font WINDOW_FONT =
+            new Font("Tahoma", Font.PLAIN, 12);
     private final JRadioButton jRadioGrid;
     private final JRadioButton jRadioIaaS;
     private final JRadioButton jRadioPaaS;
     private int choice = 0;
 
-    EscolherClasse(final Frame owner, final boolean modal) {
+    PickModelTypeDialog(final Frame owner, final boolean modal) {
         super(owner, modal);
         this.initWindowProperties();
-        this.jRadioGrid = EscolherClasse.configuredRadioButton(
+        this.jRadioGrid = PickModelTypeDialog.configuredRadioButton(
                 "Grid", this::gridButtonClicked);
-        this.jRadioIaaS = EscolherClasse.configuredRadioButton(
+        this.jRadioIaaS = PickModelTypeDialog.configuredRadioButton(
                 "Cloud - IaaS", this::iaasButtonClicked);
-        this.jRadioPaaS = EscolherClasse.configuredRadioButton(
+        this.jRadioPaaS = PickModelTypeDialog.configuredRadioButton(
                 "Cloud - PaaS", this::paasButtonClicked);
         this.jRadioGrid.setSelected(true);
         this.makeLayoutAndPack();
@@ -36,7 +39,7 @@ public class EscolherClasse extends JDialog {
 
     private void initWindowProperties() {
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        this.setFont(EscolherClasse.WINDOW_FONT);
+        this.setFont(PickModelTypeDialog.WINDOW_FONT);
     }
 
     private static JRadioButton configuredRadioButton(
@@ -149,15 +152,15 @@ public class EscolherClasse extends JDialog {
 
     private int getChoiceForSelectedButton() {
         if (this.jRadioGrid.isSelected()) {
-            return EscolherClasse.GRID;
+            return PickModelTypeDialog.GRID;
         }
 
         if (this.jRadioIaaS.isSelected()) {
-            return EscolherClasse.IAAS;
+            return PickModelTypeDialog.IAAS;
         }
 
         if (this.jRadioPaaS.isSelected()) {
-            return EscolherClasse.PAAS;
+            return PickModelTypeDialog.PAAS;
         }
 
         return this.choice;

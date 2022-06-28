@@ -7,16 +7,17 @@ import ispd.arquivo.interpretador.simgrid.InterpretadorSimGrid;
 import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.auxiliar.Corner;
-import ispd.gui.auxiliar.FiltroDeArquivos;
+import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.HtmlPane;
 import ispd.gui.auxiliar.Stalemate;
 import ispd.gui.configuracao.JPanelConfigIcon;
 import ispd.gui.configuracao.SimplePanel;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.DesenhoGrade;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 import ispd.gui.iconico.grade.VirtualMachine;
+import ispd.gui.utils.ButtonBuilder;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -77,7 +78,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JPrincipal extends JFrame implements KeyListener {
+public class MainWindow extends JFrame implements KeyListener {
     private static final int DRAWING_AREA_START_SIZE = 1500;
     private static final char FILE_EXTENSION_SEPARATOR = '.';
     private static final int LOADING_SCREEN_WIDTH = 200;
@@ -94,12 +95,12 @@ public class JPrincipal extends JFrame implements KeyListener {
     private static final int NOTIFICATION_AREA_ROWS = 5;
     private final ConfiguracaoISPD configure = new ConfiguracaoISPD();
     private final JFileChooser jFileChooser = new JFileChooser();
-    private final GerenciarEscalonador jFrameManager =
-            new GerenciarEscalonador();
-    private final GerenciarAlocadores jFrameAllocManager =
-            new GerenciarAlocadores();
-    private final GerenciarEscalonadorCloud jFrameCloudManager =
-            new GerenciarEscalonadorCloud();
+    private final ManageSchedulers jFrameManager =
+            new ManageSchedulers();
+    private final ManageAllocationPolicies jFrameAllocManager =
+            new ManageAllocationPolicies();
+    private final ManageCloudSchedulers jFrameCloudManager =
+            new ManageCloudSchedulers();
     private final SimplePanel jPanelSimple = new SimplePanel();
     private final JScrollPane jScrollPaneDrawingArea = new JScrollPane();
     private final JScrollPane jScrollPaneSideBar = new JScrollPane();
@@ -165,8 +166,8 @@ public class JPrincipal extends JFrame implements KeyListener {
     private final JMenuItem jMenuItemManageAllocation = new JMenuItem();
     private final AbstractButton jButtonInjectFaults = ButtonBuilder
             .aButton("Faults Injection",
-                    JPrincipal::jButtonInjectFaultsActionPerformed)
-            .withIcon(JPrincipal.getImage(
+                    MainWindow::jButtonInjectFaultsActionPerformed)
+            .withIcon(MainWindow.getImage(
                     "/ispd/gui/imagens/vermelho.png"))
             .withToolTip("Select the faults")
             .withCenterBottomTextPosition()
@@ -177,16 +178,16 @@ public class JPrincipal extends JFrame implements KeyListener {
     private int modelType = 0; //define se o modelo é GRID, IAAS ou PAAS;
     private ResourceBundle words = ResourceBundle.getBundle(
             "ispd.idioma.Idioma", Locale.getDefault());
-    private final FiltroDeArquivos fileFilter = new FiltroDeArquivos(
+    private final MultipleExtensionFileFilter fileFilter = new MultipleExtensionFileFilter(
             this.translate("Iconic Model of Simulation"),
-            JPrincipal.ALL_FILE_EXTENSIONS,
+            MainWindow.ALL_FILE_EXTENSIONS,
             true
     );
     private boolean currentFileHasUnsavedChanges = false;
     private File openFile = null;
     private DesenhoGrade drawingArea = null;
     private final AbstractButton jButtonTasks = ButtonBuilder
-            .aButton(JPrincipal.getImage(
+            .aButton(MainWindow.getImage(
                             "/ispd/gui/imagens/botao_tarefas.gif"),
                     this::jButtonTaskActionPerformed)
             .withToolTip(this.translate("Selects insertion model of tasks"))
@@ -197,7 +198,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     private final AbstractButton jButtonSimulate = ButtonBuilder
             .aButton(this.translate("Simulate"),
                     this::jButtonSimulateActionPerformed)
-            .withIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+            .withIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                           "/system-run.png"))
             .withToolTip(this.translate("Starts the " +
                                         "simulation"))
@@ -206,7 +207,7 @@ public class JPrincipal extends JFrame implements KeyListener {
             .nonFocusable()
             .build();
     private final AbstractButton jButtonUsers = ButtonBuilder
-            .aButton(JPrincipal.getImage(
+            .aButton(MainWindow.getImage(
                             "/ispd/gui/imagens/system-users.png"),
                     this::jButtonUsersActionPerformed)
             .withToolTip(this.translate(
@@ -217,7 +218,7 @@ public class JPrincipal extends JFrame implements KeyListener {
             .build();
     private HashSet<VirtualMachine> virtualMachines = null;
     private final AbstractButton jButtonConfigVM = ButtonBuilder
-            .aButton(JPrincipal.getImage(
+            .aButton(MainWindow.getImage(
                             "/ispd/gui/imagens/vm_icon.png"),
                     this::jButtonConfigVMActionPerformed)
             .withToolTip("Add and remove the virtual machines")
@@ -252,7 +253,7 @@ public class JPrincipal extends JFrame implements KeyListener {
             this.jCheckBoxMenuSchedulableItem,
     };
 
-    public JPrincipal() {
+    public MainWindow() {
         this.initComponents();
         this.addKeyListeners();
         this.buildLayoutAndPack();
@@ -260,19 +261,19 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private static URL getResourceOrThrow(final String resourcePath) {
         final var url = Optional.ofNullable(
-                JPrincipal.class.getResource(resourcePath));
+                MainWindow.class.getResource(resourcePath));
 
         return url.orElseThrow(
                 () -> new MissingResourceException(
                         String.format("Missing resource from %s", resourcePath),
-                        JPrincipal.class.getName(),
+                        MainWindow.class.getName(),
                         resourcePath
                 )
         );
     }
 
     private static ImageIcon getImage(final String imagePath) {
-        return new ImageIcon(JPrincipal.getResourceOrThrow(imagePath));
+        return new ImageIcon(MainWindow.getResourceOrThrow(imagePath));
     }
 
     private static boolean isValidDirectory(final File dir) {
@@ -292,13 +293,13 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private static void jButtonInjectFaultsActionPerformed(final ActionEvent evt) {
-        new JSelecionarFalhas().setVisible(true);
+        new PickSimulationFaultsDialog().setVisible(true);
     }
 
     private static DesenhoGrade emptyDrawingArea() {
         return new DesenhoGrade(
-                JPrincipal.DRAWING_AREA_START_SIZE,
-                JPrincipal.DRAWING_AREA_START_SIZE
+                MainWindow.DRAWING_AREA_START_SIZE,
+                MainWindow.DRAWING_AREA_START_SIZE
         );
     }
 
@@ -343,14 +344,14 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private void initMenuHelp() {
         this.jMenuHelp.setText(this.translate("Help"));
-        this.jMenuItemHelp.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemHelp.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                        "/help-faq.png"));
         this.jMenuItemHelp.setText(this.translate("Help"));
         this.jMenuItemHelp.setToolTipText(this.translate("Help"));
         this.jMenuItemHelp.addActionListener(this::jMenuItemHelpActionPerformed);
         this.jMenuHelp.add(this.jMenuItemHelp);
         this.jMenuHelp.add(new JPopupMenu.Separator());
-        this.jMenuItemAbout.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemAbout.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                         "/help-about.png"));
         final var aboutProgramText = String.format("%s %s", this.translate(
                 "About"), this.translate("nomePrograma"));
@@ -432,20 +433,20 @@ public class JPrincipal extends JFrame implements KeyListener {
     private void initMenuEdit() {
         this.jMenuEdit.setText(this.translate("Edit"));
         this.jMenuItemCopy.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK));
-        this.jMenuItemCopy.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemCopy.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                        "/edit-copy.png"));
         this.jMenuItemCopy.setText(this.translate("Copy"));
         this.jMenuItemCopy.setEnabled(false);
         this.jMenuItemCopy.addActionListener(this::jMenuItemCopyActionPerformed);
         this.jMenuEdit.add(this.jMenuItemCopy);
         this.jMenuItemPaste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK));
-        this.jMenuItemPaste.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemPaste.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                         "/edit-paste.png"));
         this.jMenuItemPaste.setText(this.translate("Paste"));
         this.jMenuItemPaste.setEnabled(false);
         this.jMenuItemPaste.addActionListener(this::jMenuItemPasteActionPerformed);
         this.jMenuEdit.add(this.jMenuItemPaste);
-        this.jMenuItemDelete.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemDelete.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                          "/edit-delete.png"));
         this.jMenuItemDelete.setText(this.translate("Delete"));
         this.jMenuItemDelete.setEnabled(false);
@@ -478,14 +479,14 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jMenuFile.addActionListener(this::jMenuFileActionPerformed);
         this.jMenuItemNew.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N
                 , InputEvent.CTRL_DOWN_MASK));
-        this.jMenuItemNew.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemNew.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                       "/insert-object_1.png"));
         this.jMenuItemNew.setText(this.translate("New"));
         this.jMenuItemNew.setToolTipText(this.translate("Starts a new model"));
         this.jMenuItemNew.addActionListener(this::jMenuItemNovoActionPerformed);
         this.jMenuFile.add(this.jMenuItemNew);
         this.jMenuItemOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
-        this.jMenuItemOpen.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemOpen.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                        "/document-open.png"));
         this.jMenuItemOpen.setText(this.translate("Open"));
         this.jMenuItemOpen.setToolTipText(this.translate("Opens an existing " +
@@ -493,7 +494,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jMenuItemOpen.addActionListener(this::jMenuItemOpenActionPerformed);
         this.jMenuFile.add(this.jMenuItemOpen);
         this.jMenuItemSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
-        this.jMenuItemSave.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemSave.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                        "/document-save_1.png"));
         this.jMenuItemSave.setText(this.translate("Save"));
         this.jMenuItemSave.setToolTipText(this.translate("Save the open " +
@@ -505,14 +506,14 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jMenuItemSaveAs.setEnabled(false);
         this.jMenuItemSaveAs.addActionListener(this::jMenuItemSaveAsActionPerformed);
         this.jMenuFile.add(this.jMenuItemSaveAs);
-        this.jMenuItemOpenResult.setIcon(JPrincipal.getImage("/ispd/gui" +
+        this.jMenuItemOpenResult.setIcon(MainWindow.getImage("/ispd/gui" +
                                                              "/imagens" +
                                                              "/document-open" +
                                                              ".png"));
         this.jMenuItemOpenResult.setText("Open Results");
         this.jMenuItemOpenResult.addActionListener(this::jMenuItemOpenResultActionPerformed);
         this.jMenuFile.add(this.jMenuItemOpenResult);
-        this.jMenuImport.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuImport.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                      "/document-import.png"));
         this.jMenuImport.setText(this.translate("Import"));
         this.jMenuItemSimGrid.setText(this.translate("SimGrid model"));
@@ -532,7 +533,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jMenuItemGridSim.addActionListener(this::jMenuItemGridSimActionPerformed);
         this.jMenuImport.add(this.jMenuItemGridSim);
         this.jMenuFile.add(this.jMenuImport);
-        this.jMenuExport.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuExport.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                      "/document-export.png"));
         this.jMenuExport.setText(this.translate("Export"));
         this.jMenuItemToJPG.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_J, InputEvent.CTRL_DOWN_MASK));
@@ -574,7 +575,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jMenuFile.add(this.jMenuLanguage);
         this.jMenuFile.add(new JPopupMenu.Separator());
         this.jMenuItemClose.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.CTRL_DOWN_MASK));
-        this.jMenuItemClose.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemClose.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                         "/document-close.png"));
         this.jMenuItemClose.setText(this.translate("Close"));
         this.jMenuItemClose.setToolTipText(this.translate("Closes the " +
@@ -584,7 +585,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.jMenuItemClose.addActionListener(this::jMenuItemCloseActionPerformed);
         this.jMenuFile.add(this.jMenuItemClose);
         this.jMenuItemExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK));
-        this.jMenuItemExit.setIcon(JPrincipal.getImage("/ispd/gui/imagens" +
+        this.jMenuItemExit.setIcon(MainWindow.getImage("/ispd/gui/imagens" +
                                                        "/window-close.png"));
         this.jMenuItemExit.setText(this.translate("Exit"));
         this.jMenuItemExit.setToolTipText(this.translate("Closes the program"));
@@ -595,7 +596,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     private void initWindowProperties() {
         this.setTitle(this.translate("nomePrograma"));
         this.setIconImage(Toolkit.getDefaultToolkit().getImage(
-                JPrincipal.getResourceOrThrow(JPrincipal.ISPD_LOGO_FILE_PATH)));
+                MainWindow.getResourceOrThrow(MainWindow.ISPD_LOGO_FILE_PATH)));
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(new IspdWindowAdapter(this));
     }
@@ -638,7 +639,7 @@ public class JPrincipal extends JFrame implements KeyListener {
             final String iconPath,
             final String toolTip,
             final ActionListener onClick) {
-        button.setIcon(JPrincipal.getImage(iconPath));
+        button.setIcon(MainWindow.getImage(iconPath));
         button.setToolTipText(this.translate(toolTip));
         button.setEnabled(false);
         button.setFocusable(false);
@@ -650,8 +651,8 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private void initNotificationArea() {
         this.jTextAreaNotification.setEditable(false);
-        this.jTextAreaNotification.setColumns(JPrincipal.NOTIFICATION_AREA_COLS);
-        this.jTextAreaNotification.setRows(JPrincipal.NOTIFICATION_AREA_ROWS);
+        this.jTextAreaNotification.setColumns(MainWindow.NOTIFICATION_AREA_COLS);
+        this.jTextAreaNotification.setRows(MainWindow.NOTIFICATION_AREA_ROWS);
         this.jTextAreaNotification.setBorder(null);
     }
 
@@ -755,22 +756,22 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void jMenuItemAboutActionPerformed(final ActionEvent evt) {
-        this.showSubWindow(new JSobre(this, true));
+        this.showSubWindow(new AboutDialog(this, true));
     }
 
     private void jMenuItemEnglishActionPerformed(final ActionEvent evt) {
-        this.setLanguage(JPrincipal.LOCALE_EN_US);
+        this.setLanguage(MainWindow.LOCALE_EN_US);
     }
 
     private void jMenuItemPortugueseActionPerformed(final ActionEvent evt) {
-        this.setLanguage(JPrincipal.LOCALE_PT_BR);
+        this.setLanguage(MainWindow.LOCALE_PT_BR);
     }
 
     private void setLanguage(final Locale locale) {
         this.words = ResourceBundle.getBundle("ispd.idioma.Idioma", locale);
         this.initTexts();
         if (this.drawingArea != null) {
-            this.drawingArea.setIdioma(this.words);
+            this.drawingArea.setTranslator(this.words);
         }
     }
 
@@ -829,12 +830,12 @@ public class JPrincipal extends JFrame implements KeyListener {
         if (this.drawingArea == null)
             return;
 
-        final var loadConfigWindow = new SelecionaCargas(
+        final var loadConfigWindow = new LoadConfigurationDialog(
                 this,
                 true,
                 this.drawingArea.getUsuarios().toArray(),
                 this.drawingArea.getNosEscalonadores().toArray(),
-                this.drawingArea.getCargasConfiguracao(),
+                this.drawingArea.getLoadConfiguration(),
                 this.words
         );
 
@@ -848,9 +849,9 @@ public class JPrincipal extends JFrame implements KeyListener {
         w.setVisible(true);
     }
 
-    private void updateDrawingLoad(final SelecionaCargas loadConfigWindow) {
-        this.drawingArea.setCargasConfiguracao(loadConfigWindow.getCargasConfiguracao());
-        this.drawingArea.setUsuarios(loadConfigWindow.getUsuarios());
+    private void updateDrawingLoad(final LoadConfigurationDialog loadConfigWindow) {
+        this.drawingArea.setLoadConfiguration(loadConfigWindow.getCargasConfiguracao());
+        this.drawingArea.setUsers(loadConfigWindow.getUsuarios());
     }
 
     public void modificar() {
@@ -874,7 +875,7 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private void jMenuItem1ActionPerformed(final ActionEvent evt) {
         this.showSubWindow(
-                new JPreferences(
+                new SettingsDialog(
                         this,
                         true,
                         this.configure
@@ -883,11 +884,11 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void jButtonSimulateActionPerformed(final ActionEvent evt) {
-        final var simulationWindow = new JSimulacao(
+        final var simulationWindow = new SimulationDialog(
                 this,
                 true,
                 this.drawingArea.getGrade(),
-                this.drawingArea.toString(),
+                this.drawingArea.makeDescriptiveModel(),
                 this.words,
                 this.modelType
         );
@@ -906,23 +907,23 @@ public class JPrincipal extends JFrame implements KeyListener {
             this.saveChanges();
 
         //janela de escolha de qual tipo de serviço irá ser modelado
-        final var classPickWindow = new EscolherClasse(this, true);
+        final var classPickWindow = new PickModelTypeDialog(this, true);
         this.showSubWindow(classPickWindow);
 
-        this.drawingArea = JPrincipal.emptyDrawingArea();
+        this.drawingArea = MainWindow.emptyDrawingArea();
         this.updateGuiWithOpenFile("New model opened", null);
         this.modificar();
         this.onModelTypeChange(classPickWindow);
     }
 
-    private void onModelTypeChange(final EscolherClasse classPickWindow) {
+    private void onModelTypeChange(final PickModelTypeDialog classPickWindow) {
         this.modelType = classPickWindow.getEscolha();
-        this.drawingArea.setTipoModelo(this.modelType);
+        this.drawingArea.setModelType(this.modelType);
         this.updateVmConfigButtonVisibility();
     }
 
     private void updateVmConfigButtonVisibility() {
-        this.jButtonConfigVM.setVisible(this.modelType == EscolherClasse.IAAS);
+        this.jButtonConfigVM.setVisible(this.modelType == PickModelTypeDialog.IAAS);
     }
 
     private void jMenuItemOpenActionPerformed(final ActionEvent evt) {
@@ -931,7 +932,7 @@ public class JPrincipal extends JFrame implements KeyListener {
 
         this.configureFileFilterAndChooser(
                 "Iconic Model of Simulation",
-                JPrincipal.ISPD_FILE_EXTENSIONS,
+                MainWindow.ISPD_FILE_EXTENSIONS,
                 true // TODO: Undo this
         );
 
@@ -940,7 +941,7 @@ public class JPrincipal extends JFrame implements KeyListener {
 
         var file = this.jFileChooser.getSelectedFile();
 
-        if (!JPrincipal.hasValidIspdFileExtension(file)) {
+        if (!MainWindow.hasValidIspdFileExtension(file)) {
             this.invalidFileSelected(file);
             return;
         }
@@ -968,7 +969,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void processFileOpeningException(final Throwable ex) {
-        Logger.getLogger(JPrincipal.class.getName()).log(Level.SEVERE, null,
+        Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null,
                 ex);
         final var message = String.format("%s\n%s", this.translate("Error " +
                                                                    "opening " +
@@ -989,7 +990,7 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private void updateGuiWithOpenFile(final String message, final File file) {
         this.drawingArea.addKeyListener(this);
-        this.drawingArea.setPaineis(this);
+        this.drawingArea.setMainWindow(this);
         this.jScrollPaneSideBar.setViewportView(null);
         this.jPanelProperties.setText("");
         this.jScrollPaneDrawingArea.setViewportView(this.drawingArea);
@@ -1000,27 +1001,26 @@ public class JPrincipal extends JFrame implements KeyListener {
     private void readFileNewExtension(final File file) throws ParserConfigurationException, IOException, SAXException {
         final var doc = IconicoXML.ler(file);
         this.startNewDrawing(doc);
-        this.modelType = this.drawingArea.getTipoModelo();
-        this.virtualMachines = this.drawingArea.getMaquinasVirtuais();
+        this.modelType = this.drawingArea.getModelType();
+        this.virtualMachines = this.drawingArea.getVirtualMachines();
         this.updateVmConfigButtonVisibility();
     }
 
     private File readFileOldExtension(final File file) throws IOException,
             ClassNotFoundException {
-        final var description = JPrincipal.getSystemDescription(file);
+        final var description = MainWindow.getSystemDescription(file);
 
         this.startNewDrawingOld(description);
         return null;
     }
 
     private void startNewDrawingOld(final DescreveSistema description) {
-        this.drawingArea = JPrincipal.emptyDrawingArea();
-        this.drawingArea.setGrade(description);
+        this.drawingArea = MainWindow.emptyDrawingArea();
     }
 
     private void startNewDrawing(final Document doc) {
-        this.drawingArea = JPrincipal.emptyDrawingArea();
-        this.drawingArea.setGrade(doc);
+        this.drawingArea = MainWindow.emptyDrawingArea();
+        this.drawingArea.setGrid(doc);
     }
 
     private boolean shouldContinueEditingCurrentlyOpenedFile() {
@@ -1129,7 +1129,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         try {
             ImageIO.write(img, "jpg", file);
         } catch (final IOException ex) {
-            Logger.getLogger(JPrincipal.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE,
                     null, ex);
             JOptionPane.showMessageDialog(null, ex.getMessage(), "Warning",
                     JOptionPane.WARNING_MESSAGE);
@@ -1207,7 +1207,7 @@ public class JPrincipal extends JFrame implements KeyListener {
                 this.jCheckBoxMenuConnectedItem,
                 "Connected Nodes unhidden.",
                 "Connected Nodes hidden.",
-                this.drawingArea::setConectados,
+                this.drawingArea::setShouldPrintDirectConnections,
                 evt
         );
     }
@@ -1217,7 +1217,7 @@ public class JPrincipal extends JFrame implements KeyListener {
                 this.jCheckBoxIndirectMenuItem,
                 "Indirectly Connected Nodes are now being shown",
                 "Indirectly Connected Nodes are now not being shown",
-                this.drawingArea::setIndiretos,
+                this.drawingArea::setShouldPrintIndirectConnections,
                 evt
         );
     }
@@ -1227,7 +1227,7 @@ public class JPrincipal extends JFrame implements KeyListener {
                 this.jCheckBoxMenuSchedulableItem,
                 "Schedulable Nodes unhidden.",
                 "Schedulable Nodes hidden.",
-                this.drawingArea::setEscalonaveis,
+                this.drawingArea::setShouldPrintSchedulableNodes,
                 evt
         );
     }
@@ -1266,12 +1266,12 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void jMenuItemGenerateActionPerformed(final ActionEvent evt) {
-        if (this.modelType == EscolherClasse.GRID) {
+        if (this.modelType == PickModelTypeDialog.GRID) {
             this.generateSchedulerGrid();
             return;
         }
 
-        if (this.modelType == EscolherClasse.IAAS) {
+        if (this.modelType == PickModelTypeDialog.IAAS) {
             this.generateSchedulerCloud();
             this.generateSchedulerAlloc();
         }
@@ -1279,9 +1279,9 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private void generateScheduler(
             final String path,
-            final Consumer<? super GerarEscalonador> transferSchedulers,
+            final Consumer<? super CreateSchedulerDialog> transferSchedulers,
             final Runnable updateSchedulers) {
-        final var ge = new GerarEscalonador(this, true, path, this.words);
+        final var ge = new CreateSchedulerDialog(this, true, path, this.words);
         transferSchedulers.accept(ge);
         this.showSubWindow(ge);
         if (ge.getParse() != null)
@@ -1313,7 +1313,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void jMenuItemHelpActionPerformed(final ActionEvent evt) {
-        this.showSubWindow(new TreeHelp());
+        this.showSubWindow(new HelpWindow());
     }
 
     private void jMenuItemToTxtActionPerformed(final ActionEvent evt) {
@@ -1325,9 +1325,9 @@ public class JPrincipal extends JFrame implements KeyListener {
 
         try (final var fw = new FileWriter(this.getFileWithExtension(".txt"));
              final var pw = new PrintWriter(fw, true)) {
-            pw.print(this.drawingArea.toString());
+            pw.print(this.drawingArea.makeDescriptiveModel());
         } catch (final IOException ex) {
-            Logger.getLogger(JPrincipal.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE,
                     null, ex);
             JOptionPane.showMessageDialog(null, ex.getMessage(), "Warning",
                     JOptionPane.WARNING_MESSAGE);
@@ -1358,12 +1358,12 @@ public class JPrincipal extends JFrame implements KeyListener {
         if (this.drawingArea == null)
             return;
 
-        final var users = new JUsuarios(
+        final var users = new UserConfigurationDialog(
                 this,
                 true,
                 this.drawingArea.getUsuarios(),
                 this.words,
-                this.drawingArea.getPerfil()
+                this.drawingArea.getProfiles()
         );
 
         this.showSubWindow(users);
@@ -1371,9 +1371,9 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.modificar();
     }
 
-    private void updateDrawingAreaUsers(final JUsuarios users) {
-        this.drawingArea.setUsuarios(users.getUsuarios());
-        this.drawingArea.setPerfil(users.getLimite());
+    private void updateDrawingAreaUsers(final UserConfigurationDialog users) {
+        this.drawingArea.setUsers(users.getUsuarios());
+        this.drawingArea.setProfiles(users.getLimite());
     }
 
     private void formWindowClosing() {
@@ -1420,8 +1420,8 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private JDialog LoadingScreen() {
         final var window = new JDialog(this, "Carregando");
-        window.setSize(JPrincipal.LOADING_SCREEN_WIDTH,
-                JPrincipal.LOADING_SCREEN_HEIGHT);
+        window.setSize(MainWindow.LOADING_SCREEN_WIDTH,
+                MainWindow.LOADING_SCREEN_HEIGHT);
         window.add(new JLabel("Carregando..."), BorderLayout.CENTER);
         final var progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
@@ -1445,9 +1445,9 @@ public class JPrincipal extends JFrame implements KeyListener {
         interpreter.interpreta(file);
 
         final int gridSize = Math.max(interpreter.getW(),
-                JPrincipal.DRAWING_AREA_START_SIZE);
+                MainWindow.DRAWING_AREA_START_SIZE);
         this.drawingArea = new DesenhoGrade(gridSize, gridSize);
-        this.drawingArea.setGrade(interpreter.getDescricao());
+        this.drawingArea.setGrid(interpreter.getDescricao());
         this.updateGuiWithOpenFile("model opened", null);
         this.modificar();
     }
@@ -1458,7 +1458,6 @@ public class JPrincipal extends JFrame implements KeyListener {
 
         if (this.jMenuItemSort.getDisplayedMnemonicIndex() == 2) {
             this.jMenuItemSort.setDisplayedMnemonicIndex(1);
-            this.drawingArea.iconArrangeType();
         } else {
             this.jMenuItemSort.setDisplayedMnemonicIndex(2);
             this.drawingArea.iconArrange();
@@ -1503,7 +1502,7 @@ public class JPrincipal extends JFrame implements KeyListener {
 
         final var dir = this.jFileChooser.getSelectedFile();
 
-        if (!JPrincipal.isValidDirectory(dir))
+        if (!MainWindow.isValidDirectory(dir))
             return;
 
         try {
@@ -1542,7 +1541,7 @@ public class JPrincipal extends JFrame implements KeyListener {
             return;
         }
 
-        final var vmConfigWindow = new ConfigurarVMs(
+        final var vmConfigWindow = new VmConfiguration(
                 this,
                 true,
                 this.drawingArea.getUsuarios().toArray(),
@@ -1555,15 +1554,15 @@ public class JPrincipal extends JFrame implements KeyListener {
         this.modificar();
     }
 
-    private void updateVirtualMachines(final ConfigurarVMs vmConfigWindow) {
+    private void updateVirtualMachines(final VmConfiguration vmConfigWindow) {
         this.virtualMachines = vmConfigWindow.getMaqVirtuais();
         this.updateDrawingVms(vmConfigWindow);
     }
 
-    private void updateDrawingVms(final ConfigurarVMs vmConfigWindow) {
+    private void updateDrawingVms(final VmConfiguration vmConfigWindow) {
         // TODO: Feature envy
-        this.drawingArea.setUsuarios(vmConfigWindow.atualizaUsuarios());
-        this.drawingArea.setMaquinasVirtuais(vmConfigWindow.getMaqVirtuais());
+        this.drawingArea.setUsers(vmConfigWindow.atualizaUsuarios());
+        this.drawingArea.setVirtualMachines(vmConfigWindow.getMaqVirtuais());
     }
 
     private void jMenuItemManageCloudActionPerformed(final ActionEvent evt) {
@@ -1752,9 +1751,9 @@ public class JPrincipal extends JFrame implements KeyListener {
     }
 
     private void updateDrawingWithViewMenuOptions() {
-        this.drawingArea.setConectados(this.jCheckBoxMenuConnectedItem.isSelected());
-        this.drawingArea.setIndiretos(this.jCheckBoxIndirectMenuItem.isSelected());
-        this.drawingArea.setEscalonaveis(this.jCheckBoxMenuSchedulableItem.isSelected());
+        this.drawingArea.setShouldPrintDirectConnections(this.jCheckBoxMenuConnectedItem.isSelected());
+        this.drawingArea.setShouldPrintIndirectConnections(this.jCheckBoxIndirectMenuItem.isSelected());
+        this.drawingArea.setShouldPrintSchedulableNodes(this.jCheckBoxMenuSchedulableItem.isSelected());
         this.drawingArea.setGridOn(this.jCheckBoxMenuGridItem.isSelected());
     }
 
@@ -1806,7 +1805,7 @@ public class JPrincipal extends JFrame implements KeyListener {
     public void keyReleased(final KeyEvent keyEvent) {
     }
 
-    public void setSelectedIcon(final ItemGrade icon, final String text) {
+    public void setSelectedIcon(final GridItem icon, final String text) {
         if (icon == null) {
             this.jScrollPaneSideBar.setViewportView(this.jPanelSimple);
             this.jPanelProperties.setText("");
@@ -1837,7 +1836,7 @@ public class JPrincipal extends JFrame implements KeyListener {
                 return null;
 
             final var imgURL =
-                    JPrincipal.class.getResource(JPrincipal.ISPD_LOGO_FILE_PATH);
+                    MainWindow.class.getResource(MainWindow.ISPD_LOGO_FILE_PATH);
 
             if (imgURL == null)
                 return null;
@@ -1848,7 +1847,7 @@ public class JPrincipal extends JFrame implements KeyListener {
         private static String getFileExtension(final File file) {
             final var fileName = file.getName();
             final int i =
-                    fileName.lastIndexOf(JPrincipal.FILE_EXTENSION_SEPARATOR);
+                    fileName.lastIndexOf(MainWindow.FILE_EXTENSION_SEPARATOR);
 
             /* Must avoid 'extension only' files such as .gitignore
              * Also invalid are files that end with a '.'
@@ -1866,9 +1865,9 @@ public class JPrincipal extends JFrame implements KeyListener {
 
     private static class IspdWindowAdapter extends WindowAdapter {
         // FIXME: I did this before knowing 'this' access from outer class
-        private final JPrincipal mainWindow;
+        private final MainWindow mainWindow;
 
-        private IspdWindowAdapter(final JPrincipal mw) {
+        private IspdWindowAdapter(final MainWindow mw) {
             this.mainWindow = mw;
         }
 

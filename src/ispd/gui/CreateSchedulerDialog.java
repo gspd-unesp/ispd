@@ -4,6 +4,7 @@ import ispd.alocacaoVM.ManipularArquivosAlloc;
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.escalonador.ManipularArquivos;
 import ispd.escalonadorCloud.ManipularArquivosCloud;
+import ispd.gui.utils.ButtonBuilder;
 import ispd.utils.ValidaValores;
 
 import javax.swing.AbstractListModel;
@@ -45,7 +46,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class GerarEscalonador extends JDialog {
+public class CreateSchedulerDialog extends JDialog {
     private static final Font VERDANA_FONT_BOLD =
             new Font("Verdana", Font.BOLD, 11);
     private static final Dimension MAXIMUM_BUTTON_SIZE =
@@ -80,9 +81,9 @@ public class GerarEscalonador extends JDialog {
     private String tOrdering = "Random";
     private String rOrdering = "Random";
     private LinkedList<String> formula = this.tFormula;
-    private int buttonType = GerarEscalonador.START;
-    private int tButtonType = GerarEscalonador.START;
-    private int rButtonType = GerarEscalonador.START;
+    private int buttonType = CreateSchedulerDialog.START;
+    private int tButtonType = CreateSchedulerDialog.START;
+    private int rButtonType = CreateSchedulerDialog.START;
     private int parentAccount = 0;
     private int tParentAccount = 0;
     private int rParentAccount = 0;
@@ -146,7 +147,7 @@ public class GerarEscalonador extends JDialog {
     private JFormattedTextField jTextFieldP6Num;
     private JTextPane jTextPaneP7Gramatica;
 
-    GerarEscalonador(
+    CreateSchedulerDialog(
             final Frame parent,
             final boolean modal,
             final String path,
@@ -168,17 +169,17 @@ public class GerarEscalonador extends JDialog {
         this.initStepThreeComponents();
 
         this.jPanelPasso4 = new JPanel();
-        this.jPanelPasso4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Advanced") + " - " + this.translate("Tasks distribution order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
-        this.jPanelPasso4.setPreferredSize(GerarEscalonador.PANEL_PREFERRED_SIZE);
+        this.jPanelPasso4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Advanced") + " - " + this.translate("Tasks distribution order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso4.setPreferredSize(CreateSchedulerDialog.PANEL_PREFERRED_SIZE);
 
         final JLabel jLabelP4Formula = new JLabel();
-        jLabelP4Formula.setFont(GerarEscalonador.COMIC_SANS_FONT);
+        jLabelP4Formula.setFont(CreateSchedulerDialog.COMIC_SANS_FONT);
 
         jLabelP4Formula.setText(this.translate("Formula:"));
 
         this.jTextFieldP4Formula = new JTextField();
         this.jTextFieldP4Formula.setEditable(false);
-        this.jTextFieldP4Formula.setFont(GerarEscalonador.VERDANA_FONT_BOLD);
+        this.jTextFieldP4Formula.setFont(CreateSchedulerDialog.VERDANA_FONT_BOLD);
         this.jTextFieldP4Formula.setText("Random");
         this.jTextFieldP4Formula.addActionListener(this::jTextFieldP4FormulaActionPerformed);
 
@@ -191,35 +192,35 @@ public class GerarEscalonador extends JDialog {
                 this::jButtonP4AddActionPerformed;
         final var button11 = ButtonBuilder.basicButton(text,
                 jButtonP4AddActionPerformed);
-        button11.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button11.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Add = button11;
-        jButtonP4Add.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
+        jButtonP4Add.setMinimumSize(CreateSchedulerDialog.MINIMUM_BUTTON_SIZE);
 
         final var button10 = ButtonBuilder.basicButton("-",
                 this::jButtonP4SubActionPerformed);
-        button10.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button10.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Sub = button10;
 
         final var button9 = ButtonBuilder.basicButton("(",
                 this::jButtonP4AbreParentActionPerformed);
-        button9.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button9.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4AbreParent = button9;
 
         final var button8 = ButtonBuilder.basicButton(")",
                 this::jButtonP4FechaParentActionPerformed);
-        button8.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button8.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4FechaParent = button8;
 
         final var button7 = ButtonBuilder.basicButton("/",
                 this::jButtonP4DivActionPerformed);
-        button7.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button7.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Div = button7;
 
         final var button6 = ButtonBuilder.basicButton("*",
                 this::jButtonP4MultActionPerformed);
-        button6.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button6.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Mult = button6;
-        jButtonP4Mult.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
+        jButtonP4Mult.setMinimumSize(CreateSchedulerDialog.MINIMUM_BUTTON_SIZE);
 
         final JButton jButtonP4Voltar = ButtonBuilder.basicButton("←",
                 this::jButtonP4VoltarActionPerformed);
@@ -549,18 +550,18 @@ public class GerarEscalonador extends JDialog {
         );
 
         this.jPanelPasso5 = new JPanel();
-        this.jPanelPasso5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Advanced") + " - " + this.translate("Resource aloccation order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
-        this.jPanelPasso5.setPreferredSize(GerarEscalonador.PANEL_PREFERRED_SIZE);
+        this.jPanelPasso5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Advanced") + " - " + this.translate("Resource aloccation order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso5.setPreferredSize(CreateSchedulerDialog.PANEL_PREFERRED_SIZE);
 
         final JLabel jLabelP5Formula = new JLabel();
-        jLabelP5Formula.setFont(GerarEscalonador.COMIC_SANS_FONT);
+        jLabelP5Formula.setFont(CreateSchedulerDialog.COMIC_SANS_FONT);
 
         jLabelP5Formula.setText(this.translate("Formula:"));
 
 
         this.jTextFieldP5Formula = new JTextField();
         this.jTextFieldP5Formula.setEditable(false);
-        this.jTextFieldP5Formula.setFont(GerarEscalonador.VERDANA_FONT_BOLD);
+        this.jTextFieldP5Formula.setFont(CreateSchedulerDialog.VERDANA_FONT_BOLD);
         this.jTextFieldP5Formula.setText("Random");
         this.jTextFieldP5Formula.addActionListener(this::jTextFieldP5FormulaActionPerformed);
 
@@ -570,35 +571,35 @@ public class GerarEscalonador extends JDialog {
 
         final var button5 = ButtonBuilder.basicButton("+",
                 this::jButtonP5AddActionPerformed);
-        button5.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button5.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Add = button5;
-        jButtonP5Add.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
+        jButtonP5Add.setMinimumSize(CreateSchedulerDialog.MINIMUM_BUTTON_SIZE);
 
         final var button4 = ButtonBuilder.basicButton("-",
                 this::jButtonP5SubActionPerformed);
-        button4.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button4.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Sub = button4;
 
         final var button3 = ButtonBuilder.basicButton("(",
                 this::jButtonP5AbreParentActionPerformed);
-        button3.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button3.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5AbreParent = button3;
 
         final var button2 = ButtonBuilder.basicButton(")",
                 this::jButtonP5FechaParentActionPerformed);
-        button2.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button2.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5FechaParent = button2;
 
         final var button1 = ButtonBuilder.basicButton("/",
          this::jButtonP5DivActionPerformed);
-        button1.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button1.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Div = button1;
 
         final var button = ButtonBuilder.basicButton("*",
          this::jButtonP5MultActionPerformed);
-        button.setMaximumSize(GerarEscalonador.MAXIMUM_BUTTON_SIZE);
+        button.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Mult = button;
-        jButtonP5Mult.setMinimumSize(GerarEscalonador.MINIMUM_BUTTON_SIZE);
+        jButtonP5Mult.setMinimumSize(CreateSchedulerDialog.MINIMUM_BUTTON_SIZE);
 
         final String text1 = "←";
         final ActionListener jButtonP5VoltarActionPerformed =
@@ -915,10 +916,10 @@ public class GerarEscalonador extends JDialog {
                                                                    "de recursos");
 
         this.jPanelPassoSimples = new JPanel();
-        this.jPanelPassoSimples.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Simple") + " - " + this.translate("Scheduling options"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+        this.jPanelPassoSimples.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Simple") + " - " + this.translate("Scheduling options"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
 
         final JPanel jPanel7 = new JPanel();
-        jPanel7.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(GerarEscalonador.BLACK, 1, true), this.translate("Resource Scheduler")));
+        jPanel7.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(CreateSchedulerDialog.BLACK, 1, true), this.translate("Resource Scheduler")));
 
         this.jListRecurso = new JList<>();
         this.jListRecurso.setBorder(BorderFactory.createTitledBorder(this.translate("Select the policy used:")));
@@ -953,7 +954,7 @@ public class GerarEscalonador extends JDialog {
         );
 
         final JPanel jPanel8 = new JPanel();
-        jPanel8.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(GerarEscalonador.BLACK, 1, true), this.translate("Task Scheduler")));
+        jPanel8.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(CreateSchedulerDialog.BLACK, 1, true), this.translate("Task Scheduler")));
 
         this.jListTarefa = new JList<>();
         this.jListTarefa.setBorder(BorderFactory.createTitledBorder(this.translate("Select the policy used:")));
@@ -1020,10 +1021,10 @@ public class GerarEscalonador extends JDialog {
         );
 
         this.jPanelPasso6 = new JPanel();
-        this.jPanelPasso6.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Restrictions"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso6.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Restrictions"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
 
         final JSeparator jSeparatorP6 = new JSeparator();
-        jSeparatorP6.setForeground(GerarEscalonador.BLACK);
+        jSeparatorP6.setForeground(CreateSchedulerDialog.BLACK);
 
         this.jRadioButtonP6SemRestricao = new JRadioButton();
         this.jRadioButtonP6SemRestricao.setSelected(true);
@@ -1125,10 +1126,10 @@ public class GerarEscalonador extends JDialog {
         );
 
         this.jPanelPasso7 = new JPanel();
-        this.jPanelPasso7.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Finish"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso7.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Finish"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
 
         this.jTextPaneP7Gramatica = new JTextPane();
-        this.jTextPaneP7Gramatica.setFont(GerarEscalonador.TAHOMA_FONT_BOLD);
+        this.jTextPaneP7Gramatica.setFont(CreateSchedulerDialog.TAHOMA_FONT_BOLD);
 
         final JScrollPane jScrollPane3 = new JScrollPane();
         jScrollPane3.setViewportView(this.jTextPaneP7Gramatica);
@@ -1163,11 +1164,11 @@ public class GerarEscalonador extends JDialog {
         this.setLocation(new Point(0, 0));
 
         final JPanel jPanelPassos = new JPanel();
-        jPanelPassos.setBackground(GerarEscalonador.BACKGROUND_WHITE);
+        jPanelPassos.setBackground(CreateSchedulerDialog.BACKGROUND_WHITE);
         jPanelPassos.setBorder(new javax.swing.border.MatteBorder(null));
 
         final JLabel jLabelPassos = new JLabel();
-        jLabelPassos.setFont(GerarEscalonador.COMIC_SANS_FONT_BOLD);
+        jLabelPassos.setFont(CreateSchedulerDialog.COMIC_SANS_FONT_BOLD);
 
         jLabelPassos.setText("<html><b>" + this.translate("Steps") + "<br" +
                              ">----------------</b></html>");
@@ -1310,7 +1311,7 @@ public class GerarEscalonador extends JDialog {
 
     private void initStepThreeComponents() {
         this.jPanelPasso3 = new JPanel();
-        this.jPanelPasso3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Generator type"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Generator type"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
 
         this.jOpSimples = new JRadioButton();
         this.jOpSimples.setSelected(true);
@@ -1378,7 +1379,7 @@ public class GerarEscalonador extends JDialog {
 
     private void initStepTwoComponents() {
         this.jPanelPasso2 = new JPanel();
-        this.jPanelPasso2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Enter the characteristics"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Enter the characteristics"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
 
         final JLabel jLabelP2Informacao = new JLabel();
         jLabelP2Informacao.setText(this.translate("Search for " +
@@ -1530,10 +1531,10 @@ public class GerarEscalonador extends JDialog {
 
     private void initStepOneComponents() {
         this.jPanelPasso1 = new JPanel();
-        this.jPanelPasso1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(GerarEscalonador.BLACK), this.translate("Enter the name of the scheduler"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GerarEscalonador.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Enter the name of the scheduler"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
 
         final JLabel jLabelP1NomeEsc = new JLabel();
-        jLabelP1NomeEsc.setFont(GerarEscalonador.COMIC_SANS_FONT);
+        jLabelP1NomeEsc.setFont(CreateSchedulerDialog.COMIC_SANS_FONT);
         jLabelP1NomeEsc.setText(this.translate("Scheduler name"));
 
         this.jTextFieldP1NomeEsc = new JTextField();
@@ -1541,7 +1542,7 @@ public class GerarEscalonador extends JDialog {
         this.jTextFieldP1NomeEsc.addKeyListener(new SchedulerNameKeyAdapter());
 
         final JLabel jLabelP1LocalArq = new JLabel();
-        jLabelP1LocalArq.setFont(GerarEscalonador.COMIC_SANS_FONT);
+        jLabelP1LocalArq.setFont(CreateSchedulerDialog.COMIC_SANS_FONT);
         jLabelP1LocalArq.setText(this.translate("File"));
 
         this.jTextFieldP1LocalArq = new JTextField();
@@ -1549,10 +1550,10 @@ public class GerarEscalonador extends JDialog {
         this.jTextFieldP1LocalArq.setText("%sNewScheduler.java".formatted(this.path));
 
         final JSeparator jSeparatorP1 = new JSeparator();
-        jSeparatorP1.setForeground(GerarEscalonador.BLACK);
+        jSeparatorP1.setForeground(CreateSchedulerDialog.BLACK);
 
         this.jLabelP1Informacao = new JLabel();
-        this.jLabelP1Informacao.setForeground(GerarEscalonador.FOREGROUND_RED);
+        this.jLabelP1Informacao.setForeground(CreateSchedulerDialog.FOREGROUND_RED);
 
         final GroupLayout jPanelPasso1Layout =
                 new GroupLayout(this.jPanelPasso1);
@@ -1866,26 +1867,26 @@ public class GerarEscalonador extends JDialog {
 
         final String operador = "+ - / * ";
         if (!this.formula.isEmpty()) {
-            if (this.buttonType == GerarEscalonador.OPEN_BRACKET) {
+            if (this.buttonType == CreateSchedulerDialog.OPEN_BRACKET) {
                 this.parentAccount--;
-            } else if (this.buttonType == GerarEscalonador.CLOSE_BRACKET) {
+            } else if (this.buttonType == CreateSchedulerDialog.CLOSE_BRACKET) {
                 this.parentAccount++;
             }
             this.formula.removeLast();
             if (this.formula.isEmpty()) {
-                this.buttonType = GerarEscalonador.START;
+                this.buttonType = CreateSchedulerDialog.START;
                 this.parentAccount = 0;
             } else if (operador.contains(this.formula.getLast())) {
-                this.buttonType = GerarEscalonador.OPERATOR;
+                this.buttonType = CreateSchedulerDialog.OPERATOR;
             } else if (this.formula.getLast().contains("(")) {
-                this.buttonType = GerarEscalonador.OPEN_BRACKET;
+                this.buttonType = CreateSchedulerDialog.OPEN_BRACKET;
             } else if (this.formula.getLast().contains(")")) {
-                this.buttonType = GerarEscalonador.CLOSE_BRACKET;
+                this.buttonType = CreateSchedulerDialog.CLOSE_BRACKET;
             } else {
-                this.buttonType = GerarEscalonador.VARIABLE;
+                this.buttonType = CreateSchedulerDialog.VARIABLE;
             }
         } else {
-            this.buttonType = GerarEscalonador.START;
+            this.buttonType = CreateSchedulerDialog.START;
             this.parentAccount = 0;
         }
         this.escreverFormula();
@@ -1928,9 +1929,9 @@ public class GerarEscalonador extends JDialog {
 
     private void jButtonP4AbreParentActionPerformed(final ActionEvent evt) {
 
-        if (this.buttonType == GerarEscalonador.START || this.buttonType == GerarEscalonador.OPERATOR || this.buttonType == GerarEscalonador.OPEN_BRACKET) {
+        if (this.buttonType == CreateSchedulerDialog.START || this.buttonType == CreateSchedulerDialog.OPERATOR || this.buttonType == CreateSchedulerDialog.OPEN_BRACKET) {
             this.parentAccount++;
-            this.buttonType = GerarEscalonador.OPEN_BRACKET;
+            this.buttonType = CreateSchedulerDialog.OPEN_BRACKET;
             this.formula.add("(");
         }
         this.escreverFormula();
@@ -1938,9 +1939,9 @@ public class GerarEscalonador extends JDialog {
 
     private void jButtonP4FechaParentActionPerformed(final ActionEvent evt) {
 
-        if (this.parentAccount != 0 && (this.buttonType == GerarEscalonador.VARIABLE || this.buttonType == GerarEscalonador.CLOSE_BRACKET)) {
+        if (this.parentAccount != 0 && (this.buttonType == CreateSchedulerDialog.VARIABLE || this.buttonType == CreateSchedulerDialog.CLOSE_BRACKET)) {
             this.parentAccount--;
-            this.buttonType = GerarEscalonador.CLOSE_BRACKET;
+            this.buttonType = CreateSchedulerDialog.CLOSE_BRACKET;
             this.formula.add(")");
         }
         this.escreverFormula();
@@ -2136,7 +2137,7 @@ public class GerarEscalonador extends JDialog {
 
         final String codigo = this.jTextPaneP7Gramatica.getText();
         this.parse = new InterpretadorGerador(codigo);
-        if (this.modelType == GerarEscalonador.GRID) {
+        if (this.modelType == CreateSchedulerDialog.GRID) {
             if (!this.parse.executarParse()) {
                 if (this.schedulerFiles != null) {
                     this.schedulerFiles.escrever(this.parse.getNome(),
@@ -2156,7 +2157,7 @@ public class GerarEscalonador extends JDialog {
                     this.dispose();
                 }
             }
-        } else if (this.modelType == GerarEscalonador.IAAS) {
+        } else if (this.modelType == CreateSchedulerDialog.IAAS) {
             if (!this.parse.executarParse()) {
                 if (this.cloudSchedulerFiles != null) {
                     this.cloudSchedulerFiles.escrever(this.parse.getNome(),
@@ -2176,7 +2177,7 @@ public class GerarEscalonador extends JDialog {
                     this.dispose();
                 }
             }
-        } else if (this.modelType == GerarEscalonador.ALLOC) {
+        } else if (this.modelType == CreateSchedulerDialog.ALLOC) {
             if (!this.parse.executarParse()) {
                 if (this.allocFiles != null) {
                     this.allocFiles.escrever(this.parse.getNome(),
@@ -2289,20 +2290,20 @@ public class GerarEscalonador extends JDialog {
     }
 
     private void pressionarOperador(final String token) {
-        if (this.buttonType == GerarEscalonador.VARIABLE || this.buttonType == GerarEscalonador.CLOSE_BRACKET) {
-            this.buttonType = GerarEscalonador.OPERATOR;
+        if (this.buttonType == CreateSchedulerDialog.VARIABLE || this.buttonType == CreateSchedulerDialog.CLOSE_BRACKET) {
+            this.buttonType = CreateSchedulerDialog.OPERATOR;
             this.formula.add(token);
-        } else if (this.buttonType == GerarEscalonador.OPERATOR) {
+        } else if (this.buttonType == CreateSchedulerDialog.OPERATOR) {
             this.formula.set(this.formula.size() - 1, token);
         }
         this.escreverFormula();
     }
 
     private void pressionarVariavel(final String token) {
-        if (this.buttonType == GerarEscalonador.START || this.buttonType == GerarEscalonador.OPERATOR || this.buttonType == GerarEscalonador.OPEN_BRACKET) {
-            this.buttonType = GerarEscalonador.VARIABLE;
+        if (this.buttonType == CreateSchedulerDialog.START || this.buttonType == CreateSchedulerDialog.OPERATOR || this.buttonType == CreateSchedulerDialog.OPEN_BRACKET) {
+            this.buttonType = CreateSchedulerDialog.VARIABLE;
             this.formula.add(token);
-        } else if (this.buttonType == GerarEscalonador.VARIABLE) {
+        } else if (this.buttonType == CreateSchedulerDialog.VARIABLE) {
             this.formula.set(this.formula.size() - 1, token);
         }
         this.escreverFormula();
@@ -2441,26 +2442,26 @@ public class GerarEscalonador extends JDialog {
             }
             doc.insertString(doc.getLength(), text, configuraCor);
         } catch (final BadLocationException ex) {
-            Logger.getLogger(GerarEscalonador.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(CreateSchedulerDialog.class.getName()).log(Level.SEVERE,
                     null, ex);
         }
     }
 
     void setEscalonadores(final ManipularArquivos escalonadores) {
         this.schedulerFiles = escalonadores;
-        this.modelType = GerarEscalonador.GRID;
+        this.modelType = CreateSchedulerDialog.GRID;
 
     }
 
     void setEscalonadoresCloud(final ManipularArquivosCloud escalonadores) {
         this.cloudSchedulerFiles = escalonadores;
-        this.modelType = GerarEscalonador.IAAS;
+        this.modelType = CreateSchedulerDialog.IAAS;
 
     }
 
     void setAlocadores(final ManipularArquivosAlloc alocadores) {
         this.allocFiles = alocadores;
-        this.modelType = GerarEscalonador.ALLOC;
+        this.modelType = CreateSchedulerDialog.ALLOC;
 
 
     }
@@ -2479,20 +2480,20 @@ public class GerarEscalonador extends JDialog {
     }
 
     private class SimpleResourceModel extends AbstractListModel {
-        final String[] strings = { GerarEscalonador.this.translate("Round" +
-                                                                   "-Robin " +
-                                                                   "(circular" +
-                                                                   " " +
-                                                                   "queue)"),
-                GerarEscalonador.this.translate("The " +
-                                                "most " +
-                                                "computational " +
-                                                "power resource"),
-                GerarEscalonador.this.translate(
+        final String[] strings = { CreateSchedulerDialog.this.translate("Round" +
+                                                                        "-Robin " +
+                                                                        "(circular" +
+                                                                        " " +
+                                                                        "queue)"),
+                CreateSchedulerDialog.this.translate("The " +
+                                                     "most " +
+                                                     "computational " +
+                                                     "power resource"),
+                CreateSchedulerDialog.this.translate(
                         "Resource with " +
                         "less " +
                         "workload"),
-                GerarEscalonador.this.translate(
+                CreateSchedulerDialog.this.translate(
                         "Resource with " +
                         "better " +
                         "communication link") };
@@ -2508,38 +2509,38 @@ public class GerarEscalonador extends JDialog {
 
     private class SimpleTaskModel extends AbstractListModel {
         final String[] strings = {
-                GerarEscalonador.this.translate("FIFO " +
-                                                "(First " +
-                                                "In, " +
-                                                "First" +
-                                                " Out)"),
-                "%s %s".formatted(GerarEscalonador.this.translate(
+                CreateSchedulerDialog.this.translate("FIFO " +
+                                                     "(First " +
+                                                     "In, " +
+                                                     "First" +
+                                                     " Out)"),
+                "%s %s".formatted(CreateSchedulerDialog.this.translate(
                         "Largest" +
                         " Task " +
-                        "First"), GerarEscalonador.this.translate(
+                        "First"), CreateSchedulerDialog.this.translate(
                         "(Cost of Processing)")),
-                "%s %s".formatted(GerarEscalonador.this.translate("Lowest" +
-                                                                  " " +
-                                                                  "Task " +
-                                                                  "First"),
-                        GerarEscalonador.this.translate(
+                "%s %s".formatted(CreateSchedulerDialog.this.translate("Lowest" +
+                                                                       " " +
+                                                                       "Task " +
+                                                                       "First"),
+                        CreateSchedulerDialog.this.translate(
                                 "(Cost of Processing)")),
-                "%s %s".formatted(GerarEscalonador.this.translate(
+                "%s %s".formatted(CreateSchedulerDialog.this.translate(
                         "Largest" +
                         " Task " +
-                        "First"), GerarEscalonador.this.translate(
+                        "First"), CreateSchedulerDialog.this.translate(
                         "(Cost of Communication)")),
-                "%s %s".formatted(GerarEscalonador.this.translate("Lowest" +
-                                                                  " " +
-                                                                  "Task " +
-                                                                  "First"),
-                        GerarEscalonador.this.translate(
+                "%s %s".formatted(CreateSchedulerDialog.this.translate("Lowest" +
+                                                                       " " +
+                                                                       "Task " +
+                                                                       "First"),
+                        CreateSchedulerDialog.this.translate(
                                 "(Cost of Communication)")),
-                GerarEscalonador.this.translate("User " +
-                                                "with Less " +
-                                                "Use of " +
-                                                "Grid " +
-                                                "First"
+                CreateSchedulerDialog.this.translate("User " +
+                                                     "with Less " +
+                                                     "Use of " +
+                                                     "Grid " +
+                                                     "First"
                 ) };
 
         public int getSize() {
@@ -2553,7 +2554,7 @@ public class GerarEscalonador extends JDialog {
 
     private class SchedulerNameKeyAdapter extends KeyAdapter {
         public void keyReleased(final KeyEvent evt) {
-            GerarEscalonador.this.startStepOne();
+            CreateSchedulerDialog.this.startStepOne();
         }
     }
 }

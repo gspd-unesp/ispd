@@ -21,7 +21,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.text.DecimalFormat;
 
-class JPreferences extends JDialog {
+class SettingsDialog extends JDialog {
     private final ConfiguracaoISPD config;
     private JCheckBox jCheckBoxBarChartProcessing;
     private JCheckBox jCheckBoxPieChartCommunication;
@@ -36,8 +36,8 @@ class JPreferences extends JDialog {
     private JFormattedTextField jTextFieldNumSim;
     private JFormattedTextField jTextFieldThread;
 
-    JPreferences(final Frame parent, final boolean modal,
-                 final ConfiguracaoISPD config) {
+    SettingsDialog(final Frame parent, final boolean modal,
+                   final ConfiguracaoISPD config) {
         super(parent, modal);
         this.config = config;
         this.initComponents();
@@ -336,13 +336,13 @@ class JPreferences extends JDialog {
 
     private class SomeFocusAdapter extends FocusAdapter {
         public void focusLost(final FocusEvent evt) {
-            JPreferences.this.jTextFieldThreadFocusLost(evt);
+            SettingsDialog.this.jTextFieldThreadFocusLost(evt);
         }
     }
 
     private class SomeOtherFocusAdapter extends FocusAdapter {
         public void focusLost(final FocusEvent evt) {
-            JPreferences.this.jTextFieldNumSimFocusLost(evt);
+            SettingsDialog.this.jTextFieldNumSimFocusLost(evt);
         }
     }
 }

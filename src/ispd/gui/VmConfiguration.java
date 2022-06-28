@@ -1,6 +1,7 @@
 package ispd.gui;
 
 import ispd.gui.iconico.grade.VirtualMachine;
+import ispd.gui.utils.ButtonBuilder;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -24,22 +25,22 @@ import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-class ConfigurarVMs extends JDialog {
+class VmConfiguration extends JDialog {
     private static final String[] OPERATING_SYSTEMS = {
             "Linux", "Macintosh", "Windows" };
     private final JComboBox<String> osComboBox =
-            ConfigurarVMs.configuredComboBox(
-                    new DefaultComboBoxModel<>(ConfigurarVMs.OPERATING_SYSTEMS),
+            VmConfiguration.configuredComboBox(
+                    new DefaultComboBoxModel<>(VmConfiguration.OPERATING_SYSTEMS),
                     "Select the operational system hosted in the virtual " +
                     "machine",
                     this::jSOComboBoxActionPerformed);
-    private final JSpinner disk = ConfigurarVMs.spinnerWithTooltip(
+    private final JSpinner disk = VmConfiguration.spinnerWithTooltip(
             "Insert the amount of disk that VM " +
             "allocates in resource's hard disk");
-    private final JSpinner memory = ConfigurarVMs.spinnerWithTooltip(
+    private final JSpinner memory = VmConfiguration.spinnerWithTooltip(
             "Insert the amount of  memory that VM " +
             "allocates in the  resource's primary storage");
-    private final JSpinner processors = ConfigurarVMs.spinnerWithTooltip(
+    private final JSpinner processors = VmConfiguration.spinnerWithTooltip(
             "Insert the number of virtual cores that VM " +
             "allocates in the resource's physical processor");
     private final Vector<String> tableColumns =
@@ -61,9 +62,9 @@ class ConfigurarVMs extends JDialog {
     private int tableIndex;
     private HashSet<VirtualMachine> virtualMachines;
 
-    ConfigurarVMs(final Frame parent, final boolean modal,
-                  final Object[] users, final Object[] vmms,
-                  final HashSet<VirtualMachine> vmList) {
+    VmConfiguration(final Frame parent, final boolean modal,
+                    final Object[] users, final Object[] vmms,
+                    final HashSet<VirtualMachine> vmList) {
         super(parent, modal);
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.initComponents(users, vmms, vmList);
@@ -74,17 +75,17 @@ class ConfigurarVMs extends JDialog {
             final Object[] users, final Object[] vmms,
             final HashSet<VirtualMachine> vmList) {
 
-        this.users = ConfigurarVMs.stringVectorFromObjectArray(users);
+        this.users = VmConfiguration.stringVectorFromObjectArray(users);
 
         this.fillTableAndVms(vmList);
 
-        this.usersComboBox = ConfigurarVMs.configuredComboBox(
+        this.usersComboBox = VmConfiguration.configuredComboBox(
                 new DefaultComboBoxModel<>(this.users),
                 "Select the virtual machine owner",
                 this::jUserComboBoxActionPerformed);
 
-        this.vmmsComboBox = ConfigurarVMs.configuredComboBox(
-                new DefaultComboBoxModel<>(ConfigurarVMs.stringVectorFromObjectArray(vmms)),
+        this.vmmsComboBox = VmConfiguration.configuredComboBox(
+                new DefaultComboBoxModel<>(VmConfiguration.stringVectorFromObjectArray(vmms)),
                 "Select the VMM that coorditates the virtual machine",
                 this::jVMMComboBoxActionPerformed);
 
@@ -272,7 +273,7 @@ class ConfigurarVMs extends JDialog {
 
         for (final var aux : this.virtualMachines) {
             this.tableIndex++;
-            this.tableRows.add(ConfigurarVMs.vmToVector(aux));
+            this.tableRows.add(VmConfiguration.vmToVector(aux));
         }
     }
 
@@ -295,7 +296,7 @@ class ConfigurarVMs extends JDialog {
 
     private void jButtonOKVmActionPerformed(final ActionEvent evt) {
         this.virtualMachines = this.tableRows.stream()
-                .map(ConfigurarVMs::vmFromTableVector)
+                .map(VmConfiguration::vmFromTableVector)
                 .collect(Collectors.toCollection(HashSet::new));
         this.setVisible(false);
     }
@@ -330,13 +331,13 @@ class ConfigurarVMs extends JDialog {
 
     private static Vector<Object> vmToVector(final VirtualMachine aux) {
         final Vector<Object> line = new Vector<>(7);
-        line.add(aux.getNome());
+        line.add(aux.getName());
         line.add(aux.getProprietario());
-        line.add(aux.getVMM());
+        line.add(aux.getVmm());
         line.add(aux.getPoderComputacional());
-        line.add(aux.getMemoriaAlocada());
-        line.add(aux.getDiscoAlocado());
-        line.add(aux.getOS());
+        line.add(aux.getAllocatedMemory());
+        line.add(aux.getAllocatedDisk());
+        line.add(aux.getOs());
         return line;
     }
 

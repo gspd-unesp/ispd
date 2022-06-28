@@ -1,4 +1,4 @@
-package ispd.gui;
+package ispd.gui.utils;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -21,7 +21,7 @@ class Translator {
      * @param text Text to be translated.
      * @return Translated text, if available. Otherwise, original {@code text}.
      */
-    static String translate(final String text) {
+    public static String translate(final String text) {
         if (Translator.bundle.containsKey(text))
             return Translator.bundle.getString(text);
         Translator.logMissingTranslation(text);

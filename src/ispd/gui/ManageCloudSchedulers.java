@@ -1,17 +1,17 @@
 package ispd.gui;
 
-import ispd.arquivo.Escalonadores;
-import ispd.escalonador.ManipularArquivos;
-import ispd.gui.auxiliar.DocumentColor;
-import ispd.gui.auxiliar.FiltroDeArquivos;
+import ispd.arquivo.EscalonadoresCloud;
+import ispd.escalonadorCloud.ManipularArquivosCloud;
+import ispd.gui.auxiliar.TextEditorStyle;
+import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.utils.ValidaValores;
 
+import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -23,30 +23,33 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoManager;
-import javax.swing.undo.UndoableEdit;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.net.URL;
-import java.util.List;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-public class GerenciarEscalonador extends JFrame {
-    private final UndoableEdit undo = new UndoManager();
-    private final ManipularArquivos escalonadores;
+public class ManageCloudSchedulers extends JFrame {
+    private final AbstractUndoableEdit undo = new UndoManager();
+    private final ManipularArquivosCloud escalonadores;
     private final ResourceBundle palavras;
     private JFileChooser jFileChooser1;
     private JList jListEscalonadores;
@@ -55,80 +58,65 @@ public class GerenciarEscalonador extends JFrame {
     private boolean modificado;//indica se arquivo atual foi modificado
     private String escalonadorAberto;
 
-    public GerenciarEscalonador() {
+    ManageCloudSchedulers() {
         final Locale locale = Locale.getDefault();
         this.palavras = ResourceBundle.getBundle("ispd.idioma.Idioma", locale);
-        //Gerenciamento dos escalonadores
-        this.escalonadores = new Escalonadores();
         //Inicia o editor
         this.initComponents();
         //Define a linguagem do editor
-        final DocumentColor estiloJava = new DocumentColor();
+        final TextEditorStyle estiloJava = new TextEditorStyle();
         estiloJava.configurarTextComponent(this.jTextPane1);
         this.jScrollPane2.setRowHeaderView(estiloJava.getLinhas());
         this.jScrollPane2.setColumnHeaderView(estiloJava.getCursor());
         this.fecharEdicao();
         // Eventos de desfazer e refazer
         final javax.swing.text.Document doc = this.jTextPane1.getDocument();
-        doc.addUndoableEditListener(this::onUndo);
+        doc.addUndoableEditListener(evt -> {
+            if (!"style change".equals(evt.getEdit().getPresentationName())) {
+                this.undo.addEdit(evt.getEdit());
+            }
+        });
         // Evento verifica alterações
         doc.addDocumentListener(new SomeDocumentListener());
+        //Gerenciamento dos escalonadores
+        this.escalonadores = new EscalonadoresCloud();
         this.atualizarEscalonadores(this.escalonadores.listar());
         this.addWindowListener(new SomeWindowAdapter());
     }
 
-    private void onUndo(final UndoableEditEvent evt) {
-        if (!"style change".equals(evt.getEdit().getPresentationName())) {
-            this.undo.addEdit(evt.getEdit());
-        }
-    }
-
     private void initComponents() {
 
-        final JPopupMenu jPopupMenuTexto =
-                new JPopupMenu();
+        final JPopupMenu jPopupMenuTexto = new JPopupMenu();
         final JMenuItem jMenuItemCut1 = new JMenuItem();
-        final JMenuItem jMenuItemCopy1 =
-                new JMenuItem();
-        final JMenuItem jMenuItemPaste1 =
-                new JMenuItem();
+        final JMenuItem jMenuItemCopy1 = new JMenuItem();
+        final JMenuItem jMenuItemPaste1 = new JMenuItem();
         this.jFileChooser1 = new JFileChooser();
         final JToolBar jToolBar1 = new JToolBar();
-        final JButton jButtonNovo = new JButton();
-        final JButton jButtonSalvar = new JButton();
-        final JButton jButtonCompilar = new JButton();
+        final AbstractButton jButtonNovo = new JButton();
+        final AbstractButton jButtonSalvar = new JButton();
+        final AbstractButton jButtonCompilar = new JButton();
         final JPanel jPanelEscalonadores = new JPanel();
-        final JScrollPane jScrollPane3 =
-                new JScrollPane();
+        final JScrollPane jScrollPane3 = new JScrollPane();
         this.jListEscalonadores = new JList();
         final JPanel jPanelEditorTexto = new JPanel();
         this.jScrollPane2 = new JScrollPane();
         this.jTextPane1 = new JTextPane();
-        final JLabel jLabelCaretPos = new JLabel();
+        final Component jLabelCaretPos = new javax.swing.JLabel();
         final JMenuBar jMenuBar1 = new JMenuBar();
         final JMenu jMenuArquivo = new JMenu();
         final JMenuItem jMenuItemNovo = new JMenuItem();
-        final JMenuItem jMenuItemAbrir =
-                new JMenuItem();
-        final JMenuItem jMenuItemSalvar =
-                new JMenuItem();
-        final JMenuItem jMenuItemImportar =
-                new JMenuItem();
+        final JMenuItem jMenuItemAbrir = new JMenuItem();
+        final JMenuItem jMenuItemSalvar = new JMenuItem();
+        final JMenuItem jMenuItemImportar = new JMenuItem();
         final JMenu jMenuEditar = new JMenu();
-        final JMenuItem jMenuItemDesfazer =
-                new JMenuItem();
-        final JMenuItem jMenuItemRefazer =
-                new JMenuItem();
-        final Component jSeparator1 =
-                new JPopupMenu.Separator();
+        final JMenuItem jMenuItemDesfazer = new JMenuItem();
+        final JMenuItem jMenuItemRefazer = new JMenuItem();
+        final Component jSeparator1 = new JPopupMenu.Separator();
         final JMenuItem jMenuItemCut = new JMenuItem();
         final JMenuItem jMenuItemCopy = new JMenuItem();
-        final JMenuItem jMenuItemPaste =
-                new JMenuItem();
-        final Component jSeparator2 =
-                new JPopupMenu.Separator();
-        final JMenuItem jMenuItemDelete =
-                new JMenuItem();
+        final JMenuItem jMenuItemPaste = new JMenuItem();
+        final Component jSeparator2 = new JPopupMenu.Separator();
+        final JMenuItem jMenuItemDelete = new JMenuItem();
 
         jMenuItemCut1.setText(this.translate("Cut"));
         jMenuItemCut1.addActionListener(this::jMenuItemCutActionPerformed);
@@ -138,13 +126,12 @@ public class GerenciarEscalonador extends JFrame {
         jMenuItemCopy1.addActionListener(this::jMenuItemCopyActionPerformed);
         jPopupMenuTexto.add(jMenuItemCopy1);
 
-        jMenuItemPaste1.setText(this.translate("Paste")); //
-
+        jMenuItemPaste1.setText(this.translate("Paste"));
         jMenuItemPaste1.addActionListener(this::jMenuItemPasteActionPerformed);
         jPopupMenuTexto.add(jMenuItemPaste1);
 
         this.jFileChooser1.setAcceptAllFileFilterUsed(false);
-        this.jFileChooser1.setFileFilter(new FiltroDeArquivos(this.translate(
+        this.jFileChooser1.setFileFilter(new MultipleExtensionFileFilter(this.translate(
                 "Java" +
                 " Source Files (. java)"), ".java", true));
 
@@ -156,48 +143,42 @@ public class GerenciarEscalonador extends JFrame {
 
         jToolBar1.setRollover(true);
 
-        jButtonNovo.setIcon(new ImageIcon(this.getResource("/ispd" +
-                                                           "/gui" +
+        jButtonNovo.setIcon(new ImageIcon(this.getResource("/ispd/gui" +
                                                            "/imagens/insert" +
                                                            "-object.png")));
-        jButtonNovo.setToolTipText(this.translate("Creates a " +
-                                                  "new " +
-                                                  "scheduler"));
+        jButtonNovo.setToolTipText(this.translate("Creates a new scheduler"));
         jButtonNovo.setFocusable(false);
-        jButtonNovo.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonNovo.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonNovo.setHorizontalTextPosition(SwingConstants.CENTER);
+        jButtonNovo.setVerticalTextPosition(SwingConstants.BOTTOM);
         jButtonNovo.addActionListener(this::jMenuItemNovojButtonNovoActionPerformed);
         jToolBar1.add(jButtonNovo);
         jButtonNovo.getAccessibleContext().setAccessibleDescription(this.translate("Creates a new scheduler"));
 
-        jButtonSalvar.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/document-save.png")));
-        jButtonSalvar.setToolTipText(this.translate("Save the " +
-                                                    "open file"));
+        jButtonSalvar.setIcon(new ImageIcon(this.getResource("/ispd" +
+                                                             "/gui/imagens" +
+                                                             "/document-save" +
+                                                             ".png")));
+        jButtonSalvar.setToolTipText(this.translate("Save the open file"));
         jButtonSalvar.setFocusable(false);
-        jButtonSalvar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonSalvar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonSalvar.setHorizontalTextPosition(SwingConstants.CENTER);
+        jButtonSalvar.setVerticalTextPosition(SwingConstants.BOTTOM);
         jButtonSalvar.addActionListener(this::jButtonSalvarActionPerformed);
         jToolBar1.add(jButtonSalvar);
 
-        jButtonCompilar.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/system-run.png")));
+        jButtonCompilar.setIcon(new ImageIcon(this.getResource("/ispd" +
+                                                               "/gui/imagens" +
+                                                               "/system-run" +
+                                                               ".png")));
         jButtonCompilar.setToolTipText(this.translate("Compile"));
         jButtonCompilar.setFocusable(false);
-        jButtonCompilar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonCompilar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonCompilar.setHorizontalTextPosition(SwingConstants.CENTER);
+        jButtonCompilar.setVerticalTextPosition(SwingConstants.BOTTOM);
         jButtonCompilar.addActionListener(this::jButtonCompilarActionPerformed);
         jToolBar1.add(jButtonCompilar);
 
-        this.jListEscalonadores.setBorder(javax.swing.BorderFactory.createTitledBorder(null, this.translate("Scheduler"), javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
-        this.jListEscalonadores.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        this.jListEscalonadores.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(final java.awt.event.MouseEvent evt) {
-                GerenciarEscalonador.this.jListEscalonadoresMouseClicked(evt);
-            }
-        });
+        this.jListEscalonadores.setBorder(javax.swing.BorderFactory.createTitledBorder(null, this.translate("Scheduler"), TitledBorder.CENTER, TitledBorder.DEFAULT_POSITION));
+        this.jListEscalonadores.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        this.jListEscalonadores.addMouseListener(new SomeMouseAdapter());
         jScrollPane3.setViewportView(this.jListEscalonadores);
 
         final GroupLayout jPanelEscalonadoresLayout =
@@ -208,8 +189,8 @@ public class GerenciarEscalonador extends JFrame {
                         .addGroup(jPanelEscalonadoresLayout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(jScrollPane3,
-                                        GroupLayout.DEFAULT_SIZE,
-                                        120, Short.MAX_VALUE)
+                                        GroupLayout.DEFAULT_SIZE, 120,
+                                        Short.MAX_VALUE)
                                 .addContainerGap())
         );
         jPanelEscalonadoresLayout.setVerticalGroup(
@@ -218,8 +199,8 @@ public class GerenciarEscalonador extends JFrame {
                                 jPanelEscalonadoresLayout.createSequentialGroup()
                                         .addContainerGap()
                                         .addComponent(jScrollPane3,
-                                                GroupLayout.DEFAULT_SIZE,
-                                                506, Short.MAX_VALUE)
+                                                GroupLayout.DEFAULT_SIZE, 506,
+                                                Short.MAX_VALUE)
                                         .addContainerGap())
         );
 
@@ -233,8 +214,8 @@ public class GerenciarEscalonador extends JFrame {
                         .addGroup(jPanelEditorTextoLayout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(this.jScrollPane2,
-                                        GroupLayout.DEFAULT_SIZE,
-                                        734, Short.MAX_VALUE)
+                                        GroupLayout.DEFAULT_SIZE, 734,
+                                        Short.MAX_VALUE)
                                 .addContainerGap())
         );
         jPanelEditorTextoLayout.setVerticalGroup(
@@ -253,33 +234,30 @@ public class GerenciarEscalonador extends JFrame {
         final String name = "/ispd/gui/imagens/insert-object_1.png";
         jMenuItemNovo.setIcon(new ImageIcon(this.getResource(name)));
         jMenuItemNovo.setText(this.translate("New"));
-        jMenuItemNovo.setToolTipText(this.translate("Creates a " +
-                                                    "new " +
-                                                    "scheduler"));
+        jMenuItemNovo.setToolTipText(this.translate("Creates a new scheduler"));
         jMenuItemNovo.addActionListener(this::jMenuItemNovojButtonNovoActionPerformed);
         jMenuArquivo.add(jMenuItemNovo);
 
         jMenuItemAbrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,
                 InputEvent.CTRL_DOWN_MASK));
-        jMenuItemAbrir.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/document-open.png")));
+        jMenuItemAbrir.setIcon(new ImageIcon(this.getResource("/ispd" +
+                                                              "/gui/imagens" +
+                                                              "/document-open" +
+                                                              ".png")));
         jMenuItemAbrir.setText(this.translate("Open"));
-        jMenuItemAbrir.setToolTipText(this.translate("Opens an " +
-                                                     "existing " +
+        jMenuItemAbrir.setToolTipText(this.translate("Opens an existing " +
                                                      "scheduler"));
         jMenuItemAbrir.addActionListener(this::jMenuItemAbrirActionPerformed);
         jMenuArquivo.add(jMenuItemAbrir);
 
         jMenuItemSalvar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
                 InputEvent.CTRL_DOWN_MASK));
-        jMenuItemSalvar.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/document-save_1.png")));
+        jMenuItemSalvar.setIcon(new ImageIcon(this.getResource("/ispd" +
+                                                               "/gui/imagens" +
+                                                               "/document" +
+                                                               "-save_1.png")));
         jMenuItemSalvar.setText(this.translate("Save"));
-        jMenuItemSalvar.setToolTipText(this.translate("Save the" +
-                                                      " open " +
-                                                      "file"));
+        jMenuItemSalvar.setToolTipText(this.translate("Save the open file"));
         jMenuItemSalvar.addActionListener(this::jButtonSalvarActionPerformed);
         jMenuArquivo.add(jMenuItemSalvar);
 
@@ -287,8 +265,7 @@ public class GerenciarEscalonador extends JFrame {
                 , InputEvent.CTRL_DOWN_MASK));
         jMenuItemImportar.setIcon(new ImageIcon(this.getResource(
                 "/ispd/gui/imagens/document-import.png")));
-        jMenuItemImportar.setText(this.translate("Import")); //
-
+        jMenuItemImportar.setText(this.translate("Import"));
         jMenuItemImportar.addActionListener(this::jMenuItemImportarActionPerformed);
         jMenuArquivo.add(jMenuItemImportar);
 
@@ -300,56 +277,56 @@ public class GerenciarEscalonador extends JFrame {
                 , InputEvent.CTRL_DOWN_MASK));
         jMenuItemDesfazer.setIcon(new ImageIcon(this.getResource(
                 "/ispd/gui/imagens/edit-undo.png")));
-        jMenuItemDesfazer.setText(this.translate("Undo")); //
-
+        jMenuItemDesfazer.setText(this.translate("Undo"));
         jMenuItemDesfazer.addActionListener(this::jMenuItemDesfazerActionPerformed);
         jMenuEditar.add(jMenuItemDesfazer);
 
         jMenuItemRefazer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y,
                 InputEvent.CTRL_DOWN_MASK));
-        jMenuItemRefazer.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/edit-redo.png")));
-        final String word = "Redo";
-        jMenuItemRefazer.setText(this.translate(word)); //
-
+        jMenuItemRefazer.setIcon(new ImageIcon(this.getResource("/ispd" +
+                                                                "/gui/imagens" +
+                                                                "/edit-redo" +
+                                                                ".png")));
+        jMenuItemRefazer.setText(this.translate("Redo"));
         jMenuItemRefazer.addActionListener(this::jMenuItemRefazerActionPerformed);
         jMenuEditar.add(jMenuItemRefazer);
         jMenuEditar.add(jSeparator1);
 
         jMenuItemCut.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,
                 InputEvent.CTRL_DOWN_MASK));
-        jMenuItemCut.setIcon(new ImageIcon(this.getResource(
-                "/ispd/gui" +
-                "/imagens/edit-cut.png")));
-        jMenuItemCut.setText(this.translate("Cut"));
+        jMenuItemCut.setIcon(new ImageIcon(this.getResource("/ispd/gui" +
+                                                            "/imagens/edit" +
+                                                            "-cut.png")));
+        final String word = "Cut";
+        jMenuItemCut.setText(this.translate(word));
         jMenuItemCut.addActionListener(this::jMenuItemCutActionPerformed);
         jMenuEditar.add(jMenuItemCut);
 
         jMenuItemCopy.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,
                 InputEvent.CTRL_DOWN_MASK));
-        jMenuItemCopy.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/edit-copy.png")));
+        jMenuItemCopy.setIcon(new ImageIcon(this.getResource("/ispd" +
+                                                             "/gui/imagens" +
+                                                             "/edit-copy.png")));
         jMenuItemCopy.setText(this.translate("Copy"));
         jMenuItemCopy.addActionListener(this::jMenuItemCopyActionPerformed);
         jMenuEditar.add(jMenuItemCopy);
 
         jMenuItemPaste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V,
                 InputEvent.CTRL_DOWN_MASK));
-        jMenuItemPaste.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/edit-paste.png")));
+        jMenuItemPaste.setIcon(new ImageIcon(this.getResource("/ispd" +
+                                                              "/gui/imagens" +
+                                                              "/edit-paste" +
+                                                              ".png")));
         jMenuItemPaste.setText(this.translate("Paste"));
         jMenuItemPaste.addActionListener(this::jMenuItemPasteActionPerformed);
         jMenuEditar.add(jMenuItemPaste);
         jMenuEditar.add(jSeparator2);
 
-        jMenuItemDelete.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/edit-delete.png")));
+        jMenuItemDelete.setIcon(new ImageIcon(this.getResource("/ispd" +
+                                                               "/gui/imagens" +
+                                                               "/edit-delete" +
+                                                               ".png")));
         jMenuItemDelete.setText(this.translate("Delete"));
-
         jMenuItemDelete.addActionListener(this::jMenuItemDeleteActionPerformed);
         jMenuEditar.add(jMenuItemDelete);
 
@@ -357,8 +334,7 @@ public class GerenciarEscalonador extends JFrame {
 
         this.setJMenuBar(jMenuBar1);
 
-        final GroupLayout layout =
-                new GroupLayout(this.getContentPane());
+        final GroupLayout layout = new GroupLayout(this.getContentPane());
         this.getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -430,12 +406,12 @@ public class GerenciarEscalonador extends JFrame {
                     if (nomeOk) {
                         //Carregar classe para esditar java
                         this.abrirEdicao(result1,
-                                Escalonadores.getEscalonadorJava(result1));
+                                EscalonadoresCloud.getEscalonadorJava(result1));
                         this.modificar();
                     }
                 } else if (result.equals(ops[1])) {
                     //Carregar classe para construir escalonador automaticamente
-                    final GerarEscalonador ge = new GerarEscalonador(this,
+                    final CreateSchedulerDialog ge = new CreateSchedulerDialog(this,
                             true,
                             this.escalonadores.getDiretorio().getAbsolutePath(), this.palavras);
                     ge.setLocationRelativeTo(this);
@@ -491,7 +467,7 @@ public class GerenciarEscalonador extends JFrame {
         }
     }
 
-    private void jListEscalonadoresMouseClicked(final java.awt.event.MouseEvent evt) {
+    private void jListEscalonadoresMouseClicked(final MouseEvent evt) {
 
         if (evt.getClickCount() == 2) {
             int escolha = JOptionPane.YES_OPTION;
@@ -521,32 +497,31 @@ public class GerenciarEscalonador extends JFrame {
 
     private void jMenuItemDeleteActionPerformed(final ActionEvent evt) {
 
-        if (this.jListEscalonadores.isSelectionEmpty()) {
+        if (!this.jListEscalonadores.isSelectionEmpty()) {
+            final String aux =
+                    this.jListEscalonadores.getSelectedValue().toString();
+            final int escolha = JOptionPane.showConfirmDialog(this, "Are you " +
+                                                                    "sure " +
+                                                                    "want " +
+                                                                    "delete " +
+                                                                    "this " +
+                                                                    "scheduler: \n" + aux, null, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (escolha == JOptionPane.YES_OPTION) {
+                if (!this.escalonadores.remover(aux)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Failed to remove " + aux);
+                } else if (this.escalonadorAberto != null) {
+                    if (this.escalonadorAberto.equals(aux)) {
+                        this.fecharEdicao();
+                    }
+                    this.atualizarEscalonadores(this.escalonadores.listar());
+                } else {
+                    this.atualizarEscalonadores(this.escalonadores.listar());
+                }
+            }
+        } else {
             JOptionPane.showMessageDialog(this, "A scheduler should be " +
                                                 "selected");
-            return;
-        }
-
-        final String aux =
-                this.jListEscalonadores.getSelectedValue().toString();
-        final int escolha = JOptionPane.showConfirmDialog(this, "Are you " +
-                                                                "sure " +
-                                                                "want " +
-                                                                "delete " +
-                                                                "this " +
-                                                                "scheduler: \n" + aux, null, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (escolha == JOptionPane.YES_OPTION) {
-            if (!this.escalonadores.remover(aux)) {
-                JOptionPane.showMessageDialog(this,
-                        "Failed to remove " + aux);
-            } else if (this.escalonadorAberto != null) {
-                if (this.escalonadorAberto.equals(aux)) {
-                    this.fecharEdicao();
-                }
-                this.atualizarEscalonadores(this.escalonadores.listar());
-            } else {
-                this.atualizarEscalonadores(this.escalonadores.listar());
-            }
         }
     }
 
@@ -637,14 +612,13 @@ public class GerenciarEscalonador extends JFrame {
         this.atualizarEscalonadores(this.escalonadores.listar());
     }
 
-    private void atualizarEscalonadores(final List<String> escal) {
+    private void atualizarEscalonadores(final Collection<String> escal) {
         this.jListEscalonadores.setListData(escal.toArray());
     }
 
     private int savarAlteracao() {
         final int escolha = JOptionPane.showConfirmDialog(this,
-                this.translate("Do you want to save changes to") +
-                " " + this.escalonadorAberto + ".java");
+                this.translate("Do you want to save changes to") + " " + this.escalonadorAberto + ".java");
         if (escolha == JOptionPane.YES_OPTION) {
             this.escalonadores.escrever(this.escalonadorAberto,
                     this.jTextPane1.getText());
@@ -657,8 +631,7 @@ public class GerenciarEscalonador extends JFrame {
         this.setTitle(this.translate("Manage Schedulers"));
         this.escalonadorAberto = null;
         try {
-            final AbstractDocument doc =
-                    (DocumentColor) this.jTextPane1.getDocument();
+            final Document doc = this.jTextPane1.getDocument();
             doc.remove(0, doc.getLength());
         } catch (final BadLocationException ex) {
         }
@@ -669,8 +642,7 @@ public class GerenciarEscalonador extends JFrame {
     private void abrirEdicao(final String nome, final String conteudo) {
         this.escalonadorAberto = nome;
         try {
-            final AbstractDocument doc =
-                    (DocumentColor) this.jTextPane1.getDocument();
+            final Document doc = this.jTextPane1.getDocument();
             if (doc.getLength() > 0) {
                 doc.remove(0, doc.getLength());
             }
@@ -695,42 +667,50 @@ public class GerenciarEscalonador extends JFrame {
         this.modificado = false;
     }
 
-    public ManipularArquivos getEscalonadores() {
+    public ManipularArquivosCloud getEscalonadores() {
         return this.escalonadores;
-    }
-
-    private class SomeWindowAdapter extends WindowAdapter {
-        @Override
-        public void windowClosing(final WindowEvent e) {
-            if (GerenciarEscalonador.this.modificado) {
-                final int escolha =
-                        GerenciarEscalonador.this.savarAlteracao();
-                if (escolha != JOptionPane.CANCEL_OPTION && escolha != JOptionPane.CLOSED_OPTION) {
-                    GerenciarEscalonador.this.setVisible(false);
-                }
-            } else {
-                GerenciarEscalonador.this.setVisible(false);
-            }
-        }
     }
 
     private class SomeDocumentListener implements DocumentListener {
         @Override
         public void insertUpdate(final DocumentEvent e) {
-            if (!GerenciarEscalonador.this.modificado) {
-                GerenciarEscalonador.this.modificar();
+            if (!ManageCloudSchedulers.this.modificado) {
+                ManageCloudSchedulers.this.modificar();
             }
         }
 
         @Override
         public void removeUpdate(final DocumentEvent e) {
-            if (!GerenciarEscalonador.this.modificado) {
-                GerenciarEscalonador.this.modificar();
+            if (!ManageCloudSchedulers.this.modificado) {
+                ManageCloudSchedulers.this.modificar();
             }
         }
 
         @Override
         public void changedUpdate(final DocumentEvent e) {
+        }
+    }
+
+    private class SomeWindowAdapter extends WindowAdapter {
+        @Override
+        public void windowClosing(final WindowEvent e) {
+            if (ManageCloudSchedulers.this.modificado) {
+                final int escolha =
+                        ManageCloudSchedulers.this.savarAlteracao();
+                if (escolha != JOptionPane.CANCEL_OPTION && escolha != JOptionPane.CLOSED_OPTION) {
+                    ManageCloudSchedulers.this.setVisible(false);//System
+                    // .exit(0);
+                }
+            } else {
+                ManageCloudSchedulers.this.setVisible(false);//System
+                // .exit(0);
+            }
+        }
+    }
+
+    private class SomeMouseAdapter extends java.awt.event.MouseAdapter {
+        public void mouseClicked(final MouseEvent evt) {
+            ManageCloudSchedulers.this.jListEscalonadoresMouseClicked(evt);
         }
     }
 }

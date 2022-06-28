@@ -1,6 +1,7 @@
 package ispd.gui;
 
 import ispd.arquivo.xml.IconicoXML;
+import ispd.gui.utils.ButtonBuilder;
 import ispd.motor.ProgressoSimulacao;
 import ispd.motor.SimulacaoSequencial;
 import ispd.motor.SimulacaoSequencialCloud;
@@ -39,7 +40,7 @@ import java.util.logging.Logger;
  * Makes calls to simulation engine.
  * Presents the steps taken so far and simulation progress (%).
  */
-public class JSimulacao extends JDialog implements Runnable {
+public class SimulationDialog extends JDialog implements Runnable {
     private static final Font ARIAL_FONT_BOLD =
             new Font("Arial", Font.BOLD, 12);
     private final MutableAttributeSet colorConfig = new SimpleAttributeSet();
@@ -54,9 +55,9 @@ public class JSimulacao extends JDialog implements Runnable {
     private Thread simThread = null;
     private int progressPercent = 0;
 
-    JSimulacao(final Frame parent, final boolean modal, final Document model,
-               final String modelAsText, final ResourceBundle translator,
-               final int gridOrCloud) {
+    SimulationDialog(final Frame parent, final boolean modal, final Document model,
+                     final String modelAsText, final ResourceBundle translator,
+                     final int gridOrCloud) {
         super(parent, modal);
         this.translator = translator;
         this.gridOrCloud = gridOrCloud;
@@ -75,7 +76,7 @@ public class JSimulacao extends JDialog implements Runnable {
 
         this.notificationArea = new JTextPane();
         this.notificationArea.setEditable(false);
-        this.notificationArea.setFont(JSimulacao.ARIAL_FONT_BOLD);
+        this.notificationArea.setFont(SimulationDialog.ARIAL_FONT_BOLD);
 
         this.makeLayoutAndPack();
     }
@@ -154,7 +155,7 @@ public class JSimulacao extends JDialog implements Runnable {
             this.progressTracker.print("Mounting network queue.");
             this.progressTracker.print(" -> ");
             List<Tarefa> tasks = null;
-            if (this.gridOrCloud == EscolherClasse.GRID) {
+            if (this.gridOrCloud == PickModelTypeDialog.GRID) {
                 final RedeDeFilas queueNetwork =
                         IconicoXML.newRedeDeFilas(this.model);
                 this.incrementProgress(10);//[10%] --> 35%
@@ -188,7 +189,7 @@ public class JSimulacao extends JDialog implements Runnable {
                 //Apresentar resultados
                 this.progressTracker.print("Showing results.");
                 this.progressTracker.print(" -> ");
-                final Window janelaResultados = new JResultados(null, metrica,
+                final Window janelaResultados = new ResultsDialog(null, metrica,
                         queueNetwork, tasks);
                 this.incrementProgress(10);//[10%] --> 100%
                 this.progressTracker.println("OK", Color.green);
@@ -196,7 +197,7 @@ public class JSimulacao extends JDialog implements Runnable {
                 janelaResultados.setLocationRelativeTo(this);
                 janelaResultados.setVisible(true);
 
-            } else if (this.gridOrCloud == EscolherClasse.IAAS) {
+            } else if (this.gridOrCloud == PickModelTypeDialog.IAAS) {
                 final RedeDeFilasCloud cloudQueueNetwork =
                         IconicoXML.newRedeDeFilasCloud(this.model);
                 this.incrementProgress(10);//[10%] --> 35%
@@ -232,7 +233,7 @@ public class JSimulacao extends JDialog implements Runnable {
                 //Apresentar resultados
                 this.progressTracker.print("Showing results.");
                 this.progressTracker.print(" -> ");
-                final Window janelaResultados = new JResultadosCloud(null
+                final Window janelaResultados = new CloudResultsDialog(null
                         , metrica, cloudQueueNetwork, tasks);
                 this.incrementProgress(10);//[10%] --> 100%
                 this.progressTracker.println("OK", Color.green);
@@ -242,7 +243,7 @@ public class JSimulacao extends JDialog implements Runnable {
             }
         } catch (final IllegalArgumentException erro) {
 
-            Logger.getLogger(JSimulacao.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(SimulationDialog.class.getName()).log(Level.SEVERE,
                     null, erro);
             this.progressTracker.println(erro.getMessage(), Color.red);
             this.progressTracker.print("Simulation Aborted", Color.red);
@@ -259,22 +260,22 @@ public class JSimulacao extends JDialog implements Runnable {
         @Override
         public void windowClosing(final WindowEvent e) {
             // TODO: Maybe bug here
-            JSimulacao.this.simThread = null;
-            JSimulacao.this.dispose();
+            SimulationDialog.this.simThread = null;
+            SimulationDialog.this.dispose();
         }
     }
 
     private class BasicProgressTracker extends ProgressoSimulacao {
         @Override
         public void incProgresso(final int n) {
-            JSimulacao.this.incrementProgress(n);
+            SimulationDialog.this.incrementProgress(n);
         }
 
         @Override
         public void print(final String text, final Color cor) {
             try {
-                final var doc = JSimulacao.this.notificationArea.getDocument();
-                final var config = JSimulacao.this.colorConfig;
+                final var doc = SimulationDialog.this.notificationArea.getDocument();
+                final var config = SimulationDialog.this.colorConfig;
 
                 StyleConstants.setForeground(
                         config,
@@ -288,15 +289,15 @@ public class JSimulacao extends JDialog implements Runnable {
                 );
 
             } catch (final BadLocationException ex) {
-                Logger.getLogger(JSimulacao.class.getName())
+                Logger.getLogger(SimulationDialog.class.getName())
                         .log(Level.SEVERE, null, ex);
             }
         }
 
         private String tryTranslate(final String text) {
-            if (!JSimulacao.this.translator.containsKey(text))
+            if (!SimulationDialog.this.translator.containsKey(text))
                 return text;
-            return JSimulacao.this.translate(text);
+            return SimulationDialog.this.translate(text);
         }
     }
 }

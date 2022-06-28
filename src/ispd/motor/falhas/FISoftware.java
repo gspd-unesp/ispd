@@ -5,21 +5,20 @@
  */
 package ispd.motor.falhas;
 
-import ispd.gui.JSelecionarFalhas;
-import ispd.motor.*;
+import ispd.escalonadorCloud.EscalonadorCloud;
+import ispd.gui.PickSimulationFaultsDialog;
+import ispd.motor.FutureEvent;
+import ispd.motor.ProgressoSimulacao;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 
+import javax.swing.JOptionPane;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-import javax.swing.JOptionPane;
-
-import ispd.escalonadorCloud.EscalonadorCloud;
-
-import java.util.LinkedList;
 import java.util.Random;
 
 /**
@@ -60,7 +59,7 @@ public class FISoftware {
         //declaração das variáveis locais
         int X;
         //Criação de um instância para a classe JSelecionarFalhas
-        JSelecionarFalhas sf = new JSelecionarFalhas();
+        PickSimulationFaultsDialog sf = new PickSimulationFaultsDialog();
         X = sf.OmissaoHardware;
         //Confirmação do tipo de falha selecionada: Falha por omissão de hardware
         JOptionPane.showMessageDialog(null, "Falha de Omissão de software selecionada.");
@@ -123,7 +122,7 @@ public class FISoftware {
         //declaração das variáveis locais
         int X;
         //Criação de um instância para a classe JSelecionarFalhas
-        JSelecionarFalhas sf = new JSelecionarFalhas();
+        PickSimulationFaultsDialog sf = new PickSimulationFaultsDialog();
         X = sf.OmissaoSoftware;
         //Confirmação do tipo de falha selecionada: Falha por omissão de hardware
         JOptionPane.showMessageDialog(null, "Software Failure selected.");

@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 /**
  * Class which creates and configures charts for simulation results.
  */
-public class Graficos {
+public class SimulationResultChartMaker {
     private static final Double ZERO = 0.0;
     private static final double ONE_HUNDRED_PERCENT = 100.0;
     private static final Dimension PREFERRED_CHART_SIZE
@@ -81,8 +81,8 @@ public class Graficos {
 
     public void criarProcessamento(
             final Map<String, ? extends MetricasProcessamento> metrics) {
-        this.processingBarChart = Graficos.makeBarChart(metrics);
-        this.processingPieChart = Graficos.makePieChart(metrics);
+        this.processingBarChart = SimulationResultChartMaker.makeBarChart(metrics);
+        this.processingPieChart = SimulationResultChartMaker.makePieChart(metrics);
     }
 
     private static ChartPanel makeBarChart(
@@ -92,25 +92,25 @@ public class Graficos {
                         "resource",
                 "Resource",
                 "Mflops",
-                Graficos.makeBarChartData(metrics),
+                SimulationResultChartMaker.makeBarChartData(metrics),
                 PlotOrientation.VERTICAL,
                 false,
                 false,
                 false
         );
 
-        if (Graficos.shouldInclineXAxis(metrics)) {
-            Graficos.inclineChartXAxis(chart);
+        if (SimulationResultChartMaker.shouldInclineXAxis(metrics)) {
+            SimulationResultChartMaker.inclineChartXAxis(chart);
         }
 
-        return Graficos.panelWithPreferredSize(chart);
+        return SimulationResultChartMaker.panelWithPreferredSize(chart);
     }
 
     private static ChartPanel makePieChart(
             final Map<String, ? extends MetricasProcessamento> metrics) {
-        return Graficos.panelWithPreferredSize(ChartFactory.createPieChart(
+        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createPieChart(
                 "Total processed on each resource",
-                Graficos.makePieChartData(metrics),
+                SimulationResultChartMaker.makePieChartData(metrics),
                 true,
                 false,
                 false
@@ -126,7 +126,7 @@ public class Graficos {
         metrics.values().forEach(v -> data.addValue(
                 v.getMFlopsProcessados(),
                 "vermelho",
-                Graficos.makeKey(v)));
+                SimulationResultChartMaker.makeKey(v)));
         return data;
     }
 
@@ -141,7 +141,7 @@ public class Graficos {
 
     private static ChartPanel panelWithPreferredSize(final JFreeChart chart) {
         final var panel = new ChartPanel(chart);
-        panel.setPreferredSize(Graficos.PREFERRED_CHART_SIZE);
+        panel.setPreferredSize(SimulationResultChartMaker.PREFERRED_CHART_SIZE);
         return panel;
     }
 
@@ -153,7 +153,7 @@ public class Graficos {
         }
         metrics.values().forEach(v -> data.insertValue(
                 0,
-                Graficos.makeKey(v),
+                SimulationResultChartMaker.makeKey(v),
                 v.getMFlopsProcessados())
         );
         return data;
@@ -178,7 +178,7 @@ public class Graficos {
         }
 
         this.communicationPieChart =
-                Graficos.panelWithPreferredSize(ChartFactory.createPieChart(
+                SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createPieChart(
                         "Total communication in each resource",
                         commsPieChartData,
                         true,
@@ -240,7 +240,7 @@ public class Graficos {
                 task.getTempoInicial().stream(),
                 task.getTempoFinal().stream()
         ).forEach(time -> {
-            series.add(time, Graficos.ZERO);
+            series.add(time, SimulationResultChartMaker.ZERO);
             series.add(time, usage);
         });
 
@@ -258,7 +258,7 @@ public class Graficos {
     }
 
     private ChartPanel makeMachineProcTimeChart(final RedeDeFilas qn) {
-        return Graficos.panelWithPreferredSize(ChartFactory.createXYAreaChart(
+        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createXYAreaChart(
                 "Use of computing power through time \nMachines",
                 "Time (seconds)",
                 "Rate of use of computing power for each node (%)",
@@ -282,7 +282,7 @@ public class Graficos {
 
     private void addMachineStatsToChartData(
             final XYSeriesCollection data, final CS_Processamento machine) {
-        this.poderComputacionalTotal += Graficos.computationalPowerForMachine(machine);
+        this.poderComputacionalTotal += SimulationResultChartMaker.computationalPowerForMachine(machine);
 
         final List<ParesOrdenadosUso> list = machine.getListaProcessamento();
 
@@ -290,7 +290,7 @@ public class Graficos {
             return;
         }
 
-        final var timeSeries = Graficos.buildSeriesForMachine(machine, list);
+        final var timeSeries = SimulationResultChartMaker.buildSeriesForMachine(machine, list);
 
         data.addSeries(timeSeries);
     }
@@ -303,10 +303,10 @@ public class Graficos {
     private static XYSeries buildSeriesForMachine(
             final CS_Processamento machine,
             final List<? extends ParesOrdenadosUso> list) {
-        final Double usage = Graficos.ONE_HUNDRED_PERCENT
-                - (machine.getOcupacao() * Graficos.ONE_HUNDRED_PERCENT);
+        final Double usage = SimulationResultChartMaker.ONE_HUNDRED_PERCENT
+                             - (machine.getOcupacao() * SimulationResultChartMaker.ONE_HUNDRED_PERCENT);
 
-        final var title = Graficos.isMachineCluster(machine)
+        final var title = SimulationResultChartMaker.isMachineCluster(machine)
                 ? "%s node %d".formatted(
                 machine.getId(), machine.getnumeroMaquina())
                 : machine.getId();
@@ -319,8 +319,8 @@ public class Graficos {
             timeSeries.add(currInterval.getFim(), usage);
             if (i + 1 < count) {
                 final var nextInterval = list.get(i + 1);
-                timeSeries.add(currInterval.getFim(), Graficos.ZERO);
-                timeSeries.add(nextInterval.getInicio(), Graficos.ZERO);
+                timeSeries.add(currInterval.getFim(), SimulationResultChartMaker.ZERO);
+                timeSeries.add(nextInterval.getInicio(), SimulationResultChartMaker.ZERO);
             }
         }
 
@@ -335,16 +335,16 @@ public class Graficos {
             final Collection<? extends Tarefa> tasks, final RedeDeFilas qn) {
         final int userCount = qn.getUsuarios().size();
 
-        final var timeSeries1 = Graficos.userSeries(qn);
+        final var timeSeries1 = SimulationResultChartMaker.userSeries(qn);
         final var userUsage1 = new Double[userCount];
         final var chartData1 = new XYSeriesCollection();
 
-        final var timeSeries2 = Graficos.userSeries(qn);
+        final var timeSeries2 = SimulationResultChartMaker.userSeries(qn);
         final var userUsage2 = new Double[userCount];
         final var chartData2 = new XYSeriesCollection();
 
         final var list =
-                this.makeUserTimesList(tasks, Graficos.makeUserMap(qn));
+                this.makeUserTimesList(tasks, SimulationResultChartMaker.makeUserMap(qn));
 
         for (final var useTime : list) {
             final int userId = useTime.getUserId();
@@ -387,10 +387,10 @@ public class Graficos {
 
         this.setPlotRenderer(chart2);
 
-        final ChartPanel chartPanel1 = Graficos.panelWithPreferredSize(chart1);
+        final ChartPanel chartPanel1 = SimulationResultChartMaker.panelWithPreferredSize(chart1);
         this.userThroughTime1 = chartPanel1;
 
-        final ChartPanel chartPanel2 = Graficos.panelWithPreferredSize(chart2);
+        final ChartPanel chartPanel2 = SimulationResultChartMaker.panelWithPreferredSize(chart2);
         this.UserThroughTime2 = chartPanel2;
     }
 
@@ -481,7 +481,7 @@ public class Graficos {
     }
 
     private double calculateUsage(final Tarefa task, final int i) {
-        return (task.getHistoricoProcessamento().get(i).getPoderComputacional() / this.poderComputacionalTotal) * Graficos.ONE_HUNDRED_PERCENT;
+        return (task.getHistoricoProcessamento().get(i).getPoderComputacional() / this.poderComputacionalTotal) * SimulationResultChartMaker.ONE_HUNDRED_PERCENT;
     }
 
     public ChartPanel criarGraficoPorTarefa(
@@ -498,12 +498,12 @@ public class Graficos {
         }
 
         final double totalProcessedMFlops =
-                Graficos.calculateTotalProcessedMFlops(task);
+                SimulationResultChartMaker.calculateTotalProcessedMFlops(task);
 
         final var chartData = new DefaultCategoryDataset();
-        Graficos.addTaskProcessingData(chartData, task.getTamProcessamento(),
+        SimulationResultChartMaker.addTaskProcessingData(chartData, task.getTamProcessamento(),
                 "Usefull processing", totalProcessedMFlops);
-        Graficos.addTaskProcessingData(chartData, task.getMflopsDesperdicados(),
+        SimulationResultChartMaker.addTaskProcessingData(chartData, task.getMflopsDesperdicados(),
                 "Wasted processing", totalProcessedMFlops);
 
         final var chart = ChartFactory.createStackedBarChart(
@@ -517,7 +517,7 @@ public class Graficos {
                 false
         );
 
-        final ChartPanel panel = Graficos.panelWithPreferredSize(chart);
+        final ChartPanel panel = SimulationResultChartMaker.panelWithPreferredSize(chart);
         return panel;
     }
 
@@ -537,7 +537,7 @@ public class Graficos {
             final String title,
             final double totalProcessing) {
         data.addValue(
-                processing / totalProcessing * Graficos.ONE_HUNDRED_PERCENT,
+                processing / totalProcessing * SimulationResultChartMaker.ONE_HUNDRED_PERCENT,
                 title,
                 "Task size :%s MFlop, total executed for task: %s MFlop"
                         .formatted(processing, totalProcessing)
@@ -546,11 +546,11 @@ public class Graficos {
 
     public ChartPanel criarGraficoAproveitamento(
             final Collection<? extends Tarefa> tasks) {
-        return Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createStackedBarChart(
                 "Processing efficiency",
                 "",
                 "% of total MFlop executed",
-                Graficos.makeUsageChartData(tasks),
+                SimulationResultChartMaker.makeUsageChartData(tasks),
                 PlotOrientation.VERTICAL,
                 true,
                 true,
@@ -573,9 +573,9 @@ public class Graficos {
         final double total = wasted + useful;
 
         final var chartData = new DefaultCategoryDataset();
-        Graficos.addProcessingData(
+        SimulationResultChartMaker.addProcessingData(
                 chartData, "Usefull Processing", useful, total);
-        Graficos.addProcessingData(
+        SimulationResultChartMaker.addProcessingData(
                 chartData, "Wasted Processing", wasted, total);
         return chartData;
     }
@@ -585,16 +585,16 @@ public class Graficos {
             final String title,
             final double processing,
             final double totalProcessing) {
-        chartData.addValue(processing / totalProcessing * Graficos.ONE_HUNDRED_PERCENT, title, "MFlop Usage");
+        chartData.addValue(processing / totalProcessing * SimulationResultChartMaker.ONE_HUNDRED_PERCENT, title, "MFlop Usage");
     }
 
     public ChartPanel criarGraficoNumTarefasAproveitamento(
             final Iterable<? extends Tarefa> tasks) {
-        return Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createStackedBarChart(
                 "Processing efficiency",
                 "",
                 "Number of tasks",
-                Graficos.makeChartDataForTaskCount(tasks),
+                SimulationResultChartMaker.makeChartDataForTaskCount(tasks),
                 PlotOrientation.VERTICAL,
                 true,
                 true,
@@ -635,11 +635,11 @@ public class Graficos {
             final RedeDeFilas qn,
             final Iterable<? extends Tarefa> tasks) {
         this.PreemptionPerUser =
-                Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+                SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createStackedBarChart(
                         "Tasks preempted per user",
                         "",
                         "Number of tasks",
-                        Graficos.makePreemptionChartData(qn, tasks),
+                        SimulationResultChartMaker.makePreemptionChartData(qn, tasks),
                         PlotOrientation.VERTICAL,
                         true,
                         true,
@@ -652,7 +652,7 @@ public class Graficos {
             final Iterable<? extends Tarefa> tasks) {
 
         final var preemptedTasks =
-                Graficos.calculatePreemptedTasksPerUser(qn, tasks);
+                SimulationResultChartMaker.calculatePreemptedTasksPerUser(qn, tasks);
 
         final var chartData = new DefaultCategoryDataset();
 
@@ -671,13 +671,13 @@ public class Graficos {
     private static ArrayList<Integer> calculatePreemptedTasksPerUser(
             final RedeDeFilas qn,
             final Iterable<? extends Tarefa> tasks) {
-        final var preemptedTasks = Graficos.preemptiveTasksList(qn);
+        final var preemptedTasks = SimulationResultChartMaker.preemptiveTasksList(qn);
 
         for (final var task : tasks) {
             final int userIndex =
                     qn.getUsuarios().indexOf(task.getProprietario());
 
-            if (Graficos.taskIsPreempted(task)) {
+            if (SimulationResultChartMaker.taskIsPreempted(task)) {
                 preemptedTasks.set(
                         userIndex, 1 + preemptedTasks.get(userIndex));
             }
@@ -712,11 +712,11 @@ public class Graficos {
             return null;
         }
 
-        return Graficos.panelWithPreferredSize(ChartFactory.createStackedBarChart(
+        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createStackedBarChart(
                 "Processing efficiency for resource %s".formatted(machine.getId()),
                 "",
                 "% of total MFlop executed",
-                Graficos.makePerMachineChartData(machine),
+                SimulationResultChartMaker.makePerMachineChartData(machine),
                 PlotOrientation.VERTICAL,
                 true,
                 true,
@@ -760,16 +760,16 @@ public class Graficos {
 
         final double total = lostMFlops + usedMFlops;
         final var data = new DefaultCategoryDataset();
-        Graficos.addProcessingData(
+        SimulationResultChartMaker.addProcessingData(
                 data, "Usefull Processing", usedMFlops, total);
-        Graficos.addProcessingData(
+        SimulationResultChartMaker.addProcessingData(
                 data, "Wasted Processing", lostMFlops, total);
         return data;
     }
 
     public void calculaPoderTotal(final RedeDeFilas rdf) {
         for (final CS_Processamento maq : rdf.getMaquinas()) {
-            this.poderComputacionalTotal += Graficos.computationalPowerForMachine(maq);
+            this.poderComputacionalTotal += SimulationResultChartMaker.computationalPowerForMachine(maq);
         }
     }
 }

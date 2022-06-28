@@ -7,6 +7,7 @@ package ispd.motor;
 
 import ispd.alocacaoVM.VMM;
 import ispd.escalonadorCloud.MestreCloud;
+import ispd.gui.PickSimulationFaultsDialog;
 import ispd.motor.filas.Client;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.RedeDeFilasCloud;
@@ -22,7 +23,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
-import ispd.gui.JSelecionarFalhas;
+
 import ispd.escalonadorCloud.EscalonadorCloud;
 import ispd.motor.falhas.FIHardware;
 import ispd.motor.metricas.MetricasGlobais;
@@ -86,7 +87,7 @@ public class SimulacaoSequencialCloud extends Simulation {
         /*Injetando as falhas:
         verifica qual checkbox foi clicado quando escolheu a falha e executa*/
         //Injetar falhar de Omissão de Hardware: desligar uma máquina física
-        JSelecionarFalhas selecionarFalhas = new JSelecionarFalhas();
+        PickSimulationFaultsDialog selecionarFalhas = new PickSimulationFaultsDialog();
         
         
        if (selecionarFalhas.isActive()){

@@ -1,7 +1,7 @@
 package ispd.gui.configuracao;
 
 import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Link;
 
 import javax.swing.table.AbstractTableModel;
@@ -16,14 +16,14 @@ public class LinkTable extends AbstractTableModel {
     private static final int LOAD_FACTOR = 3;
     private static final int ROW_COUNT = 4;
     private static final int COLUMN_COUNT = 2;
-    private ItemGrade link = null;
+    private GridItem link = null;
     private ResourceBundle words;
 
     LinkTable(final ResourceBundle words) {
         this.words = words;
     }
 
-    public void setLink(final ItemGrade link) {
+    public void setLink(final GridItem link) {
         this.link = link;
     }
 
@@ -72,27 +72,27 @@ public class LinkTable extends AbstractTableModel {
 
         switch (rowIndex) {
             case LinkTable.LABEL:
-                return this.link.getId().getNome();
+                return this.link.getId().getName();
 
             case LinkTable.BANDWIDTH:
                 if (this.link instanceof Link) {
-                    return ((Link) this.link).getBanda();
+                    return ((Link) this.link).getBandwidth();
                 } else {
-                    return ((Internet) this.link).getBanda();
+                    return ((Internet) this.link).getBandwidth();
                 }
 
             case LinkTable.LATENCY:
                 if (this.link instanceof Link) {
-                    return ((Link) this.link).getLatencia();
+                    return ((Link) this.link).getLatency();
                 } else {
-                    return ((Internet) this.link).getLatencia();
+                    return ((Internet) this.link).getLatency();
                 }
 
             case LinkTable.LOAD_FACTOR:
                 if (this.link instanceof Link) {
-                    return ((Link) this.link).getTaxaOcupacao();
+                    return ((Link) this.link).getLoadFactor();
                 } else {
-                    return ((Internet) this.link).getTaxaOcupacao();
+                    return ((Internet) this.link).getLoadFactor();
                 }
         }
 
@@ -129,7 +129,7 @@ public class LinkTable extends AbstractTableModel {
     private void updateValue(final Object aValue, final int rowIndex) {
 
         if (rowIndex == LinkTable.LABEL) {
-            this.link.getId().setNome(aValue.toString());
+            this.link.getId().setName(aValue.toString());
             return;
         }
 
@@ -138,23 +138,23 @@ public class LinkTable extends AbstractTableModel {
         switch (rowIndex) {
             case LinkTable.BANDWIDTH:
                 if (this.link instanceof Link) {
-                    ((Link) this.link).setBanda(value);
+                    ((Link) this.link).setBandwidth(value);
                 } else {
-                    ((Internet) this.link).setBanda(value);
+                    ((Internet) this.link).setBandwidth(value);
                 }
                 break;
             case LinkTable.LATENCY:
                 if (this.link instanceof Link) {
-                    ((Link) this.link).setLatencia(value);
+                    ((Link) this.link).setLatency(value);
                 } else {
-                    ((Internet) this.link).setLatencia(value);
+                    ((Internet) this.link).setLatency(value);
                 }
                 break;
             case LinkTable.LOAD_FACTOR:
                 if (this.link instanceof Link) {
-                    ((Link) this.link).setTaxaOcupacao(value);
+                    ((Link) this.link).setLoadFactor(value);
                 } else {
-                    ((Internet) this.link).setTaxaOcupacao(value);
+                    ((Internet) this.link).setLoadFactor(value);
                 }
                 break;
         }

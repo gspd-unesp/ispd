@@ -1,45 +1,7 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * Machine.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui.iconico.grade;
 
 import ispd.gui.iconico.Vertex;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
@@ -48,193 +10,218 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-/**
- *
- * @author denison
- */
-public class Machine extends Vertex implements ItemGrade {
+public class Machine extends Vertex implements GridItem {
+    private static final int SOME_OFFSET = 15;
+    private static final int CONTAINING_SIZE = 17;
+    private static final String NO_SELECTION = "---";
+    private final GridItemId id;
+    private final Set<GridItem> connectionsIn = new HashSet<>(0);
+    private final Set<GridItem> connectionsOut = new HashSet<>(0);
+    private String algorithm = Machine.NO_SELECTION;
+    private Double computationalPower = 0.0;
+    private Integer processorCores = 1;
+    private Double loadFactor = 0.0;
+    private Boolean isMaster = false;
+    private Double ramMemory = 0.0;
+    private Double hardDisk = 0.0;
+    private boolean isCorrectlyConfigured = false;
+    private String owner = "user1";
+    private List<GridItem> slaves = new ArrayList<>(0);
+    private Double costPerProcessing = 0.0;
+    private Double costPerMemory = 0.0;
+    private Double costPerDisk = 0.0;
+    private String vmmAllocationPolicy = Machine.NO_SELECTION;
+    private Double energyConsumption;
 
-    private IdentificadorItemGrade id;
-    private HashSet<ItemGrade> conexoesEntrada;
-    private HashSet<ItemGrade> conexoesSaida;
-    private String algoritmo;
-    private Double poderComputacional;
-    private Integer nucleosProcessador;
-    private Double ocupacao;
-    private Boolean mestre;
-    private Double memoriaRAM;
-    private Double discoRigido;
-    private boolean configurado;
-    private String proprietario;
-    private List<ItemGrade> escravos;
-    private Double costperprocessing;
-    private Double costpermemory; 
-    private Double costperdisk;
-    private String VMMallocpolicy;
-
-    
-
-    
-
-    
-
-
-    
-    private Double consumoEnergia;
-
-    public Machine(int x, int y, int idLocal, int idGlobal, Double energia) {
+    public Machine(final int x,
+                   final int y,
+                   final int localId,
+                   final int globalId,
+                   final Double energy) {
         super(x, y);
-        this.id = new IdentificadorItemGrade(idLocal, idGlobal, "mac" + idGlobal);
-        this.escravos = new ArrayList<ItemGrade>();
-        this.proprietario = "user1";
-        this.algoritmo = "---";
-        this.poderComputacional = 0.0;
-        this.nucleosProcessador = 1;
-        this.ocupacao = 0.0;
-        this.memoriaRAM = 0.0;
-        this.discoRigido = 0.0;
-        this.mestre = false;
-        this.costperprocessing=0.0;
-        this.costpermemory = 0.0;
-        this.costperdisk = 0.0;
-        this.VMMallocpolicy = "---";
-        conexoesEntrada = new HashSet<ItemGrade>();
-        conexoesSaida = new HashSet<ItemGrade>();
-        this.consumoEnergia = energia;
+        this.id = new GridItemId(localId, globalId,
+                "mac%d".formatted(globalId));
+        this.energyConsumption = energy;
+    }
+
+    public Double getEnergyConsumption() {
+        return this.energyConsumption;
+    }
+
+    public void setEnergyConsumption(final Double energyConsumption) {
+        this.energyConsumption = energyConsumption;
     }
 
     @Override
-    public IdentificadorItemGrade getId() {
+    public GridItemId getId() {
         return this.id;
     }
-    
-    public Double getConsumoEnergia(){
-        return this.consumoEnergia;
-    }
-    
-    public void setConsumoEnergia( Double energia ){
-        this.consumoEnergia = energia;
+
+    @Override
+    public Set<GridItem> getConnectionsIn() {
+        return this.connectionsIn;
     }
 
     @Override
-    public Set<ItemGrade> getConexoesEntrada() {
-        return conexoesEntrada;
+    public Set<GridItem> getConnectionsOut() {
+        return this.connectionsOut;
     }
 
     @Override
-    public Set<ItemGrade> getConexoesSaida() {
-        return conexoesSaida;
+    public String makeDescription(final ResourceBundle translator) {
+        return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s: %s<br>%s: " +
+                "%s%s").formatted(
+                translator.getString("Local ID:"), this.id.getLocalId(),
+                translator.getString("Global ID:"), this.id.getGlobalId(),
+                translator.getString("Label"), this.id.getName(),
+                translator.getString("X-coordinate:"), this.getX(),
+                translator.getString("Y-coordinate:"), this.getY(),
+                translator.getString("Computing power"),
+                this.computationalPower,
+                translator.getString("Load Factor"), this.loadFactor,
+                this.describeRole(translator));
     }
 
-    @Override
-    public String toString() {
-        return "id: " + getId().getIdGlobal() + " " + getId().getNome();
-    }
-
-    @Override
-    public String getAtributos(ResourceBundle palavras) {
-        String texto = palavras.getString("Local ID:") + " " + String.valueOf(getId().getIdLocal())
-                + "<br>" + palavras.getString("Global ID:") + " " + String.valueOf(getId().getIdGlobal())
-                + "<br>" + palavras.getString("Label") + ": " + getId().getNome()
-                + "<br>" + palavras.getString("X-coordinate:") + " " + String.valueOf(getX())
-                + "<br>" + palavras.getString("Y-coordinate:") + " " + String.valueOf(getY())
-                + "<br>" + palavras.getString("Computing power") + ": " + String.valueOf(getPoderComputacional())
-                + "<br>" + palavras.getString("Load Factor") + ": " + String.valueOf(getTaxaOcupacao());
-        if (isMestre()) {
-            texto = texto
-                    + "<br>" + palavras.getString("Master")
-                    + "<br>" + palavras.getString("Scheduling algorithm") + ": " + getAlgoritmo();
-        } else {
-            texto = texto
-                    + "<br>" + palavras.getString("Slave");
+    private String describeRole(final ResourceBundle translator) {
+        if (!this.isMaster) {
+            return "<br>" + translator.getString("Slave");
         }
-        return texto;
+
+        return "<br>%s<br>%s: %s".formatted(
+                translator.getString("Master"),
+                translator.getString("Scheduling algorithm"), this.algorithm
+        );
+    }
+
+    public Boolean isMaster() {
+        return this.isMaster;
     }
 
     @Override
-    public Machine criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
-        Machine temp = new Machine(posicaoMouseX, posicaoMouseY, idGlobal, idLocal, this.consumoEnergia);
-        temp.algoritmo = this.algoritmo;
-        //temp.VMMallocpolicy = this.VMMallocpolicy;
-        temp.poderComputacional = this.poderComputacional;
-        temp.ocupacao = this.ocupacao;
-        temp.mestre = this.mestre;
-        temp.proprietario = this.proprietario;
-        temp.verificaConfiguracao();
+    public Machine makeCopy(final int mousePosX, final int mousePosY,
+                            final int copyGlobalId,
+                            final int copyLocalId) {
+        final Machine temp = new Machine(mousePosX, mousePosY, copyGlobalId,
+                copyLocalId, this.energyConsumption);
+        temp.algorithm = this.algorithm;
+        temp.computationalPower = this.computationalPower;
+        temp.loadFactor = this.loadFactor;
+        temp.isMaster = this.isMaster;
+        temp.owner = this.owner;
+        temp.validateConfiguration();
         return temp;
     }
 
     @Override
-    public boolean isConfigurado() {
-        return configurado;
+    public boolean isCorrectlyConfigured() {
+        return this.isCorrectlyConfigured;
+    }
+
+    private void validateConfiguration() {
+        if (this.computationalPower > 0) {
+            this.isCorrectlyConfigured =
+                    !this.isMaster || (!Machine.NO_SELECTION.equals(this.algorithm) && !
+                            Machine.NO_SELECTION.equals(this.vmmAllocationPolicy));
+        } else {
+            this.isCorrectlyConfigured = false;
+        }
+    }
+
+    public Double getPoderComputacional() {
+        return this.computationalPower;
+    }
+
+    public void setComputationalPower(final double computationalPower) {
+        this.computationalPower = computationalPower;
+        this.validateConfiguration();
+    }
+
+    public Double getLoadFactor() {
+        return this.loadFactor;
+    }
+
+    public void setLoadFactor(final Double loadFactor) {
+        this.loadFactor = loadFactor;
+    }
+
+    public String getAlgorithm() {
+        return this.algorithm;
+    }
+
+    public void setAlgorithm(final String algorithm) {
+        this.algorithm = algorithm;
+        this.validateConfiguration();
     }
 
     @Override
-    public void draw(Graphics g) {
-        g.drawImage(DesenhoGrade.IMACHINE, getX() - 15, getY() - 15, null);
-        if (isConfigurado()) {
-            g.drawImage(DesenhoGrade.IVERDE, getX() + 15, getY() + 15, null);
+    public void draw(final Graphics g) {
+        g.drawImage(DesenhoGrade.machineIcon, this.getX() - Machine.SOME_OFFSET,
+                this.getY() - Machine.SOME_OFFSET, null);
+        if (this.isCorrectlyConfigured) {
+            g.drawImage(DesenhoGrade.greenIcon,
+                    this.getX() + Machine.SOME_OFFSET,
+                    this.getY() + Machine.SOME_OFFSET, null);
         } else {
-            g.drawImage(DesenhoGrade.IVERMELHO, getX() + 15, getY() + 15, null);
+            g.drawImage(DesenhoGrade.redIcon, this.getX() + Machine.SOME_OFFSET,
+                    this.getY() + Machine.SOME_OFFSET, null);
         }
 
         g.setColor(Color.BLACK);
-        g.drawString(String.valueOf(getId().getIdGlobal()), getX(), getY() + 30);
+        g.drawString(String.valueOf(this.id.getGlobalId()), this.getX(),
+                this.getY() + 30);
         // Se o icone estiver ativo, desenhamos uma margem nele.
-        if (isSelected()) {
+        if (this.isSelected()) {
             g.setColor(Color.RED);
-            g.drawRect(getX() - 19, getY() - 17, 37, 34);
+            g.drawRect(this.getX() - 19, this.getY() - 17, 37, 34);
         }
     }
 
     @Override
-    public boolean contains(int x, int y) {
-        if (x < getX() + 17 && x > getX() - 17) {
-            if (y < getY() + 17 && y > getY() - 17) {
-                return true;
-            }
+    public boolean contains(final int x, final int y) {
+        if (x < this.getX() + Machine.CONTAINING_SIZE
+            && x > this.getX() - Machine.CONTAINING_SIZE) {
+            return y < this.getY() + Machine.CONTAINING_SIZE
+                   && y > this.getY() - Machine.CONTAINING_SIZE;
         }
         return false;
     }
 
-    public void setMestre(Boolean mestre) {
-        this.mestre = mestre;
-        verificaConfiguracao();
+    public void setIsMaster(final Boolean isMaster) {
+        this.isMaster = isMaster;
+        this.validateConfiguration();
     }
 
-    public Boolean isMestre() {
-        return mestre;
+    public List<GridItem> getEscravos() {
+        return this.slaves;
     }
 
-    public List<ItemGrade> getEscravos() {
-        return escravos;
+    public void setSlaves(final List<GridItem> slaves) {
+        this.slaves = slaves;
     }
 
-    public void setEscravos(List<ItemGrade> escravos) {
-        this.escravos = escravos;
-    }
-
-    public List<ItemGrade> getNosEscalonaveis() {
-        List<ItemGrade> escalonaveis = new ArrayList<ItemGrade>();
-        Set internet = new HashSet();
-        for (ItemGrade link : conexoesSaida) {
-            ItemGrade itemGrade = (ItemGrade) ((Link) link).getDestination();
-            if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
-                if (!escalonaveis.contains(itemGrade)) {
-                    escalonaveis.add(itemGrade);
+    public List<GridItem> getNosEscalonaveis() {
+        final List<GridItem> escalonaveis = new ArrayList<GridItem>();
+        final Set internet = new HashSet();
+        for (final GridItem link : this.connectionsOut) {
+            final GridItem gridItem = (GridItem) ((Link) link).getDestination();
+            if (gridItem instanceof Cluster || gridItem instanceof Machine) {
+                if (!escalonaveis.contains(gridItem)) {
+                    escalonaveis.add(gridItem);
                 }
-            } else if (itemGrade instanceof Internet) {
-                internet.add(itemGrade);
-                getIndiretosEscalonaveis(itemGrade, escalonaveis, internet);
+            } else if (gridItem instanceof Internet) {
+                internet.add(gridItem);
+                this.getIndiretosEscalonaveis(gridItem, escalonaveis, internet);
             }
         }
         escalonaveis.remove(this);
         return escalonaveis;
     }
 
-    private void getIndiretosEscalonaveis(ItemGrade itemGrade, List<ItemGrade> escalonaveis, Set internet) {
-        for (ItemGrade link : itemGrade.getConexoesSaida()) {
-            ItemGrade item = (ItemGrade) ((Link) link).getDestination();
+    private void getIndiretosEscalonaveis(final GridItem gridItem,
+                                          final List<GridItem> escalonaveis,
+                                          final Set internet) {
+        for (final GridItem link : gridItem.getConnectionsOut()) {
+            final GridItem item = (GridItem) ((Link) link).getDestination();
             if (item instanceof Cluster || item instanceof Machine) {
                 if (!escalonaveis.contains(item)) {
                     escalonaveis.add(item);
@@ -242,168 +229,130 @@ public class Machine extends Vertex implements ItemGrade {
             } else if (item instanceof Internet) {
                 if (!internet.contains(item)) {
                     internet.add(item);
-                    getIndiretosEscalonaveis(item, escalonaveis, internet);
+                    this.getIndiretosEscalonaveis(item, escalonaveis, internet);
                 }
             }
         }
     }
 
-    public String getAlgoritmo() {
-        return algoritmo;
-    }
-
-    public void setAlgoritmo(String algoritmo) {
-        this.algoritmo = algoritmo;
-        verificaConfiguracao();
-    }
-
-    public Double getPoderComputacional() {
-        return poderComputacional;
-    }
-
-    public void setPoderComputacional(double poderComputacional) {
-        this.poderComputacional = poderComputacional;
-        verificaConfiguracao();
-    }
-
     public String getProprietario() {
-        return proprietario;
+        return this.owner;
     }
 
-    public void setProprietario(String proprietario) {
-        this.proprietario = proprietario;
-    }
-    
-    public Double getTaxaOcupacao() {
-        return ocupacao;
+    public void setOwner(final String owner) {
+        this.owner = owner;
     }
 
-    public void setTaxaOcupacao(Double ocupacao) {
-        this.ocupacao = ocupacao;
+    public Integer getProcessorCores() {
+        return this.processorCores;
     }
 
-    public Integer getNucleosProcessador() {
-        return nucleosProcessador;
+    public void setProcessorCores(final Integer processorCores) {
+        this.processorCores = processorCores;
     }
 
-    public void setNucleosProcessador(Integer nucleosProcessador) {
-        this.nucleosProcessador = nucleosProcessador;
+    public Double getRamMemory() {
+        return this.ramMemory;
     }
 
-    public Double getMemoriaRAM() {
-        return memoriaRAM;
+    public void setRamMemory(final Double ramMemory) {
+        this.ramMemory = ramMemory;
     }
 
-    public void setMemoriaRAM(Double memoriaRAM) {
-        this.memoriaRAM = memoriaRAM;
+    public Double getHardDisk() {
+        return this.hardDisk;
     }
 
-    public Double getDiscoRigido() {
-        return discoRigido;
+    public void setHardDisk(final Double hardDisk) {
+        this.hardDisk = hardDisk;
     }
 
-    public void setDiscoRigido(Double discoRigido) {
-        this.discoRigido = discoRigido;
-    }
-    
-    public Double getCostperprocessing() {
-        return costperprocessing;
+    public Double getCostPerProcessing() {
+        return this.costPerProcessing;
     }
 
-
-    public void setCostperprocessing(Double costperprocessing) {
-        this.costperprocessing = costperprocessing;
-    }
-    
-    public Double getCostpermemory() {
-        return costpermemory;
+    public void setCostPerProcessing(final Double costPerProcessing) {
+        this.costPerProcessing = costPerProcessing;
     }
 
-    public void setCostpermemory(Double costpermemory) {
-        this.costpermemory = costpermemory;
-    }
-    
-    public Double getCostperdisk() {
-        return costperdisk;
+    public Double getCostPerMemory() {
+        return this.costPerMemory;
     }
 
-    public void setCostperdisk(Double costperdisk) {
-        this.costperdisk = costperdisk;
-    }
-    
-    public String getVMMallocpolicy() {
-        return VMMallocpolicy;
+    public void setCostPerMemory(final Double costPerMemory) {
+        this.costPerMemory = costPerMemory;
     }
 
-    public void setVMMallocpolicy(String VMMallocpolicy) {
-        this.VMMallocpolicy = VMMallocpolicy;
-        verificaConfiguracao();
-    }
-    
-   
-
-    private void verificaConfiguracao() {
-        if (poderComputacional > 0) {
-            configurado = true;
-            if (mestre && ("---".equals(algoritmo) || "---".equals(VMMallocpolicy))) {
-                configurado = false;
-            }
-        } else {
-            configurado = false;
-        }
+    public Double getCostPerDisk() {
+        return this.costPerDisk;
     }
 
-    protected Set<ItemGrade> getNosIndiretosSaida() {
-        Set<ItemGrade> indiretosSaida = new HashSet<ItemGrade>();
-        for (ItemGrade link : conexoesSaida) {
-            ItemGrade itemGrade = (ItemGrade) ((Link) link).getDestination();
-            if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
-                indiretosSaida.add(itemGrade);
-            } else if (itemGrade instanceof Internet) {
-                indiretosSaida.add(itemGrade);
-                getIndiretosSaida(itemGrade, indiretosSaida);
+    public void setCostPerDisk(final Double costPerDisk) {
+        this.costPerDisk = costPerDisk;
+    }
+
+    public String getVmmAllocationPolicy() {
+        return this.vmmAllocationPolicy;
+    }
+
+    public void setVmmAllocationPolicy(final String vmmAllocationPolicy) {
+        this.vmmAllocationPolicy = vmmAllocationPolicy;
+        this.validateConfiguration();
+    }
+
+    /* package-private */ Set<GridItem> getNosIndiretosSaida() {
+        final Set<GridItem> indiretosSaida = new HashSet<GridItem>();
+        for (final GridItem link : this.connectionsOut) {
+            final GridItem gridItem = (GridItem) ((Link) link).getDestination();
+            if (gridItem instanceof Cluster || gridItem instanceof Machine) {
+                indiretosSaida.add(gridItem);
+            } else if (gridItem instanceof Internet) {
+                indiretosSaida.add(gridItem);
+                this.getIndiretosSaida(gridItem, indiretosSaida);
             }
         }
         return indiretosSaida;
     }
 
-    private void getIndiretosSaida(ItemGrade internet, Set<ItemGrade> indiretosSaida) {
-        for (ItemGrade link : internet.getConexoesSaida()) {
-            ItemGrade item = (ItemGrade) ((Link) link).getDestination();
+    private void getIndiretosSaida(final GridItem internet,
+                                   final Set<GridItem> indiretosSaida) {
+        for (final GridItem link : internet.getConnectionsOut()) {
+            final GridItem item = (GridItem) ((Link) link).getDestination();
             if (item instanceof Cluster || item instanceof Machine) {
                 indiretosSaida.add(item);
             } else if (item instanceof Internet) {
                 if (!indiretosSaida.contains(item)) {
                     indiretosSaida.add(item);
-                    getIndiretosSaida(item, indiretosSaida);
+                    this.getIndiretosSaida(item, indiretosSaida);
                 }
             }
         }
     }
 
-    protected Set<ItemGrade> getNosIndiretosEntrada() {
-        Set<ItemGrade> indiretosEntrada = new HashSet<ItemGrade>();
-        for (ItemGrade link : conexoesEntrada) {
-            ItemGrade itemGrade = (ItemGrade) ((Link) link).getSource();
-            if (itemGrade instanceof Cluster || itemGrade instanceof Machine) {
-                indiretosEntrada.add(itemGrade);
-            } else if (itemGrade instanceof Internet) {
-                indiretosEntrada.add(itemGrade);
-                getIndiretosEntrada(itemGrade, indiretosEntrada);
+    /* package-private */ Set<GridItem> getNosIndiretosEntrada() {
+        final Set<GridItem> indiretosEntrada = new HashSet<GridItem>();
+        for (final GridItem link : this.connectionsIn) {
+            final GridItem gridItem = (GridItem) ((Link) link).getSource();
+            if (gridItem instanceof Cluster || gridItem instanceof Machine) {
+                indiretosEntrada.add(gridItem);
+            } else if (gridItem instanceof Internet) {
+                indiretosEntrada.add(gridItem);
+                this.getIndiretosEntrada(gridItem, indiretosEntrada);
             }
         }
         return indiretosEntrada;
     }
 
-    private void getIndiretosEntrada(ItemGrade internet, Set<ItemGrade> indiretosEntrada) {
-        for (ItemGrade link : internet.getConexoesEntrada()) {
-            ItemGrade item = (ItemGrade) ((Link) link).getSource();
+    private void getIndiretosEntrada(final GridItem internet,
+                                     final Set<GridItem> indiretosEntrada) {
+        for (final GridItem link : internet.getConnectionsIn()) {
+            final GridItem item = (GridItem) ((Link) link).getSource();
             if (item instanceof Cluster || item instanceof Machine) {
                 indiretosEntrada.add(item);
             } else if (item instanceof Internet) {
                 if (!indiretosEntrada.contains(item)) {
                     indiretosEntrada.add(item);
-                    getIndiretosSaida(item, indiretosEntrada);
+                    this.getIndiretosSaida(item, indiretosEntrada);
                 }
             }
         }

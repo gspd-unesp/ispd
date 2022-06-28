@@ -43,11 +43,11 @@ import java.util.regex.Pattern;
  * After instantiation, the method configurarTextComponent(JTextComponent)
  * must be invoked, which will configure the component appropriately.
  */
-public class DocumentColor extends DefaultStyledDocument implements CaretListener {
-    public static final char NEW_LINE = '\n';
-    public static final char OPEN_BRACKET = '{';
-    public static final char CLOSE_BRACKET = '}';
-    public static final String TAB_AS_SPACES = "    ";
+public class TextEditorStyle extends DefaultStyledDocument implements CaretListener {
+    private static final char NEW_LINE = '\n';
+    private static final char OPEN_BRACKET = '{';
+    private static final char CLOSE_BRACKET = '}';
+    private static final String TAB_AS_SPACES = "    ";
     private static final char SPACE = ' ';
     private static final String AUTOCOMPLETE_ACTION_KEY = "completar";
     private static final String[] STRING_MATCHERS = {
@@ -111,12 +111,12 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
     private final Pattern multiCommentDelimEnd = Pattern.compile("\\*/");
     private final Font font = new Font(Font.MONOSPACED, Font.BOLD, 12);
     private final JTextArea lineCountBar = this.makeLineCountBar();
-    private final JLabel barAfterCursor = DocumentColor.makeBarAfterCursor();
+    private final JLabel barAfterCursor = TextEditorStyle.makeBarAfterCursor();
     private final JList<String> autocompleteList = this.makeAutoCompleteList();
     private final JPopupMenu autocompletePopup = this.makeAutocompletePopup();
     private Integer lineCount = 1;
 
-    public DocumentColor() {
+    public TextEditorStyle() {
         this.putProperty(DefaultEditorKit.EndOfLineStringProperty, "\n");
         this.setStyleFromConstants();
     }
@@ -155,7 +155,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
     }
 
     private JList<String> makeAutoCompleteList() {
-        final var acl = new JList<>(DocumentColor.AUTOCOMPLETE_STRINGS);
+        final var acl = new JList<>(TextEditorStyle.AUTOCOMPLETE_STRINGS);
         acl.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         acl.addMouseListener(new AutoCompleteMouseAdapter());
         acl.addKeyListener(new AutoCompleteKeyAdapter());
@@ -170,7 +170,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
             final int insertPos = this.ignoreSpace(dot, autocomplete);
             this.insertString(insertPos, autocomplete, null);
         } catch (final BadLocationException ex) {
-            Logger.getLogger(DocumentColor.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(TextEditorStyle.class.getName()).log(Level.SEVERE,
                     null, ex);
         }
 
@@ -193,7 +193,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
 
     @Override
     public void remove(final int offset, final int length) throws BadLocationException {
-        final int total = DocumentColor.countMatches(this.getText(offset,
+        final int total = TextEditorStyle.countMatches(this.getText(offset,
                 length));
 
         if (total > 0) {
@@ -217,7 +217,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
 
         switch (text) {
             case "\n" -> {
-                final var tabs = DocumentColor.TAB_AS_SPACES.repeat(
+                final var tabs = TextEditorStyle.TAB_AS_SPACES.repeat(
                         this.calculateScopeDepthUntil(offset));
                 super.insertString(
                         offset, "\n" + tabs, this.style);
@@ -225,7 +225,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
             }
             case "\t" -> {
                 super.insertString(
-                        offset, DocumentColor.TAB_AS_SPACES, this.style);
+                        offset, TextEditorStyle.TAB_AS_SPACES, this.style);
             }
             case "}" -> {
                 this.removeAdditionalSpaces(offset, text);
@@ -240,8 +240,8 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
 
     private void insertPastedText(final int offset, final String str,
                                   final AttributeSet attr) throws BadLocationException {
-        final var spaces = str.replaceAll("\t", DocumentColor.TAB_AS_SPACES);
-        final int total = DocumentColor.countMatches(spaces);
+        final var spaces = str.replaceAll("\t", TextEditorStyle.TAB_AS_SPACES);
+        final int total = TextEditorStyle.countMatches(spaces);
         this.insertLines(total);
         super.insertString(offset, spaces, attr);
     }
@@ -253,9 +253,9 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         // TODO: { total - } total
 
         for (int i = 0; i < textBefore.length(); i++) {
-            if (textBefore.charAt(i) == DocumentColor.OPEN_BRACKET) {
+            if (textBefore.charAt(i) == TextEditorStyle.OPEN_BRACKET) {
                 depth++;
-            } else if (textBefore.charAt(i) == DocumentColor.CLOSE_BRACKET) {
+            } else if (textBefore.charAt(i) == TextEditorStyle.CLOSE_BRACKET) {
                 depth--;
             }
         }
@@ -271,7 +271,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
     private void removeAdditionalSpaces(final int offset, final String str) throws BadLocationException {
         final String text = this.getText(0, offset);
         super.insertString(offset, str, this.style);
-        if (text.substring(offset - 4).equals(DocumentColor.TAB_AS_SPACES)) {
+        if (text.substring(offset - 4).equals(TextEditorStyle.TAB_AS_SPACES)) {
             super.remove(offset - 4, 4);
         }
     }
@@ -281,7 +281,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         for (int i = 0; i < total; i++) {
             final int end = this.lineCountBar.getText().length();
             final int pos =
-                    this.lineCountBar.getText().lastIndexOf(DocumentColor.NEW_LINE, end);
+                    this.lineCountBar.getText().lastIndexOf(TextEditorStyle.NEW_LINE, end);
             this.lineCountBar.getDocument().remove(pos, end - pos);
         }
     }
@@ -400,7 +400,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         //numbers
         StyleConstants.setForeground(this.style, this.numberStyle);
         {
-            final Pattern p = Pattern.compile(DocumentColor.NUMBER_MATCHER);
+            final Pattern p = Pattern.compile(TextEditorStyle.NUMBER_MATCHER);
             final Matcher m = p.matcher(text);
             while (m.find()) {
                 this.setCharacterAttributes(m.start(), m.end() - m.start(),
@@ -410,7 +410,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         }
 
         StyleConstants.setForeground(this.style, this.stringStyle);
-        for (final String keyword : DocumentColor.STRING_MATCHERS) {
+        for (final String keyword : TextEditorStyle.STRING_MATCHERS) {
             final Pattern p = Pattern.compile(keyword);
             final Matcher m = p.matcher(text);
 
@@ -472,10 +472,10 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         component.getInputMap().put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,
                         InputEvent.CTRL_DOWN_MASK),
-                DocumentColor.AUTOCOMPLETE_ACTION_KEY
+                TextEditorStyle.AUTOCOMPLETE_ACTION_KEY
         );
         component.getActionMap().put(
-                DocumentColor.AUTOCOMPLETE_ACTION_KEY,
+                TextEditorStyle.AUTOCOMPLETE_ACTION_KEY,
                 new TextPaneAction(component)
         );
     }
@@ -497,7 +497,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
 
         final var text = this.getText(dotPosition - 1, 1);
         return (int) Arrays
-                .stream(DocumentColor.AUTOCOMPLETE_STRINGS)
+                .stream(TextEditorStyle.AUTOCOMPLETE_STRINGS)
                 .takeWhile(s -> !s.startsWith(text)).count();
     }
 
@@ -505,7 +505,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         @Override
         public void mouseClicked(final MouseEvent me) {
             if (me.getClickCount() == 2) {
-                DocumentColor.this.insertAutocomplete();
+                TextEditorStyle.this.insertAutocomplete();
             }
         }
     }
@@ -514,7 +514,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
         @Override
         public void keyReleased(final KeyEvent ke) {
             if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
-                DocumentColor.this.insertAutocomplete();
+                TextEditorStyle.this.insertAutocomplete();
             }
         }
     }
@@ -522,7 +522,7 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
     private class TextPaneAction extends AbstractAction {
         private final JTextComponent area;
 
-        TextPaneAction(final JTextComponent area) {
+        private TextPaneAction(final JTextComponent area) {
             this.area = area;
         }
 
@@ -531,10 +531,10 @@ public class DocumentColor extends DefaultStyledDocument implements CaretListene
             try {
                 final int dot = this.area.getCaret().getDot();
                 final var caretPos = (Rectangle) this.area.modelToView2D(dot);
-                DocumentColor.this.displayAutocomplete(dot, caretPos,
+                TextEditorStyle.this.displayAutocomplete(dot, caretPos,
                         this.area);
             } catch (final BadLocationException ex) {
-                Logger.getLogger(DocumentColor.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TextEditorStyle.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

@@ -1,324 +1,299 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * Cluster.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui.iconico.grade;
 
 import ispd.gui.iconico.Vertex;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-/**
- *
- * @author denison
- */
-public class Cluster extends Vertex implements ItemGrade {
+public class Cluster extends Vertex implements GridItem {
+    private static final int SOME_OFFSET = 15;
+    private static final String NO_SELECTION = "---";
+    private static final int RANGE_WIDTH = 17;
+    private final GridItemId id;
+    private final Set<GridItem> connectionsIn = new HashSet<>(0);
+    private final Set<GridItem> connectionsOut = new HashSet<>(0);
+    private Double bandwidth = 0.0;
+    private Double latency = 0.0;
+    private String algorithm = Cluster.NO_SELECTION;
+    private Double computationalPower = 0.0;
+    private Integer processorCores = 1;
+    private Integer slaveCount = 0;
+    private Boolean isMaster = true;
+    private Double ramMemory = 0.0;
+    private Double hardDisk = 0.0;
+    private boolean isConfigured = false;
+    private String owner = "user1";
+    private Double costPerProcessing = 0.0;
+    private Double costPerMemory = 0.0;
+    private Double costPerDisk = 0.0;
+    private String vmmAllocationPolicy = Cluster.NO_SELECTION;
+    private Double energyConsumption;
 
-    private IdentificadorItemGrade id;
-    private HashSet<ItemGrade> conexoesEntrada;
-    private HashSet<ItemGrade> conexoesSaida;
-    private Double banda;
-    private Double latencia;
-    private String algoritmo;
-    private Double poderComputacional;
-    private Integer nucleosProcessador;
-    private Integer numeroEscravos;
-    private Boolean mestre;
-    private Double memoriaRAM;
-    private Double discoRigido;
-    private boolean configurado;
-    private String proprietario;
-    private Double costperprocessing;
-    private Double costpermemory; 
-    private Double costperdisk;
-    private String VMMallocpolicy;
-    private Double consumoEnergia;
-
-    public Cluster(Integer x, Integer y, int idLocal, int idGlobal, Double energia) {
+    public Cluster(
+            final Integer x, final Integer y,
+            final int idLocal,
+            final int idGlobal,
+            final Double energy) {
         super(x, y);
-        this.id = new IdentificadorItemGrade(idLocal, idGlobal, "cluster" + idGlobal);
-        this.algoritmo = "---";
-        this.proprietario = "user1";
-        this.numeroEscravos = 0;
-        this.poderComputacional = 0.0;
-        this.nucleosProcessador = 1;
-        this.banda = 0.0;
-        this.latencia = 0.0;
-        this.memoriaRAM = 0.0;
-        this.discoRigido = 0.0;
-        this.mestre = true;
-        this.costperprocessing=0.0;
-        this.costpermemory = 0.0;
-        this.costperdisk = 0.0;
-        this.VMMallocpolicy = "---";
-        this.conexoesEntrada = new HashSet<ItemGrade>();
-        this.conexoesSaida = new HashSet<ItemGrade>();
-        this.consumoEnergia = energia;//Consumo de energia de cada uma das máquinas do cluster
+        this.id = new GridItemId(
+                idLocal, idGlobal,
+                "cluster%d".formatted(idGlobal)
+        );
+        this.energyConsumption = energy;
     }
 
-    @Override
-    public IdentificadorItemGrade getId() {
-        return this.id;
-    }
-    
-    public void setConsumoEnergia( Double energia ){
-        this.consumoEnergia = energia;
-    }
-    
-    public Double getConsumoEnergia(){
-        return this.consumoEnergia;
-    }
-    
-    @Override
-    public Set<ItemGrade> getConexoesEntrada() {
-        return conexoesEntrada;
+    public Double getEnergyConsumption() {
+        return this.energyConsumption;
     }
 
-    @Override
-    public Set<ItemGrade> getConexoesSaida() {
-        return conexoesSaida;
+    public void setEnergyConsumption(final Double energy) {
+        this.energyConsumption = energy;
     }
 
     @Override
     public String toString() {
-        return "id: " + getId().getIdGlobal() + " " + getId().getNome();
+        return "id: %d %s".formatted(this.id.getGlobalId(), this.id.getName());
     }
 
     @Override
-    public String getAtributos(ResourceBundle palavras) {
-        String texto = palavras.getString("Local ID:") + " " + this.getId().getIdLocal()
-                + "<br>" + palavras.getString("Global ID:") + " " + this.getId().getIdGlobal()
-                + "<br>" + palavras.getString("Label") + ": " + this.getId().getNome()
-                + "<br>" + palavras.getString("X-coordinate:") + " " + this.getX()
-                + "<br>" + palavras.getString("Y-coordinate:") + " " + this.getY()
-                + "<br>" + palavras.getString("Number of slaves") + ": " + getNumeroEscravos()
-                + "<br>" + palavras.getString("Computing power") + ": " + getPoderComputacional()
-                + "<br>" + palavras.getString("Bandwidth") + ": " + getBanda()
-                + "<br>" + palavras.getString("Latency") + ": " + getLatencia()
-                + "<br>" + palavras.getString("Scheduling algorithm") + ": " + getAlgoritmo();
-        return texto;
-    }
-
-    /**
-     *
-     * @param posicaoMouseX the value of X position
-     * @param posicaoMouseY the value of Y position
-     * @param idGlobal the value of idGlobal
-     * @param idLocal the value of idLocal
-     */
-    @Override
-    public Cluster criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
-        Cluster temp = new Cluster(posicaoMouseX, posicaoMouseY, idGlobal, idLocal, this.consumoEnergia);
-        temp.algoritmo = this.algoritmo;
-        temp.poderComputacional = this.poderComputacional;
-        temp.mestre = this.mestre;
-        temp.proprietario = this.proprietario;
-        temp.banda = this.banda;
-        temp.latencia = this.latencia;
-        temp.numeroEscravos = this.numeroEscravos;
-        temp.verificaConfiguracao();
-        return temp;
-    }
-
-    @Override
-    public boolean isConfigurado() {
-        return configurado;
-    }
-
-    @Override
-    public void draw(Graphics g) {
-        g.drawImage(DesenhoGrade.ICLUSTER, getX() - 15, getY() - 15, null);
-        if (isConfigurado()) {
-            g.drawImage(DesenhoGrade.IVERDE, getX() + 15, getY() + 15, null);
-        } else {
-            g.drawImage(DesenhoGrade.IVERMELHO, getX() + 15, getY() + 15, null);
-        }
+    public void draw(final Graphics g) {
+        g.drawImage(DesenhoGrade.clusterIcon,
+                this.getX() - Cluster.SOME_OFFSET,
+                this.getY() - Cluster.SOME_OFFSET, null);
+        final var image = this.isConfigured
+                ? DesenhoGrade.greenIcon
+                : DesenhoGrade.redIcon;
+        g.drawImage(image, this.getX() + Cluster.SOME_OFFSET,
+                this.getY() + Cluster.SOME_OFFSET, null);
 
         g.setColor(Color.BLACK);
-        g.drawString(String.valueOf(getId().getIdGlobal()), getX(), getY() + 30);
+        g.drawString(String.valueOf(this.id.getGlobalId()), this.getX(),
+                this.getY() + 30);
+
         // Se o icone estiver ativo, desenhamos uma margem nele.
-        if (isSelected()) {
+        if (this.isSelected()) {
             g.setColor(Color.RED);
-            g.drawRect(getX() - 19, getY() - 17, 37, 34);
+            g.drawRect(this.getX() - 19, this.getY() - Cluster.RANGE_WIDTH,
+                    37, 34);
         }
     }
 
     @Override
-    public boolean contains(int x, int y) {
-        if (x < getX() + 17 && x > getX() - 17) {
-            if (y < getY() + 17 && y > getY() - 17) {
-                return true;
-            }
+    public boolean contains(final int x, final int y) {
+        if (x < this.getX() + Cluster.RANGE_WIDTH && x > this.getX() - Cluster.RANGE_WIDTH) {
+            return y < this.getY() + Cluster.RANGE_WIDTH && y > this.getY() - Cluster.RANGE_WIDTH;
         }
         return false;
     }
 
-    public Boolean isMestre() {
-        return mestre;
+    @Override
+    public GridItemId getId() {
+        return this.id;
     }
 
-    public void setMestre(Boolean mestre) {
-        this.mestre = mestre;
-        verificaConfiguracao();
+    @Override
+    public Set<GridItem> getConnectionsIn() {
+        return this.connectionsIn;
     }
 
-    public Double getBanda() {
-        return banda;
+    @Override
+    public Set<GridItem> getConnectionsOut() {
+        return this.connectionsOut;
     }
 
-    public void setBanda(Double banda) {
-        this.banda = banda;
-        verificaConfiguracao();
+    @Override
+    public String makeDescription(final ResourceBundle translator) {
+        return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s: %d<br>%s: " +
+                "%s<br>%s: %s<br>%s: %s<br>%s: %s")
+                .formatted(
+                        translator.getString("Local ID:"),
+                        this.id.getLocalId(),
+                        translator.getString("Global ID:"),
+                        this.id.getGlobalId(),
+                        translator.getString("Label"),
+                        this.id.getName(),
+                        translator.getString("X-coordinate:"),
+                        this.getX(),
+                        translator.getString("Y-coordinate:"),
+                        this.getY(),
+                        translator.getString("Number of slaves"),
+                        this.slaveCount,
+                        translator.getString("Computing power"),
+                        this.computationalPower,
+                        translator.getString("Bandwidth"),
+                        this.bandwidth,
+                        translator.getString("Latency"),
+                        this.latency,
+                        translator.getString("Scheduling algorithm"),
+                        this.algorithm
+                );
     }
 
-    public Double getLatencia() {
-        return latencia;
+    /**
+     * @param mousePosX the value of X position
+     * @param mousePosY the value of Y position
+     * @param copyGlobalId      the value of idGlobal
+     * @param copyLocalId       the value of idLocal
+     */
+    @Override
+    public Cluster makeCopy(final int mousePosX, final int mousePosY,
+                            final int copyGlobalId, final int copyLocalId) {
+        final var other = new Cluster(
+                mousePosX, mousePosY,
+                copyGlobalId, copyLocalId,
+                this.energyConsumption
+        );
+
+        other.algorithm = this.algorithm;
+        other.computationalPower = this.computationalPower;
+        other.isMaster = this.isMaster;
+        other.owner = this.owner;
+        other.bandwidth = this.bandwidth;
+        other.latency = this.latency;
+        other.slaveCount = this.slaveCount;
+        other.validateConfiguration();
+
+        return other;
     }
 
-    public void setLatencia(Double latencia) {
-        this.latencia = latencia;
-        verificaConfiguracao();
+    @Override
+    public boolean isCorrectlyConfigured() {
+        return this.isConfigured;
     }
 
-    public String getAlgoritmo() {
-        return algoritmo;
+    private void validateConfiguration() {
+        this.isConfigured = this.shouldBeConfigured();
     }
 
-    public void setAlgoritmo(String algoritmo) {
-        this.algoritmo = algoritmo;
-        verificaConfiguracao();
-    }
-    
-    public Double getPoderComputacional() {
-        return poderComputacional;
-    }
-
-    public void setPoderComputacional(Double poderComputacional) {
-        this.poderComputacional = poderComputacional;
-        verificaConfiguracao();
-    }
-
-    public Integer getNumeroEscravos() {
-        return numeroEscravos;
-
-    }
-
-    public void setNumeroEscravos(Integer numeroEscravos) {
-        this.numeroEscravos = numeroEscravos;
-        verificaConfiguracao();
-    }
-
-    public Integer getNucleosProcessador() {
-        return nucleosProcessador;
-    }
-
-    public void setNucleosProcessador(Integer nucleosProcessador) {
-        this.nucleosProcessador = nucleosProcessador;
-    }
-
-    public Double getMemoriaRAM() {
-        return memoriaRAM;
-    }
-
-    public void setMemoriaRAM(Double memoriaRAM) {
-        this.memoriaRAM = memoriaRAM;
-    }
-
-    public Double getDiscoRigido() {
-        return discoRigido;
-    }
-
-    public void setDiscoRigido(Double discoRigido) {
-        this.discoRigido = discoRigido;
-    }
-    
-    public Double getCostperprocessing() {
-        return costperprocessing;
-    }
-
-
-    public void setCostperprocessing(Double costperprocessing) {
-        this.costperprocessing = costperprocessing;
-    }
-    
-    public Double getCostpermemory() {
-        return costpermemory;
-    }
-
-    public void setCostpermemory(Double costpermemory) {
-        this.costpermemory = costpermemory;
-    }
-    
-    public Double getCostperdisk() {
-        return costperdisk;
-    }
-
-    public void setCostperdisk(Double costperdisk) {
-        this.costperdisk = costperdisk;
-    }
-    
-    public String getVMMallocpolicy() {
-        return VMMallocpolicy;
-    }
-
-    public void setVMMallocpolicy(String VMMallocpolicy) {
-        this.VMMallocpolicy = VMMallocpolicy;
-    }
-
-    private void verificaConfiguracao() {
-        if (banda > 0 && latencia > 0 && poderComputacional > 0 && numeroEscravos > 0) {
-            configurado = true;
-            if (mestre && algoritmo.equals("---")) {
-                configurado = false;
+    private boolean shouldBeConfigured() {
+        for (final var attr : new double[] { this.bandwidth, this.latency,
+                this.computationalPower, this.slaveCount }) {
+            if (attr <= 0) {
+                return false;
             }
-        } else {
-            configurado = false;
         }
+
+        return !(this.isMaster && this.algorithm.equals(Cluster.NO_SELECTION));
+    }
+
+    public void setComputationalPower(final Double computationalPower) {
+        this.computationalPower = computationalPower;
+        this.validateConfiguration();
+    }
+
+    public Boolean isMaster() {
+        return this.isMaster;
+    }
+
+    public void setIsMaster(final Boolean isMaster) {
+        this.isMaster = isMaster;
+        this.validateConfiguration();
+    }
+
+    public Integer getProcessorCores() {
+        return this.processorCores;
+    }
+
+    public void setProcessorCores(final Integer processorCores) {
+        this.processorCores = processorCores;
+    }
+
+    public Double getRamMemory() {
+        return this.ramMemory;
+    }
+
+    public void setRamMemory(final Double ramMemory) {
+        this.ramMemory = ramMemory;
+    }
+
+    public Double getHardDisk() {
+        return this.hardDisk;
+    }
+
+    public void setHardDisk(final Double hardDisk) {
+        this.hardDisk = hardDisk;
+    }
+
+    public Integer getSlaveCount() {
+        return this.slaveCount;
+    }
+
+    public void setSlaveCount(final Integer slaveCount) {
+        this.slaveCount = slaveCount;
+        this.validateConfiguration();
+    }
+
+    public Double getPoderComputacional() {
+        return this.computationalPower;
+    }
+
+    public Double getCostPerProcessing() {
+        return this.costPerProcessing;
+    }
+
+    public void setCostPerProcessing(final Double costPerProcessing) {
+        this.costPerProcessing = costPerProcessing;
+    }
+
+    public Double getBandwidth() {
+        return this.bandwidth;
+    }
+
+    public void setBandwidth(final Double bandwidth) {
+        this.bandwidth = bandwidth;
+        this.validateConfiguration();
+    }
+
+    public Double getCostPerMemory() {
+        return this.costPerMemory;
+    }
+
+    public void setCostPerMemory(final Double costPerMemory) {
+        this.costPerMemory = costPerMemory;
+    }
+
+    public Double getLatency() {
+        return this.latency;
+    }
+
+    public void setLatency(final Double latency) {
+        this.latency = latency;
+        this.validateConfiguration();
+    }
+
+    public String getAlgorithm() {
+        return this.algorithm;
+    }
+
+    public void setAlgorithm(final String algorithm) {
+        this.algorithm = algorithm;
+        this.validateConfiguration();
+    }
+
+    public Double getCostPerDisk() {
+        return this.costPerDisk;
+    }
+
+    public void setCostPerDisk(final Double costPerDisk) {
+        this.costPerDisk = costPerDisk;
+    }
+
+    public String getVmmAllocationPolicy() {
+        return this.vmmAllocationPolicy;
+    }
+
+    public void setVmmAllocationPolicy(final String vmmAllocationPolicy) {
+        this.vmmAllocationPolicy = vmmAllocationPolicy;
     }
 
     public String getProprietario() {
-        return proprietario;
+        return this.owner;
     }
 
-    public void setProprietario(String string) {
-        this.proprietario = string;
+    public void setOwner(final String owner) {
+        this.owner = owner;
     }
 }

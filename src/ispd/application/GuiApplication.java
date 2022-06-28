@@ -1,6 +1,6 @@
 package ispd.application;
 
-import ispd.gui.JPrincipal;
+import ispd.gui.MainWindow;
 import ispd.gui.LogExceptions;
 import ispd.gui.SplashWindow;
 
@@ -25,7 +25,7 @@ public class GuiApplication implements Application {
         mainWindow.setVisible(true);
     }
 
-    private static JPrincipal initializeApplication() {
+    private static MainWindow initializeApplication() {
         final var exceptionLogger = new LogExceptions(null);
         Thread.setDefaultUncaughtExceptionHandler(exceptionLogger);
 
@@ -50,8 +50,8 @@ public class GuiApplication implements Application {
         }
     }
 
-    private static JPrincipal buildMainWindow() {
-        final var gui = new JPrincipal();
+    private static MainWindow buildMainWindow() {
+        final var gui = new MainWindow();
         gui.setLocationRelativeTo(null);
         return gui;
     }

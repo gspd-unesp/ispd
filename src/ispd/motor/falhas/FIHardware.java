@@ -1,6 +1,6 @@
 package ispd.motor.falhas;
 
-import ispd.gui.JSelecionarFalhas;
+import ispd.gui.PickSimulationFaultsDialog;
 import ispd.motor.ProgressoSimulacao;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.Tarefa;
@@ -56,7 +56,7 @@ public class FIHardware {
     }
 
     private static void selectFaults(final ProgressoSimulacao janela) {
-        new JSelecionarFalhas();
+        new PickSimulationFaultsDialog();
         JOptionPane.showMessageDialog(null, "Hardware Failure selected.");
         janela.println("Hardware failure created.");
         janela.print(" -> ");

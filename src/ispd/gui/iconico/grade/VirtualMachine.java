@@ -1,102 +1,71 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ispd.gui.iconico.grade;
 
-/**
- *
- * @author Diogo Tavares
- */
 public class VirtualMachine {
-    
-    //lista de Atributos
-    private String nome;
-    private String proprietario;
-    private String VMM;
-    private int numProcessadores;
-    private double memoriaAlocada;
-    private double discoAlocado;
-    private String OS;
-    
-    /**
-     *
-     * @param id
-     * @param proprietario
-     * @param VMM
-     * @param poderComputacional
-     * @param memoriaAlocada
-     * @param discoAlocado
-     * @param OS
-     
-     */
-    public VirtualMachine(String id, String proprietario, String VMM, int poderComputacional, double memoriaAlocada, double discoAlocado, String OS){
-        this.nome = id;
-        this.proprietario = proprietario;
-        this.VMM = VMM;
-        this.numProcessadores = poderComputacional;
-        this.memoriaAlocada = memoriaAlocada;
-        this.discoAlocado = discoAlocado;
-        this.OS = OS;
-        }
+    private final int processorCount;
+    private final double allocatedMemory;
+    private final double allocatedDisk;
+    private String name;
+    private String owner;
+    private String vmm;
+    private String os;
+
+    public VirtualMachine(final String id,
+                          final String owner,
+                          final String vmm,
+                          final int processorCount,
+                          final double allocatedMemory,
+                          final double allocatedDisk,
+                          final String os) {
+        this.name = id;
+        this.owner = owner;
+        this.vmm = vmm;
+        this.processorCount = processorCount;
+        this.allocatedMemory = allocatedMemory;
+        this.allocatedDisk = allocatedDisk;
+        this.os = os;
+    }
 
     public String getProprietario() {
-        return proprietario;
+        return this.owner;
     }
 
-    public void setProprietario(String proprietario) {
-        this.proprietario = proprietario;
+    public void setOwner(final String owner) {
+        this.owner = owner;
     }
 
-    public String getVMM() {
-        return VMM;
+    public String getVmm() {
+        return this.vmm;
     }
 
-    public void setVMM(String VMM) {
-        this.VMM = VMM;
+    public void setVmm(final String vmm) {
+        this.vmm = vmm;
     }
 
     public int getPoderComputacional() {
-        return numProcessadores;
+        return this.processorCount;
     }
 
-    public void setPoderComputacional(int poderComputacional) {
-        this.numProcessadores = poderComputacional;
+    public double getAllocatedMemory() {
+        return this.allocatedMemory;
     }
 
-    public double getMemoriaAlocada() {
-        return memoriaAlocada;
+    public double getAllocatedDisk() {
+        return this.allocatedDisk;
     }
 
-    public void setMemoriaAlocada(double memoriaAlocada) {
-        this.memoriaAlocada = memoriaAlocada;
+    public String getOs() {
+        return this.os;
     }
 
-    public double getDiscoAlocado() {
-        return discoAlocado;
+    public void setOs(final String os) {
+        this.os = os;
     }
 
-    public void setDiscoAlocado(double discoAlocado) {
-        this.discoAlocado = discoAlocado;
+    public String getName() {
+        return this.name;
     }
 
-    public String getOS() {
-        return OS;
+    public void setName(final String nome) {
+        this.name = nome;
     }
-
-    public void setOS(String OS) {
-        this.OS = OS;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-    
-   
-    
 }

@@ -17,7 +17,7 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class JSobre extends JDialog {
+class AboutDialog extends JDialog {
     //language=HTML
     private static final String ABOUT_TEXT = """
             <html>
@@ -37,7 +37,7 @@ class JSobre extends JDialog {
             </body>
             </html>""";
 
-    JSobre(final Frame parent, final boolean modal) {
+    AboutDialog(final Frame parent, final boolean modal) {
         super(parent, modal);
         this.initComponents();
     }
@@ -57,7 +57,7 @@ class JSobre extends JDialog {
 
         jTabbedPane1.setTabPlacement(SwingConstants.BOTTOM);
 
-        jTabbedPane1.addTab("About", new JLabel(JSobre.ABOUT_TEXT));
+        jTabbedPane1.addTab("About", new JLabel(AboutDialog.ABOUT_TEXT));
 
         developers.setText("");
 
@@ -102,7 +102,7 @@ class JSobre extends JDialog {
             license.setPage(this.getResource("html/License.html"));
             developers.setPage(this.getResource("html/Developers.html"));
         } catch (final IOException ex) {
-            Logger.getLogger(JSobre.class.getName())
+            Logger.getLogger(AboutDialog.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
     }
