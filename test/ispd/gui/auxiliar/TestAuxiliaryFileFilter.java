@@ -37,7 +37,7 @@ public final class TestAuxiliaryFileFilter {
                 this.randomizeFilenames(FILENAME_LIST_QUANTITY, extensionList);
 
         final var wrapperOldFileFilter = new FileFilterWrapper(
-                new FiltroDeArquivos(null, extensionList.toArray(new String[0]), false));
+                new MultipleExtensionFileFilter(null, extensionList.toArray(new String[0]), false));
         final var wrapperNewFileFilter = new FileFilterWrapper(
                 new AuxiliaryFileFilter(null, extensionList, false));
 

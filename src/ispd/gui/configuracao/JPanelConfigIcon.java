@@ -3,7 +3,7 @@ package ispd.gui.configuracao;
 import ispd.alocacaoVM.ManipularArquivosAlloc;
 import ispd.escalonador.ManipularArquivos;
 import ispd.escalonadorCloud.ManipularArquivosCloud;
-import ispd.gui.EscolherClasse;
+import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.Internet;
 import ispd.gui.iconico.grade.GridItem;
@@ -176,7 +176,7 @@ public class JPanelConfigIcon extends JPanel {
             final GridItem icon,
             final Iterable<String> users,
             final int choice) {
-        if (choice == EscolherClasse.GRID) {
+        if (choice == PickModelTypeDialog.GRID) {
             if (!this.schedulers.listarRemovidos().isEmpty()) {
                 for (final Object escal : this.schedulers.listarRemovidos()) {
                     this.getTabelaMaquina().getEscalonadores().removeItem(escal);
@@ -204,7 +204,7 @@ public class JPanelConfigIcon extends JPanel {
                 this.getTabelaCluster().setCluster((Cluster) icon, users);
                 this.jScrollPane.setViewportView(this.clusterTable);
             }
-        } else if (choice == EscolherClasse.IAAS) {
+        } else if (choice == PickModelTypeDialog.IAAS) {
             if (!this.cloudSchedulers.listarRemovidos().isEmpty()) {
                 for (final Object escal :
                         this.cloudSchedulers.listarRemovidos()) {

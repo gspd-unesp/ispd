@@ -1,7 +1,6 @@
 package ispd.gui.iconico;
 
 public abstract class Edge implements Icon {
-
     /**
      * It represents the source vertex. Mathematically speaking,
      * this edge is <em>incident from</em> this vertex.
@@ -15,44 +14,18 @@ public abstract class Edge implements Icon {
     private Vertex destination;
 
     /**
-     * It marks whether the edge is selected. If this variable
-     * is {@code true}, then this edge is selected; otherwise,
-     * it is not selected.
-     */
-    private boolean selected;
-
-    /**
-     * Constructor of {@link Edge} which specifies the source,
-     * destination and whether the edge is selected. Mathematically
-     * speaking, the source vertex is which this edge is
-     * <em>incident from</em> and the destination vertex is
-     * whcih this edge is <em>incident to</em>.
-     *
-     * @param source      the source vertex
-     * @param destination the destination vertex
-     * @param selected    whether the edge is selected
-     */
-    public Edge(final Vertex source,
-                final Vertex destination,
-                final boolean selected) {
-        this.source = source;
-        this.destination = destination;
-        this.selected = selected;
-    }
-
-    /**
-     * Constructor of {@link Edge} which specifies the source
-     * and destination vertices. Mathematically speaking, the
-     * source vertex is which this edge is <em>incident
-     * from</em> and the destination vertex is which this
+     * Constructor which specifies the source and destination vertices.
+     * Mathematically speaking, the source vertex is which this edge is
+     * <em>incident from</em> and the destination vertex is which this
      * edge is <em>incident to</em>.
      *
      * @param source      the source vertex
      * @param destination the destination vertex
      */
-    public Edge(final Vertex source,
-                final Vertex destination) {
-        this(source, destination, false);
+    protected Edge(final Vertex source,
+                   final Vertex destination) {
+        this.source = source;
+        this.destination = destination;
     }
 
     /**
@@ -86,49 +59,26 @@ public abstract class Edge implements Icon {
     }
 
     /**
-     * Returns {@code true} if this edge is selected.
-     * Otherwise, returns {@code false}.
+     * Returns the central edge position in x-axis in cartesian coordinates.
      *
-     * @return {@code true} if this edge is selected;
-     *         otherwise, returns {@code false}.
-     */
-    @Override
-    public boolean isSelected() {
-        return this.selected;
-    }
-
-    /**
-     * It sets the edge as selected or not.
-     *
-     * @param selected if {@code true}, set this edge as selected;
-     *                 otherwise, set this edge as not selected.
-     */
-    @Override
-    public void setSelected(final boolean selected) {
-        this.selected = selected;
-    }
-
-    /**
-     * Returns the central edge position in x-axis in
-     * cartesian coordinates.
-     *
-     * @return the central edge position in x-axis in
-     *         cartesian coordinates.
+     * @return the central edge position in x-axis in cartesian coordinates.
      */
     @Override
     public Integer getX() {
-        return this.source.getX() + (this.destination.getX() - this.source.getX()) / 2;
+        return Edge.midPoint(this.source.getX(), this.destination.getX());
+    }
+
+    private static int midPoint(final int p1, final int p2) {
+        return p1 + (p2 - p1) / 2;
     }
 
     /**
-     * Returns the central edge position in y-axis in
-     * cartesian coordinates.
+     * Returns the central edge position in y-axis in cartesian coordinates.
      *
-     * @return the central edge position in y-axis in
-     *         cartesian coordinates.
+     * @return the central edge position in y-axis in cartesian coordinates.
      */
     @Override
     public Integer getY() {
-        return this.source.getY() + (this.destination.getY() - this.source.getY()) / 2;
+        return Edge.midPoint(this.source.getY(), this.destination.getY());
     }
 }

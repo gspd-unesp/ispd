@@ -5,6 +5,7 @@ package ispd.gui.auxiliar;
  * Note: this class has a natural ordering that is inconsistent with equals.
  */
 public class ParesOrdenadosUso implements Comparable<ParesOrdenadosUso> {
+    // TODO: Rename
     private final Double start;
     private final Double end;
 

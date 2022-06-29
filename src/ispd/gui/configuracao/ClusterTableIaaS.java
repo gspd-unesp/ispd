@@ -44,13 +44,13 @@ public class ClusterTableIaaS extends AbstractTableModel {
 
     void setCluster(final Cluster cluster, final Iterable<String> users) {
         this.cluster = cluster;
-        this.schedulers.setSelectedItem(this.cluster.getSchedulingAlgorithm());
+        this.schedulers.setSelectedItem(this.cluster.getAlgorithm());
         this.vmmPolicies.setSelectedItem(this.cluster.getVmmAllocationPolicy());
         this.users.removeAllItems();
         for (final Object object : users) {
             this.users.addItem(object);
         }
-        this.users.setSelectedItem(cluster.getOwner());
+        this.users.setSelectedItem(cluster.getProprietario());
     }
 
     @Override
@@ -119,10 +119,10 @@ public class ClusterTableIaaS extends AbstractTableModel {
             case TableRows.LABEL -> this.cluster.getId().getName();
             case TableRows.OWNER -> this.users;
             case TableRows.NODES -> this.cluster.getSlaveCount();
-            case TableRows.PROCESSORS -> this.cluster.getComputationalPower();
-            case TableRows.MEMORY -> this.cluster.getRam();
+            case TableRows.PROCESSORS -> this.cluster.getPoderComputacional();
+            case TableRows.MEMORY -> this.cluster.getRamMemory();
             case TableRows.DISK -> this.cluster.getHardDisk();
-            case TableRows.CORES -> this.cluster.getCoreCount();
+            case TableRows.CORES -> this.cluster.getProcessorCores();
             case TableRows.BANDWIDTH -> this.cluster.getBandwidth();
             case TableRows.LATENCY -> this.cluster.getLatency();
             case TableRows.VMM -> this.cluster.isMaster();
@@ -170,9 +170,9 @@ public class ClusterTableIaaS extends AbstractTableModel {
             case TableRows.PROCESSORS ->
                     this.cluster.setComputationalPower(Double.valueOf(aValue.toString()));
             case TableRows.CORES ->
-                    this.cluster.setCoreCount(Integer.valueOf(aValue.toString()));
+                    this.cluster.setProcessorCores(Integer.valueOf(aValue.toString()));
             case TableRows.MEMORY ->
-                    this.cluster.setRam(Double.valueOf(aValue.toString()));
+                    this.cluster.setRamMemory(Double.valueOf(aValue.toString()));
             case TableRows.DISK ->
                     this.cluster.setHardDisk(Double.valueOf(aValue.toString()));
             case TableRows.COST_PER_PROCESSOR ->
@@ -186,9 +186,9 @@ public class ClusterTableIaaS extends AbstractTableModel {
             case TableRows.LATENCY ->
                     this.cluster.setLatency(Double.valueOf(aValue.toString()));
             case TableRows.VMM ->
-                    this.cluster.setMaster(Boolean.valueOf(aValue.toString()));
+                    this.cluster.setIsMaster(Boolean.valueOf(aValue.toString()));
             case TableRows.SCHEDULER ->
-                    this.cluster.setSchedulingAlgorithm(this.schedulers.getSelectedItem().toString());
+                    this.cluster.setAlgorithm(this.schedulers.getSelectedItem().toString());
             case TableRows.VMM_POLICIES ->
                     this.cluster.setVmmAllocationPolicy(this.vmmPolicies.getSelectedItem().toString());
         }

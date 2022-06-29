@@ -40,7 +40,7 @@
 package ispd.application;
 
 import ispd.arquivo.xml.IconicoXML;
-import ispd.gui.JResultados;
+import ispd.gui.ResultsDialog;
 import ispd.motor.ProgressoSimulacao;
 import ispd.motor.Simulation;
 import ispd.motor.SimulacaoParalela;
@@ -343,7 +343,7 @@ public class TerminalApplication implements Application
             if (arquivoOut != null) {
                 resuladosGlobais = metricas.getMetricasGlobais();
                 double t1 = System.currentTimeMillis();
-                JResultados result = new JResultados(metricas);
+                ResultsDialog result = new ResultsDialog(metricas);
                 result.salvarHTML(arquivoOut);
                 double t2 = System.currentTimeMillis();
                 //Calcula tempo de simulação em segundos
@@ -421,7 +421,7 @@ public class TerminalApplication implements Application
             progrSim.println("Results:");
             if (arquivoOut != null) {
                 t1 = System.currentTimeMillis();
-                JResultados result = new JResultados(metricas);
+                ResultsDialog result = new ResultsDialog(metricas);
                 result.salvarHTML(arquivoOut);
                 t2 = System.currentTimeMillis();
                 //Calcula tempo de simulação em segundos

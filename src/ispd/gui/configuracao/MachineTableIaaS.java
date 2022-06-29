@@ -80,14 +80,14 @@ public class MachineTableIaaS extends AbstractTableModel {
         this.machine = machine;
         this.vmm_policies.setSelectedItem(this.machine.getVmmAllocationPolicy());
         // TODO: Superclass?
-        this.schedulers.setSelectedItem(this.machine.getSchedulingAlgorithm());
+        this.schedulers.setSelectedItem(this.machine.getAlgorithm());
         this.users.removeAllItems();
         for (final var s : users) {
             this.users.addItem(s);
         }
-        this.users.setSelectedItem(machine.getOwner());
+        this.users.setSelectedItem(machine.getProprietario());
         this.slaveList.setVisible(false);
-        this.slaves.setText(machine.getSlaves().toString());
+        this.slaves.setText(machine.getEscravos().toString());
     }
 
     @Override
@@ -155,11 +155,11 @@ public class MachineTableIaaS extends AbstractTableModel {
             case MachineTableIaaS.LABEL -> this.machine.getId().getName();
             case MachineTableIaaS.OWNER -> this.users;
             case MachineTableIaaS.PROCESSOR ->
-                    this.machine.getComputationalPower();
+                    this.machine.getPoderComputacional();
             case MachineTableIaaS.LOAD_FACTOR -> this.machine.getLoadFactor();
-            case MachineTableIaaS.RAM -> this.machine.getRam();
+            case MachineTableIaaS.RAM -> this.machine.getRamMemory();
             case MachineTableIaaS.DISK -> this.machine.getHardDisk();
-            case MachineTableIaaS.CORES -> this.machine.getCoreCount();
+            case MachineTableIaaS.CORES -> this.machine.getProcessorCores();
             case MachineTableIaaS.VMM -> this.machine.isMaster();
             case MachineTableIaaS.SCHEDULER -> this.schedulers;
             case MachineTableIaaS.SLAVE -> this.slaves;
@@ -212,15 +212,15 @@ public class MachineTableIaaS extends AbstractTableModel {
             case MachineTableIaaS.LOAD_FACTOR ->
                     this.machine.setLoadFactor(Double.valueOf(aValue.toString()));
             case MachineTableIaaS.RAM ->
-                    this.machine.setRam(Double.valueOf(aValue.toString()));
+                    this.machine.setRamMemory(Double.valueOf(aValue.toString()));
             case MachineTableIaaS.DISK ->
                     this.machine.setHardDisk(Double.valueOf(aValue.toString()));
             case MachineTableIaaS.CORES ->
-                    this.machine.setCoreCount(Integer.valueOf(aValue.toString()));
+                    this.machine.setProcessorCores(Integer.valueOf(aValue.toString()));
             case MachineTableIaaS.VMM ->
-                    this.machine.setMaster(Boolean.valueOf(aValue.toString()));
+                    this.machine.setIsMaster(Boolean.valueOf(aValue.toString()));
             case MachineTableIaaS.SCHEDULER ->
-                    this.machine.setSchedulingAlgorithm(this.schedulers.getSelectedItem().toString());
+                    this.machine.setAlgorithm(this.schedulers.getSelectedItem().toString());
             case MachineTableIaaS.COST_PER_PROCESSOR ->
                     this.machine.setCostPerProcessing(Double.valueOf(aValue.toString()));
             case MachineTableIaaS.COST_PER_MEMORY ->
@@ -260,7 +260,7 @@ public class MachineTableIaaS extends AbstractTableModel {
 
             final var modelList = new DefaultListModel<GridItem>();
             final var connectedList =
-                    MachineTableIaaS.this.machine.connectedSchedulableNodes();
+                    MachineTableIaaS.this.machine.getNosEscalonaveis();
 
             for (final var item : connectedList) {
                 modelList.addElement(item);
@@ -268,7 +268,7 @@ public class MachineTableIaaS extends AbstractTableModel {
 
             MachineTableIaaS.this.slaveList.setModel(modelList);
 
-            MachineTableIaaS.this.machine.getSlaves().stream()
+            MachineTableIaaS.this.machine.getEscravos().stream()
                     .mapToInt(connectedList::indexOf)
                     .forEachOrdered(i -> MachineTableIaaS.this.slaveList.addSelectionInterval(i, i));
 
@@ -296,7 +296,7 @@ public class MachineTableIaaS extends AbstractTableModel {
                     new ArrayList<>(MachineTableIaaS.this.slaveList.getSelectedValuesList())
             );
 
-            MachineTableIaaS.this.slaves.setText(MachineTableIaaS.this.machine.getSlaves().toString());
+            MachineTableIaaS.this.slaves.setText(MachineTableIaaS.this.machine.getEscravos().toString());
         }
     }
 }

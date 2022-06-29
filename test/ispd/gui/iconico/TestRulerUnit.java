@@ -6,16 +6,16 @@ import org.junit.jupiter.api.Test;
 public final class TestRulerUnit {
 
     /**
-     * It tests the {@link Ruler.RulerUnit#nextUnit(Ruler.RulerUnit)}.
+     * It tests the {@link RulerUnit#nextUnit()}.
      */
     @Test
     public void testNextUnit() {
-        final var cmUnit = Ruler.RulerUnit.CENTIMETERS;
-        final var inUnit = Ruler.RulerUnit.INCHES;
+        final var cmUnit = RulerUnit.CENTIMETERS;
+        final var inUnit = RulerUnit.INCHES;
 
-        Assertions.assertEquals(Ruler.RulerUnit.INCHES,
+        Assertions.assertEquals(RulerUnit.INCHES,
                 cmUnit.nextUnit());
-        Assertions.assertEquals(Ruler.RulerUnit.CENTIMETERS,
+        Assertions.assertEquals(RulerUnit.CENTIMETERS,
                 inUnit.nextUnit());
     }
 }
