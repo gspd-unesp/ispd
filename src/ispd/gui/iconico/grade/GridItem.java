@@ -33,13 +33,14 @@ public interface GridItem {
     Set<GridItem> getOutboundConnections();
 
     /**
-     * Returns its attributes.
+     * It makes the grid item description relative to the
+     * specified translator.
      *
-     * @param resourceBundle the resource bundle containing
-     *                       the translation messages
-     * @return its attributes
+     * @param translator the translator containing the
+     *                   translated messages
+     * @return the grid item description
      */
-    String getAttributes(ResourceBundle resourceBundle);
+    String makeDescription(ResourceBundle translator);
 
     /**
      * It returns a copy of this grid item relative to the

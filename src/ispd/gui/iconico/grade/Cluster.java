@@ -114,24 +114,37 @@ public class Cluster extends VertexGridItem {
     /**
      * Return the cluster attributes.
      *
-     * @param resourceBundle the resource bundle containing
-     *                       the translation messages
+     * @param translator the resource bundle containing
+     *                   the translation messages
      * @return the cluster attributes
      */
     @Override
-    public String getAttributes(
-            final ResourceBundle resourceBundle) {
-        return resourceBundle.getString("Local ID:") + " " + this.getId().getLocalId()
-                + "<br>" + resourceBundle.getString("Global ID:") + " " + this.getId().getGlobalId()
-                + "<br>" + resourceBundle.getString("Label") + ": " + this.getId().getName()
-                + "<br>" + resourceBundle.getString("X-coordinate:") + " " + this.getX()
-                + "<br>" + resourceBundle.getString("Y-coordinate:") + " " + this.getY()
-                + "<br>" + resourceBundle.getString("Number of " + "slaves") + ": " + getSlaveCount()
-                + "<br>" + resourceBundle.getString("Computing power") + ": " + getComputationalPower()
-                + "<br>" + resourceBundle.getString("Bandwidth") + ":" + " " + getBandwidth()
-                + "<br>" + resourceBundle.getString("Latency") + ": " + getLatency()
-                + "<br>" + resourceBundle.getString("Scheduling " +
-                "algorithm") + ": " + getSchedulingAlgorithm();
+    public String makeDescription(
+            final ResourceBundle translator) {
+        return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s: %d<br>%s: " +
+                "%s<br>%s: %s<br>%s: %s<br>%s: %s")
+                .formatted(
+                        translator.getString("Local ID:"),
+                        this.id.getLocalId(),
+                        translator.getString("Global ID:"),
+                        this.id.getGlobalId(),
+                        translator.getString("Label"),
+                        this.id.getName(),
+                        translator.getString("X-coordinate:"),
+                        this.getX(),
+                        translator.getString("Y-coordinate:"),
+                        this.getY(),
+                        translator.getString("Number of slaves"),
+                        this.slaveCount,
+                        translator.getString("Computing power"),
+                        this.computationalPower,
+                        translator.getString("Bandwidth"),
+                        this.bandwidth,
+                        translator.getString("Latency"),
+                        this.latency,
+                        translator.getString("Scheduling algorithm"),
+                        this.schedulingAlgorithm
+                );
     }
 
     /**
@@ -475,7 +488,7 @@ public class Cluster extends VertexGridItem {
      */
     @Override
     public Image getImage() {
-        return DesenhoGrade.ICLUSTER;
+        return DesenhoGrade.clusterIcon;
     }
 
     /* toString */

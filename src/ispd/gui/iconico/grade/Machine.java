@@ -113,34 +113,24 @@ public class Machine extends VertexGridItem {
     /**
      * Returns the machine attributes.
      *
-     * @param resourceBundle the resource bundle containing
-     *                       the translation messages
+     * @param translator the resource bundle containing
+     *                   the translation messages
      * @return the machine attributes
      */
     @Override
-    public String getAttributes(final ResourceBundle resourceBundle) {
-        String texto =
-                resourceBundle.getString("Local ID:") + " " + this.id.getLocalId()
-                        + "<br>" + resourceBundle.getString("Global ID:") +
-                        " " + this.id.getGlobalId()
-                        + "<br>" + resourceBundle.getString("Label") + ": " + this.id.getName()
-                        + "<br>" + resourceBundle.getString("X-coordinate:") + " " + this.getX()
-                        + "<br>" + resourceBundle.getString("Y-coordinate:") + " " + this.getY()
-                        + "<br>" + resourceBundle.getString("Computing power") + ": " + this.computationalPower
-                        + "<br>" + resourceBundle.getString("Load Factor") +
-                        ": " + this.loadFactor;
-
-        if (isMaster()) {
-            texto = texto
-                    + "<br>" + resourceBundle.getString("Master")
-                    + "<br>" + resourceBundle.getString("Scheduling " +
-                    "algorithm") + ": " + this.schedulingAlgorithm;
-        } else {
-            texto = texto
-                    + "<br>" + resourceBundle.getString("Slave");
-        }
-
-        return texto;
+    public String makeDescription(
+            final ResourceBundle translator) {
+        return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s: %s<br>%s: " +
+                "%s%s").formatted(
+                translator.getString("Local ID:"), this.id.getLocalId(),
+                translator.getString("Global ID:"), this.id.getGlobalId(),
+                translator.getString("Label"), this.id.getName(),
+                translator.getString("X-coordinate:"), this.getX(),
+                translator.getString("Y-coordinate:"), this.getY(),
+                translator.getString("Computing power"),
+                this.computationalPower,
+                translator.getString("Load Factor"), this.loadFactor,
+                this.describeRole(translator));
     }
 
     /**
@@ -646,7 +636,7 @@ public class Machine extends VertexGridItem {
      */
     @Override
     public Image getImage() {
-        return DesenhoGrade.IMACHINE;
+        return DesenhoGrade.machineIcon;
     }
 
     /* toString */
@@ -660,5 +650,26 @@ public class Machine extends VertexGridItem {
     public String toString() {
         return "id: " + this.id.getGlobalId()
                 + " " + this.id.getName();
+    }
+
+    /**
+     * It describes this machine's role relative if it is a
+     * master.
+     *
+     * @param translator the translator containing the
+     *                   translated messages
+     * @return the described machine role
+     */
+    private String describeRole(
+            final ResourceBundle translator) {
+        if (!this.master) {
+            return "<br>" + translator.getString("Slave");
+        }
+
+        return "<br>%s<br>%s: %s".formatted(
+                translator.getString("Master"),
+                translator.getString("Scheduling algorithm"),
+                this.schedulingAlgorithm
+        );
     }
 }

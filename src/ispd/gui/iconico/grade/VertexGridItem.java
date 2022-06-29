@@ -92,7 +92,7 @@ import java.util.Set;
     @Override
     public void draw(final Graphics g) {
         final var configuredStatusImage = this.configured ?
-                DesenhoGrade.IVERDE : DesenhoGrade.IVERMELHO;
+                DesenhoGrade.greenIcon : DesenhoGrade.redIcon;
 
         g.drawImage(this.getImage(), this.getX() - 15,
                 this.getY() - 15, null);

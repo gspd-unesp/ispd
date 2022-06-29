@@ -6,13 +6,13 @@ public abstract class Vertex implements Icon {
      * It represents the <em>base</em> x-coordinate in cartesian
      * coordinates.
      */
-    private int baseX = 0;
+    private int baseX;
 
     /**
      * It represents the <em>base</em> y-coordinate in cartesian
      * coordinates.
      */
-    private int baseY = 0;
+    private int baseY;
 
     /**
      * It represents the x-coordinate in cartesian coordinates.
@@ -86,7 +86,8 @@ public abstract class Vertex implements Icon {
      * @param x the base x-coordinate
      * @param y the base y-coordinate
      */
-    /* package-private */ void setBase(final Integer x, final Integer y) {
+    /* package-private */ void setBase(final Integer x,
+                                       final Integer y) {
         this.baseX = x;
         this.baseY = y;
     }
@@ -97,7 +98,8 @@ public abstract class Vertex implements Icon {
      * @param x the x-coordinate
      * @param y the y-coordinate
      */
-    public void setPosition(final Integer x, final Integer y) {
+    public void setPosition(final Integer x,
+                            final Integer y) {
         this.x = x;
         this.y = y;
     }
@@ -107,7 +109,7 @@ public abstract class Vertex implements Icon {
      * Otherwise, returns {@code false}.
      *
      * @return {@code true} if this vertex is selected;
-     * otherwise, returns {@code false}.
+     *         otherwise, returns {@code false}.
      */
     @Override
     public boolean isSelected() {

@@ -236,8 +236,8 @@ public class DesenhoGrade extends DrawingArea {
             this.edgeCount++;
             this.iconCount++;
             temp.setPosition(link.getDestination(), link.getSource());
-            ((GridItem) temp.getSource()).getConnectionsOut().add(temp);
-            ((GridItem) temp.getDestination()).getConnectionsOut().add(temp);
+            ((GridItem) temp.getSource()).getOutboundConnections().add(temp);
+            ((GridItem) temp.getDestination()).getOutboundConnections().add(temp);
             this.selectedIcons.add(temp);
             this.edges.add(temp);
             ValidaValores.addNomeIcone(temp.getId().getName());
@@ -268,10 +268,10 @@ public class DesenhoGrade extends DrawingArea {
                     if (iconeRemover instanceof Edge) {
                         final GridItem or =
                                 (GridItem) ((Edge) iconeRemover).getSource();
-                        or.getConnectionsOut().remove((GridItem) iconeRemover);
+                        or.getOutboundConnections().remove((GridItem) iconeRemover);
                         final GridItem de =
                                 (GridItem) ((Edge) iconeRemover).getDestination();
-                        de.getConnectionsIn().remove((GridItem) iconeRemover);
+                        de.getInboundConnections().remove((GridItem) iconeRemover);
                         ValidaValores.removeNomeIcone(((GridItem) iconeRemover).getId().getName());
                         this.edges.remove((Edge) iconeRemover);
                         this.mainWindow.modificar();
@@ -279,14 +279,14 @@ public class DesenhoGrade extends DrawingArea {
                         final int cont = 0;
                         //Remover dados das conexoes q entram
                         Set<GridItem> listanos =
-                                ((GridItem) iconeRemover).getConnectionsIn();
+                                ((GridItem) iconeRemover).getInboundConnections();
                         for (final GridItem I : listanos) {
                             this.edges.remove((Edge) I);
                             ValidaValores.removeNomeIcone(I.getId().getName());
                         }
                         //Remover dados das conexoes q saem
                         listanos =
-                                ((GridItem) iconeRemover).getConnectionsOut();
+                                ((GridItem) iconeRemover).getOutboundConnections();
                         for (final GridItem I : listanos) {
                             this.edges.remove((Edge) I);
                             ValidaValores.removeNomeIcone(I.getId().getName());
@@ -305,8 +305,8 @@ public class DesenhoGrade extends DrawingArea {
     public void adicionarAresta(final Vertex Origem, final Vertex Destino) {
         final Link link = new Link(Origem, Destino, this.edgeCount,
                 this.iconCount);
-        ((GridItem) Origem).getConnectionsOut().add(link);
-        ((GridItem) Destino).getConnectionsIn().add(link);
+        ((GridItem) Origem).getOutboundConnections().add(link);
+        ((GridItem) Destino).getInboundConnections().add(link);
         this.edgeCount++;
         this.iconCount++;
         ValidaValores.addNomeIcone(link.getId().getName());
@@ -392,32 +392,32 @@ public class DesenhoGrade extends DrawingArea {
         if (this.shouldPrintDirectConnections && icon instanceof Vertex) {
             text.append("<br>").append(this.translate("Output " +
                                                       "Connection:"));
-            for (final GridItem i : icon.getConnectionsOut()) {
+            for (final GridItem i : icon.getOutboundConnections()) {
                 final GridItem saida = (GridItem) ((Edge) i).getDestination();
                 text.append("<br>").append(saida.getId().getName());
             }
             text.append("<br>").append(this.translate("Input " +
                                                       "Connection:"));
-            for (final GridItem i : icon.getConnectionsIn()) {
+            for (final GridItem i : icon.getInboundConnections()) {
                 final GridItem entrada = (GridItem) ((Edge) i).getSource();
                 text.append("<br>").append(entrada.getId().getName());
             }
         }
         if (this.shouldPrintDirectConnections && icon instanceof Edge) {
-            for (final GridItem i : icon.getConnectionsIn()) {
+            for (final GridItem i : icon.getInboundConnections()) {
                 text.append("<br>").append(this.translate("Source " +
                                                           "Node:")).append(" "
-                ).append(i.getConnectionsIn());
+                ).append(i.getInboundConnections());
             }
-            for (final GridItem i : icon.getConnectionsIn()) {
+            for (final GridItem i : icon.getInboundConnections()) {
                 text.append("<br>").append(this.translate("Destination" +
                                                           " " +
-                                                          "Node:")).append(" ").append(i.getConnectionsOut());
+                                                          "Node:")).append(" ").append(i.getOutboundConnections());
             }
         }
         if (this.shouldPrintIndirectConnections && icon instanceof final Machine I) {
-            final Set<GridItem> listaEntrada = I.getNosIndiretosEntrada();
-            final Set<GridItem> listaSaida = I.getNosIndiretosSaida();
+            final Set<GridItem> listaEntrada = I.connectedInboundNodes();
+            final Set<GridItem> listaSaida = I.connectedOutboundNodes();
             text.append("<br>").append(this.translate("Output Nodes " +
                                                       "Indirectly " +
                                                       "Connected:"));
@@ -434,11 +434,11 @@ public class DesenhoGrade extends DrawingArea {
         if (this.shouldPrintSchedulableNodes && icon instanceof final Machine I) {
             text.append("<br>").append(this.translate("Schedulable " +
                                                       "Nodes:"));
-            for (final GridItem i : I.getNosEscalonaveis()) {
+            for (final GridItem i : I.connectedSchedulableNodes()) {
                 text.append("<br>").append(i.getId().getGlobalId());
             }
             if (I.isMaster()) {
-                final List<GridItem> escravos = ((Machine) icon).getEscravos();
+                final List<GridItem> escravos = ((Machine) icon).getSlaves();
                 text.append("<br>").append(this.translate("Slave " +
                                                           "Nodes:"));
                 for (final GridItem i : escravos) {
@@ -456,12 +456,12 @@ public class DesenhoGrade extends DrawingArea {
         for (final Icon icon : this.vertices) {
             if (icon instanceof final Machine I) {
                 saida.append(String.format("MAQ %s %f %f ",
-                        I.getId().getName(), I.getPoderComputacional(),
+                        I.getId().getName(), I.getComputationalPower(),
                         I.getLoadFactor()));
                 if (((Machine) icon).isMaster()) {
-                    saida.append(String.format("MESTRE %s LMAQ".formatted(I.getAlgorithm())));
+                    saida.append(String.format("MESTRE %s LMAQ".formatted(I.getSchedulingAlgorithm())));
                     final List<GridItem> lista =
-                            ((Machine) icon).getEscravos();
+                            ((Machine) icon).getSlaves();
                     for (final GridItem slv : lista) {
                         if (this.vertices.contains((Vertex) slv)) {
                             saida.append(" ").append(slv.getId().getName());
@@ -477,8 +477,8 @@ public class DesenhoGrade extends DrawingArea {
             if (icon instanceof final Cluster I) {
                 saida.append(String.format("CLUSTER %s %d %f %f %f %s\n",
                         I.getId().getName(), I.getSlaveCount(),
-                        I.getPoderComputacional(), I.getBandwidth(),
-                        I.getLatency(), I.getAlgorithm()));
+                        I.getComputationalPower(), I.getBandwidth(),
+                        I.getLatency(), I.getSchedulingAlgorithm()));
             }
         }
         for (final Icon icon : this.vertices) {
@@ -521,8 +521,8 @@ public class DesenhoGrade extends DrawingArea {
         for (final Vertex vertice : this.vertices) {
             if (vertice instanceof final Machine I) {
                 final var slaves =
-                        new ArrayList<Integer>(I.getEscravos().size());
-                for (final GridItem slv : I.getEscravos()) {
+                        new ArrayList<Integer>(I.getSlaves().size());
+                for (final GridItem slv : I.getSlaves()) {
                     if (this.vertices.contains((Vertex) slv)) {
                         slaves.add(slv.getId().getGlobalId());
                     }
@@ -531,19 +531,19 @@ public class DesenhoGrade extends DrawingArea {
                     xml.addMachine(I.getX(), I.getY(),
                             I.getId().getLocalId(), I.getId().getGlobalId(),
                             I.getId().getName(),
-                            I.getPoderComputacional(), I.getLoadFactor(),
-                            I.getAlgorithm(), I.getProprietario(),
-                            I.getProcessorCores(), I.getRamMemory(),
+                            I.getComputationalPower(), I.getLoadFactor(),
+                            I.getSchedulingAlgorithm(), I.getOwner(),
+                            I.getCoreCount(), I.getRam(),
                             I.getHardDisk(),
                             I.isMaster(), slaves);
                 } else if (this.modelType == PickModelTypeDialog.IAAS) {
                     xml.addMachineIaaS(I.getX(), I.getY(),
                             I.getId().getLocalId(), I.getId().getGlobalId(),
                             I.getId().getName(),
-                            I.getPoderComputacional(), I.getLoadFactor(),
-                            I.getVmmAllocationPolicy(), I.getAlgorithm(),
-                            I.getProprietario(), I.getProcessorCores(),
-                            I.getRamMemory(),
+                            I.getComputationalPower(), I.getLoadFactor(),
+                            I.getVmmAllocationPolicy(), I.getSchedulingAlgorithm(),
+                            I.getOwner(), I.getCoreCount(),
+                            I.getRam(),
                             I.getHardDisk(), I.getCostPerProcessing(),
                             I.getCostPerMemory(), I.getCostPerDisk(),
                             I.isMaster(), slaves);
@@ -554,24 +554,24 @@ public class DesenhoGrade extends DrawingArea {
                     xml.addCluster(I.getX(), I.getY(),
                             I.getId().getLocalId(), I.getId().getGlobalId(),
                             I.getId().getName(),
-                            I.getSlaveCount(), I.getPoderComputacional(),
-                            I.getProcessorCores(),
-                            I.getRamMemory(), I.getHardDisk(),
+                            I.getSlaveCount(), I.getComputationalPower(),
+                            I.getCoreCount(),
+                            I.getRam(), I.getHardDisk(),
                             I.getBandwidth(), I.getLatency(),
-                            I.getAlgorithm(), I.getProprietario(),
+                            I.getSchedulingAlgorithm(), I.getOwner(),
                             I.isMaster());
                 } else if (this.modelType == PickModelTypeDialog.IAAS) {
                     final Cluster I = (Cluster) vertice;
                     xml.addClusterIaaS(I.getX(), I.getY(),
                             I.getId().getLocalId(), I.getId().getGlobalId(),
                             I.getId().getName(), I.getSlaveCount(),
-                            I.getPoderComputacional(), I.getProcessorCores(),
-                            I.getRamMemory(), I.getHardDisk(),
+                            I.getComputationalPower(), I.getCoreCount(),
+                            I.getRam(), I.getHardDisk(),
                             I.getBandwidth(), I.getLatency(),
-                            I.getAlgorithm(), I.getVmmAllocationPolicy(),
+                            I.getSchedulingAlgorithm(), I.getVmmAllocationPolicy(),
                             I.getCostPerProcessing(),
                             I.getCostPerMemory(), I.getCostPerDisk(),
-                            I.getProprietario(), I.isMaster());
+                            I.getOwner(), I.isMaster());
                 }
             } else if (vertice instanceof final Internet I) {
                 xml.addInternet(
@@ -594,10 +594,10 @@ public class DesenhoGrade extends DrawingArea {
         //trecho de escrita das máquinas virtuais
         if (this.virtualMachines != null) {
             for (final VirtualMachine vm : this.virtualMachines) {
-                xml.addVirtualMachines(vm.getName(), vm.getProprietario(),
-                        vm.getVmm(), vm.getPoderComputacional(),
+                xml.addVirtualMachines(vm.getName(), vm.getOwner(),
+                        vm.getVMM(), vm.getCoreCount(),
                         vm.getAllocatedMemory(), vm.getAllocatedDisk(),
-                        vm.getOs());
+                        vm.getOperatingSystem());
             }
         }
 

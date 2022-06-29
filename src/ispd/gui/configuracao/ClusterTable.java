@@ -24,12 +24,12 @@ public class ClusterTable extends AbstractTableModel {
 
     void setCluster(final Cluster cluster, final Iterable<?> users) {
         this.cluster = cluster;
-        this.schedulers.setSelectedItem(this.cluster.getAlgorithm());
+        this.schedulers.setSelectedItem(this.cluster.getSchedulingAlgorithm());
         this.users.removeAllItems();
         for (final var o : users) {
             this.users.addItem(o);
         }
-        this.users.setSelectedItem(cluster.getProprietario());
+        this.users.setSelectedItem(cluster.getOwner());
     }
 
     @Override
@@ -67,13 +67,13 @@ public class ClusterTable extends AbstractTableModel {
                         case TableRows.NODES:
                             return this.cluster.getSlaveCount();
                         case TableRows.PROCESSORS:
-                            return this.cluster.getPoderComputacional();
+                            return this.cluster.getComputationalPower();
                         case TableRows.RAM:
-                            return this.cluster.getRamMemory();
+                            return this.cluster.getRam();
                         case TableRows.HARD_DISK:
                             return this.cluster.getHardDisk();
                         case TableRows.CORES:
-                            return this.cluster.getProcessorCores();
+                            return this.cluster.getCoreCount();
                         case TableRows.BANDWIDTH:
                             return this.cluster.getBandwidth();
                         case TableRows.LATENCY:
@@ -152,11 +152,11 @@ public class ClusterTable extends AbstractTableModel {
             case TableRows.PROCESSORS ->
                     this.cluster.setComputationalPower(Double.valueOf(aValue.toString()));
             case TableRows.RAM ->
-                    this.cluster.setRamMemory(Double.valueOf(aValue.toString()));
+                    this.cluster.setRam(Double.valueOf(aValue.toString()));
             case TableRows.HARD_DISK ->
                     this.cluster.setHardDisk(Double.valueOf(aValue.toString()));
             case TableRows.CORES ->
-                    this.cluster.setProcessorCores(Integer.valueOf(aValue.toString()));
+                    this.cluster.setCoreCount(Integer.valueOf(aValue.toString()));
             case TableRows.BANDWIDTH ->
                     this.cluster.setBandwidth(Double.valueOf(aValue.toString()));
             case TableRows.LATENCY ->
@@ -164,9 +164,9 @@ public class ClusterTable extends AbstractTableModel {
             case TableRows.ENERGY ->
                     this.cluster.setEnergyConsumption(Double.valueOf(aValue.toString()));
             case TableRows.MASTER ->
-                    this.cluster.setIsMaster(Boolean.valueOf(aValue.toString()));
+                    this.cluster.setMaster(Boolean.valueOf(aValue.toString()));
             case TableRows.SCHEDULER ->
-                    this.cluster.setAlgorithm(this.schedulers.getSelectedItem().toString());
+                    this.cluster.setSchedulingAlgorithm(this.schedulers.getSelectedItem().toString());
         }
 
         this.fireTableCellUpdated(rowIndex, ClusterTable.VALUE);

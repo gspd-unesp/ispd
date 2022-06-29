@@ -40,21 +40,24 @@ public class Internet extends VertexGridItem {
     /**
      * Return the internet attributes.
      *
-     * @param resourceBundle the resource bundle containing
+     * @param translator the resource bundle containing
      *                       the translation messages
      * @return the internet attributes
      */
     @Override
-    public String getAttributes(
-            final ResourceBundle resourceBundle) {
-        return resourceBundle.getString("Local ID:") + " " + this.id.getLocalId()
-                + "<br>" + resourceBundle.getString("Global ID:") + " " + this.id.getGlobalId()
-                + "<br>" + resourceBundle.getString("Label") + ": " + this.id.getName()
-                + "<br>" + resourceBundle.getString("X-coordinate:") + " " + getX()
-                + "<br>" + resourceBundle.getString("Y-coordinate:") + " " + getY()
-                + "<br>" + resourceBundle.getString("Bandwidth") + ": " + getBandwidth()
-                + "<br>" + resourceBundle.getString("Latency") + ": " + getLatency()
-                + "<br>" + resourceBundle.getString("Load Factor") + ": " + getLoadFactor();
+    public String makeDescription(
+            final ResourceBundle translator) {
+        return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s: %s<br>%s:" +
+                " %s<br>%s: %s").formatted(
+                translator.getString("Local ID:"), this.id.getLocalId(),
+                translator.getString("Global ID:"), this.id.getGlobalId(),
+                translator.getString("Label"), this.id.getName(),
+                translator.getString("X-coordinate:"), this.getX(),
+                translator.getString("Y-coordinate:"), this.getY(),
+                translator.getString("Bandwidth"), this.bandwidth,
+                translator.getString("Latency"), this.latency,
+                translator.getString("Load Factor"), this.loadFactor
+        );
     }
 
     /**
@@ -151,6 +154,6 @@ public class Internet extends VertexGridItem {
      */
     @Override
     public Image getImage() {
-        return DesenhoGrade.IINTERNET;
+        return DesenhoGrade.internetIcon;
     }
 }

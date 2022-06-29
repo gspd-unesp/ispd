@@ -41,10 +41,10 @@ public class Link extends EdgeGridItem {
      * destination vertices and the local and global
      * identifiers.
      *
-     * @param source the source vertex
+     * @param source      the source vertex
      * @param destination the destination vertex
-     * @param localId the local identifier
-     * @param globalId the global identifier
+     * @param localId     the local identifier
+     * @param globalId    the global identifier
      */
     public Link(final Vertex source,
                 final Vertex destination,
@@ -58,23 +58,28 @@ public class Link extends EdgeGridItem {
     /**
      * Returns the link attributes.
      *
-     * @param resourceBundle the resource bundle containing
-     *                       the translation messages
+     * @param translator the translator containing
+     *                   the translation messages
      * @return the link attributes
      */
     @Override
-    public String getAttributes(
-            final ResourceBundle resourceBundle) {
-        return resourceBundle.getString("Local ID:") + " " + this.id.getLocalId()
-                + "<br>" + resourceBundle.getString("Global ID:") + " " + this.id.getGlobalId()
-                + "<br>" + resourceBundle.getString("Label") + ": " + this.id.getName()
-                + "<br>" + resourceBundle.getString("X1-coordinate:") + " " + this.getSource().getX()
-                + "<br>" + resourceBundle.getString("Y1-coordinate:") + " " + this.getSource().getY()
-                + "<br>" + resourceBundle.getString("X2-coordinate:") + " " + this.getDestination().getY()
-                + "<br>" + resourceBundle.getString("Y2-coordinate:") + " " + this.getDestination().getX()
-                + "<br>" + resourceBundle.getString("Bandwidth") + ": " + this.bandwidth
-                + "<br>" + resourceBundle.getString("Latency") + ": " + this.latency
-                + "<br>" + resourceBundle.getString("Load Factor") + ": " + this.loadFactor;
+    public String makeDescription(
+            final ResourceBundle translator) {
+        return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s %d<br>%s " +
+                "%d<br>%s: %s<br>%s: %s<br>%s: %s").formatted(
+                translator.getString("Local ID:"), this.id.getLocalId(),
+                translator.getString("Global ID:"), this.id.getGlobalId(),
+                translator.getString("Label"), this.id.getName(),
+                translator.getString("X1-coordinate:"), this.getSource().getX(),
+                translator.getString("Y1-coordinate:"), this.getSource().getY(),
+                translator.getString("X2-coordinate:"),
+                this.getDestination().getY(),
+                translator.getString("Y2-coordinate:"),
+                this.getDestination().getX(),
+                translator.getString("Bandwidth"), this.bandwidth,
+                translator.getString("Latency"), this.latency,
+                translator.getString("Load Factor"), this.loadFactor
+        );
     }
 
     /**
@@ -200,7 +205,6 @@ public class Link extends EdgeGridItem {
         return this.bandwidth;
     }
 
-
     /**
      * It sets the bandwidth.
      *
@@ -213,6 +217,7 @@ public class Link extends EdgeGridItem {
 
     /**
      * Returns the load factor.
+     *
      * @return the load factor
      */
     public double getLoadFactor() {
@@ -230,6 +235,7 @@ public class Link extends EdgeGridItem {
 
     /**
      * Returns the latency.
+     *
      * @return the latency
      */
     public double getLatency() {
@@ -248,22 +254,28 @@ public class Link extends EdgeGridItem {
 
     /**
      * Returns the x-coordinate in cartesian coordinates.
+     *
      * @return the x-coordinate in cartesian coordinates
      */
     @Override
     public Integer getX() {
-        return (((((this.getSource().getX() + this.getDestination().getX()) / 2)
-                + this.getDestination().getX()) / 2) + this.getDestination().getX()) / 2;
+        return Link.biasedMidPoint(
+                this.getSource().getX(),
+                this.getDestination().getX()
+        );
     }
 
     /**
      * Returns the y-coordinate in cartesian coordinates.
+     *
      * @return the y-coordinate in cartesian coordinates
      */
     @Override
     public Integer getY() {
-        return (((((this.getSource().getY() + this.getDestination().getY()) / 2)
-                + this.getDestination().getY()) / 2) + this.getDestination().getY()) / 2;
+        return Link.biasedMidPoint(
+                this.getSource().getY(),
+                this.getDestination().getY()
+        );
     }
 
     /* getImage */
@@ -276,5 +288,20 @@ public class Link extends EdgeGridItem {
     @Override
     public Image getImage() {
         return null;
+    }
+
+    /**
+     * It returns the following calculation
+     * <pre>
+     *     (p1 + 7 * p2) / 8
+     * </pre>
+     *
+     * @param p1 the first point
+     * @param p2 the second point
+     * @return a weighted mean between these points
+     */
+    private static int biasedMidPoint(final int p1,
+                                      final int p2) {
+        return (p1 + 7 * p2) / 8;
     }
 }
