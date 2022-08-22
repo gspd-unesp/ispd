@@ -1,6 +1,7 @@
 package ispd.gui.iconico;
 
 import java.awt.Graphics;
+import java.awt.Image;
 
 public interface Icon {
 
@@ -16,15 +17,20 @@ public interface Icon {
      * the given X and Y coordinates. Otherwise, {@code false} is
      * returned.
      *
+     * @apiNote
+     * This method is often used to detect clicks on the icon from the
+     * user interacting in the grid.
+     *
+     * @implNote
+     * The area in which will be set to define whether this icon is
+     * contained is this area is implementation-dependent, that is each
+     * class implementing {@link Icon} may define a different area.
+     *
      * @param x the X-coordinate
      * @param y the Y-coordinate
-     * @return {@code true} if this icon is near the given X and Y
-     * coordinates; otherwise, returns {@code false}.
-     * @apiNote This method is often used to detect clicks on the icon from the
-     * user interacting in the grid.
-     * @implNote The area in which will be set to define whether this icon is
-     * contained is this area is implementation-dependent, that is each
-     * class implementing this method may define a different area.
+     *
+     * @return {@code true} if this icon is near the given X and  Y
+     *         coordinates; otherwise, returns {@code false}.
      */
     boolean contains(int x, int y);
 
@@ -33,12 +39,12 @@ public interface Icon {
      * {@code false} is returned.
      *
      * @return {@code true} if this icon has been selected; otherwise,
-     * {@code false} is returned.
+     *          {@code false} is returned.
      */
     boolean isSelected();
 
     /**
-     * It sets this icon as selected or not.
+     * It sets this {@link Icon icon} as selected or not.
      *
      * @param selected if {@code true}, set this icon as selected;
      *                 otherwise, set this icon as not selected.
@@ -47,15 +53,23 @@ public interface Icon {
 
     /**
      * Returns the icon x-coordinate in cartesian coordinates.
-     *
      * @return the icon x-coordinate in cartesian coordinates
      */
     Integer getX();
 
     /**
      * Returns the icon y-coordinate in cartesian coordinates.
-     *
      * @return the icon y-coordinate in cartesian coordinates
      */
     Integer getY();
+
+
+    /**
+     * Returns the icon image; that is, the image that is
+     * going to be representing this icon.
+     *
+     * @return this icon image
+     */
+    Image getImage();
+
 }

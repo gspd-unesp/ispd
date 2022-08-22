@@ -1,86 +1,52 @@
 package ispd.gui.iconico.grade;
 
-import ispd.gui.iconico.Vertex;
-
-import java.awt.Color;
-import java.awt.Graphics;
-import java.util.HashSet;
+import java.awt.Image;
 import java.util.ResourceBundle;
-import java.util.Set;
 
-public class Internet extends Vertex implements GridItem {
-    private static final int IMAGE_SIZE = 15;
-    private static final int ICON_SIZE = 17;
-    private final GridItemId id;
-    private final Set<GridItem> connectionsIn = new HashSet<>(0);
-    private final Set<GridItem> connectionsOut = new HashSet<>(0);
-    private double bandwidth = 0.0;
-    private double loadFactor = 0.0;
-    private double latency = 0.0;
-    private boolean isConfigured = false;
+public class Internet extends VertexGridItem {
 
+    /**
+     * It represents the bandwidth.
+     */
+    private double bandwidth;
+
+    /**
+     * It represents the latency.
+     */
+    private double latency;
+
+    /**
+     * It represents the load factor.
+     */
+    private double loadFactor;
+
+    /**
+     * Constructor of {@link Internet} which specifies the
+     * x-coordinate and y-coordinate (in cartesian coordinates),
+     * the local and global identifiers.
+     *
+     * @param x        the x-coordinate in cartesian coordinates
+     * @param y        the y-coordinate in cartesian coordinates
+     * @param localId  the local identifier
+     * @param globalId the global identifier
+     */
     public Internet(final int x,
                     final int y,
-                    final int idLocal,
-                    final int idGlobal) {
-        super(x, y);
-        this.id = new GridItemId(idLocal, idGlobal,
-                "net%d".formatted(idGlobal));
+                    final int localId,
+                    final int globalId) {
+        super(localId, globalId, "net", x, y);
     }
 
+    /**
+     * Return the internet attributes.
+     *
+     * @param translator the resource bundle containing
+     *                       the translation messages
+     * @return the internet attributes
+     */
     @Override
-    public void draw(final Graphics g) {
-        g.drawImage(DesenhoGrade.internetIcon,
-                this.getX() - Internet.IMAGE_SIZE,
-                this.getY() - Internet.IMAGE_SIZE, null);
-
-        if (this.isConfigured) {
-            g.drawImage(DesenhoGrade.greenIcon,
-                    this.getX() + Internet.IMAGE_SIZE,
-                    this.getY() + Internet.IMAGE_SIZE, null);
-        } else {
-            g.drawImage(DesenhoGrade.redIcon, this.getX() + Internet.IMAGE_SIZE,
-                    this.getY() + Internet.IMAGE_SIZE, null);
-        }
-
-        g.setColor(Color.BLACK);
-        g.drawString(String.valueOf(this.id.getGlobalId()), this.getX(),
-                this.getY() + 30);
-        // Se o icone estiver ativo, desenhamos uma margem nele.
-        if (this.isSelected()) {
-            g.setColor(Color.RED);
-            g.drawRect(this.getX() - 19, this.getY() - Internet.ICON_SIZE, 37
-                    , 34);
-        }
-    }
-
-    @Override
-    public boolean contains(final int x, final int y) {
-        if (x < this.getX() + Internet.ICON_SIZE
-            && x > this.getX() - Internet.ICON_SIZE) {
-            return y < this.getY() + Internet.ICON_SIZE
-                   && y > this.getY() - Internet.ICON_SIZE;
-        }
-        return false;
-    }
-
-    @Override
-    public GridItemId getId() {
-        return this.id;
-    }
-
-    @Override
-    public Set<GridItem> getConnectionsIn() {
-        return this.connectionsIn;
-    }
-
-    @Override
-    public Set<GridItem> getConnectionsOut() {
-        return this.connectionsOut;
-    }
-
-    @Override
-    public String makeDescription(final ResourceBundle translator) {
+    public String makeDescription(
+            final ResourceBundle translator) {
         return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s: %s<br>%s:" +
                 " %s<br>%s: %s").formatted(
                 translator.getString("Local ID:"), this.id.getLocalId(),
@@ -94,50 +60,100 @@ public class Internet extends Vertex implements GridItem {
         );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Internet makeCopy(final int mousePosX, final int mousePosY,
-                             final int copyGlobalId, final int copyLocalId) {
-        final var other = new Internet(mousePosX, mousePosY,
-                copyGlobalId, copyLocalId);
-        other.bandwidth = this.bandwidth;
-        other.loadFactor = this.loadFactor;
-        other.latency = this.latency;
-        other.validateConfiguration();
-        return other;
+    public Internet makeCopy(final int mousePosX,
+                             final int mousePosY,
+                             final int globalId,
+                             final int localId) {
+        final var internet = new Internet(mousePosX,
+                mousePosY, globalId, localId);
+        internet.bandwidth = this.bandwidth;
+        internet.loadFactor = this.loadFactor;
+        internet.latency = this.latency;
+        internet.checkConfiguration();
+        return internet;
     }
 
-    @Override
-    public boolean isCorrectlyConfigured() {
-        return this.isConfigured;
+
+    /**
+     * It checks if the current internet configuration is
+     * well configured; if so, then {@link #configured} is
+     * set to {@code true}; otherwise, is set to {@code false}.
+     */
+    private void checkConfiguration() {
+        this.configured = this.bandwidth > 0 && this.latency > 0;
     }
 
-    private void validateConfiguration() {
-        this.isConfigured = this.bandwidth > 0 && this.latency > 0;
-    }
+    /* Getters & Setters */
 
+    /**
+     * Returns the bandwidth.
+     *
+     * @return the bandwidth
+     */
     public double getBandwidth() {
         return this.bandwidth;
     }
 
+    /**
+     * It sets the bandwidth.
+     *
+     * @param bandwidth the bandwidth to be set
+     */
     public void setBandwidth(final double bandwidth) {
         this.bandwidth = bandwidth;
-        this.validateConfiguration();
+        this.checkConfiguration();
     }
 
-    public double getLatency() {
-        return this.latency;
-    }
-
-    public void setLatency(final double latency) {
-        this.latency = latency;
-        this.validateConfiguration();
-    }
-
+    /**
+     * Returns the load factor.
+     *
+     * @return the load factor
+     */
     public double getLoadFactor() {
         return this.loadFactor;
     }
 
+    /**
+     * It sets the load factor.
+     *
+     * @param loadFactor the load factor to be set
+     */
     public void setLoadFactor(final double loadFactor) {
         this.loadFactor = loadFactor;
+    }
+
+    /**
+     * Returns the latency.
+     *
+     * @return the latency
+     */
+    public double getLatency() {
+        return this.latency;
+    }
+
+    /**
+     * It sets the latency.
+     *
+     * @param latency the latency to be set to
+     */
+    public void setLatency(final double latency) {
+        this.latency = latency;
+        this.checkConfiguration();
+    }
+
+    /* getImage */
+
+    /**
+     * Returns the internet image.
+     *
+     * @return the internet image
+     */
+    @Override
+    public Image getImage() {
+        return DesenhoGrade.internetIcon;
     }
 }

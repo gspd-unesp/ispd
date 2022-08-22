@@ -1,111 +1,126 @@
 package ispd.gui.iconico.grade;
 
-import ispd.gui.iconico.Vertex;
+import ispd.alocacaoVM.VMM;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.util.HashSet;
+import java.awt.Image;
 import java.util.ResourceBundle;
-import java.util.Set;
 
-public class Cluster extends Vertex implements GridItem {
-    private static final int SOME_OFFSET = 15;
-    private static final String NO_SELECTION = "---";
-    private static final int RANGE_WIDTH = 17;
-    private final GridItemId id;
-    private final Set<GridItem> connectionsIn = new HashSet<>(0);
-    private final Set<GridItem> connectionsOut = new HashSet<>(0);
-    private Double bandwidth = 0.0;
-    private Double latency = 0.0;
-    private String algorithm = Cluster.NO_SELECTION;
-    private Double computationalPower = 0.0;
-    private Integer processorCores = 1;
-    private Integer slaveCount = 0;
-    private Boolean isMaster = true;
-    private Double ramMemory = 0.0;
-    private Double hardDisk = 0.0;
-    private boolean isConfigured = false;
-    private String owner = "user1";
-    private Double costPerProcessing = 0.0;
-    private Double costPerMemory = 0.0;
-    private Double costPerDisk = 0.0;
-    private String vmmAllocationPolicy = Cluster.NO_SELECTION;
-    private Double energyConsumption;
+public class Cluster extends VertexGridItem {
 
-    public Cluster(
-            final Integer x, final Integer y,
-            final int idLocal,
-            final int idGlobal,
-            final Double energy) {
-        super(x, y);
-        this.id = new GridItemId(
-                idLocal, idGlobal,
-                "cluster%d".formatted(idGlobal)
-        );
-        this.energyConsumption = energy;
+    /**
+     * It represents the bandwidth.
+     */
+    private double bandwidth;
+
+    /**
+     * It represents the latency.
+     */
+    private double latency;
+
+    /**
+     * It represents the amount of memory RAM in
+     * <em>gigabytes (GB)</em>.
+     */
+    private double ram;
+
+    /**
+     * It represents the amount of hard disk in
+     * <em>gigabytes (GB)</em>.
+     */
+    private double hardDisk;
+
+    /**
+     * It represents the computational power.
+     */
+    private double computationalPower;
+
+    /**
+     * It represents the energy consumption.
+     */
+    private double energyConsumption;
+
+    /**
+     * It represents the cost per processing.
+     */
+    private double costPerProcessing;
+
+    /**
+     * It represents the cost per memory.
+     */
+    private double costPerMemory;
+
+    /**
+     * It represents the cost per disk.
+     */
+    private double costPerDisk;
+
+    /**
+     * It represents the amount of cores in the chip.
+     */
+    private int coreCount;
+
+    /**
+     * It represents the amount of slaves.
+     */
+    private int slaveCount;
+
+    /**
+     * It represents if this cluster acts as master, that is,
+     * if this variable is {@code true}, then this cluster is
+     * a master; otherwise {@code false}.
+     */
+    private boolean master;
+
+    /**
+     * It contains the scheduling algorithm used.
+     */
+    private String schedulingAlgorithm;
+
+    /**
+     * It represents the owner.
+     */
+    private String owner;
+
+    /**
+     * It contains the {@link VMM} allocation policy.
+     */
+    private String vmmAllocationPolicy;
+
+    /**
+     * Constructor of {@link Cluster} which specifies the
+     * x-coordinate and y-coordinate (in cartesian coordinates),
+     * the local, global identifiers and the energy consumption.
+     *
+     * @param x                 the x-coordinate in cartesian coordinates
+     * @param y                 the y-coordinate in cartesian coordinates
+     * @param localId           the local identifier
+     * @param globalId          the global identifier
+     * @param energyConsumption the energy consumption
+     */
+    public Cluster(final Integer x,
+                   final Integer y,
+                   final int localId,
+                   final int globalId,
+                   final double energyConsumption) {
+        super(localId, globalId, "cluster", x, y);
+        this.schedulingAlgorithm = "---";
+        this.owner = "user1";
+        this.coreCount = 1;
+        this.master = true;
+        this.vmmAllocationPolicy = "---";
+        this.energyConsumption = energyConsumption;
     }
 
-    public Double getEnergyConsumption() {
-        return this.energyConsumption;
-    }
-
-    public void setEnergyConsumption(final Double energy) {
-        this.energyConsumption = energy;
-    }
-
+    /**
+     * Return the cluster attributes.
+     *
+     * @param translator the resource bundle containing
+     *                   the translation messages
+     * @return the cluster attributes
+     */
     @Override
-    public String toString() {
-        return "id: %d %s".formatted(this.id.getGlobalId(), this.id.getName());
-    }
-
-    @Override
-    public void draw(final Graphics g) {
-        g.drawImage(DesenhoGrade.clusterIcon,
-                this.getX() - Cluster.SOME_OFFSET,
-                this.getY() - Cluster.SOME_OFFSET, null);
-        final var image = this.isConfigured
-                ? DesenhoGrade.greenIcon
-                : DesenhoGrade.redIcon;
-        g.drawImage(image, this.getX() + Cluster.SOME_OFFSET,
-                this.getY() + Cluster.SOME_OFFSET, null);
-
-        g.setColor(Color.BLACK);
-        g.drawString(String.valueOf(this.id.getGlobalId()), this.getX(),
-                this.getY() + 30);
-
-        // Se o icone estiver ativo, desenhamos uma margem nele.
-        if (this.isSelected()) {
-            g.setColor(Color.RED);
-            g.drawRect(this.getX() - 19, this.getY() - Cluster.RANGE_WIDTH,
-                    37, 34);
-        }
-    }
-
-    @Override
-    public boolean contains(final int x, final int y) {
-        if (x < this.getX() + Cluster.RANGE_WIDTH && x > this.getX() - Cluster.RANGE_WIDTH) {
-            return y < this.getY() + Cluster.RANGE_WIDTH && y > this.getY() - Cluster.RANGE_WIDTH;
-        }
-        return false;
-    }
-
-    @Override
-    public GridItemId getId() {
-        return this.id;
-    }
-
-    @Override
-    public Set<GridItem> getConnectionsIn() {
-        return this.connectionsIn;
-    }
-
-    @Override
-    public Set<GridItem> getConnectionsOut() {
-        return this.connectionsOut;
-    }
-
-    @Override
-    public String makeDescription(final ResourceBundle translator) {
+    public String makeDescription(
+            final ResourceBundle translator) {
         return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s: %d<br>%s: " +
                 "%s<br>%s: %s<br>%s: %s<br>%s: %s")
                 .formatted(
@@ -128,172 +143,365 @@ public class Cluster extends Vertex implements GridItem {
                         translator.getString("Latency"),
                         this.latency,
                         translator.getString("Scheduling algorithm"),
-                        this.algorithm
+                        this.schedulingAlgorithm
                 );
     }
 
     /**
-     * @param mousePosX the value of X position
-     * @param mousePosY the value of Y position
-     * @param copyGlobalId      the value of idGlobal
-     * @param copyLocalId       the value of idLocal
+     * {@inheritDoc}
      */
     @Override
-    public Cluster makeCopy(final int mousePosX, final int mousePosY,
-                            final int copyGlobalId, final int copyLocalId) {
-        final var other = new Cluster(
-                mousePosX, mousePosY,
-                copyGlobalId, copyLocalId,
-                this.energyConsumption
-        );
-
-        other.algorithm = this.algorithm;
-        other.computationalPower = this.computationalPower;
-        other.isMaster = this.isMaster;
-        other.owner = this.owner;
-        other.bandwidth = this.bandwidth;
-        other.latency = this.latency;
-        other.slaveCount = this.slaveCount;
-        other.validateConfiguration();
-
-        return other;
+    public Cluster makeCopy(final int mousePosX,
+                            final int mousePosY,
+                            final int globalId,
+                            final int localId) {
+        final var cluster = new Cluster(mousePosX, mousePosY,
+                globalId, localId, this.energyConsumption);
+        cluster.schedulingAlgorithm = this.schedulingAlgorithm;
+        cluster.computationalPower = this.computationalPower;
+        cluster.master = this.master;
+        cluster.owner = this.owner;
+        cluster.bandwidth = this.bandwidth;
+        cluster.latency = this.latency;
+        cluster.slaveCount = this.slaveCount;
+        cluster.checkConfiguration();
+        return cluster;
     }
 
-    @Override
-    public boolean isCorrectlyConfigured() {
-        return this.isConfigured;
-    }
-
-    private void validateConfiguration() {
-        this.isConfigured = this.shouldBeConfigured();
-    }
-
-    private boolean shouldBeConfigured() {
-        for (final var attr : new double[] { this.bandwidth, this.latency,
-                this.computationalPower, this.slaveCount }) {
-            if (attr <= 0) {
-                return false;
-            }
+    /**
+     * It checks if the current cluster configuration is well
+     * configured; if so, then {@link #configured} is set to
+     * {@code true}; otherwise, is set to {@code false}.
+     */
+    private void checkConfiguration() {
+        if (this.bandwidth <= 0 || this.latency <= 0 ||
+                this.computationalPower <= 0 || this.slaveCount <= 0) {
+            this.configured = false;
+            return;
         }
 
-        return !(this.isMaster && this.algorithm.equals(Cluster.NO_SELECTION));
+        this.configured = !(this.master &&
+                "---".equals(this.schedulingAlgorithm));
     }
 
-    public void setComputationalPower(final Double computationalPower) {
-        this.computationalPower = computationalPower;
-        this.validateConfiguration();
-    }
+    /* Getters & Setters */
 
-    public Boolean isMaster() {
-        return this.isMaster;
-    }
-
-    public void setIsMaster(final Boolean isMaster) {
-        this.isMaster = isMaster;
-        this.validateConfiguration();
-    }
-
-    public Integer getProcessorCores() {
-        return this.processorCores;
-    }
-
-    public void setProcessorCores(final Integer processorCores) {
-        this.processorCores = processorCores;
-    }
-
-    public Double getRamMemory() {
-        return this.ramMemory;
-    }
-
-    public void setRamMemory(final Double ramMemory) {
-        this.ramMemory = ramMemory;
-    }
-
-    public Double getHardDisk() {
-        return this.hardDisk;
-    }
-
-    public void setHardDisk(final Double hardDisk) {
-        this.hardDisk = hardDisk;
-    }
-
-    public Integer getSlaveCount() {
-        return this.slaveCount;
-    }
-
-    public void setSlaveCount(final Integer slaveCount) {
-        this.slaveCount = slaveCount;
-        this.validateConfiguration();
-    }
-
-    public Double getPoderComputacional() {
-        return this.computationalPower;
-    }
-
-    public Double getCostPerProcessing() {
-        return this.costPerProcessing;
-    }
-
-    public void setCostPerProcessing(final Double costPerProcessing) {
-        this.costPerProcessing = costPerProcessing;
-    }
-
-    public Double getBandwidth() {
+    /**
+     * Returns the bandwidth.
+     *
+     * @return the bandwidth
+     */
+    public double getBandwidth() {
         return this.bandwidth;
     }
 
-    public void setBandwidth(final Double bandwidth) {
+    /**
+     * It sets the bandwidth
+     *
+     * @param bandwidth the bandwidth to be set
+     */
+    public void setBandwidth(final double bandwidth) {
         this.bandwidth = bandwidth;
-        this.validateConfiguration();
+        this.checkConfiguration();
     }
 
-    public Double getCostPerMemory() {
-        return this.costPerMemory;
-    }
-
-    public void setCostPerMemory(final Double costPerMemory) {
-        this.costPerMemory = costPerMemory;
-    }
-
-    public Double getLatency() {
+    /**
+     * Returns the latency.
+     *
+     * @return the latency
+     */
+    public double getLatency() {
         return this.latency;
     }
 
-    public void setLatency(final Double latency) {
+    /**
+     * It sets the latency.
+     *
+     * @param latency the latency to be set
+     */
+    public void setLatency(final double latency) {
         this.latency = latency;
-        this.validateConfiguration();
+        this.checkConfiguration();
     }
 
-    public String getAlgorithm() {
-        return this.algorithm;
+    /**
+     * Returns the amount of RAM memory in <em>gigabytes (GB)</em>.
+     *
+     * @return the amount of RAM memory in <em>gigabytes (GB)</em>
+     */
+    public double getRam() {
+        return this.ram;
     }
 
-    public void setAlgorithm(final String algorithm) {
-        this.algorithm = algorithm;
-        this.validateConfiguration();
+    /**
+     * It sets the amount of RAM memory in <em>gigabytes (GB)</em>.
+     *
+     * @param ram the amount of RAM memory to be set
+     */
+    public void setRam(final double ram) {
+        this.ram = ram;
     }
 
-    public Double getCostPerDisk() {
+    /**
+     * Returns the amount of hard disk in <em>gigabytes (GB)</em>.
+     *
+     * @return the amount of hard disk in <em>gigabytes (GB)</em>
+     */
+    public double getHardDisk() {
+        return this.hardDisk;
+    }
+
+    /**
+     * It sets the amount of hard disk in <em>gigabytes (GB)</em>.
+     *
+     * @param hardDisk the amount of hard disk to be set to
+     */
+    public void setHardDisk(final double hardDisk) {
+        this.hardDisk = hardDisk;
+    }
+
+    /**
+     * Returns the computational power.
+     *
+     * @return the computational power.
+     */
+    public double getComputationalPower() {
+        return this.computationalPower;
+    }
+
+    /**
+     * It sets the computational power
+     *
+     * @param computationalPower the computational power to
+     *                           be set
+     */
+    public void setComputationalPower(
+            final double computationalPower) {
+        this.computationalPower = computationalPower;
+        this.checkConfiguration();
+    }
+
+    /**
+     * Returns the energy consumption.
+     *
+     * @return the energy consumption
+     */
+    public double getEnergyConsumption() {
+        return this.energyConsumption;
+    }
+
+    /**
+     * Set the energy consumption.
+     *
+     * @param energyConsumption the energy consumption to
+     *                          be set
+     */
+    public void setEnergyConsumption(
+            final double energyConsumption) {
+        this.energyConsumption = energyConsumption;
+    }
+
+    /**
+     * Returns the cost per processing.
+     *
+     * @return the cost per processing
+     */
+    public double getCostPerProcessing() {
+        return this.costPerProcessing;
+    }
+
+    /**
+     * It sets the cost per processing
+     *
+     * @param costPerProcessing the cost per processing to
+     *                          to be set
+     */
+    public void setCostPerProcessing(
+            final double costPerProcessing) {
+        this.costPerProcessing = costPerProcessing;
+    }
+
+    /**
+     * Returns the cost per memory.
+     *
+     * @return the cost per memory
+     */
+    public double getCostPerMemory() {
+        return this.costPerMemory;
+    }
+
+    /**
+     * It sets the cost per memory.
+     *
+     * @param costPerMemory the cost per memory to be set
+     */
+    public void setCostPerMemory(
+            final double costPerMemory) {
+        this.costPerMemory = costPerMemory;
+    }
+
+    /**
+     * Returns the cost per disk.
+     *
+     * @return the cost per disk
+     */
+    public double getCostPerDisk() {
         return this.costPerDisk;
     }
 
-    public void setCostPerDisk(final Double costPerDisk) {
+    /**
+     * It sets the cost per disk.
+     *
+     * @param costPerDisk the cost per disk
+     */
+    public void setCostPerDisk(final double costPerDisk) {
         this.costPerDisk = costPerDisk;
     }
 
-    public String getVmmAllocationPolicy() {
-        return this.vmmAllocationPolicy;
+    /**
+     * Returns the amount of cores in the chip.
+     *
+     * @return the amount of cores in the chip
+     */
+    public int getCoreCount() {
+        return this.coreCount;
     }
 
-    public void setVmmAllocationPolicy(final String vmmAllocationPolicy) {
-        this.vmmAllocationPolicy = vmmAllocationPolicy;
+    /**
+     * It sets the amount of cores in the chip.
+     *
+     * @param coreCount the amount of cores in the chip
+     *                  to be set
+     */
+    public void setCoreCount(final Integer coreCount) {
+        this.coreCount = coreCount;
     }
 
-    public String getProprietario() {
+
+    /**
+     * Returns the amount of slaves.
+     *
+     * @return the amount of slaves
+     */
+    public int getSlaveCount() {
+        return this.slaveCount;
+
+    }
+
+    /**
+     * It sets the amount of slaves.
+     *
+     * @param slaveCount the amount of slaves to be set
+     */
+    public void setSlaveCount(final Integer slaveCount) {
+        this.slaveCount = slaveCount;
+        this.checkConfiguration();
+    }
+
+    /**
+     * Returns {@code true} since this cluster is master.
+     * Otherwise, {@code false} is returned.
+     *
+     * @return {@code true} since this cluster is master;
+     *         otherwise, {@code false} is returned.
+     */
+    public boolean isMaster() {
+        return this.master;
+    }
+
+    /**
+     * It sets this cluster as master or not.
+     *
+     * @param master {@code true} to set this cluster as
+     *               master, otherwise {@code false}.
+     */
+    public void setMaster(final Boolean master) {
+        this.master = master;
+        this.checkConfiguration();
+    }
+
+    /**
+     * Returns the scheduling algorithm.
+     *
+     * @return the scheduling algorithm
+     */
+    public String getSchedulingAlgorithm() {
+        return this.schedulingAlgorithm;
+    }
+
+    /**
+     * It sets the scheduling algorithm
+     *
+     * @param schedulingAlgorithm the scheduling algorithm
+     *                            to be set
+     */
+    public void setSchedulingAlgorithm(
+            final String schedulingAlgorithm) {
+        this.schedulingAlgorithm = schedulingAlgorithm;
+        this.checkConfiguration();
+    }
+
+    /**
+     * Returns the owner.
+     *
+     * @return the owner
+     */
+    public String getOwner() {
         return this.owner;
     }
 
+    /**
+     * It sets the owner
+     *
+     * @param owner the owner to be set
+     */
     public void setOwner(final String owner) {
         this.owner = owner;
+    }
+
+    /**
+     * Returns the {@link VMM} allocation policy.
+     *
+     * @return the {@link VMM} allocation policy
+     */
+    public String getVmmAllocationPolicy() {
+        return vmmAllocationPolicy;
+    }
+
+    /**
+     * It sets the {@link VMM} allocation policy.
+     *
+     * @param vmmAllocationPolicy the {@link VMM} allocation
+     *                            policy to be set
+     */
+    public void setVmmAllocationPolicy(
+            final String vmmAllocationPolicy) {
+        this.vmmAllocationPolicy = vmmAllocationPolicy;
+    }
+
+    /* getImage */
+
+    /**
+     * Returns the cluster image.
+     *
+     * @return the cluster image
+     */
+    @Override
+    public Image getImage() {
+        return DesenhoGrade.clusterIcon;
+    }
+
+    /* toString */
+
+    /**
+     * Returns the string representation of the
+     * {@link Cluster}.
+     *
+     * @return the string representation of the
+     *         {@link Cluster}
+     */
+    @Override
+    public String toString() {
+        return "id: " + this.id.getGlobalId() + " " + this.id.getName();
     }
 }

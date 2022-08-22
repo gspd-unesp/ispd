@@ -813,9 +813,9 @@ public class IconicoXML {
             Element caracteristicas = (Element) elementsByTagName.item(0);
             Element process = (Element) caracteristicas.getElementsByTagName("process").item(0);
             clust.setComputationalPower(Double.valueOf(process.getAttribute("power")));
-            clust.setProcessorCores(Integer.valueOf(process.getAttribute("number")));
+            clust.setCoreCount(Integer.valueOf(process.getAttribute("number")));
             Element memory = (Element) caracteristicas.getElementsByTagName("memory").item(0);
-            clust.setRamMemory(Double.valueOf(memory.getAttribute("size")));
+            clust.setRam(Double.valueOf(memory.getAttribute("size")));
             Element disk = (Element) caracteristicas.getElementsByTagName("hard_disk").item(0);
             clust.setHardDisk(Double.valueOf(disk.getAttribute("size")));
             if (caracteristicas.getElementsByTagName("cost").getLength() > 0) {
@@ -828,9 +828,9 @@ public class IconicoXML {
             Element caracteristicas = (Element) elementsByTagName.item(0);
             Element process = (Element) caracteristicas.getElementsByTagName("process").item(0);
             maq.setComputationalPower(Double.valueOf(process.getAttribute("power")));
-            maq.setProcessorCores(Integer.valueOf(process.getAttribute("number")));
+            maq.setCoreCount(Integer.valueOf(process.getAttribute("number")));
             Element memory = (Element) caracteristicas.getElementsByTagName("memory").item(0);
-            maq.setRamMemory(Double.valueOf(memory.getAttribute("size")));
+            maq.setRam(Double.valueOf(memory.getAttribute("size")));
             Element disk = (Element) caracteristicas.getElementsByTagName("hard_disk").item(0);
             maq.setHardDisk(Double.valueOf(disk.getAttribute("size")));
             if (caracteristicas.getElementsByTagName("cost").getLength() > 0) {
@@ -869,10 +869,10 @@ public class IconicoXML {
             clust.setSlaveCount(Integer.parseInt(cluster.getAttribute("nodes")));
             clust.setBandwidth(Double.parseDouble(cluster.getAttribute("bandwidth")));
             clust.setLatency(Double.parseDouble(cluster.getAttribute("latency")));
-            clust.setAlgorithm(cluster.getAttribute("scheduler"));
+            clust.setSchedulingAlgorithm(cluster.getAttribute("scheduler"));
             clust.setVmmAllocationPolicy(cluster.getAttribute("vm_alloc"));
             clust.setOwner(cluster.getAttribute("owner"));
-            clust.setIsMaster(Boolean.parseBoolean(cluster.getAttribute("master")));
+            clust.setMaster(Boolean.parseBoolean(cluster.getAttribute("master")));
         }
         //Realiza leitura dos icones de internet
         for (int i = 0; i < internet.getLength(); i++) {
@@ -940,9 +940,9 @@ public class IconicoXML {
                 maq.setLoadFactor(Double.parseDouble(maquina.getAttribute("load")));
                 maq.setOwner(maquina.getAttribute("owner"));
                 Element master = (Element) maquina.getElementsByTagName("master").item(0);
-                maq.setAlgorithm(master.getAttribute("scheduler"));
+                maq.setSchedulingAlgorithm(master.getAttribute("scheduler"));
                 maq.setVmmAllocationPolicy(master.getAttribute("vm_alloc"));
-                maq.setIsMaster(true);
+                maq.setMaster(true);
                 NodeList slaves = master.getElementsByTagName("slave");
                 List<GridItem> escravos = new ArrayList<GridItem>(slaves.getLength());
                 for (int j = 0; j < slaves.getLength(); j++) {
@@ -967,8 +967,8 @@ public class IconicoXML {
             Vertex destino = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("destination")));
             Link lk = new Link(origem, destino, local, global);
             lk.setSelected(false);
-            ((GridItem) origem).getConnectionsOut().add(lk);
-            ((GridItem) destino).getConnectionsIn().add(lk);
+            ((GridItem) origem).getOutboundConnections().add(lk);
+            ((GridItem) destino).getInboundConnections().add(lk);
             arestas.add(lk);
             lk.getId().setName(link.getAttribute("id"));
             ValidaValores.addNomeIcone(lk.getId().getName());
