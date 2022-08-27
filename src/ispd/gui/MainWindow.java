@@ -1,6 +1,6 @@
 package ispd.gui;
 
-import ispd.DescreveSistema.DescreveSistema;
+import ispd.arquivo.description.DescreveSistema;
 import ispd.arquivo.exportador.Exportador;
 import ispd.arquivo.interpretador.gridsim.InterpretadorGridSim;
 import ispd.arquivo.interpretador.simgrid.InterpretadorSimGrid;
