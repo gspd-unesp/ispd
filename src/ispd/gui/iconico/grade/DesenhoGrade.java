@@ -538,7 +538,6 @@ public class DesenhoGrade extends DrawingArea {
                             I.isMaster(),
                             slaves,
                             I.getEnergyConsumption());
-                    System.out.println("Energy: " + I.getEnergyConsumption());
                 } else if (this.modelType == PickModelTypeDialog.IAAS) {
                     xml.addMachineIaaS(I.getX(), I.getY(),
                             I.getId().getLocalId(), I.getId().getGlobalId(),
