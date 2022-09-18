@@ -414,10 +414,10 @@ public class IconicoXML {
             mu.addAllUsuarios(proprietarios, poderComp);
             mst.getEscalonador().setMetricaUsuarios(mu);
         }
-        RedeDeFilas rdf = new RedeDeFilas(mestres, maqs, links, nets);
+        RedeDeFilas rdf = new RedeDeFilas(mestres, maqs, links, nets, perfis);
         //cria as métricas de usuarios globais da rede de filas
         MetricasUsuarios mu = new MetricasUsuarios();
-        mu.addAllUsuarios(proprietarios, poderComp);
+        mu.addAllUsuarios(proprietarios, poderComp, perfil);
         rdf.setUsuarios(proprietarios);
         return rdf;
     }
