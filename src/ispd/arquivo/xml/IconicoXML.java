@@ -1394,18 +1394,37 @@ public class IconicoXML {
         return descricao;
     }
 
-    private Node newCharacteristic(Double poderComputacional, Integer numeroNucleos, Double memoriaRAM, Double discoRigido) {
-        Element characteristic = descricao.createElement("characteristic");
-        Element process = descricao.createElement("process");
-        process.setAttribute("power", poderComputacional.toString());
-        process.setAttribute("number", numeroNucleos.toString());
-        Element memory = descricao.createElement("memory");
-        memory.setAttribute("size", memoriaRAM.toString());
-        Element hard_disk = descricao.createElement("hard_disk");
-        hard_disk.setAttribute("size", discoRigido.toString());
+    /**
+     * It creates the characteristic group element containing the information
+     * about core count, amount of memory ram and amount of hard disk.
+     *
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param memoryRamAmount the memory ram amount
+     * @param hardDiskAmount the hard disk amount.
+     *
+     * @return a characteristic group element containing information about
+     *         core count, memory ram and hard disk amount.
+     */
+    private Element newCharacteristic(final double computationalPower,
+                                   final int coreCount,
+                                   final double memoryRamAmount,
+                                   final double hardDiskAmount) {
+        final Element characteristic = this.descricao.createElement("characteristic");
+        final Element process = this.descricao.createElement("process");
+        final Element memory = this.descricao.createElement("memory");
+        final Element hardDisk = this.descricao.createElement("hard_disk");
+
+        process.setAttribute("power", String.valueOf(computationalPower));
+        process.setAttribute("number", String.valueOf(coreCount));
+
+        memory.setAttribute("size", String.valueOf(memoryRamAmount));
+        hardDisk.setAttribute("size", String.valueOf(hardDiskAmount));
+
         characteristic.appendChild(process);
         characteristic.appendChild(memory);
-        characteristic.appendChild(hard_disk);
+        characteristic.appendChild(hardDisk);
+
         return characteristic;
     }
 
