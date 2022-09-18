@@ -295,6 +295,9 @@ public class ResultsDialog extends JDialog {
         this.gerarGraficosProcessamento(metricas.getMetricasProcessamento());
         this.gerarGraficosComunicacao(metricas.getMetricasComunicacao());
         this.resourceTable = ResultsDialog.setTabelaRecurso(metricas);
+        this.charts = new SimulationResultChartMaker();
+        this.charts.criarProcessamento(metricas.getMetricasProcessamento());
+        this.charts.criarComunicacao(metricas.getMetricasComunicacao());
         this.initComponents();
         this.jTextAreaGlobal.setText(ResultsDialog.getResultadosGlobais(metricas.getMetricasGlobais()));
         this.html.setMetricasGlobais(metricas.getMetricasGlobais());
@@ -337,8 +340,6 @@ public class ResultsDialog extends JDialog {
     private void initComponents() {
 
         this.jTabbedPaneGrid = new JTabbedPane();
-        final JTabbedPane jTabbedPanelGraficosIndividuais =
-                new JTabbedPane();
         final JPanel jPanelGlobal = new JPanel();
         final JToolBar jToolBar1 = new JToolBar();
         final AbstractButton jButtonSalvar = new JButton();
@@ -491,7 +492,7 @@ public class ResultsDialog extends JDialog {
                                                         GroupLayout.PREFERRED_SIZE)
                                                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
-        jTabbedPanelGraficosIndividuais.addTab("Global", jPanelGlobal);
+        jTabbedPaneGrid.addTab("Global", jPanelGlobal);
 
         this.jTextAreaTarefa.setEditable(false);
         this.jTextAreaTarefa.setColumns(20);
@@ -501,7 +502,6 @@ public class ResultsDialog extends JDialog {
         jScrollPaneTarefa.setViewportView(this.jTextAreaTarefa);
 
         this.jTabbedPaneGrid.addTab("Tasks", jScrollPaneTarefa);
-        jTabbedPanelGraficosIndividuais.addTab("Tasks", jScrollPaneTarefa);
 
         this.jTextAreaUsuario.setColumns(20);
         this.jTextAreaUsuario.setEditable(false);
@@ -511,7 +511,6 @@ public class ResultsDialog extends JDialog {
         this.jScrollPaneUsuario.setViewportView(this.jTextAreaUsuario);
 
         this.jTabbedPaneGrid.addTab("User", this.jScrollPaneUsuario);
-        jTabbedPanelGraficosIndividuais.addTab("User", this.jScrollPaneUsuario);
 
         jTableRecurso.setModel(new javax.swing.table.DefaultTableModel(this.resourceTable, colunas));
         jScrollPaneRecurso.setViewportView(jTableRecurso);
@@ -536,27 +535,27 @@ public class ResultsDialog extends JDialog {
 
         final GroupLayout jPanelProcessamentoLayout =
                 new GroupLayout(jPanelProcessamento);
-        jPanelProcessamento.setLayout(jPanelProcessamentoLayout);
-        jPanelProcessamentoLayout.setHorizontalGroup(
-                jPanelProcessamentoLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(jToolBarProcessamento,
-                                GroupLayout.DEFAULT_SIZE, 651,
-                                Short.MAX_VALUE)
-                        .addComponent(this.jScrollPaneProcessamento,
-                                GroupLayout.DEFAULT_SIZE, 651,
-                                Short.MAX_VALUE)
-        );
-        jPanelProcessamentoLayout.setVerticalGroup(
-                jPanelProcessamentoLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanelProcessamentoLayout.createSequentialGroup()
-                                .addComponent(jToolBarProcessamento,
-                                        GroupLayout.PREFERRED_SIZE, 25,
-                                        GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(this.jScrollPaneProcessamento,
-                                        GroupLayout.DEFAULT_SIZE,
-                                        310, Short.MAX_VALUE))
-        );
+//        jPanelProcessamento.setLayout(jPanelProcessamentoLayout);
+//        jPanelProcessamentoLayout.setHorizontalGroup(
+//                jPanelProcessamentoLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+//                        .addComponent(jToolBarProcessamento,
+//                                GroupLayout.DEFAULT_SIZE, 651,
+//                                Short.MAX_VALUE)
+//                        .addComponent(this.jScrollPaneProcessamento,
+//                                GroupLayout.DEFAULT_SIZE, 651,
+//                                Short.MAX_VALUE)
+//        );
+//        jPanelProcessamentoLayout.setVerticalGroup(
+//                jPanelProcessamentoLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+//                        .addGroup(jPanelProcessamentoLayout.createSequentialGroup()
+//                                .addComponent(jToolBarProcessamento,
+//                                        GroupLayout.PREFERRED_SIZE, 25,
+//                                        GroupLayout.PREFERRED_SIZE)
+//                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+//                                .addComponent(this.jScrollPaneProcessamento,
+//                                        GroupLayout.DEFAULT_SIZE,
+//                                        310, Short.MAX_VALUE))
+//        );
 
         this.jTabbedPaneGrid.addTab("Chart of the processing",
                 jPanelProcessamento);
@@ -614,7 +613,7 @@ public class ResultsDialog extends JDialog {
         jToolBarProcessamentoTempo.add(jButtonProcessamentoUser);
 
         this.jButtonProcessamentoMaquina.setText("Per machine");
-        jTabbedPanelGraficosIndividuais.addTab("Resources", jScrollPaneRecurso);
+        jTabbedPaneGrid.addTab("Resources", jScrollPaneRecurso);
 
         jToolBarProcessamento.setFloatable(false);
         jToolBarProcessamento.setRollover(true);
@@ -788,7 +787,7 @@ public class ResultsDialog extends JDialog {
                                         335, Short.MAX_VALUE))
         );
 
-        jTabbedPanelGraficosIndividuais.addTab("Charts", jPanelProcessamento);
+        jTabbedPaneGrid.addTab("Charts", jPanelProcessamento);
 
         jToolBarTask.setRollover(true);
 
@@ -855,7 +854,7 @@ public class ResultsDialog extends JDialog {
                                         331, Short.MAX_VALUE))
         );
 
-        jTabbedPanelGraficosIndividuais.addTab("Individual Graphs",
+        jTabbedPaneGrid.addTab("Individual Graphs",
                 this.jPanel1);
 
         final GroupLayout layout =
@@ -884,13 +883,6 @@ public class ResultsDialog extends JDialog {
                                                 GroupLayout.PREFERRED_SIZE,
                                                 100, GroupLayout.PREFERRED_SIZE)
                                         .addGap(0, 0, Short.MAX_VALUE)))
-                        .addComponent(jTabbedPanelGraficosIndividuais)
-        );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(jTabbedPanelGraficosIndividuais,
-                                GroupLayout.DEFAULT_SIZE, 420,
-                                Short.MAX_VALUE)
         );
 
         this.pack();
@@ -1229,12 +1221,12 @@ public class ResultsDialog extends JDialog {
 
     private void jButtonPBarraActionPerformed(final java.awt.event.ActionEvent evt) {
 
-        this.jScrollPaneProcessamento.setViewportView(this.graficoBarraProcessamento);
+        this.jScrollPaneCharts.setViewportView(this.graficoBarraProcessamento);
     }
 
     private void jButtonPPizzaActionPerformed(final java.awt.event.ActionEvent evt) {
 
-        this.jScrollPaneProcessamento.setViewportView(this.graficoPizzaProcessamento);
+        this.jScrollPaneCharts.setViewportView(this.graficoPizzaProcessamento);
     }
 
     private void jButtonCBarraActionPerformed(final java.awt.event.ActionEvent evt) {
