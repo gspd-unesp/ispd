@@ -1396,7 +1396,26 @@ public class IconicoXML {
 
     /**
      * It creates the characteristic group element containing the information
-     * about core count, amount of memory ram and amount of hard disk.
+     * about computational power core count, amount of memory ram and
+     * amount of hard disk.
+     * <p><br />
+     * An example of such element returned by the following argument list
+     * <ul>
+     *     <li>computationalPower: 20</li>
+     *     <li>coreCount: 32</li>
+     *     <li>memoryRamAmount: 16</li>
+     *     <li>hardDiskAmount: 4096</li>
+     * </ul>
+     *
+     * is given by
+     *
+     * <pre>{@code
+     * <characteristic>
+     *  <process number="32" power="20.0"/>
+     *  <memory size="16.0"/>
+     *  <hard_disk size="4096.0"/>
+     * </characteristic>
+     * }</pre>
      *
      * @param computationalPower the computational power
      * @param coreCount the core count
@@ -1428,25 +1447,71 @@ public class IconicoXML {
         return characteristic;
     }
 
-    private Node newCharacteristic(Double poderComputacional, Integer numeroNucleos, Double memoriaRAM, Double discoRigido, Double costperProcessing, Double costperMemory, Double costperDisk) {
-        Element characteristic = descricao.createElement("characteristic");
-        Element process = descricao.createElement("process");
-        process.setAttribute("power", poderComputacional.toString());
-        process.setAttribute("number", numeroNucleos.toString());
-        Element memory = descricao.createElement("memory");
-        memory.setAttribute("size", memoriaRAM.toString());
-        Element hard_disk = descricao.createElement("hard_disk");
-        hard_disk.setAttribute("size", discoRigido.toString());
-        Element cost = descricao.createElement("cost");
-        cost.setAttribute("cost_proc", costperProcessing.toString());
-        Element cost_mem = descricao.createElement("cost_mem");
-        cost.setAttribute("cost_mem", costperMemory.toString());
-        Element cost_disk = descricao.createElement("cost_disk");
-        cost.setAttribute("cost_disk", costperDisk.toString());
+    /**
+     * It creates the characteristic group element containing the information
+     * about computational power, core count, memory ram and hard disk amount,
+     * cost per processing, cost per memory and cost per disk.
+     * <p><br />
+     * An example of such element returned by the following argument list
+     * <ul>
+     *  <li>computationalPower: 20</li>
+     *  <li>coreCount: 16</li>
+     *  <li>memoryRamAmount: 20</li>
+     *  <li>hardDiskAmount: 40</li>
+     *  <li>costPerProcessing: 5</li>
+     *  <li>costPerMemory: 15</li>
+     *  <li>costPerDisk: 2</li>
+     * </ul>
+     *
+     * is given by
+     *
+     * <pre>{@code
+     * <characteristic>
+     *  <process number="16" power="20.0"/>
+     *  <memory size="20.0"/>
+     *  <hard_disk size="40.0"/>
+     *  <cost cost_disk="2.0" cost_mem="15.0" cost_proc="5.0"/>
+     * </characteristic>
+     * }</pre>
+     *
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param memoryRamAmount the memory ram amount
+     * @param hardDiskAmount the hard disk amount
+     * @param costPerProcessing the core per processing
+     * @param costPerMemory the cost per memory
+     * @param costPerDisk the cost per disk
+     *
+     * @return a characteristic group element containing the information about
+     *         computational power, core count, memory and hard disk amount,
+     *         and cost for processing, memory and disk.
+     */
+    private Element newCharacteristic(final double computationalPower,
+                                      final int coreCount,
+                                      final double memoryRamAmount,
+                                      final double hardDiskAmount,
+                                      final double costPerProcessing,
+                                      final double costPerMemory,
+                                      final double costPerDisk) {
+        final Element characteristic = this.descricao.createElement("characteristic");
+        final Element process = this.descricao.createElement("process");
+        final Element memory = this.descricao.createElement("memory");
+        final Element hardDisk = this.descricao.createElement("hard_disk");
+        final Element cost = this.descricao.createElement("cost");
+
+        process.setAttribute("power", String.valueOf(computationalPower));
+        process.setAttribute("number", String.valueOf(coreCount));
+
+        memory.setAttribute("size", String.valueOf(memoryRamAmount));
+        hardDisk.setAttribute("size", String.valueOf(hardDiskAmount));
+
+        cost.setAttribute("cost_proc", String.valueOf(costPerProcessing));
+        cost.setAttribute("cost_mem", String.valueOf(costPerMemory));
+        cost.setAttribute("cost_disk", String.valueOf(costPerDisk));
 
         characteristic.appendChild(process);
         characteristic.appendChild(memory);
-        characteristic.appendChild(hard_disk);
+        characteristic.appendChild(hardDisk);
         characteristic.appendChild(cost);
         return characteristic;
     }
