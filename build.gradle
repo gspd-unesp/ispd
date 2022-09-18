@@ -13,10 +13,10 @@ application {
 sourceSets {
     main {
         java {
-            srcDirs= ["src/main/java"]
+            srcDirs= ["src/"]
         }
         resources {
-            srcDirs= ["src/main/java"]
+            srcDirs= ["src/"]
         }
     }
 }
