@@ -1493,25 +1493,14 @@ public class IconicoXML {
                                       final double costPerProcessing,
                                       final double costPerMemory,
                                       final double costPerDisk) {
-        final Element characteristic = this.descricao.createElement("characteristic");
-        final Element process = this.descricao.createElement("process");
-        final Element memory = this.descricao.createElement("memory");
-        final Element hardDisk = this.descricao.createElement("hard_disk");
+        final Element characteristic = this.newCharacteristic(computationalPower,
+                coreCount, memoryRamAmount, hardDiskAmount);
         final Element cost = this.descricao.createElement("cost");
-
-        process.setAttribute("power", String.valueOf(computationalPower));
-        process.setAttribute("number", String.valueOf(coreCount));
-
-        memory.setAttribute("size", String.valueOf(memoryRamAmount));
-        hardDisk.setAttribute("size", String.valueOf(hardDiskAmount));
 
         cost.setAttribute("cost_proc", String.valueOf(costPerProcessing));
         cost.setAttribute("cost_mem", String.valueOf(costPerMemory));
         cost.setAttribute("cost_disk", String.valueOf(costPerDisk));
 
-        characteristic.appendChild(process);
-        characteristic.appendChild(memory);
-        characteristic.appendChild(hardDisk);
         characteristic.appendChild(cost);
         return characteristic;
     }
