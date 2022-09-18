@@ -72,50 +72,114 @@ public class CS_Maquina extends CS_Processamento implements Mensagens, Vertice {
     private List<Tarefa> historicoProcessamento;
 
     //TO DO: INCLUIR INFORMAÇÕES DE MEMÓRIA E DISCO
-    
+
     /**
-     * 
-     * @param id
-     * @param proprietario
-     * @param PoderComputacional
-     * @param numeroProcessadores
-     * @param Ocupacao 
+     * Constructor which specifies the machine configuration,
+     * specifying the id, owner, computational power, core
+     * count and load factor.
+     * <p><br />
+     * Using this constructor the machine number and the
+     * energy consumption are both set as default to 0.
+     *
+     * @param id the id
+     * @param owner the owner
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param loadFactor the load factor
+     *
+     * @see #CS_Maquina(String, String, double, int, double, int, double)
+     *                  for specify the machine number and energy consumption.
      */
-
-    public CS_Maquina(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao) {
-        super(id, proprietario, PoderComputacional, numeroProcessadores, Ocupacao, 0);
-        this.conexoesEntrada = new ArrayList<CS_Comunicacao>();
-        this.conexoesSaida = new ArrayList<CS_Comunicacao>();
-        this.filaTarefas = new ArrayList<Tarefa>();
-        this.mestres = new ArrayList<CS_Processamento>();
-        this.processadoresDisponiveis = numeroProcessadores;
-        this.tarefaEmExecucao = new ArrayList<Tarefa>(numeroProcessadores);
+    public CS_Maquina(final String id,
+                      final String owner,
+                      final double computationalPower,
+                      final int coreCount,
+                      final double loadFactor) {
+        this(id, owner, computationalPower, coreCount, loadFactor, 0, 0.0);
     }
 
-    public CS_Maquina(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, Double energia) {
-        super(id, proprietario, PoderComputacional, numeroProcessadores, Ocupacao, 0, energia);
-        this.conexoesEntrada = new ArrayList<CS_Comunicacao>();
-        this.conexoesSaida = new ArrayList<CS_Comunicacao>();
-        this.filaTarefas = new ArrayList<Tarefa>();
-        this.mestres = new ArrayList<CS_Processamento>();
-        this.processadoresDisponiveis = numeroProcessadores;
-        this.tarefaEmExecucao = new ArrayList<Tarefa>(numeroProcessadores);
+    /**
+     * Constructor which specifies the machine configuration,
+     * specifying the id, owner, computational power, core
+     * count, load factor and energy consumption.
+     * <p><br />
+     * Using this constructor the machine number is set as
+     * default to 0.
+     *
+     * @param id the id
+     * @param owner the owner
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param loadFactor the load factor
+     * @param energy the energy consumption.
+     *
+     * @see #CS_Maquina(String, String, double, int, double, int, double)
+     *                  for specify the machine number.
+     */
+    public CS_Maquina(final String id,
+                      final String owner,
+                      final double computationalPower,
+                      final int coreCount,
+                      final double loadFactor,
+                      final double energy) {
+        this(id, owner, computationalPower, coreCount, loadFactor, 0, energy);
     }
 
-    public CS_Maquina(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina) {
-        super(id, proprietario, PoderComputacional, numeroProcessadores, Ocupacao, numeroMaquina);
-        this.historicoProcessamento = new ArrayList<Tarefa>();
+    /**
+     * Constructor which specifies the machine configuration,
+     * specifying the id, owner, computational power, core
+     * count, load factor and machine number.
+     * <p><br />
+     * Using this constructor the energy consumption is set
+     * as default to 0.
+     *
+     * @param id the id
+     * @param owner the owner
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param loadFactor the load factor
+     * @param machineNumber the machine number
+     *
+     * @see #CS_Maquina(String, String, double, int, double, int, double)
+     *                  for specify the energy consumption
+     */
+    public CS_Maquina(final String id,
+                      final String owner,
+                      final double computationalPower,
+                      final int coreCount,
+                      final double loadFactor,
+                      final int machineNumber) {
+        this(id, owner, computationalPower, coreCount, loadFactor, machineNumber, 0.0);
     }
 
-    public CS_Maquina(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina, Double energia) {
-        super(id, proprietario, PoderComputacional, numeroProcessadores, Ocupacao, numeroMaquina, energia);
-        this.conexoesEntrada = new ArrayList<CS_Comunicacao>();
-        this.conexoesSaida = new ArrayList<CS_Comunicacao>();
-        this.filaTarefas = new ArrayList<Tarefa>();
-        this.mestres = new ArrayList<CS_Processamento>();
-        this.processadoresDisponiveis = numeroProcessadores;
-        this.tarefaEmExecucao = new ArrayList<Tarefa>(numeroProcessadores);
-        this.historicoProcessamento = new ArrayList<Tarefa>();
+    /**
+     * Constructor which specifies the machine configuration,
+     * specifying the id, owner, computational power, core
+     * count, load factor, machine number and energy consumption.
+     *
+     * @param id the id
+     * @param owner the owner
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param loadFactor the load factor
+     * @param machineNumber the machine number
+     * @param energy the energy consumption
+     */
+    public CS_Maquina(final String id,
+                      final String owner,
+                      final double computationalPower,
+                      final int coreCount,
+                      final double loadFactor,
+                      final int machineNumber,
+                      final double energy) {
+        super(id, owner, computationalPower, coreCount, loadFactor, machineNumber, energy);
+        this.conexoesEntrada = new ArrayList<>();
+        this.conexoesSaida = new ArrayList<>();
+        this.filaTarefas = new ArrayList<>();
+        this.mestres = new ArrayList<>();
+        this.processadoresDisponiveis = coreCount;
+        this.tarefaEmExecucao = new ArrayList<>(coreCount);
+        this.historicoProcessamento = new ArrayList<>();
     }
 
     @Override
