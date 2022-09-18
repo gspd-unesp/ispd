@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'ispd'
+version '1.0-SNAPSHOT'
+
+application {
+    mainClass = 'ispd.Main'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs= ["src/main/java"]
+        }
+        resources {
+            srcDirs= ["src/main/java"]
+        }
+    }
+}
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jfree:jfreechart:1.0.14'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
