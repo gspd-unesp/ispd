@@ -5,39 +5,20 @@
  */
 package ispd.motor.falhas;
 
-import ispd.gui.JSelecionarFalhas;
-import ispd.motor.*;
-import javax.swing.*;
-import javax.swing.JOptionPane.*;
-import ispd.alocacaoVM.VMM;
-import ispd.escalonador.Mestre;
-import ispd.escalonadorCloud.MestreCloud;
-import ispd.motor.filas.Cliente;
-import ispd.motor.filas.Mensagem;
-import ispd.motor.filas.RedeDeFilas;
+import ispd.escalonadorCloud.EscalonadorCloud;
+import ispd.gui.PickSimulationFaultsDialog;
+import ispd.motor.FutureEvent;
+import ispd.motor.ProgressoSimulacao;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.filas.servidores.CentroServico;
-import ispd.motor.filas.servidores.implementacao.CS_Maquina;
-import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
-import ispd.motor.filas.servidores.implementacao.CS_Mestre;
-import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import ispd.motor.filas.RedeDeFilasCloud;
-import java.awt.Color;
+
+import javax.swing.JOptionPane;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-import ispd.gui.JSelecionarFalhas;
-import javax.swing.JOptionPane;
-import ispd.alocacaoVM.Alocacao;
-import ispd.escalonadorCloud.EscalonadorCloud;
-import ispd.motor.filas.servidores.CS_Comunicacao;
-import static ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud.DESLIGADO;
-import ispd.motor.metricas.MetricasAlocacao;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.Random;
 
 /**
@@ -61,7 +42,7 @@ public class FISoftware {
     public int OHHH;
     private double time = 0;
     private EscalonadorCloud escalonador;//Camila
-    private PriorityQueue<EventoFuturo> eventos;
+    private PriorityQueue<FutureEvent> eventos;
     private ArrayList<CS_VirtualMac> maquinasVirtuais;
     private LinkedList<CS_Processamento> maquinasFisicas;
     private ArrayList<CS_VirtualMac> VMsRejeitadas;
@@ -78,7 +59,7 @@ public class FISoftware {
         //declaração das variáveis locais
         int X;
         //Criação de um instância para a classe JSelecionarFalhas
-        JSelecionarFalhas sf = new JSelecionarFalhas();
+        PickSimulationFaultsDialog sf = new PickSimulationFaultsDialog();
         X = sf.OmissaoHardware;
         //Confirmação do tipo de falha selecionada: Falha por omissão de hardware
         JOptionPane.showMessageDialog(null, "Falha de Omissão de software selecionada.");
@@ -141,7 +122,7 @@ public class FISoftware {
         //declaração das variáveis locais
         int X;
         //Criação de um instância para a classe JSelecionarFalhas
-        JSelecionarFalhas sf = new JSelecionarFalhas();
+        PickSimulationFaultsDialog sf = new PickSimulationFaultsDialog();
         X = sf.OmissaoSoftware;
         //Confirmação do tipo de falha selecionada: Falha por omissão de hardware
         JOptionPane.showMessageDialog(null, "Software Failure selected.");

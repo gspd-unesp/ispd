@@ -42,9 +42,9 @@ package ispd.motor.filas.servidores.implementacao;
 import ispd.escalonador.Carregar;
 import ispd.escalonador.Escalonador;
 import ispd.escalonador.Mestre;
-import ispd.motor.EventoFuturo;
+import ispd.motor.FutureEvent;
 import ispd.motor.Mensagens;
-import ispd.motor.Simulacao;
+import ispd.motor.Simulation;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Comunicacao;
@@ -71,7 +71,7 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
      * Armazena os caminhos possiveis para alcançar cada escravo
      */
     private List<List> caminhoEscravo;
-    private Simulacao simulacao;
+    private Simulation simulacao;
 
     public CS_Mestre(String id, String proprietario, double PoderComputacional, double Ocupacao, String Escalonador, Double energia) {
         super(id, proprietario, PoderComputacional, 1, Ocupacao, 0, energia);
@@ -87,7 +87,7 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
 
     //Métodos do centro de serviços
     @Override
-    public void chegadaDeCliente(Simulacao simulacao, Tarefa cliente) {
+    public void chegadaDeCliente(Simulation simulacao, Tarefa cliente) {
         if (cliente.getEstado() != Tarefa.CANCELADO) {
             //Tarefas concluida possuem tratamento diferencial
             if (cliente.getEstado() == Tarefa.CONCLUIDO) {
@@ -95,13 +95,13 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
                 if (!cliente.getOrigem().equals(this)) {
                     //encaminhar tarefa!
                     //Gera evento para chegada da tarefa no proximo servidor
-                    EventoFuturo evtFut = new EventoFuturo(
+                    FutureEvent evtFut = new FutureEvent(
                             simulacao.getTime(this),
-                            EventoFuturo.CHEGADA,
+                            FutureEvent.CHEGADA,
                             cliente.getCaminho().remove(0),
                             cliente);
                     //Event adicionado a lista de evntos futuros
-                    simulacao.addEventoFuturo(evtFut);
+                    simulacao.addFutureEvent(evtFut);
                 }
                 this.escalonador.addTarefaConcluida(cliente);
                 if (tipoEscalonamento == QUANDO_RECEBE_RESULTADO || tipoEscalonamento == AMBOS) {
@@ -125,26 +125,26 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     }
 
     @Override
-    public void atendimento(Simulacao simulacao, Tarefa cliente) {
+    public void atendimento(Simulation simulacao, Tarefa cliente) {
         //o atendimento pode realiza o processamento da tarefa como em uma maquina qualquer
         if (this.maqDisponivel) {
             this.maqDisponivel = false;
             cliente.finalizarEsperaProcessamento(simulacao.getTime(this));
             cliente.iniciarAtendimentoProcessamento(simulacao.getTime(this));
             //Gera evento para saida do cliente do servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this) + tempoProcessar(cliente.getTamProcessamento() - cliente.getMflopsProcessado()),
-                    EventoFuturo.SAÍDA,
+                    FutureEvent.SAIDA,
                     this, cliente);
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         } else {
             filaTarefas.add(cliente);
         }
     }
 
     @Override
-    public void saidaDeCliente(Simulacao simulacao, Tarefa cliente) {
+    public void saidaDeCliente(Simulation simulacao, Tarefa cliente) {
         if (cliente.getEstado() == Tarefa.PROCESSANDO) {
             //Incrementa o número de Mbits transmitido por este link
             this.getMetrica().incMflopsProcessados(cliente.getTamProcessamento() - cliente.getMflopsProcessado());
@@ -162,21 +162,21 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
                 this.maqDisponivel = true;
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
             }
         } else {
             //Gera evento para chegada da tarefa no proximo servidor
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     cliente.getCaminho().remove(0), cliente);
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
             if (tipoEscalonamento == ENQUANTO_HOUVER_TAREFAS || tipoEscalonamento == AMBOS) {
                 //se fila de tarefas do servidor não estiver vazia escalona proxima tarefa
                 if (!escalonador.getFilaTarefas().isEmpty()) {
@@ -189,8 +189,8 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     }
 
     @Override
-    public void requisicao(Simulacao simulacao, Mensagem mensagem, int tipo) {
-        if (tipo == EventoFuturo.ESCALONAR) {
+    public void requisicao(Simulation simulacao, Mensagem mensagem, int tipo) {
+        if (tipo == FutureEvent.ESCALONAR) {
             escalonador.escalonar();
         } else if (mensagem != null) {
             if (mensagem.getTipo() == Mensagens.ATUALIZAR) {
@@ -223,75 +223,75 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     @Override
     public void enviarTarefa(Tarefa tarefa) {
         //Gera evento para atender proximo cliente da lista
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.SAÍDA,
+                FutureEvent.SAIDA,
                 this, tarefa);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
     public void processarTarefa(Tarefa tarefa) {
         tarefa.iniciarEsperaProcessamento(simulacao.getTime(this));
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.ATENDIMENTO,
+                FutureEvent.ATENDIMENTO,
                 this, tarefa);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
     public void executarEscalonamento() {
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.ESCALONAR,
+                FutureEvent.ESCALONAR,
                 this, null);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
     public void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo) {
         Mensagem msg = new Mensagem(this, tipo, tarefa);
         msg.setCaminho(escalonador.escalonarRota(escravo));
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.MENSAGEM,
+                FutureEvent.MENSAGEM,
                 msg.getCaminho().remove(0),
                 msg);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
     public void atualizar(CS_Processamento escravo) {
         Mensagem msg = new Mensagem(this, 0.011444091796875, Mensagens.ATUALIZAR);
         msg.setCaminho(escalonador.escalonarRota(escravo));
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.MENSAGEM,
+                FutureEvent.MENSAGEM,
                 msg.getCaminho().remove(0),
                 msg);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     public void atualizar(CS_Processamento escravo, Double time) {
         Mensagem msg = new Mensagem(this, 0.011444091796875, Mensagens.ATUALIZAR);
         msg.setCaminho(escalonador.escalonarRota(escravo));
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 time,
-                EventoFuturo.MENSAGEM,
+                FutureEvent.MENSAGEM,
                 msg.getCaminho().remove(0),
                 msg);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
-    public void setSimulacao(Simulacao simulacao) {
+    public void setSimulacao(Simulation simulacao) {
         this.simulacao = simulacao;
     }
 
@@ -360,21 +360,21 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     @Override
     public Tarefa criarCopia(Tarefa get) {
         Tarefa tarefa = new Tarefa(get);
-        simulacao.addTarefa(tarefa);
+        simulacao.addJob(tarefa);
         return tarefa;
     }
 
     @Override
-    public Simulacao getSimulacao() {
+    public Simulation getSimulacao() {
         return simulacao;
     }
     
     @Override
-    public void atenderCancelamento(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderCancelamento(Simulation simulacao, Mensagem mensagem) {
         boolean temp1 = false;
         if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
-            temp1 = simulacao.removeEventoFuturo(EventoFuturo.SAÍDA, this, mensagem.getTarefa());
+            temp1 = simulacao.removeFutureEvent(FutureEvent.SAIDA, this, mensagem.getTarefa());
             //gerar evento para atender proximo cliente
             if (filaTarefas.isEmpty()) {
                 //Indica que está livre
@@ -382,12 +382,12 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
             }
         }
         double inicioAtendimento = mensagem.getTarefa().cancelar(simulacao.getTime(this));
@@ -403,10 +403,10 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     }
 
     @Override
-    public void atenderParada(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderParada(Simulation simulacao, Mensagem mensagem) {
         if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
-            boolean remover = simulacao.removeEventoFuturo(EventoFuturo.SAÍDA, this , mensagem.getTarefa());
+            boolean remover = simulacao.removeFutureEvent(FutureEvent.SAIDA, this , mensagem.getTarefa());
             //gerar evento para atender proximo cliente
             if (filaTarefas.isEmpty()) {
                 //Indica que está livre
@@ -414,12 +414,12 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
             }
             double inicioAtendimento = mensagem.getTarefa().parar(simulacao.getTime(this));
             double tempoProc = simulacao.getTime(this) - inicioAtendimento;
@@ -434,22 +434,22 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     }
 
     @Override
-    public void atenderDevolucao(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderDevolucao(Simulation simulacao, Mensagem mensagem) {
         boolean temp1 = filaTarefas.remove(mensagem.getTarefa());
         boolean temp2 = escalonador.getFilaTarefas().remove(mensagem.getTarefa());
         if (temp1 || temp2) {
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     mensagem.getTarefa().getOrigem(),
                     mensagem.getTarefa());
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         }
     }
 
     @Override
-    public void atenderDevolucaoPreemptiva(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderDevolucaoPreemptiva(Simulation simulacao, Mensagem mensagem) {
         boolean temp1 = false;
         boolean temp2 = false;
         if (mensagem.getTarefa().getEstado() == Tarefa.PARADO) {
@@ -457,7 +457,7 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
             temp2 = escalonador.getFilaTarefas().remove(mensagem.getTarefa());
         } else if (mensagem.getTarefa().getEstado() == Tarefa.PROCESSANDO) {
             //remover evento de saida do cliente do servidor
-            temp1 = simulacao.removeEventoFuturo(EventoFuturo.SAÍDA, this, mensagem.getTarefa());
+            temp1 = simulacao.removeFutureEvent(FutureEvent.SAIDA, this, mensagem.getTarefa());
             //gerar evento para atender proximo cliente
             if (filaTarefas.isEmpty()) {
                 //Indica que está livre
@@ -465,12 +465,12 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
             } else {
                 //Gera evento para atender proximo cliente da lista
                 Tarefa proxCliente = filaTarefas.remove(0);
-                EventoFuturo evtFut = new EventoFuturo(
+                FutureEvent evtFut = new FutureEvent(
                         simulacao.getTime(this),
-                        EventoFuturo.ATENDIMENTO,
+                        FutureEvent.ATENDIMENTO,
                         this, proxCliente);
                 //Event adicionado a lista de evntos futuros
-                simulacao.addEventoFuturo(evtFut);
+                simulacao.addFutureEvent(evtFut);
             }
             double inicioAtendimento = mensagem.getTarefa().parar(simulacao.getTime(this));
             double tempoProc = simulacao.getTime(this) - inicioAtendimento;
@@ -486,18 +486,18 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
             mensagem.getTarefa().incMflopsDesperdicados(mflopsProcessados - numCP);
         }
         if (temp1 || temp2) {
-            EventoFuturo evtFut = new EventoFuturo(
+            FutureEvent evtFut = new FutureEvent(
                     simulacao.getTime(this),
-                    EventoFuturo.CHEGADA,
+                    FutureEvent.CHEGADA,
                     mensagem.getTarefa().getOrigem(),
                     mensagem.getTarefa());
             //Event adicionado a lista de evntos futuros
-            simulacao.addEventoFuturo(evtFut);
+            simulacao.addFutureEvent(evtFut);
         }
     }
 
     @Override
-    public void atenderAtualizacao(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderAtualizacao(Simulation simulacao, Mensagem mensagem) {
         //atualiza metricas dos usuarios globais
         //simulacao.getRedeDeFilas().getMetricasUsuarios().addMetricasUsuarios(escalonador.getMetricaUsuarios());
         //enviar resultados
@@ -508,22 +508,22 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
         novaMensagem.setFilaEscravo(new ArrayList<Tarefa>(filaTarefas));
         novaMensagem.getFilaEscravo().addAll(escalonador.getFilaTarefas());
         novaMensagem.setCaminho(caminho);
-        EventoFuturo evtFut = new EventoFuturo(
+        FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
-                EventoFuturo.MENSAGEM,
+                FutureEvent.MENSAGEM,
                 novaMensagem.getCaminho().remove(0),
                 novaMensagem);
         //Event adicionado a lista de evntos futuros
-        simulacao.addEventoFuturo(evtFut);
+        simulacao.addFutureEvent(evtFut);
     }
 
     @Override
-    public void atenderRetornoAtualizacao(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderRetornoAtualizacao(Simulation simulacao, Mensagem mensagem) {
         escalonador.resultadoAtualizar(mensagem);
     }
     
     @Override
-    public void atenderFalha(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderFalha(Simulation simulacao, Mensagem mensagem) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
@@ -533,12 +533,12 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     }
 
     @Override
-    public void atenderAckAlocacao(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderAckAlocacao(Simulation simulacao, Mensagem mensagem) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void atenderDesligamento(Simulacao simulacao, Mensagem mensagem) {
+    public void atenderDesligamento(Simulation simulacao, Mensagem mensagem) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

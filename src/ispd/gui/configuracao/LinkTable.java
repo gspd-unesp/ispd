@@ -1,189 +1,167 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * LinkTable.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui.configuracao;
 
 import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Link;
-import java.util.ResourceBundle;
+
 import javax.swing.table.AbstractTableModel;
+import java.util.ResourceBundle;
 
-/**
- *
- * @author denison
- */
 public class LinkTable extends AbstractTableModel {
-
-    // Constantes representando o índice das colunas
     private static final int TYPE = 0;
     private static final int VALUE = 1;
     private static final int LABEL = 0;
-    private static final int BANDW = 1;
-    private static final int LATEN = 2;
-    private static final int LOADF = 3;
-    private static final int NUMLINHAS = 4;
-    private static final int NUMCOLUNAS = 2;
-    // Array com os nomes das linhas
-    private ItemGrade link;
-    private ResourceBundle palavras;
+    private static final int BANDWIDTH = 1;
+    private static final int LATENCY = 2;
+    private static final int LOAD_FACTOR = 3;
+    private static final int ROW_COUNT = 4;
+    private static final int COLUMN_COUNT = 2;
+    private GridItem link = null;
+    private ResourceBundle words;
 
-    public LinkTable(ResourceBundle palavras) {
-        this.palavras = palavras;
+    LinkTable(final ResourceBundle words) {
+        this.words = words;
     }
-    
-    public void setLink(ItemGrade link) {
+
+    public void setLink(final GridItem link) {
         this.link = link;
     }
 
     @Override
     public int getRowCount() {
-        return NUMLINHAS;
-    }
-
-    @Override
-    public String getColumnName(int columnIndex) {
-        switch (columnIndex) {
-            case TYPE:
-                return palavras.getString("Properties");
-            case VALUE:
-                return palavras.getString("Values");
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        if (columnIndex == TYPE) {
-            return false;
-        }
-        return true;
+        return LinkTable.ROW_COUNT;
     }
 
     @Override
     public int getColumnCount() {
-        return NUMCOLUNAS;
+        return LinkTable.COLUMN_COUNT;
     }
 
     @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        // Pega o sócio referente a linha especificada.
-        if (columnIndex == VALUE && link != null) {
-            switch (rowIndex) {
-                case LABEL:
-                    link.getId().setNome(aValue.toString());
-                    break;
-                case BANDW:
-                    if (link instanceof Link) {
-                        ((Link) link).setBanda(Double.valueOf(aValue.toString()));
-                    } else {
-                        ((Internet) link).setBanda(Double.valueOf(aValue.toString()));
-                    }
-                    break;
-                case LATEN:
-                    if (link instanceof Link) {
-                        ((Link) link).setLatencia(Double.valueOf(aValue.toString()));
-                    } else {
-                        ((Internet) link).setLatencia(Double.valueOf(aValue.toString()));
-                    }
-                    break;
-                case LOADF:
-                    if (link instanceof Link) {
-                        ((Link) link).setTaxaOcupacao(Double.valueOf(aValue.toString()));
-                    } else {
-                        ((Internet) link).setTaxaOcupacao(Double.valueOf(aValue.toString()));
-                    }
-                    break;
-            }
-            fireTableCellUpdated(rowIndex, columnIndex); // Notifica a atualização da célula
-        }
-    }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
+    public Object getValueAt(final int rowIndex, final int columnIndex) {
         switch (columnIndex) {
-            case TYPE:
-                switch (rowIndex) {
-                    case LABEL:
-                        return palavras.getString("Label");
-                    case BANDW:
-                        return palavras.getString("Bandwidth");
-                    case LATEN:
-                        return palavras.getString("Latency");
-                    case LOADF:
-                        return palavras.getString("Load Factor");
-                }
-            case VALUE:
-                if (link != null) {
-                    switch (rowIndex) {
-                        case LABEL:
-                            return link.getId().getNome();
-                        case BANDW:
-                            if (link instanceof Link) {
-                                return ((Link) link).getBanda();
-                            } else {
-                                return ((Internet) link).getBanda();
-                            }
-                        case LATEN:
-                            if (link instanceof Link) {
-                                return ((Link) link).getLatencia();
-                            } else {
-                                return ((Internet) link).getLatencia();
-                            }
-                        case LOADF:
-                            if (link instanceof Link) {
-                                return ((Link) link).getTaxaOcupacao();
-                            } else {
-                                return ((Internet) link).getTaxaOcupacao();
-                            }
-                    }
+            case LinkTable.TYPE -> {
+                final var name = this.getRowName(rowIndex);
+                if (name != null)
+                    return name;
+            }
+            case LinkTable.VALUE -> {
+                final var value = this.getRowValue(rowIndex);
+                if (value != null)
+                    return value;
+            }
+        }
+
+        throw new IndexOutOfBoundsException("columnIndex out of bounds");
+    }
+
+    private String getRowName(final int rowIndex) {
+        return switch (rowIndex) {
+            case LinkTable.LABEL -> this.words.getString("Label");
+            case LinkTable.BANDWIDTH -> this.words.getString("Bandwidth");
+            case LinkTable.LATENCY -> this.words.getString("Latency");
+            case LinkTable.LOAD_FACTOR -> this.words.getString("Load Factor");
+            default -> null;
+        };
+    }
+
+    private Object getRowValue(final int rowIndex) {
+        if (this.link == null) {
+            return "null";
+        }
+
+        switch (rowIndex) {
+            case LinkTable.LABEL:
+                return this.link.getId().getName();
+
+            case LinkTable.BANDWIDTH:
+                if (this.link instanceof Link) {
+                    return ((Link) this.link).getBandwidth();
                 } else {
-                    return "null";
+                    return ((Internet) this.link).getBandwidth();
                 }
-            default:
-                // Não deve ocorrer, pois só existem 2 colunas
-                throw new IndexOutOfBoundsException("columnIndex out of bounds");
+
+            case LinkTable.LATENCY:
+                if (this.link instanceof Link) {
+                    return ((Link) this.link).getLatency();
+                } else {
+                    return ((Internet) this.link).getLatency();
+                }
+
+            case LinkTable.LOAD_FACTOR:
+                if (this.link instanceof Link) {
+                    return ((Link) this.link).getLoadFactor();
+                } else {
+                    return ((Internet) this.link).getLoadFactor();
+                }
+        }
+
+        return null;
+    }
+
+    @Override
+    public String getColumnName(final int columnIndex) {
+        return switch (columnIndex) {
+            case LinkTable.TYPE -> this.words.getString("Properties");
+            case LinkTable.VALUE -> this.words.getString("Values");
+            default -> null;
+        };
+    }
+
+    @Override
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return columnIndex != LinkTable.TYPE;
+    }
+
+    @Override
+    public void setValueAt(
+            final Object aValue,
+            final int rowIndex,
+            final int columnIndex) {
+        if (columnIndex != LinkTable.VALUE || this.link == null) {
+            return;
+        }
+
+        this.updateValue(aValue, rowIndex);
+        this.fireTableCellUpdated(rowIndex, LinkTable.VALUE);
+    }
+
+    private void updateValue(final Object aValue, final int rowIndex) {
+
+        if (rowIndex == LinkTable.LABEL) {
+            this.link.getId().setName(aValue.toString());
+            return;
+        }
+
+        final var value = Double.parseDouble(aValue.toString());
+
+        switch (rowIndex) {
+            case LinkTable.BANDWIDTH:
+                if (this.link instanceof Link) {
+                    ((Link) this.link).setBandwidth(value);
+                } else {
+                    ((Internet) this.link).setBandwidth(value);
+                }
+                break;
+            case LinkTable.LATENCY:
+                if (this.link instanceof Link) {
+                    ((Link) this.link).setLatency(value);
+                } else {
+                    ((Internet) this.link).setLatency(value);
+                }
+                break;
+            case LinkTable.LOAD_FACTOR:
+                if (this.link instanceof Link) {
+                    ((Link) this.link).setLoadFactor(value);
+                } else {
+                    ((Internet) this.link).setLoadFactor(value);
+                }
+                break;
         }
     }
 
-    public void setPalavras(ResourceBundle palavras) {
-        this.palavras = palavras;
-        fireTableStructureChanged();
+    public void setPalavras(final ResourceBundle words) {
+        this.words = words;
+        this.fireTableStructureChanged();
     }
 }

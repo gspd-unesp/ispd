@@ -1,168 +1,140 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * Link.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui.iconico.grade;
 
-import ispd.gui.iconico.Aresta;
-import ispd.gui.iconico.Vertice;
+import ispd.gui.iconico.Vertex;
+
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Polygon;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-/**
- *
- * @author denison
- */
-public class Link extends Aresta implements ItemGrade {
+public class Link extends EdgeGridItem {
 
-    private IdentificadorItemGrade id;
-    private boolean selected;
-    private Polygon areaSeta;
-    private static Color DARK_GREEN = new Color(0, 130, 0);
-    private double banda;
-    private double ocupacao;
-    private double latencia;
-    private boolean configurado;
+    /**
+     * It represents the <em>dark green</em> color. Further,
+     * it is used to draw the link using this color since
+     * this link is configured.
+     */
+    private static final Color DARK_GREEN
+            = new Color(0, 130, 0);
 
-    public Link(Vertice origem, Vertice destino, int idLocal, int idGlobal) {
-        super(origem, destino);
-        this.selected = true;
-        this.areaSeta = new Polygon();
-        this.id = new IdentificadorItemGrade(idLocal, idGlobal, "link" + idGlobal);
-    }
+    private final Polygon arrowPolygon;
 
-    @Override
-    public IdentificadorItemGrade getId() {
-        return this.id;
-    }
+    /**
+     * It represents the bandwidth.
+     */
+    private double bandwidth;
 
-    @Override
-    public Set<ItemGrade> getConexoesEntrada() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    /**
+     * It represents the load factor.
+     */
+    private double loadFactor;
 
-    @Override
-    public Set<ItemGrade> getConexoesSaida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    /**
+     * It represents the latency.
+     */
+    private double latency;
 
-    @Override
-    public String getAtributos(ResourceBundle palavras) {
-        String texto = palavras.getString("Local ID:") + " " + getId().getIdLocal()
-                + "<br>" + palavras.getString("Global ID:") + " " + getId().getIdGlobal()
-                + "<br>" + palavras.getString("Label") + ": " + getId().getNome()
-                + "<br>" + palavras.getString("X1-coordinate:") + " " + getOrigem().getX()
-                + "<br>" + palavras.getString("Y1-coordinate:") + " " + getOrigem().getY()
-                + "<br>" + palavras.getString("X2-coordinate:") + " " + getDestino().getY()
-                + "<br>" + palavras.getString("Y2-coordinate:") + " " + getDestino().getX()
-                + "<br>" + palavras.getString("Bandwidth") + ": " + getBanda()
-                + "<br>" + palavras.getString("Latency") + ": " + getLatencia()
-                + "<br>" + palavras.getString("Load Factor") + ": " + getTaxaOcupacao();
-        return texto;
+    /**
+     * Constructor of {@link Link} which specifies the source,
+     * destination vertices and the local and global
+     * identifiers.
+     *
+     * @param source      the source vertex
+     * @param destination the destination vertex
+     * @param localId     the local identifier
+     * @param globalId    the global identifier
+     */
+    public Link(final Vertex source,
+                final Vertex destination,
+                final int localId,
+                final int globalId) {
+        super(localId, globalId, "link", source,
+                destination, true);
+        this.arrowPolygon = new Polygon();
     }
 
     /**
+     * Returns the link attributes.
      *
-     * @param posicaoMouseX the value of posicaoMouseX
-     * @param posicaoMouseY the value of posicaoMouseY
-     * @param idGlobal the value of idGlobal
-     * @param idLocal the value of idLocal
+     * @param translator the translator containing
+     *                   the translation messages
+     * @return the link attributes
      */
     @Override
-    public Link criarCopia(int posicaoMouseX, int posicaoMouseY, int idGlobal, int idLocal) {
-        Link temp = new Link(null, null, idGlobal, idLocal);
-        temp.banda = this.banda;
-        temp.latencia = this.latencia;
-        temp.ocupacao = this.ocupacao;
-        temp.verificaConfiguracao();
-        return temp;
+    public String makeDescription(
+            final ResourceBundle translator) {
+        return ("%s %d<br>%s %d<br>%s: %s<br>%s %d<br>%s %d<br>%s %d<br>%s " +
+                "%d<br>%s: %s<br>%s: %s<br>%s: %s").formatted(
+                translator.getString("Local ID:"), this.id.getLocalId(),
+                translator.getString("Global ID:"), this.id.getGlobalId(),
+                translator.getString("Label"), this.id.getName(),
+                translator.getString("X1-coordinate:"), this.getSource().getX(),
+                translator.getString("Y1-coordinate:"), this.getSource().getY(),
+                translator.getString("X2-coordinate:"),
+                this.getDestination().getY(),
+                translator.getString("Y2-coordinate:"),
+                this.getDestination().getX(),
+                translator.getString("Bandwidth"), this.bandwidth,
+                translator.getString("Latency"), this.latency,
+                translator.getString("Load Factor"), this.loadFactor
+        );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public boolean isConfigurado() {
-        return configurado;
+    public Link makeCopy(final int mousePosX,
+                         final int mousePosY,
+                         final int globalId,
+                         final int localId) {
+        final var link = new Link(null, null,
+                globalId, localId);
+        link.bandwidth = this.bandwidth;
+        link.latency = this.latency;
+        link.loadFactor = this.loadFactor;
+        link.checkConfiguration();
+        return link;
     }
 
+    /**
+     * It draws the link starting from the source vertex
+     * and ending at the destination vertex.
+     */
     @Override
-    public boolean isSelected() {
-        return selected;
-    }
+    public void draw(final Graphics g) {
+        final double arrowWidth = 11.0f;
+        final double theta = 0.423f;
+        final int[] xPoints = new int[3];
+        final int[] yPoints = new int[3];
+        final double[] vecLine = new double[2];
+        final double[] vecLeft = new double[2];
+        final double fLength;
+        final double th;
+        final double ta;
+        final double baseX, baseY;
 
-    @Override
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
-
-    @Override
-    public void draw(Graphics g) {
-        double arrowWidth = 11.0f;
-        double theta = 0.423f;
-        int[] xPoints = new int[3];
-        int[] yPoints = new int[3];
-        double[] vecLine = new double[2];
-        double[] vecLeft = new double[2];
-        double fLength;
-        double th;
-        double ta;
-        double baseX, baseY;
-
-        xPoints[0] = (int) getX();
-        yPoints[0] = (int) getY();
+        xPoints[0] = this.getX();
+        yPoints[0] = this.getY();
 
         // build the line vector
-        vecLine[0] = (double) xPoints[ 0] - getOrigem().getX();
-        vecLine[1] = (double) yPoints[ 0] - getOrigem().getY();
+        vecLine[0] = (double) xPoints[0] - this.getSource().getX();
+        vecLine[1] = (double) yPoints[0] - this.getSource().getY();
 
         // build the arrow base vector - normal to the line
         vecLeft[0] = -vecLine[1];
         vecLeft[1] = vecLine[0];
 
         // setup length parameters
-        fLength = (double) Math.sqrt(vecLine[0] * vecLine[0] + vecLine[1] * vecLine[1]);
+        fLength = Math.sqrt(vecLine[0] * vecLine[0] + vecLine[1] * vecLine[1]);
         th = arrowWidth / (2.0f * fLength);
-        ta = arrowWidth / (2.0f * ((double) Math.tan(theta) / 2.0f) * fLength);
+        ta = arrowWidth / (2.0f * (Math.tan(theta) / 2.0f) * fLength);
 
         // find the base of the arrow
-        baseX = ((double) xPoints[ 0] - ta * vecLine[0]);
-        baseY = ((double) yPoints[ 0] - ta * vecLine[1]);
+        baseX = ((double) xPoints[0] - ta * vecLine[0]);
+        baseY = ((double) yPoints[0] - ta * vecLine[1]);
 
         // build the points on the sides of the arrow
         xPoints[1] = (int) (baseX + th * vecLeft[0]);
@@ -170,68 +142,166 @@ public class Link extends Aresta implements ItemGrade {
         xPoints[2] = (int) (baseX - th * vecLeft[0]);
         yPoints[2] = (int) (baseY - th * vecLeft[1]);
 
-        areaSeta.reset();
-        areaSeta.addPoint(xPoints[0], yPoints[0]);
-        areaSeta.addPoint(xPoints[1], yPoints[1]);
-        areaSeta.addPoint(xPoints[2], yPoints[2]);
+        this.arrowPolygon.reset();
+        this.arrowPolygon.addPoint(xPoints[0], yPoints[0]);
+        this.arrowPolygon.addPoint(xPoints[1], yPoints[1]);
+        this.arrowPolygon.addPoint(xPoints[2], yPoints[2]);
 
-        if (isSelected()) {
+        if (this.isSelected()) {
             g.setColor(Color.BLACK);
-        } else if (isConfigurado()) {
+        } else if (this.isConfigured()) {
             g.setColor(DARK_GREEN);
         } else {
             g.setColor(Color.RED);
         }
-        g.drawLine(getOrigem().getX(), getOrigem().getY(), getDestino().getX(), getDestino().getY());
-        g.fillPolygon(areaSeta);
+
+        g.drawLine(this.getSource().getX(), this.getSource().getY(),
+                this.getDestination().getX(), this.getDestination().getY());
+        g.fillPolygon(this.arrowPolygon);
     }
 
+    /**
+     * It throws {@link UnsupportedOperationException}.
+     */
     @Override
-    public boolean contains(int x, int y) {
-        return areaSeta.contains(x, y);
+    public Set<GridItem> getInboundConnections() {
+        throw new UnsupportedOperationException();
     }
 
-    public double getBanda() {
-        return banda;
+    /**
+     * It throws {@link UnsupportedOperationException}.
+     */
+    @Override
+    public Set<GridItem> getOutboundConnections() {
+        throw new UnsupportedOperationException();
     }
 
-    public double getTaxaOcupacao() {
-        return ocupacao;
+    /**
+     * It checks if the current link configuration is well
+     * configured; if so, then {@link #configured} is set
+     * to {@code true}; otherwise, is set to {@code false}.
+     */
+    private void checkConfiguration() {
+        this.configured = this.bandwidth > 0
+                && this.latency > 0;
     }
 
-    public double getLatencia() {
-        return latencia;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean contains(final int x, final int y) {
+        return this.arrowPolygon.contains(x, y);
     }
 
-    public void setBanda(double banda) {
-        this.banda = banda;
-        verificaConfiguracao();
+    /* Getters & Setters */
+
+    /**
+     * Returns the bandwidth.
+     *
+     * @return the bandwidth
+     */
+    public double getBandwidth() {
+        return this.bandwidth;
     }
 
-    public void setTaxaOcupacao(double taxa) {
-        this.ocupacao = taxa;
+    /**
+     * It sets the bandwidth.
+     *
+     * @param bandwidth the bandwidth to be set
+     */
+    public void setBandwidth(final double bandwidth) {
+        this.bandwidth = bandwidth;
+        this.checkConfiguration();
     }
 
-    public void setLatencia(double latencia) {
-        this.latencia = latencia;
-        verificaConfiguracao();
+    /**
+     * Returns the load factor.
+     *
+     * @return the load factor
+     */
+    public double getLoadFactor() {
+        return this.loadFactor;
     }
 
+    /**
+     * It sets the load factor.
+     *
+     * @param loadFactor the load factor to be set
+     */
+    public void setLoadFactor(final double loadFactor) {
+        this.loadFactor = loadFactor;
+    }
+
+    /**
+     * Returns the latency.
+     *
+     * @return the latency
+     */
+    public double getLatency() {
+        return this.latency;
+    }
+
+    /**
+     * It sets the latency
+     *
+     * @param latency the latency to be set
+     */
+    public void setLatency(final double latency) {
+        this.latency = latency;
+        checkConfiguration();
+    }
+
+    /**
+     * Returns the x-coordinate in cartesian coordinates.
+     *
+     * @return the x-coordinate in cartesian coordinates
+     */
     @Override
     public Integer getX() {
-        return (((((getOrigem().getX() + getDestino().getX()) / 2) + getDestino().getX()) / 2) + getDestino().getX()) / 2;
+        return Link.biasedMidPoint(
+                this.getSource().getX(),
+                this.getDestination().getX()
+        );
     }
 
+    /**
+     * Returns the y-coordinate in cartesian coordinates.
+     *
+     * @return the y-coordinate in cartesian coordinates
+     */
     @Override
     public Integer getY() {
-        return (((((getOrigem().getY() + getDestino().getY()) / 2) + getDestino().getY()) / 2) + getDestino().getY()) / 2;
+        return Link.biasedMidPoint(
+                this.getSource().getY(),
+                this.getDestination().getY()
+        );
     }
 
-    private void verificaConfiguracao() {
-        if(banda > 0 && latencia > 0){
-            configurado = true;
-        } else {
-            configurado = false;
-        }
+    /* getImage */
+
+    /**
+     * Returns {@code null}.
+     *
+     * @return {@code null}
+     */
+    @Override
+    public Image getImage() {
+        return null;
+    }
+
+    /**
+     * It returns the following calculation
+     * <pre>
+     *     (p1 + 7 * p2) / 8
+     * </pre>
+     *
+     * @param p1 the first point
+     * @param p2 the second point
+     * @return a weighted mean between these points
+     */
+    private static int biasedMidPoint(final int p1,
+                                      final int p2) {
+        return (p1 + 7 * p2) / 8;
     }
 }

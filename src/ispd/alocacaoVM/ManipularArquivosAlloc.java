@@ -1,35 +1,25 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package ispd.alocacaoVM;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author denison_usuario
- */
 public interface ManipularArquivosAlloc {
+    ArrayList<String> listar();
 
-    public ArrayList<String> listar();
+    File getDiretorio();
 
-    public File getDiretorio();
+    boolean escrever(String nome, String codigo);
 
-    public boolean escrever(String nome, String codigo);
+    String compilar(String nome);
 
-    public String compilar(String nome);
+    String ler(String alocador);
 
-    public String ler(String alocador);
+    boolean remover(String alocador);
 
-    public boolean remover(String alocador);
+    boolean importarAlocadoresJava(File arquivo);
 
-    public boolean importarAlocadoresJava(File arquivo);
-    
-    public List listarAdicionados();
-    
-    public List listarRemovidos();
-    
+    List listarAdicionados();
+
+    List listarRemovidos();
 }

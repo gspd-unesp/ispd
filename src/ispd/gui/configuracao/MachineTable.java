@@ -1,288 +1,252 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * MachineTable.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.gui.configuracao;
 
 import ispd.arquivo.Escalonadores;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ResourceBundle;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.ResourceBundle;
 
-/**
- *
- * @author denison
- */
 public class MachineTable extends AbstractTableModel {
-
-    // Constantes representando o índice das colunas
     private static final int TYPE = 0;
     private static final int VALUE = 1;
     private static final int LABEL = 0;
     private static final int OWNER = 1;
-    private static final int PROCS = 2;
-    private static final int LOADF = 3;
+    private static final int PROCESSOR = 2;
+    private static final int LOAD_FACTOR = 3;
     private static final int CORES = 4;
-    private static final int MERAM = 5;
-    private static final int HDISK = 6;
-    private static final int MASTR = 7;
-    private static final int SCHED = 8;
+    private static final int RAM = 5;
+    private static final int DISK = 6;
+    private static final int MASTER = 7;
+    private static final int SCHEDULER = 8;
     private static final int SLAVE = 9;
     private static final int ENERGY = 10;
-    private static final int NUMLINHAS = 11;
-    private static final int NUMCOLUNAS = 2;
-    // Array com os nomes das linhas
-    private ResourceBundle palavras;
-    private Machine maquina;
-    private JButton escravos;
-    private JComboBox escalonador;
-    private JComboBox usuarios;
-    private JList selecionadorEscravos;
+    private static final int ROW_COUNT = 11;
+    private static final int COLUMN_COUNT = 2;
+    private final JButton slaves = this.setButton();
+    private final JComboBox<?> schedulers =
+            new JComboBox<Object>(Escalonadores.ESCALONADORES);
+    private final JComboBox<String> users = new JComboBox<>();
+    private final JList<GridItem> slaveList = new JList<>();
+    private ResourceBundle words;
+    private Machine machine = null;
 
-    public MachineTable(ResourceBundle palavras) {
-        this.palavras = palavras;
-        selecionadorEscravos = new JList();
-        CheckListRenderer clr = new CheckListRenderer(selecionadorEscravos);
-        escravos = new JButton();
-        escravos.addActionListener(new java.awt.event.ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                //Cria lista com nós escalonaveis
-                if (!selecionadorEscravos.isVisible()) {
-                    DefaultListModel listModel = new DefaultListModel();
-                    List<ItemGrade> listaConectados = maquina.getNosEscalonaveis();
-                    for (ItemGrade item : listaConectados) {
-                        listModel.addElement(item);
-                    }
-                    selecionadorEscravos.setModel(listModel);
-                    for (ItemGrade escravo : maquina.getEscravos()) {
-                        int index = listaConectados.indexOf(escravo);
-                        selecionadorEscravos.addSelectionInterval(index, index);
-                    }
-                    selecionadorEscravos.setVisible(true);
-                }
-                if (selecionadorEscravos.getModel().getSize() > 0) {
-                    int opcao = JOptionPane.showConfirmDialog(
-                            escravos,
-                            selecionadorEscravos,
-                            "Select the slaves",
-                            JOptionPane.OK_CANCEL_OPTION,
-                            JOptionPane.PLAIN_MESSAGE);
-                    if (opcao == JOptionPane.OK_OPTION) {
-                        List<ItemGrade> escravosList = new ArrayList<ItemGrade>(selecionadorEscravos.getSelectedValuesList());
-                        maquina.setEscravos(escravosList);
-                        escravos.setText(maquina.getEscravos().toString());
-                    }
-                }
-            }
-        });
-        escalonador = new JComboBox(Escalonadores.ESCALONADORES);
-        usuarios = new JComboBox();
+    MachineTable(final ResourceBundle words) {
+        this.words = words;
+        new CheckListRenderer(this.slaveList);
     }
 
-    public void setMaquina(Machine maquina, HashSet users) {
-        this.maquina = maquina;
-        this.escalonador.setSelectedItem(this.maquina.getAlgoritmo());
-        this.usuarios.removeAllItems();
-        for (Object object : users) {
-            this.usuarios.addItem(object);
+    private JButton setButton() {
+        final var button = new JButton();
+        button.addActionListener(new ButtonActionListener());
+        return button;
+    }
+
+    void setMaquina(final Machine machine, final Iterable<String> users) {
+        this.machine = machine;
+        this.schedulers.setSelectedItem(this.machine.getSchedulingAlgorithm());
+        this.users.removeAllItems();
+        for (final var s : users) {
+            this.users.addItem(s);
         }
-        this.usuarios.setSelectedItem(maquina.getProprietario());
-        this.selecionadorEscravos.setVisible(false);
-        escravos.setText(maquina.getEscravos().toString());
+        this.users.setSelectedItem(machine.getOwner());
+        this.slaveList.setVisible(false);
+        this.slaves.setText(machine.getSlaves().toString());
     }
 
     @Override
     public int getRowCount() {
-        return NUMLINHAS;
-    }
-
-    @Override
-    public String getColumnName(int columnIndex) {
-        switch (columnIndex) {
-            case TYPE:
-                return palavras.getString("Properties");
-            case VALUE:
-                return palavras.getString("Values");
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        if (columnIndex == TYPE) {
-            return false;
-        }
-        return true;
+        return MachineTable.ROW_COUNT;
     }
 
     @Override
     public int getColumnCount() {
-        return NUMCOLUNAS;
+        return MachineTable.COLUMN_COUNT;
+    }
+
+    @Override
+    public Object getValueAt(final int rowIndex, final int columnIndex) {
+        switch (columnIndex) {
+            case MachineTable.TYPE -> {
+                final var name = this.returnNameForIndex(rowIndex);
+                if (name != null)
+                    return name;
+            }
+            case MachineTable.VALUE -> {
+                final var val = this.getValueForMachine(rowIndex);
+                if (val != null)
+                    return val;
+            }
+        }
+
+        throw new IndexOutOfBoundsException("ColumnIndex out of bounds");
+    }
+
+    private String returnNameForIndex(final int rowIndex) {
+        return switch (rowIndex) {
+            case MachineTable.LABEL -> this.words.getString("Label");
+            case MachineTable.OWNER -> this.words.getString("Owner");
+            case MachineTable.PROCESSOR -> "%s (Mflop/s)".formatted(
+                    this.words.getString("Computing power"));
+            case MachineTable.LOAD_FACTOR ->
+                    this.words.getString("Load Factor");
+            case MachineTable.RAM -> "Primary Storage";
+            case MachineTable.DISK -> "Secondary Storage";
+            case MachineTable.CORES -> "Cores";
+            case MachineTable.MASTER -> this.words.getString("Master");
+            case MachineTable.SCHEDULER ->
+                    this.words.getString("Scheduling algorithm");
+            case MachineTable.SLAVE -> "Slave Nodes";
+            case MachineTable.ENERGY -> "Energy consumption";
+            default -> null;
+        };
+    }
+
+    private Object getValueForMachine(final int rowIndex) {
+        if (this.machine == null) {
+            return switch (rowIndex) {
+                case MachineTable.OWNER -> this.users;
+                case MachineTable.SCHEDULER -> this.schedulers;
+                case MachineTable.SLAVE -> this.slaves;
+                default -> "null";
+            };
+        }
+
+        return switch (rowIndex) {
+            case MachineTable.LABEL -> this.machine.getId().getName();
+            case MachineTable.OWNER -> this.users;
+            case MachineTable.PROCESSOR -> this.machine.getComputationalPower();
+            case MachineTable.LOAD_FACTOR -> this.machine.getLoadFactor();
+            case MachineTable.RAM -> this.machine.getRam();
+            case MachineTable.DISK -> this.machine.getHardDisk();
+            case MachineTable.CORES -> this.machine.getCoreCount();
+            case MachineTable.MASTER -> this.machine.isMaster();
+            case MachineTable.SCHEDULER -> this.schedulers;
+            case MachineTable.SLAVE -> this.slaves;
+            case MachineTable.ENERGY -> this.machine.getEnergyConsumption();
+            default -> null;
+        };
+    }
+
+    @Override
+    public String getColumnName(final int columnIndex) {
+        return switch (columnIndex) {
+            case MachineTable.TYPE -> this.words.getString("Properties");
+            case MachineTable.VALUE -> this.words.getString("Values");
+            default -> null;
+        };
+    }
+
+    @Override
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return columnIndex != MachineTable.TYPE;
+    }
+
+    @Override
+    public void setValueAt(final Object aValue, final int rowIndex,
+                           final int columnIndex) {
+        if (columnIndex != MachineTable.VALUE || this.machine == null) {
+            return;
+        }
+
+        this.setValueAtIndex(aValue, rowIndex);
+
+        this.fireTableCellUpdated(rowIndex, MachineTable.VALUE);
+    }
+
+    private void setValueAtIndex(final Object value, final int rowIndex) {
+        switch (rowIndex) {
+            case MachineTable.LABEL ->
+                    this.machine.getId().setName(value.toString());
+            case MachineTable.OWNER ->
+                    this.machine.setOwner(this.users.getSelectedItem().toString());
+            case MachineTable.PROCESSOR ->
+                    this.machine.setComputationalPower(Double.valueOf(value.toString()));
+            case MachineTable.LOAD_FACTOR ->
+                    this.machine.setLoadFactor(Double.valueOf(value.toString()));
+            case MachineTable.RAM ->
+                    this.machine.setRam(Double.valueOf(value.toString()));
+            case MachineTable.DISK ->
+                    this.machine.setHardDisk(Double.valueOf(value.toString()));
+            case MachineTable.CORES ->
+                    this.machine.setCoreCount(Integer.valueOf(value.toString()));
+            case MachineTable.ENERGY ->
+                    this.machine.setEnergyConsumption(Double.valueOf(value.toString()));
+            case MachineTable.MASTER ->
+                    this.machine.setMaster(Boolean.valueOf(value.toString()));
+            case MachineTable.SCHEDULER ->
+                    this.machine.setSchedulingAlgorithm(this.schedulers.getSelectedItem().toString());
+        }
     }
 
     public JComboBox getEscalonadores() {
-        return escalonador;
+        return this.schedulers;
     }
 
-    @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        // Pega o sócio referente a linha especificada.
-        if (columnIndex == VALUE && maquina != null) {
-            switch (rowIndex) {
-                case LABEL:
-                    maquina.getId().setNome(aValue.toString());
-                    break;
-                case OWNER:
-                    maquina.setProprietario(usuarios.getSelectedItem().toString());
-                    break;
-                case PROCS:
-                    maquina.setPoderComputacional(Double.valueOf(aValue.toString()));
-                    break;
-                case LOADF:
-                    maquina.setTaxaOcupacao(Double.valueOf(aValue.toString()));
-                    break;
-                case MERAM:
-                    maquina.setMemoriaRAM(Double.valueOf(aValue.toString()));
-                    break;
-                case HDISK:
-                    maquina.setDiscoRigido(Double.valueOf(aValue.toString()));
-                    break;
-                case CORES:
-                    maquina.setNucleosProcessador(Integer.valueOf(aValue.toString()));
-                    break;
-                case ENERGY:
-                    maquina.setConsumoEnergia(Double.valueOf(aValue.toString()));
-                break;
-                case MASTR:
-                    maquina.setMestre(Boolean.valueOf(aValue.toString()));
-                    break;
-                case SCHED:
-                    maquina.setAlgoritmo(escalonador.getSelectedItem().toString());
-                    break;
+    public void setPalavras(final ResourceBundle palavras) {
+        this.words = palavras;
+        this.fireTableStructureChanged();
+    }
+
+    private class ButtonActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(final ActionEvent evt) {
+            this.calculateThings();
+            this.updateThings();
+        }
+
+        private void calculateThings() {
+            if (MachineTable.this.slaveList.isVisible()) {
+                return;
             }
-            fireTableCellUpdated(rowIndex, columnIndex); // Notifica a atualização da célula
-        }
-    }
 
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-        switch (columnIndex) {
-            case TYPE:
-                switch (rowIndex) {
-                    case LABEL:
-                        return palavras.getString("Label");
-                    case OWNER:
-                        return palavras.getString("Owner");
-                    case PROCS:
-                        return palavras.getString("Computing power") + " (Mflop/s)";
-                    case LOADF:
-                        return palavras.getString("Load Factor");
-                    case MERAM:
-                        return "Primary Storage";
-                    case HDISK:
-                        return "Secondary Storage";
-                    case CORES:
-                        return "Cores";
-                    case MASTR:
-                        return palavras.getString("Master");
-                    case SCHED:
-                        return palavras.getString("Scheduling algorithm");
-                    case SLAVE:
-                        return "Slave Nodes";
-                    case ENERGY:
-                        return "Energy consumption";
-                }
-            case VALUE:
-                if (maquina != null) {
-                    switch (rowIndex) {
-                        case LABEL:
-                            return maquina.getId().getNome();
-                        case OWNER:
-                            return usuarios;
-                        case PROCS:
-                            return maquina.getPoderComputacional();
-                        case LOADF:
-                            return maquina.getTaxaOcupacao();
-                        case MERAM:
-                            return maquina.getMemoriaRAM();
-                        case HDISK:
-                            return maquina.getDiscoRigido();
-                        case CORES:
-                            return maquina.getNucleosProcessador();
-                        case MASTR:
-                            return maquina.isMestre();
-                        case SCHED:
-                            return escalonador;
-                        case SLAVE:
-                            return escravos;
-                        case ENERGY:
-                             return maquina.getConsumoEnergia();
-                    }
-                } else {
-                    switch (rowIndex) {
-                        case OWNER:
-                            return usuarios;
-                        case SCHED:
-                            return escalonador;
-                        case SLAVE:
-                            return escravos;
-                        default:
-                            return "null";
-                    }
-                }
-            default:
-                // Não deve ocorrer, pois só existem 2 colunas
-                throw new IndexOutOfBoundsException("ColumnIndex out of bounds");
-        }
-    }
+            final var modelList = new DefaultListModel<GridItem>();
+            final var connectedList =
+                    MachineTable.this.machine.connectedSchedulableNodes();
 
-    public void setPalavras(ResourceBundle palavras) {
-        this.palavras = palavras;
-        fireTableStructureChanged();
+            for (final var item : connectedList) {
+                modelList.addElement(item);
+            }
+
+            MachineTable.this.slaveList.setModel(modelList);
+
+            MachineTable.this.machine.getSlaves().stream()
+                    .mapToInt(connectedList::indexOf)
+                    .forEachOrdered(i -> MachineTable.this.slaveList.addSelectionInterval(i, i));
+
+            MachineTable.this.slaveList.setVisible(true);
+        }
+
+        private void updateThings() {
+            if (MachineTable.this.slaveList.getModel().getSize() <= 0) {
+                return;
+            }
+
+            final int option = JOptionPane.showConfirmDialog(
+                    MachineTable.this.slaves,
+                    MachineTable.this.slaveList,
+                    "Select the slaves",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE
+            );
+
+            if (option != JOptionPane.OK_OPTION) {
+                return;
+            }
+
+            MachineTable.this.machine.setSlaves(
+                    new ArrayList<>(MachineTable.this.slaveList.getSelectedValuesList())
+            );
+
+            MachineTable.this.slaves.setText(MachineTable.this.machine.getSlaves().toString());
+        }
     }
 }

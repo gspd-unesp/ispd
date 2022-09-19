@@ -39,18 +39,18 @@
  */
 package ispd.arquivo.xml;
 
-import ispd.ValidaValores;
-import ispd.gui.EscolherClasse;
-import ispd.gui.iconico.Aresta;
+import ispd.gui.PickModelTypeDialog;
+import ispd.gui.iconico.Edge;
+import ispd.gui.iconico.Vertex;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.ItemGrade;
+import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Link;
 import ispd.gui.iconico.grade.Machine;
 import ispd.gui.iconico.grade.VirtualMachine;
+import ispd.motor.carga.CargaForNode;
 import ispd.motor.carga.CargaList;
 import ispd.motor.carga.CargaRandom;
-import ispd.motor.carga.CargaForNode;
 import ispd.motor.carga.CargaTrace;
 import ispd.motor.carga.GerarCarga;
 import ispd.motor.filas.RedeDeFilas;
@@ -68,6 +68,18 @@ import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.motor.filas.servidores.implementacao.Vertice;
 import ispd.motor.metricas.MetricasUsuarios;
+import ispd.utils.ValidaValores;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,17 +88,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.swing.text.html.CSS;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  * Realiza manupulações com o arquivo xml do modelo icônico
@@ -124,11 +125,11 @@ public class IconicoXML {
          * author: Diogo Tavares
          */
         system = descricao.createElement("system");
-        if (tipoModelo == EscolherClasse.GRID) {
+        if (tipoModelo == PickModelTypeDialog.GRID) {
             system.setAttribute("version", "2.1");
-        } else if (tipoModelo == EscolherClasse.IAAS) {
+        } else if (tipoModelo == PickModelTypeDialog.IAAS) {
             system.setAttribute("version", "2.2");
-        } else if (tipoModelo == EscolherClasse.PAAS) {
+        } else if (tipoModelo == PickModelTypeDialog.PAAS) {
             system.setAttribute("version", "2.3");
         }
 
@@ -413,10 +414,10 @@ public class IconicoXML {
             mu.addAllUsuarios(proprietarios, poderComp);
             mst.getEscalonador().setMetricaUsuarios(mu);
         }
-        RedeDeFilas rdf = new RedeDeFilas(mestres, maqs, links, nets);
+        RedeDeFilas rdf = new RedeDeFilas(mestres, maqs, links, nets, perfis);
         //cria as métricas de usuarios globais da rede de filas
         MetricasUsuarios mu = new MetricasUsuarios();
-        mu.addAllUsuarios(proprietarios, poderComp);
+        mu.addAllUsuarios(proprietarios, poderComp, perfil);
         rdf.setUsuarios(proprietarios);
         return rdf;
     }
@@ -800,7 +801,7 @@ public class IconicoXML {
         return cargasConfiguracao;
     }
 
-    private static void setCaracteristicas(ItemGrade item, NodeList elementsByTagName) {
+    private static void setCaracteristicas(GridItem item, NodeList elementsByTagName) {
         Machine maq = null;
         Cluster clust = null;
         if (item instanceof Machine) {
@@ -811,38 +812,38 @@ public class IconicoXML {
         if (elementsByTagName.getLength() > 0 && clust != null) {
             Element caracteristicas = (Element) elementsByTagName.item(0);
             Element process = (Element) caracteristicas.getElementsByTagName("process").item(0);
-            clust.setPoderComputacional(Double.valueOf(process.getAttribute("power")));
-            clust.setNucleosProcessador(Integer.valueOf(process.getAttribute("number")));
+            clust.setComputationalPower(Double.valueOf(process.getAttribute("power")));
+            clust.setCoreCount(Integer.valueOf(process.getAttribute("number")));
             Element memory = (Element) caracteristicas.getElementsByTagName("memory").item(0);
-            clust.setMemoriaRAM(Double.valueOf(memory.getAttribute("size")));
+            clust.setRam(Double.valueOf(memory.getAttribute("size")));
             Element disk = (Element) caracteristicas.getElementsByTagName("hard_disk").item(0);
-            clust.setDiscoRigido(Double.valueOf(disk.getAttribute("size")));
+            clust.setHardDisk(Double.valueOf(disk.getAttribute("size")));
             if (caracteristicas.getElementsByTagName("cost").getLength() > 0) {
                 Element cost = (Element) caracteristicas.getElementsByTagName("cost").item(0);
-                clust.setCostperprocessing(Double.valueOf(cost.getAttribute("cost_proc")));
-                clust.setCostpermemory(Double.valueOf(cost.getAttribute("cost_mem")));
-                clust.setCostperdisk(Double.valueOf(cost.getAttribute("cost_disk")));
+                clust.setCostPerProcessing(Double.valueOf(cost.getAttribute("cost_proc")));
+                clust.setCostPerMemory(Double.valueOf(cost.getAttribute("cost_mem")));
+                clust.setCostPerDisk(Double.valueOf(cost.getAttribute("cost_disk")));
             }
         } else if (elementsByTagName.getLength() > 0 && maq != null) {
             Element caracteristicas = (Element) elementsByTagName.item(0);
             Element process = (Element) caracteristicas.getElementsByTagName("process").item(0);
-            maq.setPoderComputacional(Double.valueOf(process.getAttribute("power")));
-            maq.setNucleosProcessador(Integer.valueOf(process.getAttribute("number")));
+            maq.setComputationalPower(Double.valueOf(process.getAttribute("power")));
+            maq.setCoreCount(Integer.valueOf(process.getAttribute("number")));
             Element memory = (Element) caracteristicas.getElementsByTagName("memory").item(0);
-            maq.setMemoriaRAM(Double.valueOf(memory.getAttribute("size")));
+            maq.setRam(Double.valueOf(memory.getAttribute("size")));
             Element disk = (Element) caracteristicas.getElementsByTagName("hard_disk").item(0);
-            maq.setDiscoRigido(Double.valueOf(disk.getAttribute("size")));
+            maq.setHardDisk(Double.valueOf(disk.getAttribute("size")));
             if (caracteristicas.getElementsByTagName("cost").getLength() > 0) {
                 Element cost = (Element) caracteristicas.getElementsByTagName("cost").item(0);
-                maq.setCostperprocessing(Double.valueOf(cost.getAttribute("cost_proc")));
-                maq.setCostpermemory(Double.valueOf(cost.getAttribute("cost_mem")));
-                maq.setCostperdisk(Double.valueOf(cost.getAttribute("cost_disk")));
+                maq.setCostPerProcessing(Double.valueOf(cost.getAttribute("cost_proc")));
+                maq.setCostPerMemory(Double.valueOf(cost.getAttribute("cost_mem")));
+                maq.setCostPerDisk(Double.valueOf(cost.getAttribute("cost_disk")));
             }
 
         }
     }
 
-    public static void newGrade(Document descricao, Set<ispd.gui.iconico.Vertice> vertices, Set<Aresta> arestas) {
+    public static void newGrade(Document descricao, Set<Vertex> vertices, Set<Edge> arestas) {
         HashMap<Integer, Object> icones = new HashMap<Integer, Object>();
         NodeList maquinas = descricao.getElementsByTagName("machine");
         NodeList clusters = descricao.getElementsByTagName("cluster");
@@ -861,17 +862,17 @@ public class IconicoXML {
             clust.setSelected(false);
             vertices.add(clust);
             icones.put(global, clust);
-            clust.getId().setNome(cluster.getAttribute("id"));
-            ValidaValores.addNomeIcone(clust.getId().getNome());
-            clust.setPoderComputacional(Double.parseDouble(cluster.getAttribute("power")));
+            clust.getId().setName(cluster.getAttribute("id"));
+            ValidaValores.addNomeIcone(clust.getId().getName());
+            clust.setComputationalPower(Double.parseDouble(cluster.getAttribute("power")));
             setCaracteristicas(clust, cluster.getElementsByTagName("characteristic"));
-            clust.setNumeroEscravos(Integer.parseInt(cluster.getAttribute("nodes")));
-            clust.setBanda(Double.parseDouble(cluster.getAttribute("bandwidth")));
-            clust.setLatencia(Double.parseDouble(cluster.getAttribute("latency")));
-            clust.setAlgoritmo(cluster.getAttribute("scheduler"));
-            clust.setVMMallocpolicy(cluster.getAttribute("vm_alloc"));
-            clust.setProprietario(cluster.getAttribute("owner"));
-            clust.setMestre(Boolean.parseBoolean(cluster.getAttribute("master")));
+            clust.setSlaveCount(Integer.parseInt(cluster.getAttribute("nodes")));
+            clust.setBandwidth(Double.parseDouble(cluster.getAttribute("bandwidth")));
+            clust.setLatency(Double.parseDouble(cluster.getAttribute("latency")));
+            clust.setSchedulingAlgorithm(cluster.getAttribute("scheduler"));
+            clust.setVmmAllocationPolicy(cluster.getAttribute("vm_alloc"));
+            clust.setOwner(cluster.getAttribute("owner"));
+            clust.setMaster(Boolean.parseBoolean(cluster.getAttribute("master")));
         }
         //Realiza leitura dos icones de internet
         for (int i = 0; i < internet.getLength(); i++) {
@@ -886,11 +887,11 @@ public class IconicoXML {
             net.setSelected(false);
             vertices.add(net);
             icones.put(global, net);
-            net.getId().setNome(inet.getAttribute("id"));
-            ValidaValores.addNomeIcone(net.getId().getNome());
-            net.setBanda(Double.parseDouble(inet.getAttribute("bandwidth")));
-            net.setTaxaOcupacao(Double.parseDouble(inet.getAttribute("load")));
-            net.setLatencia(Double.parseDouble(inet.getAttribute("latency")));
+            net.getId().setName(inet.getAttribute("id"));
+            ValidaValores.addNomeIcone(net.getId().getName());
+            net.setBandwidth(Double.parseDouble(inet.getAttribute("bandwidth")));
+            net.setLoadFactor(Double.parseDouble(inet.getAttribute("load")));
+            net.setLatency(Double.parseDouble(inet.getAttribute("latency")));
         }
         //Realiza leitura dos icones de máquina
         for (int i = 0; i < maquinas.getLength(); i++) {
@@ -906,12 +907,12 @@ public class IconicoXML {
                 maq.setSelected(false);
                 icones.put(global, maq);
                 vertices.add(maq);
-                maq.getId().setNome(maquina.getAttribute("id"));
-                ValidaValores.addNomeIcone(maq.getId().getNome());
-                maq.setPoderComputacional(Double.parseDouble(maquina.getAttribute("power")));
+                maq.getId().setName(maquina.getAttribute("id"));
+                ValidaValores.addNomeIcone(maq.getId().getName());
+                maq.setComputationalPower(Double.parseDouble(maquina.getAttribute("power")));
                 setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
-                maq.setTaxaOcupacao(Double.parseDouble(maquina.getAttribute("load")));
-                maq.setProprietario(maquina.getAttribute("owner"));
+                maq.setLoadFactor(Double.parseDouble(maquina.getAttribute("load")));
+                maq.setOwner(maquina.getAttribute("owner"));
             } else {
                 Element pos = (Element) maquina.getElementsByTagName("position").item(0);
                 int x = Integer.parseInt(pos.getAttribute("x"));
@@ -932,26 +933,26 @@ public class IconicoXML {
                 int global = Integer.parseInt(id.getAttribute("global"));
                 Machine maq = (Machine) icones.get(global);
                 vertices.add(maq);
-                maq.getId().setNome(maquina.getAttribute("id"));
-                ValidaValores.addNomeIcone(maq.getId().getNome());
-                maq.setPoderComputacional(Double.parseDouble(maquina.getAttribute("power")));
+                maq.getId().setName(maquina.getAttribute("id"));
+                ValidaValores.addNomeIcone(maq.getId().getName());
+                maq.setComputationalPower(Double.parseDouble(maquina.getAttribute("power")));
                 setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
-                maq.setTaxaOcupacao(Double.parseDouble(maquina.getAttribute("load")));
-                maq.setProprietario(maquina.getAttribute("owner"));
+                maq.setLoadFactor(Double.parseDouble(maquina.getAttribute("load")));
+                maq.setOwner(maquina.getAttribute("owner"));
                 Element master = (Element) maquina.getElementsByTagName("master").item(0);
-                maq.setAlgoritmo(master.getAttribute("scheduler"));
-                maq.setVMMallocpolicy(master.getAttribute("vm_alloc"));
-                maq.setMestre(true);
+                maq.setSchedulingAlgorithm(master.getAttribute("scheduler"));
+                maq.setVmmAllocationPolicy(master.getAttribute("vm_alloc"));
+                maq.setMaster(true);
                 NodeList slaves = master.getElementsByTagName("slave");
-                List<ItemGrade> escravos = new ArrayList<ItemGrade>(slaves.getLength());
+                List<GridItem> escravos = new ArrayList<GridItem>(slaves.getLength());
                 for (int j = 0; j < slaves.getLength(); j++) {
                     Element slave = (Element) slaves.item(j);
-                    ItemGrade escravo = (ItemGrade) icones.get(Integer.parseInt(slave.getAttribute("id")));
+                    GridItem escravo = (GridItem) icones.get(Integer.parseInt(slave.getAttribute("id")));
                     if (escravo != null) {
                         escravos.add(escravo);
                     }
                 }
-                maq.setEscravos(escravos);
+                maq.setSlaves(escravos);
             }
         }
         //Realiza leitura dos icones de rede
@@ -962,18 +963,18 @@ public class IconicoXML {
             int local = Integer.parseInt(id.getAttribute("local"));
             int x = 0, y = 0, px = 0, py = 0;
             Element connect = (Element) link.getElementsByTagName("connect").item(0);
-            ispd.gui.iconico.Vertice origem = (ispd.gui.iconico.Vertice) icones.get(Integer.parseInt(connect.getAttribute("origination")));
-            ispd.gui.iconico.Vertice destino = (ispd.gui.iconico.Vertice) icones.get(Integer.parseInt(connect.getAttribute("destination")));
+            Vertex origem = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("origination")));
+            Vertex destino = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("destination")));
             Link lk = new Link(origem, destino, local, global);
             lk.setSelected(false);
-            ((ItemGrade) origem).getConexoesSaida().add(lk);
-            ((ItemGrade) destino).getConexoesEntrada().add(lk);
+            ((GridItem) origem).getOutboundConnections().add(lk);
+            ((GridItem) destino).getInboundConnections().add(lk);
             arestas.add(lk);
-            lk.getId().setNome(link.getAttribute("id"));
-            ValidaValores.addNomeIcone(lk.getId().getNome());
-            lk.setBanda(Double.parseDouble(link.getAttribute("bandwidth")));
-            lk.setTaxaOcupacao(Double.parseDouble(link.getAttribute("load")));
-            lk.setLatencia(Double.parseDouble(link.getAttribute("latency")));
+            lk.getId().setName(link.getAttribute("id"));
+            ValidaValores.addNomeIcone(lk.getId().getName());
+            lk.setBandwidth(Double.parseDouble(link.getAttribute("bandwidth")));
+            lk.setLoadFactor(Double.parseDouble(link.getAttribute("load")));
+            lk.setLatency(Double.parseDouble(link.getAttribute("latency")));
         }
     }
 
@@ -1393,40 +1394,113 @@ public class IconicoXML {
         return descricao;
     }
 
-    private Node newCharacteristic(Double poderComputacional, Integer numeroNucleos, Double memoriaRAM, Double discoRigido) {
-        Element characteristic = descricao.createElement("characteristic");
-        Element process = descricao.createElement("process");
-        process.setAttribute("power", poderComputacional.toString());
-        process.setAttribute("number", numeroNucleos.toString());
-        Element memory = descricao.createElement("memory");
-        memory.setAttribute("size", memoriaRAM.toString());
-        Element hard_disk = descricao.createElement("hard_disk");
-        hard_disk.setAttribute("size", discoRigido.toString());
+    /**
+     * It creates the characteristic group element containing the information
+     * about computational power core count, amount of memory ram and
+     * amount of hard disk.
+     * <p><br />
+     * An example of such element returned by the following argument list
+     * <ul>
+     *     <li>computationalPower: 20</li>
+     *     <li>coreCount: 32</li>
+     *     <li>memoryRamAmount: 16</li>
+     *     <li>hardDiskAmount: 4096</li>
+     * </ul>
+     *
+     * is given by
+     *
+     * <pre>{@code
+     * <characteristic>
+     *  <process number="32" power="20.0"/>
+     *  <memory size="16.0"/>
+     *  <hard_disk size="4096.0"/>
+     * </characteristic>
+     * }</pre>
+     *
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param memoryRamAmount the memory ram amount
+     * @param hardDiskAmount the hard disk amount.
+     *
+     * @return a characteristic group element containing information about
+     *         core count, memory ram and hard disk amount.
+     */
+    private Element newCharacteristic(final double computationalPower,
+                                   final int coreCount,
+                                   final double memoryRamAmount,
+                                   final double hardDiskAmount) {
+        final Element characteristic = this.descricao.createElement("characteristic");
+        final Element process = this.descricao.createElement("process");
+        final Element memory = this.descricao.createElement("memory");
+        final Element hardDisk = this.descricao.createElement("hard_disk");
+
+        process.setAttribute("power", String.valueOf(computationalPower));
+        process.setAttribute("number", String.valueOf(coreCount));
+
+        memory.setAttribute("size", String.valueOf(memoryRamAmount));
+        hardDisk.setAttribute("size", String.valueOf(hardDiskAmount));
+
         characteristic.appendChild(process);
         characteristic.appendChild(memory);
-        characteristic.appendChild(hard_disk);
+        characteristic.appendChild(hardDisk);
+
         return characteristic;
     }
 
-    private Node newCharacteristic(Double poderComputacional, Integer numeroNucleos, Double memoriaRAM, Double discoRigido, Double costperProcessing, Double costperMemory, Double costperDisk) {
-        Element characteristic = descricao.createElement("characteristic");
-        Element process = descricao.createElement("process");
-        process.setAttribute("power", poderComputacional.toString());
-        process.setAttribute("number", numeroNucleos.toString());
-        Element memory = descricao.createElement("memory");
-        memory.setAttribute("size", memoriaRAM.toString());
-        Element hard_disk = descricao.createElement("hard_disk");
-        hard_disk.setAttribute("size", discoRigido.toString());
-        Element cost = descricao.createElement("cost");
-        cost.setAttribute("cost_proc", costperProcessing.toString());
-        Element cost_mem = descricao.createElement("cost_mem");
-        cost.setAttribute("cost_mem", costperMemory.toString());
-        Element cost_disk = descricao.createElement("cost_disk");
-        cost.setAttribute("cost_disk", costperDisk.toString());
+    /**
+     * It creates the characteristic group element containing the information
+     * about computational power, core count, memory ram and hard disk amount,
+     * cost per processing, cost per memory and cost per disk.
+     * <p><br />
+     * An example of such element returned by the following argument list
+     * <ul>
+     *  <li>computationalPower: 20</li>
+     *  <li>coreCount: 16</li>
+     *  <li>memoryRamAmount: 20</li>
+     *  <li>hardDiskAmount: 40</li>
+     *  <li>costPerProcessing: 5</li>
+     *  <li>costPerMemory: 15</li>
+     *  <li>costPerDisk: 2</li>
+     * </ul>
+     *
+     * is given by
+     *
+     * <pre>{@code
+     * <characteristic>
+     *  <process number="16" power="20.0"/>
+     *  <memory size="20.0"/>
+     *  <hard_disk size="40.0"/>
+     *  <cost cost_disk="2.0" cost_mem="15.0" cost_proc="5.0"/>
+     * </characteristic>
+     * }</pre>
+     *
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param memoryRamAmount the memory ram amount
+     * @param hardDiskAmount the hard disk amount
+     * @param costPerProcessing the core per processing
+     * @param costPerMemory the cost per memory
+     * @param costPerDisk the cost per disk
+     *
+     * @return a characteristic group element containing the information about
+     *         computational power, core count, memory and hard disk amount,
+     *         and cost for processing, memory and disk.
+     */
+    private Element newCharacteristic(final double computationalPower,
+                                      final int coreCount,
+                                      final double memoryRamAmount,
+                                      final double hardDiskAmount,
+                                      final double costPerProcessing,
+                                      final double costPerMemory,
+                                      final double costPerDisk) {
+        final Element characteristic = this.newCharacteristic(computationalPower,
+                coreCount, memoryRamAmount, hardDiskAmount);
+        final Element cost = this.descricao.createElement("cost");
 
-        characteristic.appendChild(process);
-        characteristic.appendChild(memory);
-        characteristic.appendChild(hard_disk);
+        cost.setAttribute("cost_proc", String.valueOf(costPerProcessing));
+        cost.setAttribute("cost_mem", String.valueOf(costPerMemory));
+        cost.setAttribute("cost_disk", String.valueOf(costPerDisk));
+
         characteristic.appendChild(cost);
         return characteristic;
     }

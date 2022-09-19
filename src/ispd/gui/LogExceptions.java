@@ -1,150 +1,144 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * LogExceptions.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Aldo Ianelo Guerra;
- * Contributor(s):   Denison Menezes;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- * 16-Out-2014 : change the location of the iSPD base directory;
- *
- */
 package ispd.gui;
 
-import ispd.Main;
-import ispd.escalonador.Carregar;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.Date;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import java.util.Date;
 
 public class LogExceptions implements Thread.UncaughtExceptionHandler {
+    private static final String ERROR_FOLDER_PATH = "Erros";
+    private static final String ERROR_FILE_PREFIX = "Error_ISPD";
+    private static final String ERROR_CODE_DATE_FORMAT = "yyyyMMddHHmmss";
+    private static final String ERROR_FILE_MESSAGE_FORMAT = """
 
-    private Component parentComponent;
-    private final JTextArea area;
-    private final JScrollPane scroll;
+            ---------- error description ----------
+            %s
+            ---------- error description ----------
+            """;
+    private static final String ERROR_GUI_MESSAGE_FORMAT = """
+            Error encountered during system operation.
+            Error saved in the file: %s
+            Please send the error to the developers.
+            %s
+            """;
+    private static final int SCROLL_PANE_PREFERRED_WIDTH = 500;
+    private static final int SCROLL_PANE_PREFERRED_HEIGHT = 300;
+    private final JTextArea textArea = LogExceptions.readonlyTextArea();
 
-    public void setParentComponent(Component parentComponent) {
+    // TODO: Create specialized error window
+    private final JScrollPane scrollPane =
+            LogExceptions.resizedScrollPaneFrom(this.textArea);
+    private Component parentComponent; // TODO: Can we make this final?
+
+    public LogExceptions(final Component gui) {
+        this.parentComponent = gui;
+
+        LogExceptions.createErrorFolderIfNonExistent();
+
+    }
+
+    private static void createErrorFolderIfNonExistent() {
+        final var aux = new File(LogExceptions.ERROR_FOLDER_PATH);
+
+        // TODO: Throw if directory can't be created
+
+        if (aux.exists())
+            return;
+
+        final var ignored = aux.mkdir();
+    }
+
+    private static JTextArea readonlyTextArea() {
+        final JTextArea area = new JTextArea();
+        area.setEditable(false);
+        return area;
+    }
+
+    private static JScrollPane resizedScrollPaneFrom(final JTextArea textArea) {
+        final JScrollPane scroll = new JScrollPane(textArea);
+        scroll.setPreferredSize(new Dimension(
+                LogExceptions.SCROLL_PANE_PREFERRED_WIDTH,
+                LogExceptions.SCROLL_PANE_PREFERRED_HEIGHT));
+        return scroll;
+    }
+
+    public void setParentComponent(final Component parentComponent) {
         this.parentComponent = parentComponent;
     }
 
-    public LogExceptions(Component gui) {
-        this.parentComponent = gui;
-        File aux = new File("Erros");
-        if (!aux.exists()) {
-            aux.mkdir();
-        }
-        //iniciar parte grafica
-        area = new JTextArea();
-        area.setEditable(false);
-        scroll = new JScrollPane(area);
-        scroll.setPreferredSize(new Dimension(500, 300));
-    }
-
     @Override
-    public void uncaughtException(Thread t, Throwable e) {
-        ByteArrayOutputStream fosErr = new ByteArrayOutputStream();
-        PrintStream psErr = new PrintStream(fosErr);
-        e.printStackTrace(psErr);
-        mostrarErro(fosErr);
+    public void uncaughtException(final Thread t, final Throwable e) {
+        // TODO: Is this necessary?
+        final var errStream = new ByteArrayOutputStream();
+        e.printStackTrace(new PrintStream(errStream));
+        this.processError(errStream);
     }
 
-    private void mostrarErro(ByteArrayOutputStream objErr) {
+    private void processError(final ByteArrayOutputStream errorStream) {
+        if (errorStream.size() == 0)
+            return;
+
         try {
-            if (objErr.size() > 0) {
-                String erro = "";
-                erro += "\n---------- error description ----------\n";
-                erro += objErr.toString();
-                erro += "\n---------- error description ----------\n";
-                DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-                Date date = new Date();
-                String codigo = dateFormat.format(date);
-                File file = new File("Erros/Error_iSPD_" + codigo);
-                FileWriter writer = new FileWriter(file);
-                PrintWriter saida = new PrintWriter(writer, true);
-                saida.print(erro);
-                saida.close();
-                writer.close();
-                String saidaString = "";
-                saidaString += "Error encountered during system operation.\n";
-                saidaString += "Error saved in the file: " + file.getAbsolutePath() + "\n";
-                saidaString += "Please send the error to the developers.\n";
-                saidaString += erro;
-                area.setText(saidaString);
-                JOptionPane.showMessageDialog(parentComponent, scroll, "System Error", JOptionPane.ERROR_MESSAGE);
-                objErr.reset();
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(parentComponent, e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
+            final var errorMessage =
+                    String.format(LogExceptions.ERROR_FILE_MESSAGE_FORMAT,
+                            errorStream);
+            this.displayError(errorMessage);
+
+            errorStream.reset(); // TODO: Maybe in a finally block?
+
+        } catch (final IOException e) {
+            JOptionPane.showMessageDialog(this.parentComponent,
+                    e.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
 
-    /**
-     * Define arquivos para gerar salvar a saída de erros
-     */
-    public void setErrosLog() {
-        //Define diretório padrão de erros
-        File diretorio = new File(Carregar.DIRETORIO_ISPD, "Erros");
-        //Cria diretório padrão de erros
-        if (!diretorio.exists()) {
-            diretorio.mkdir();
+    private void displayError(final String errorMessage) throws IOException {
+        final var errorFile = new File(
+                LogExceptions.buildErrorFilePath(new Date()));
+
+        LogExceptions.printErrorToFile(errorMessage, errorFile);
+        this.displayErrorInGui(errorMessage, errorFile);
+    }
+
+    private static String buildErrorFilePath(final Date date) {
+        final var errorCode = LogExceptions.buildErrorFileTimestamp(date);
+        return String.format("%s%s%s_%s",
+                LogExceptions.ERROR_FOLDER_PATH, File.separator,
+                LogExceptions.ERROR_FILE_PREFIX, errorCode);
+    }
+
+    private static void printErrorToFile(
+            final String errorMessage, final File file) throws IOException {
+        try (final var fw = new FileWriter(file);
+             final var pw = new PrintWriter(fw, true)) {
+            pw.print(errorMessage);
         }
-        // cria os novos fluxos de saida para arquivo
-        FileOutputStream fosErr = null;
-        FileOutputStream fosOut = null;
-        try {
-            fosErr = new FileOutputStream(new File(diretorio, "Erros_Simulador"));
-            fosOut = new FileOutputStream(new File(diretorio, "Saida_Simulador"));
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        // define a impresso sobre os fluxos acima
-        PrintStream psErr = new PrintStream(fosErr);
-        PrintStream psOut = new PrintStream(fosOut);
-        // redefine os fluxos na classe System
-        System.setErr(psErr);
-        System.setOut(psOut);
+    }
+
+    private void displayErrorInGui(final String errorMessage, final File file) {
+        final var path = file.getAbsolutePath();
+        final var formattedMessage = String.format(
+                LogExceptions.ERROR_GUI_MESSAGE_FORMAT, path, errorMessage);
+
+        this.textArea.setText(formattedMessage);
+
+        // TODO: scrollPane.toString()?
+        JOptionPane.showMessageDialog(this.parentComponent, this.scrollPane,
+                "System Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private static String buildErrorFileTimestamp(final Date date) {
+        final var dateFormat =
+                new SimpleDateFormat(LogExceptions.ERROR_CODE_DATE_FORMAT);
+        return dateFormat.format(date);
     }
 }

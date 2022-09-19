@@ -1,92 +1,91 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package ispd.externo.cloudSchedulers;
 
 import ispd.escalonadorCloud.EscalonadorCloud;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
-import ispd.motor.filas.servidores.implementacao.CS_VMM;
-import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
 /**
- * Implementação do algoritmo de escalonamento Round-Robin
- * Atribui a proxima tarefa da fila (FIFO)
- * para o proximo recurso de uma fila circular de recursos
- * @author denison_usuario
+ * Implementation of the RoundRobin scheduling algorithm.
+ * Hands over the next task on the FIFO queue,
+ * for the next resource in a circular queue of resources.
  */
-public class RoundRobin extends EscalonadorCloud{
-    private ListIterator<CS_Processamento> recursos;
-    private LinkedList<CS_Processamento> EscravosUsuario;
-    private String usuario;
-    
-    public RoundRobin(){
-        this.tarefas = new ArrayList<Tarefa>();
-        this.escravos = new LinkedList<CS_Processamento>();
-        
+public class RoundRobin extends EscalonadorCloud {
+    private ListIterator<CS_Processamento> resources = null;
+    private LinkedList<CS_Processamento> slavesUser = null;
+
+    public RoundRobin() {
+        this.tarefas = new ArrayList<>(0);
+        this.escravos = new LinkedList<>();
     }
 
     @Override
     public void iniciar() {
         System.out.println("iniciou escalonamento RR");
-        this.EscravosUsuario = new LinkedList<CS_Processamento>();
-        recursos = EscravosUsuario.listIterator(0);
-       
-        
+        this.slavesUser = new LinkedList<>();
+        this.resources = this.slavesUser.listIterator(0);
     }
 
     @Override
     public Tarefa escalonarTarefa() {
-        return tarefas.remove(0);
+        return this.tarefas.remove(0);
     }
 
     @Override
     public CS_Processamento escalonarRecurso() {
-         if (recursos.hasNext()) {
-            return recursos.next();
-        }else{
-            recursos = EscravosUsuario.listIterator(0);
-            return recursos.next();
+        if (!this.resources.hasNext()) {
+            this.resources = this.slavesUser.listIterator(0);
         }
+        return this.resources.next();
+    }
+
+    @Override
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final var destination = (CS_Processamento) destino;
+        final int index = this.escravos.indexOf(destination);
+
+        System.out.println("traçando rota para a VM: " + destination.getId());
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
+
     }
 
     @Override
     public void escalonar() {
         System.out.println("---------------------------");
-        Tarefa trf = escalonarTarefa();
-        usuario = trf.getProprietario();
-        EscravosUsuario = (LinkedList<CS_Processamento>) getVMsAdequadas(usuario, escravos);
-        if(!EscravosUsuario.isEmpty()){
-        
-        CS_Processamento rec = escalonarRecurso();
-        System.out.println("escalonando tarefa " + trf.getIdentificador() + " para:" + rec.getId());
-        trf.setLocalProcessamento(rec);
-        trf.setCaminho(escalonarRota(rec));
-        mestre.enviarTarefa(trf);
+        final var task = this.escalonarTarefa();
+        final var taskOwner = task.getProprietario();
+        this.slavesUser = // TODO: Maybe local var?
+                (LinkedList<CS_Processamento>) this.getVMsAdequadas(
+                        taskOwner, this.escravos);
+
+        if (this.slavesUser.isEmpty()) {
+            this.noAllocatedVms(task);
+        } else {
+            this.scheduleTask(task);
         }
-        else{
-        System.out.println("Não existem VMs alocadas ainda, devolvendo tarefa " + trf.getIdentificador());    
-        adicionarTarefa(trf);
-        mestre.liberarEscalonador();
-        }
+
         System.out.println("---------------------------");
     }
 
-    @Override
-    public List<CentroServico> escalonarRota(CentroServico destino) {
-        CS_VirtualMac auxVM = (CS_VirtualMac) destino;
-        int index = escravos.indexOf(auxVM);
-        
-        System.out.println("traçando rota para a VM: "+ auxVM.getId());
-        return new ArrayList<CentroServico>((List<CentroServico>) caminhoEscravo.get(index));
-        
+    private void noAllocatedVms(final Tarefa task) {
+        System.out.printf(
+                "Não existem VMs alocadas ainda, devolvendo tarefa %d%n",
+                task.getIdentificador());
+        this.adicionarTarefa(task);
+        this.mestre.liberarEscalonador();
+    }
+
+    private void scheduleTask(final Tarefa task) {
+        final var resource = this.escalonarRecurso();
+        System.out.printf("escalonando tarefa %d para:%s%n",
+                task.getIdentificador(), resource.getId());
+        task.setLocalProcessamento(resource);
+        task.setCaminho(this.escalonarRota(resource));
+        this.mestre.enviarTarefa(task);
     }
 }

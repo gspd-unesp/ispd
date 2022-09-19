@@ -6,16 +6,14 @@
 package ispd.motor;
 
 import ispd.alocacaoVM.VMM;
-import ispd.escalonador.Mestre;
 import ispd.escalonadorCloud.MestreCloud;
-import ispd.motor.filas.Cliente;
+import ispd.gui.PickSimulationFaultsDialog;
+import ispd.motor.filas.Client;
 import ispd.motor.filas.Mensagem;
-import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.motor.filas.servidores.implementacao.CS_Maquina;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
@@ -25,28 +23,22 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
-import ispd.gui.JSelecionarFalhas;
-import javax.swing.JOptionPane;
-import ispd.alocacaoVM.Alocacao;
+
 import ispd.escalonadorCloud.EscalonadorCloud;
-import ispd.motor.filas.servidores.CS_Comunicacao;
-import static ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud.DESLIGADO;
 import ispd.motor.falhas.FIHardware;
-import ispd.motor.metricas.MetricasAlocacao;
 import ispd.motor.metricas.MetricasGlobais;
-import java.util.Collections;
+
 import java.util.LinkedList;
-import java.util.Random;
 
 /**
  *
  * @author denison_usuario
  */
-public class SimulacaoSequencialCloud extends Simulacao {
+public class SimulacaoSequencialCloud extends Simulation {
 
     private double time = 0;
     private EscalonadorCloud escalonador;//Camila
-    private PriorityQueue<EventoFuturo> eventos;
+    private PriorityQueue<FutureEvent> eventos;
     private ArrayList<CS_VirtualMac> maquinasVirtuais;
     private LinkedList<CS_Processamento> maquinasFisicas;
     private ArrayList<CS_VirtualMac> VMsRejeitadas;
@@ -55,7 +47,7 @@ public class SimulacaoSequencialCloud extends Simulacao {
     public SimulacaoSequencialCloud(ProgressoSimulacao janela, RedeDeFilasCloud redeDeFilas, List<Tarefa> tarefas) throws IllegalArgumentException {
         super(janela, redeDeFilas,tarefas);
         this.time = 0;
-        this.eventos = new PriorityQueue<EventoFuturo>();
+        this.eventos = new PriorityQueue<FutureEvent>();
 
         if (redeDeFilas == null) {
             throw new IllegalArgumentException("The model has no icons.");
@@ -95,7 +87,7 @@ public class SimulacaoSequencialCloud extends Simulacao {
         /*Injetando as falhas:
         verifica qual checkbox foi clicado quando escolheu a falha e executa*/
         //Injetar falhar de Omissão de Hardware: desligar uma máquina física
-        JSelecionarFalhas selecionarFalhas = new JSelecionarFalhas();
+        PickSimulationFaultsDialog selecionarFalhas = new PickSimulationFaultsDialog();
         
         
        if (selecionarFalhas.isActive()){
@@ -286,15 +278,15 @@ public class SimulacaoSequencialCloud extends Simulacao {
     }
     
     @Override
-    public void simular() {
+    public void simulate() {
         //inicia os escalonadores
          System.out.println("---------------------------------------");
-        iniciarEscalonadoresCloud();
+        initCloudSchedulers();
          System.out.println("---------------------------------------");
         
-        iniciarAlocadoresCloud();
+        initCloudAllocators();
          System.out.println("---------------------------------------");
-        addEventos(this.getTarefas());
+        addEventos(this.getJobs());
          System.out.println("---------------------------------------");
         
         
@@ -304,9 +296,9 @@ public class SimulacaoSequencialCloud extends Simulacao {
             realizarSimulacao();
         }
         
-        desligarMaquinas(this, this.getRedeDeFilasCloud());
-        getJanela().incProgresso(30);
-        getJanela().println("Simulation completed.", Color.green);
+        desligarMaquinas(this, this.getCloudQueueNetwork());
+        getWindow().incProgresso(30);
+        getWindow().println("Simulation completed.", Color.green);
     }
     
     public void addEventos(List<Tarefa> tarefas) {
@@ -316,25 +308,25 @@ public class SimulacaoSequencialCloud extends Simulacao {
         }*/
         System.out.println("Tarefas sendo adicionadas na lista de eventos futuros");
         for (Tarefa tarefa : tarefas) {
-            EventoFuturo evt = new EventoFuturo(tarefa.getTimeCriacao(), EventoFuturo.CHEGADA, tarefa.getOrigem(), tarefa);
+            FutureEvent evt = new FutureEvent(tarefa.getTimeCriacao(), FutureEvent.CHEGADA, tarefa.getOrigem(), tarefa);
             eventos.add(evt);
         }
     }
 
     @Override
-    public void addEventoFuturo(EventoFuturo ev) {
+    public void addFutureEvent(FutureEvent ev) {
         eventos.offer(ev);
     }
 
     @Override
-    public boolean removeEventoFuturo(int tipoEv, CentroServico servidorEv, Cliente clienteEv) {
+    public boolean removeFutureEvent(int eventType, CentroServico eventServer, Client eventClient) {
         //remover evento de saida do cliente do servidor
-        java.util.Iterator<EventoFuturo> interator = this.eventos.iterator();
+        java.util.Iterator<FutureEvent> interator = this.eventos.iterator();
         while (interator.hasNext()) {
-            EventoFuturo ev = interator.next();
-            if (ev.getTipo() == tipoEv
-                    && ev.getServidor().equals(servidorEv)
-                    && ev.getCliente().equals(clienteEv)) {
+            FutureEvent ev = interator.next();
+            if (ev.getType() == eventType
+                    && ev.getServidor().equals(eventServer)
+                    && ev.getClient().equals(eventClient)) {
                 this.eventos.remove(ev);
                 return true;
             }
@@ -343,12 +335,12 @@ public class SimulacaoSequencialCloud extends Simulacao {
     }
 
     @Override
-    public double getTime(Object origem) {
+    public double getTime(Object origin) {
         return time;
     }
 
     private boolean atualizarEscalonadores() {
-        for (CS_Processamento mst : getRedeDeFilasCloud().getMestres()) {
+        for (CS_Processamento mst : getCloudQueueNetwork().getMestres()) {
             CS_VMM mestre = (CS_VMM) mst;
             if (mestre.getEscalonador().getTempoAtualizar() != null) {
                 return true;
@@ -364,26 +356,26 @@ public class SimulacaoSequencialCloud extends Simulacao {
             //executa estes eventos de acordo com sua ordem de chegada
             //de forma a evitar a execução de um evento antes de outro
             //que seria criado anteriormente
-            EventoFuturo eventoAtual = eventos.poll();
-            time = eventoAtual.getTempoOcorrencia();
-            switch (eventoAtual.getTipo()) {
-                case EventoFuturo.CHEGADA:
-                    eventoAtual.getServidor().chegadaDeCliente(this, (Tarefa) eventoAtual.getCliente());
+            FutureEvent eventoAtual = eventos.poll();
+            time = eventoAtual.getCreationTime();
+            switch (eventoAtual.getType()) {
+                case FutureEvent.CHEGADA:
+                    eventoAtual.getServidor().chegadaDeCliente(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.ATENDIMENTO:
-                    eventoAtual.getServidor().atendimento(this, (Tarefa) eventoAtual.getCliente());
+                case FutureEvent.ATENDIMENTO:
+                    eventoAtual.getServidor().atendimento(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.SAÍDA:
-                    eventoAtual.getServidor().saidaDeCliente(this, (Tarefa) eventoAtual.getCliente());
+                case FutureEvent.SAIDA:
+                    eventoAtual.getServidor().saidaDeCliente(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.ESCALONAR:
-                    eventoAtual.getServidor().requisicao(this, null, EventoFuturo.ESCALONAR);
+                case FutureEvent.ESCALONAR:
+                    eventoAtual.getServidor().requisicao(this, null, FutureEvent.ESCALONAR);
                     break;
-                case EventoFuturo.ALOCAR_VMS:
-                    eventoAtual.getServidor().requisicao(this, null, EventoFuturo.ALOCAR_VMS);
+                case FutureEvent.ALOCAR_VMS:
+                    eventoAtual.getServidor().requisicao(this, null, FutureEvent.ALOCAR_VMS);
                     break;
                 default:
-                    eventoAtual.getServidor().requisicao(this, (Mensagem) eventoAtual.getCliente(), eventoAtual.getTipo());
+                    eventoAtual.getServidor().requisicao(this, (Mensagem) eventoAtual.getClient(), eventoAtual.getType());
                     break;
             }
         }
@@ -395,7 +387,7 @@ public class SimulacaoSequencialCloud extends Simulacao {
      */
     private void realizarSimulacaoAtualizaTime() {
         List<Object[]> Arrayatualizar = new ArrayList<Object[]>();
-        for (CS_Processamento mst : getRedeDeFilas().getMestres()) {
+        for (CS_Processamento mst : getQueueNetwork().getMestres()) {
             CS_Mestre mestre = (CS_Mestre) mst;
             if (mestre.getEscalonador().getTempoAtualizar() != null) {
                 Object[] item = new Object[3];
@@ -411,7 +403,7 @@ public class SimulacaoSequencialCloud extends Simulacao {
             //de forma a evitar a execução de um evento antes de outro
             //que seria criado anteriormente
             for (Object[] ob : Arrayatualizar) {
-                if ((Double) ob[2] < eventos.peek().getTempoOcorrencia()) {
+                if ((Double) ob[2] < eventos.peek().getCreationTime()) {
                     CS_Mestre mestre = (CS_Mestre) ob[0];
                     for (CS_Processamento maq : mestre.getEscalonador().getEscravos()) {
                         mestre.atualizar(maq, (Double) ob[2]);
@@ -419,26 +411,26 @@ public class SimulacaoSequencialCloud extends Simulacao {
                     ob[2] = (Double) ob[2] + (Double) ob[1];
                 }
             }
-            EventoFuturo eventoAtual = eventos.poll();
-            time = eventoAtual.getTempoOcorrencia();
-            switch (eventoAtual.getTipo()) {
-                case EventoFuturo.CHEGADA:
-                    eventoAtual.getServidor().chegadaDeCliente(this, (Tarefa) eventoAtual.getCliente());
+            FutureEvent eventoAtual = eventos.poll();
+            time = eventoAtual.getCreationTime();
+            switch (eventoAtual.getType()) {
+                case FutureEvent.CHEGADA:
+                    eventoAtual.getServidor().chegadaDeCliente(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.ATENDIMENTO:
-                    eventoAtual.getServidor().atendimento(this, (Tarefa) eventoAtual.getCliente());
+                case FutureEvent.ATENDIMENTO:
+                    eventoAtual.getServidor().atendimento(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.SAÍDA:
-                    eventoAtual.getServidor().saidaDeCliente(this, (Tarefa) eventoAtual.getCliente());
+                case FutureEvent.SAIDA:
+                    eventoAtual.getServidor().saidaDeCliente(this, (Tarefa) eventoAtual.getClient());
                     break;
-                case EventoFuturo.ESCALONAR:
-                    eventoAtual.getServidor().requisicao(this, null, EventoFuturo.ESCALONAR);
+                case FutureEvent.ESCALONAR:
+                    eventoAtual.getServidor().requisicao(this, null, FutureEvent.ESCALONAR);
                     break;
-                    case EventoFuturo.ALOCAR_VMS:
-                    eventoAtual.getServidor().requisicao(this, null, EventoFuturo.ALOCAR_VMS);
+                    case FutureEvent.ALOCAR_VMS:
+                    eventoAtual.getServidor().requisicao(this, null, FutureEvent.ALOCAR_VMS);
                     break;
                 default:
-                    eventoAtual.getServidor().requisicao(this, (Mensagem) eventoAtual.getCliente(), eventoAtual.getTipo());
+                    eventoAtual.getServidor().requisicao(this, (Mensagem) eventoAtual.getClient(), eventoAtual.getType());
                     break;
             }
         }
@@ -446,7 +438,7 @@ public class SimulacaoSequencialCloud extends Simulacao {
         
     }
 
-    private void desligarMaquinas(Simulacao simulacao, RedeDeFilasCloud rdfCloud) {
+    private void desligarMaquinas(Simulation simulacao, RedeDeFilasCloud rdfCloud) {
         for(CS_MaquinaCloud aux : rdfCloud.getMaquinasCloud()){
             aux.desligar(simulacao);
             

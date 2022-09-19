@@ -43,10 +43,12 @@ import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.implementacao.CS_Internet;
 import ispd.motor.filas.servidores.implementacao.CS_Maquina;
 import ispd.motor.filas.servidores.CS_Processamento;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -80,39 +82,56 @@ public class RedeDeFilas {
     /**
      * Lista dos limites de consumo, em porcentagem, de cada usuário
      */
-    private HashMap<String,Double> limiteConsumo;
+    private Map<String,Double> limiteConsumo;
 
     /**
-     * Armazena listas com a arquitetura de todo o sistema modelado, utilizado
-     * para buscas das métricas e pelo motor de simulação
+     * Constructor which specifies the model of architecture's network of queue
+     * used for metric searches and by simulation engine. It is specified the
+     * masters, the machines, the links and the internets.
+     * <p><br />
+     * Using this constructor the power limit for each user is not specified.
+     * <strong>Note</strong> that when it is said that the power limit is not
+     * specified this does not mean that the power limit for all users is set
+     * as default to 0.
      *
-     * @param mestres
-     * @param maquinas
-     * @param links
-     * @param internets
+     * @param masterList the master list
+     * @param machineList the machine list
+     * @param linkList the link list
+     * @param internetList the internet list
+     *
+     * @see #RedeDeFilas(List, List, List, List, Map)
+     *                   for specify the power limit for each user
      */
-    public RedeDeFilas(List<CS_Processamento> mestres, List<CS_Maquina> maquinas, List<CS_Comunicacao> links, List<CS_Internet> internets) {
-        this.mestres = mestres;
-        this.maquinas = maquinas;
-        this.links = links;
-        this.internets = internets;
+    public RedeDeFilas(final List<CS_Processamento> masterList,
+                       final List<CS_Maquina> machineList,
+                       final List<CS_Comunicacao> linkList,
+                       final List<CS_Internet> internetList) {
+        this(masterList, machineList, linkList, internetList, new HashMap<>());
     }
-    
+
     /**
-     * Armazena listas com a arquitetura de todo o sistema modelado, utilizado
-     * para buscas das métricas e pelo motor de simulação
+     * Constructor which specifies the model of architecture's network of queue
+     * used for metric searches and by simulation engine. It is specified the
+     * masters, the machines, the links, the internets and the power limit for
+     * each user.
      *
-     * @param mestres
-     * @param maquinas
-     * @param links
-     * @param internets
+     * @param masterList the master list
+     * @param machineList the machine list
+     * @param linkList the link list
+     * @param internetList the internet list
+     * @param powerLimitMap the power limit map, specifying the power limit
+     *                      for each user in the simulation.
      */
-    public RedeDeFilas(List<CS_Processamento> mestres, List<CS_Maquina> maquinas, List<CS_Comunicacao> links, List<CS_Internet> internets, HashMap<String,Double> limites) {
-        this.mestres = mestres;
-        this.maquinas = maquinas;
-        this.links = links;
-        this.internets = internets;
-        this.limiteConsumo = limites;
+    public RedeDeFilas(final List<CS_Processamento> masterList,
+                       final List<CS_Maquina> machineList,
+                       final List<CS_Comunicacao> linkList,
+                       final List<CS_Internet> internetList,
+                       final Map<String,Double> powerLimitMap) {
+        this.mestres = masterList;
+        this.maquinas = machineList;
+        this.links = linkList;
+        this.internets = internetList;
+        this.limiteConsumo = powerLimitMap;
     }
 
     public List<CS_Internet> getInternets() {
@@ -155,7 +174,7 @@ public class RedeDeFilas {
         return this.usuarios;
     }
     
-    public HashMap<String,Double> getLimites(){
+    public Map<String,Double> getLimites(){
         return this.limiteConsumo;
     }
 
