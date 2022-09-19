@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'java'
     id 'application'
 }
@@ -6,8 +7,23 @@ plugins {
 group 'ispd'
 version '1.0-SNAPSHOT'
 
+
 application {
     mainClass = 'ispd.Main'
+}
+
+dependencies {
+    implementation 'org.jfree:jfreechart:1.0.14'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+jar {
+    manifest {
+        attributes (
+            'Main-Class' : 'ispd.Main'
+        )
+    }
 }
 
 sourceSets {
@@ -20,15 +36,11 @@ sourceSets {
         }
     }
 }
+
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation 'org.jfree:jfreechart:1.0.14'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-}
 
 test {
     useJUnitPlatform()
@@ -36,4 +48,4 @@ test {
 
 tasks.withType(JavaCompile) {
     options.warnings = false
-    }
+}
