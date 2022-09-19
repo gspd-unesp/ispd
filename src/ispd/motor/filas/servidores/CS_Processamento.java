@@ -68,29 +68,64 @@ public abstract class CS_Processamento extends CentroServico {
     private MetricasProcessamento metrica;
     private List<ParesOrdenadosUso> lista_pares = new ArrayList<ParesOrdenadosUso>();
     private Double consumoEnergia;
-    
-    public CS_Processamento(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina) {
-        this.poderComputacional = PoderComputacional;
-        this.numeroProcessadores = numeroProcessadores;
-        this.Ocupacao = Ocupacao;
-        this.metrica = new MetricasProcessamento(id, numeroMaquina, proprietario);
-        this.PoderComputacionalDisponivelPorProcessador =
-                (this.poderComputacional - (this.poderComputacional * this.Ocupacao))
-                / this.numeroProcessadores;
-        
+
+    /**
+     * Constructor which specifies the configuration of
+     * processing server, specifying the id, owner, computational
+     * power, core count, load factor and machine number.
+     * <p><br />
+     * Using this constructor the energy consumption is
+     * set as default to 0.
+     *
+     * @param id the id
+     * @param owner the owner
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param loadFactor the load factor
+     * @param machineNumber the machine number
+     *
+     * @see #CS_Processamento(String, String, double, int, double, int, double)
+     *                        for specify the energy consumption
+     */
+    public CS_Processamento(final String id,
+                            final String owner,
+                            final double computationalPower,
+                            final int coreCount,
+                            final double loadFactor,
+                            final int machineNumber) {
+        this(id, owner, computationalPower, coreCount, loadFactor, machineNumber, 0.0);
     }
-    
-    public CS_Processamento(String id, String proprietario, double PoderComputacional, int numeroProcessadores, double Ocupacao, int numeroMaquina, Double energia) {
-        this.poderComputacional = PoderComputacional;
-        this.numeroProcessadores = numeroProcessadores;
-        this.Ocupacao = Ocupacao;
-        this.metrica = new MetricasProcessamento(id, numeroMaquina, proprietario);
-        this.consumoEnergia = energia;
-        this.PoderComputacionalDisponivelPorProcessador =
-                (this.poderComputacional - (this.poderComputacional * this.Ocupacao))
-                / this.numeroProcessadores;
+
+    /**
+     * Constructor which specifies the configuration of the
+     * processing server, specifying the id, owner, computational
+     * power, core count, load factor, machine number and
+     * energy consumption.
+     *
+     * @param id the id
+     * @param owner the owner
+     * @param computationalPower the computational power
+     * @param coreCount the core count
+     * @param loadFactor the load factor
+     * @param machineNumber the machine number
+     * @param energy the energy
+     */
+    public CS_Processamento(final String id,
+                            final String owner,
+                            final double computationalPower,
+                            final int coreCount,
+                            final double loadFactor,
+                            final int machineNumber,
+                            final double energy) {
+        this.poderComputacional = computationalPower;
+        this.numeroProcessadores = coreCount;
+        this.Ocupacao = loadFactor;
+        this.PoderComputacionalDisponivelPorProcessador = (computationalPower
+                - (computationalPower * loadFactor)) / coreCount;
+        this.consumoEnergia = energy;
+        this.metrica = new MetricasProcessamento(id, machineNumber, owner);
     }
-    
+
     public int getnumeroMaquina(){
         return metrica.getnumeroMaquina();
     }

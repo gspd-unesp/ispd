@@ -535,7 +535,9 @@ public class DesenhoGrade extends DrawingArea {
                             I.getSchedulingAlgorithm(), I.getOwner(),
                             I.getCoreCount(), I.getRam(),
                             I.getHardDisk(),
-                            I.isMaster(), slaves);
+                            I.isMaster(),
+                            slaves,
+                            I.getEnergyConsumption());
                 } else if (this.modelType == PickModelTypeDialog.IAAS) {
                     xml.addMachineIaaS(I.getX(), I.getY(),
                             I.getId().getLocalId(), I.getId().getGlobalId(),
@@ -559,7 +561,8 @@ public class DesenhoGrade extends DrawingArea {
                             I.getRam(), I.getHardDisk(),
                             I.getBandwidth(), I.getLatency(),
                             I.getSchedulingAlgorithm(), I.getOwner(),
-                            I.isMaster());
+                            I.isMaster(),
+                            I.getEnergyConsumption());
                 } else if (this.modelType == PickModelTypeDialog.IAAS) {
                     final Cluster I = (Cluster) vertice;
                     xml.addClusterIaaS(I.getX(), I.getY(),
