@@ -50,15 +50,15 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.metricas.Metricas;
 import ispd.motor.metricas.MetricasGlobais;
 import java.awt.Color;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Array;
+import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -92,6 +92,7 @@ public class TerminalApplication implements Application {
     private final boolean paralelo;
     private final int port;
     private final  Options options;
+    private final Inet4Address serverAddress;
     //Resultados
     MetricasGlobais resuladosGlobais;
     private int nExecutions;
@@ -119,12 +120,24 @@ public class TerminalApplication implements Application {
         this.outputFolder = setOutputFolder(cmd);
         this.paralelo = setParallelSimulation(cmd);
         this.simulationProgress = setSimulationProgress();
+        this.serverAddress = setServerAddress(cmd);
 
 
         if ((this.mode == Modes.CLIENT || this.mode == Modes.SIMULATE) && this.inputFile == null) {
             System.out.println("It needs a model to simulate.");
             System.exit(1);
         }
+    }
+
+    private Inet4Address setServerAddress(CommandLine cmd) {
+        try {
+            return (Inet4Address) Inet4Address.getByName(cmd.getOptionValue("a"));
+        } catch (UnknownHostException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        }
+
+        return null;
     }
 
     private ProgressoSimulacao setSimulationProgress() {
@@ -214,6 +227,8 @@ public class TerminalApplication implements Application {
                 true, "specify an output folder for the html export.");
         options.addOption("e", "executions",
                 true, "specify the number of executions.");
+        options.addOption("a", "address",
+                true, "specify the server adress.");
 
         return options;
     }
@@ -387,19 +402,7 @@ public class TerminalApplication implements Application {
                 this.simularRedeServidor();
             }
             case CLIENT -> {
-                Object[] conf = lerConfiguracao(this.configFile);
-                String[] server = new String[conf.length / 3];//{"localhost","localhost"};
-                int[] ports = new int[conf.length / 3];//{2005,2006};
-                int[] numSim = new int[conf.length / 3];//{15,15};
-                for (int i = 0, j = 0; i < server.length; i++) {
-                    server[i] = (String) conf[j];
-                    j++;
-                    ports[i] = Integer.parseInt(conf[j].toString());
-                    j++;
-                    numSim[i] = Integer.parseInt(conf[j].toString());
-                    j++;
-                }
-                this.simularRedeCliente(server, ports, numSim);
+                this.simularRedeCliente(this.serverAddress);
             }
         }
         System.exit(0);
@@ -578,7 +581,7 @@ public class TerminalApplication implements Application {
         try {
             System.out.println("Creating a server socket");
 
-            ServerSocket providerSocket = new ServerSocket(this.port, 10);
+            ServerSocket providerSocket = new ServerSocket(2004, 10);
 
             System.out.println("Waiting for connection");
 
@@ -624,10 +627,11 @@ public class TerminalApplication implements Application {
         System.out.println("Devolvendo resultados...");
         try {
             System.out.println("Creating a server socket");
-            Socket requestSocket = new Socket(origem, this.port);
+            Socket requestSocket = new Socket(origem, 2005);
             System.out.println("Connection received from " + requestSocket.getInetAddress().getHostName());
             ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-            System.out.println("Mensagem... resultados obtidos: " + metricas);
+            this.resuladosGlobais = metricas.getMetricasGlobais();
+            System.out.println("Mensagem... resultados obtidos: " + this.resuladosGlobais.toString());
             out.flush();
             out.writeObject(metricas);
             out.flush();
@@ -643,8 +647,9 @@ public class TerminalApplication implements Application {
      * Simulação cliente servidor
      * Executa as ações do cliente, porem ainda não é a versão definitiva
      */
-    private void simularRedeCliente(String[] servers, int[] ports, int[] numSim) {
+    private void simularRedeCliente(Inet4Address server) {
         //Obtem modelo
+        String server_ip = server.getHostAddress();
         this.simulationProgress.print("Opening iconic model.");
         this.simulationProgress.print(" -> ");
         Document modelo = null;
@@ -657,39 +662,37 @@ public class TerminalApplication implements Application {
         //Verifica se foi construido modelo corretamente
         this.simulationProgress.validarInicioSimulacao(modelo);
         //Enviar modelo...
-        for (int i = 0; i < servers.length; i++) {
-            try {
-                System.out.println("Creating a server socket to " + servers[i] + " " + ports[i]);
-                Socket requestSocket = new Socket(servers[i], ports[i]);
-                System.out.println("Connection received from " + requestSocket.getInetAddress().getHostName());
-                ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-                System.out.println("Mensagem... número de execuções: " + numSim[i]);
-                out.flush();
-                out.writeObject(numSim[i]);
-                out.flush();
-                out.writeObject(modelo);
-                out.flush();
-                out.close();
-                System.out.println("Closing connection");
-                requestSocket.close();
-            } catch (Exception ex) {
-                Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        try {
+            System.out.println("Creating a server socket to " + server_ip + " " + this.port);
+            Socket requestSocket = new Socket(server_ip, 2004);
+            System.out.println("Connection received from " + requestSocket.getInetAddress().getHostName());
+            ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
+            System.out.println("Mensagem... número de execuções: " + this.nExecutions);
+            out.flush();
+            out.writeObject(this.nExecutions);
+            out.flush();
+            out.writeObject(modelo);
+            out.flush();
+            out.close();
+            System.out.println("Closing connection");
+            requestSocket.close();
+        } catch (Exception ex) {
+            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
         Metricas metricas = new Metricas(IconicoXML.newListUsers(modelo));
         //Recebendo resultados
         try {
             System.out.println("Creating a server socket");
-            ServerSocket providerSocket = new ServerSocket(this.port, 10);
-            for (int i = 0; i < servers.length; i++) {
-                System.out.println("Waiting for connection");
-                Socket connection = providerSocket.accept();
-                System.out.println("Connection received from " + connection.getInetAddress().getHostName());
-                ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
-                System.out.println("Recebendo mensagem");
-                metricas.addMetrica((Metricas) in.readObject());
-                in.close();
-            }
+            ServerSocket providerSocket = new ServerSocket(2005, 10);
+            System.out.println("Waiting for connection");
+            Socket connection = providerSocket.accept();
+            System.out.println("Connection received from " + connection.getInetAddress().getHostName());
+            ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
+            System.out.println("Recebendo mensagem");
+            metricas.addMetrica((Metricas) in.readObject());
+            this.resuladosGlobais = metricas.getMetricasGlobais();
+            System.out.println(this.resuladosGlobais.toString());
+            in.close();
             System.out.println("Closing connection");
             providerSocket.close();
         } catch (Exception ex) {
@@ -701,34 +704,34 @@ public class TerminalApplication implements Application {
 
     /**
      * Realiza a leitura de um arquivo de configuração para a simulação cliente/servidor
-     * @param configuracao aquivo com linhas contendo: [servidor/ip] [porta] [numero de simulações]
-     * @return vetor contendo todos os objetos lidos do arquivo
+//     * @param configuracao aquivo com linhas contendo: [servidor/ip] [porta] [numero de simulações]
+//     * @return vetor contendo todos os objetos lidos do arquivo
      */
-    private Object[] lerConfiguracao(File configuracao) {
-        ArrayList<String> config = new ArrayList<>();
-        FileReader arq = null;
-        try {
-            arq = new FileReader(configuracao);
-            BufferedReader lerArq = new BufferedReader(arq);
-            String linha = lerArq.readLine();
-            while (linha != null) {
-                config.addAll(Arrays.asList(linha.split(" ")));
-                System.out.printf("%s\n", linha);
-                linha = lerArq.readLine();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                if (arq != null) {
-                    arq.close();
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return config.toArray();
-    }
+//    private Object[] lerConfiguracao(File configuracao) {
+//        ArrayList<String> config = new ArrayList<>();
+//        FileReader arq = null;
+//        try {
+//            arq = new FileReader(configuracao);
+//            BufferedReader lerArq = new BufferedReader(arq);
+//            String linha = lerArq.readLine();
+//            while (linha != null) {
+//                config.addAll(Arrays.asList(linha.split(" ")));
+//                System.out.printf("%s\n", linha);
+//                linha = lerArq.readLine();
+//            }
+//        } catch (IOException ex) {
+//            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
+//        } finally {
+//            try {
+//                if (arq != null) {
+//                    arq.close();
+//                }
+//            } catch (IOException ex) {
+//                Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
+//        return config.toArray();
+//    }
 
     public enum Modes {
         HELP("h"),
