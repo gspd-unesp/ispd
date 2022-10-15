@@ -27,7 +27,9 @@ import java.util.Optional;
 @SuppressWarnings("InfiniteLoopStatement")
 public class TerminalApplication implements Application {
     private static final int DEFAULT_PORT = 2004;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<File> inputFile;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<File> outputFolder;
     private final Modes mode;
     private final int nThreads;
@@ -276,7 +278,7 @@ public class TerminalApplication implements Application {
                     var file = this.inputFile.get();
 
                     if (file.getName().endsWith(".imsx") && file.exists()) {
-                        this.runSimulation();
+                        this.runNSimulations();
                     } else {
                         System.out.println("iSPD can not open the file: " + file.getName());
                     }
@@ -291,9 +293,10 @@ public class TerminalApplication implements Application {
     }
 
     /**
-     *
+     * Run a number of simulations and calculate the time for each one,
+     * printing the results of them at the end.
      */
-    private void runSimulation() {
+    private void runNSimulations() {
         System.out.println("Simulation Initiated.");
         System.out.print("Opening iconic model. ->");
 
@@ -304,7 +307,7 @@ public class TerminalApplication implements Application {
             System.out.println("* Simulation " + i);
 
             final double preSimInstant = System.currentTimeMillis();
-            final Metricas simMetric = runSimulation(model);
+            final Metricas simMetric = runASimulation(model);
             final double postSimInstant = System.currentTimeMillis();
             final double totalSimDuration = (postSimInstant - preSimInstant) / 1000.0;
 
@@ -370,7 +373,7 @@ public class TerminalApplication implements Application {
      * @param model A model with configurations for a simulation
      * @return The metrics resulted from the simulation
      */
-    private Metricas runSimulation(final Document model) {
+    private Metricas runASimulation(final Document model) {
         final var queueNetwork = createQueueNetwork(model);
         final var jobs = createJobsList(model, queueNetwork);
         final var sim = selectSimulation(queueNetwork, jobs);
@@ -433,7 +436,7 @@ public class TerminalApplication implements Application {
             try {
                     final var simServer = new Server(this.serverPort);
                     final var newModel = simServer.getMetricsFromClient();
-                    final var modelMetrics = runSimulation(newModel);
+                    final var modelMetrics = runASimulation(newModel);
 
                     simServer.returnMetricsToClient(modelMetrics);
             } catch (UnknownHostException e) {
@@ -459,11 +462,11 @@ public class TerminalApplication implements Application {
     /**
      * An enum for run modes for the terminal application.
      */
-    public enum Modes {
+    private enum Modes {
         HELP("h"), VERSION("v"), SIMULATE(""), CLIENT("c"), SERVER("s"),
         ;
 
-        final private String str;
+        private final String str;
 
         Modes(String s) {
             this.str = s;

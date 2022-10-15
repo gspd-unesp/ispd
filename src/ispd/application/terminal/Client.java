@@ -36,7 +36,7 @@ public class Client {
         ) {
             socket.setReuseAddress(true);
             outputStream.writeObject(model);
-            clientPort = socket.getLocalPort();
+            this.clientPort = socket.getLocalPort();
 
 
         } catch (IOException e) {
@@ -51,7 +51,7 @@ public class Client {
      */
     public Metricas receiveMetricsFromServer() {
         try (
-                final var serverSocket = new ServerSocket(clientPort);
+                final var serverSocket = new ServerSocket(this.clientPort);
                 final var inputStream = new ObjectInputStream(serverSocket.accept().getInputStream())
         ) {
 

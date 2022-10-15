@@ -56,11 +56,11 @@ public class Server {
      */
     public void returnMetricsToClient(Metricas modelMetrics) {
         try (
-                final var outputSocket = new Socket(clientAddress, clientPort);
+                final var outputSocket = new Socket(this.clientAddress, this.clientPort);
                 final var outputStream = new ObjectOutputStream(outputSocket.getOutputStream())
         ) {
 
-        outputStream.writeObject(modelMetrics);
+            outputStream.writeObject(modelMetrics);
         } catch (IOException e) {
             System.out.println("Couldn't create the client socket.");
         }
