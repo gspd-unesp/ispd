@@ -47,10 +47,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import java.io.Serializable;
-import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.CS_Comunicacao;
-import ispd.motor.filas.servidores.CS_Processamento;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -274,9 +271,15 @@ public class Metricas implements Serializable {
 
         Double porcentLimite;//Limite de consumo em porcentagem do consumo total da porção do usuário
 
-        for (String user : usuarios) {
+        final var limits = redeDeFilas.getLimites();
 
-            porcentLimite = redeDeFilas.getLimites().get(user) / 100;
+        for (String user : usuarios) {
+            if (!limits.containsKey(user))
+            {
+                throw new IllegalArgumentException("Unexpected user " + user);
+            }
+
+            porcentLimite = limits.get(user) / 100;
             limitesConsumoTempoSim.put(user, limitesConsumoTempoSim.get(user).multiply(BigDecimal.valueOf(porcentLimite)));
             limitesConsumoTempoUso.put(user, limitesConsumoTempoSim.get(user));
         }

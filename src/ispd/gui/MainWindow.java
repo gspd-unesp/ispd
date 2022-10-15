@@ -1378,7 +1378,7 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void formWindowClosing() {
         this.configure.setLastFile(this.openFile);
-        this.configure.save();
+        this.configure.saveCurrentConfig();
 
         if (!this.currentFileHasUnsavedChanges)
             System.exit(0);

@@ -1,517 +1,425 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package ispd.arquivo;
 
 import ispd.escalonadorCloud.ManipularArquivosCloud;
+
+import javax.tools.ToolProvider;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 
 /**
- * Esta classe realiza o gerenciamento dos arquivos de escalonamento do
- * simulador
- *
- * @author denison_usuario
+ * Manages storing, retrieving and compiling cloud scheduling policies
  */
 public class EscalonadoresCloud implements ManipularArquivosCloud {
 
-    private final String DIRETORIO = "ispd.externo.cloudSchedulers";
-    /**
-     * guarda a lista de escalonadores implementados no iSPD, e que já estão
-     * disponiveis para o usuario por padrão
-     */
-    public final static String[] ESCALONADORES = {"---", "RoundRobin"};
-    /**
-     * guarda a lista de escalonadores disponiveis
-     */
-    private ArrayList<String> escalonadores;
-    /**
-     * mantem o caminho do pacote escalonador
-     */
-    private File diretorio = null;
-    private ArrayList<String> adicionados;
-    private ArrayList<String> removidos;
+    private static final String NO_POLICY = "---";
+    public static final String[] ESCALONADORES = { EscalonadoresCloud.NO_POLICY,
+            "RoundRobin" };
+    private static final String DIRECTORY_PATH = "ispd.externo.cloudSchedulers";
+    private static final File DIRECTORY =
+            new File(EscalonadoresCloud.DIRECTORY_PATH);
+    private final ArrayList<String> policies = new ArrayList<>(0);
+    private final List<String> addedPolicies = new ArrayList<>(0);
+    private final List<String> removedPolicies = new ArrayList<>(0);
 
-    /**
-     * @return diretório onde fica os arquivos dos escalonadores
-     */
-    @Override
-    public File getDiretorio() {
-        return diretorio;
-    }
-
-    /**
-     * Atribui o caminho do pacote escalonador e os escalonadores (.class)
-     * contidos nele
-     */
     public EscalonadoresCloud() {
-        diretorio = new File(DIRETORIO);
-        escalonadores = new ArrayList<String>();
-        adicionados = new ArrayList<String>();
-        removidos = new ArrayList<String>();
-        //Verifica se pacote existe caso não exista cria ele
-        if (!diretorio.exists()) {
-            diretorio.mkdirs();
-            //executando a partir de um jar
-            if (getClass().getResource("EscalonadoresCloud.class").toString().startsWith("jar:")) {
-                File jar = new File(System.getProperty("java.class.path"));
-                //carrega dependencias para compilação
-                try {
-                    extrairDiretorioJar(jar, "escalonadorCloud");
-                    //extrairDiretorioJar(jar, "externo");
-                    extrairDiretorioJar(jar, "motor");
-                } catch (ZipException ex) {
-                    Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }//else{
-            //diretorio.mkdirs();
-            //File RR = new File(getClass().getResource("/ispd/externo/RoundRobin.class").getFile());
-            //copiarArquivo(RR, new File(DIRETORIO, RR.getName()));
-            //}
-            //criarRoundRobin();
-            //criarWorkqueue();
-            //compilar("Workqueue");
+        if (EscalonadoresCloud.DIRECTORY.exists()) {
+            this.findDotClassAllocators();
         } else {
-            //busca apenas arquivos .class
-            FilenameFilter ff = new FilenameFilter() {
-                @Override
-                public boolean accept(File b, String name) {
-                    return name.endsWith(".class");
-                }
-            };
-            String[] aux = diretorio.list(ff);
-            for (int i = 0; i < aux.length; i++) {
-                //remove o .class da string
-                aux[i] = aux[i].substring(0, aux[i].length() - 6);
-                escalonadores.add(aux[i]);
+
+            try {
+                EscalonadoresCloud.createDirectory(EscalonadoresCloud.DIRECTORY);
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (Objects.requireNonNull(this.getClass().getResource(
+                    "EscalonadoresCloud.class")).toString().startsWith("jar:")) {
+                EscalonadoresCloud.executeFromJar();
             }
         }
     }
 
+    private void findDotClassAllocators() {
+        final FilenameFilter filter = (b, name) -> name.endsWith(".class");
+        final var dotClassFiles =
+                Objects.requireNonNull(EscalonadoresCloud.DIRECTORY.list(filter));
+
+        Arrays.stream(dotClassFiles)
+                .map(EscalonadoresCloud::removeDotClassSuffix)
+                .forEach(this.policies::add);
+    }
+
+    private static void createDirectory(final File dir) throws IOException {
+        if (!dir.mkdirs()) {
+            throw new IOException("Failed to create directory " + dir);
+        }
+    }
+
+    private static void executeFromJar() {
+        final var jar = new File(
+                System.getProperty("java.class.path"));
+
+        try {
+            EscalonadoresCloud.extractDirFromJar("escalonadorCloud", jar);
+            EscalonadoresCloud.extractDirFromJar("motor", jar);
+        } catch (final IOException ex) {
+            Logger.getLogger(EscalonadoresCloud.class.getName())
+                    .log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static String removeDotClassSuffix(final String s) {
+        return s.substring(0, s.length() - ".class".length());
+    }
+
     /**
-     * Método responsável por listar os escalonadores existentes no simulador
-     * ele retorna o nome de cada escalonador contido no pacote com arquivo
-     * .class
+     * Extracts given dir from jar file given by file.
+     *
+     * @param dir  Directory name to be extracted
+     * @param file Jar file from which to extract the directory
+     */
+    private static void extractDirFromJar(final String dir, final File file) throws IOException {
+        try (final var jar = new JarFile(file)) {
+            for (final var entry : new JarEntryIterable(jar)) {
+                if (entry.getName().contains(dir)) {
+                    EscalonadoresCloud.processZipEntry(entry, jar);
+                }
+            }
+        }
+    }
+
+    private static void processZipEntry(
+            final ZipEntry entry, final ZipFile zip) throws IOException {
+        final var file = new File(entry.getName());
+
+        if (entry.isDirectory() && !file.exists()) {
+            EscalonadoresCloud.createDirectory(file);
+            return;
+        }
+
+        if (!file.getParentFile().exists()) {
+            EscalonadoresCloud.createDirectory(file.getParentFile());
+        }
+
+        try (final var is = zip.getInputStream(entry);
+             final var os = new FileOutputStream(file)) {
+            is.transferTo(os);
+        }
+    }
+
+    /**
+     * @return Basic template for writing a cloud scheduling policy's source
+     * code
+     */
+    public static String getEscalonadorJava(final String escalonador) {
+        return """
+                package ispd.externo;
+                import ispd.escalonadorCloud.EscalonadorCloud;
+                import ispd.motor.filas.Tarefa;
+                import ispd.motor.filas.servidores.CS_Processamento;
+                import ispd.motor.filas.servidores.CentroServico;
+                import java.util.ArrayList;
+                import java.util.List;
+
+                public class %s extends EscalonadorCloud{
+
+                    @Override
+                    public void iniciar() {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+
+                    @Override
+                    public Tarefa escalonarTarefa() {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+
+                    @Override
+                    public CS_Processamento escalonarRecurso(String usuario) {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+
+                    @Override
+                    public List<CentroServico> escalonarRota(CentroServico destino) {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+
+                    @Override
+                    public void escalonar() {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+
+                }""".formatted(escalonador);
+    }
+
+    /**
+     * Lists all available allocation policies.
+     *
+     * @return {@code ArrayList} with all allocation policies' names
      */
     @Override
     public ArrayList<String> listar() {
-        return escalonadores;
+        return this.policies;
     }
 
     /**
-     * Método responsável por remover um escalonador no simulador ele recebe o
-     * nome do escalonador e remove do pacote a classe .java e .class
+     * @return Directory in which allocation policies sources are compiled
+     * and classes are saved
      */
     @Override
-    public boolean remover(String nomeEscalonador) {
-        boolean deletado = false;
-        File escalonador = new File(diretorio, nomeEscalonador + ".class");
-        if (escalonador.exists()) {
-            escalonador.delete();
-            removerLista(nomeEscalonador);
-            deletado = true;
-        }
-        escalonador = new File(diretorio, nomeEscalonador + ".java");
-        if (escalonador.exists()) {
-            escalonador.delete();
-            deletado = true;
-        }
-        return deletado;
+    public File getDiretorio() {
+        return EscalonadoresCloud.DIRECTORY;
     }
 
     /**
-     * Realiza a leitura do arquivo .java do escalonador e retorna um String do
-     * conteudo
+     * Writes the contents of {@code codigo} into the source file of the
+     * policy given by {@code nome}.
+     *
+     * @param nome   Name of the policy which source file will be written to
+     * @param codigo Contents to be written in the file
+     * @return {@code true} if writing was successful
      */
     @Override
-    public String ler(String escalonador) {
-        try {
-            FileReader fileInput = new FileReader(new File(diretorio, escalonador + ".java"));
-            BufferedReader leitor = new BufferedReader(fileInput);
-            StringBuilder buffer = new StringBuilder();
-            String linha = leitor.readLine();
-            while (linha != null) {
-                buffer.append(linha);
-                buffer.append('\n');
-                linha = leitor.readLine();
-            }
-            if (buffer.length() > 0) {
-                buffer.deleteCharAt(buffer.length() - 1);
-            }
-            return buffer.toString();
-        } catch (IOException ex) {
-            Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
-    }
-
-    /**
-     * Este método sobrescreve o arquivo .java do escalonador informado com o
-     * buffer
-     */
-    @Override
-    public boolean escrever(String escalonador, String conteudo) {
-        FileWriter arquivoFonte;
-        try {
-            File local = new File(diretorio, escalonador + ".java");
-            arquivoFonte = new FileWriter(local);
-            arquivoFonte.write(conteudo); //grava no arquivo o codigo-fonte Java
-            arquivoFonte.close();
-        } catch (IOException ex) {
-            Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
+    public boolean escrever(final String nome, final String codigo) {
+        try (final var fw = new FileWriter(
+                new File(EscalonadoresCloud.DIRECTORY, nome + ".java"),
+                StandardCharsets.UTF_8
+        )) {
+            fw.write(codigo);
+            return true;
+        } catch (final IOException ex) {
+            Logger.getLogger(EscalonadoresCloud.class.getName())
+                    .log(Level.SEVERE, null, ex);
             return false;
         }
-        return true;
     }
 
     /**
-     * Compila o arquivo .java do escalonador informado caso ocorra algum erro
-     * retorna o erro caso contrario retorna null
+     * Attempts to compile the source file of the policy with given name,
+     * returning the contents of stderr, if any, otherwise {@code null}.
      *
-     * @param escalonador nome do escalonador
-     * @return erros da compilação
+     * @param nome Name of the allocation policy to be compiled
+     * @return A string with errors, if any, otherwise {@code null}
      */
     @Override
-    public String compilar(String escalonador) {
-        //Compilação
-        File arquivo = new File(diretorio, escalonador + ".java");
-        String errosStr;
-        JavaCompiler compilador = ToolProvider.getSystemJavaCompiler();
-        if (compilador == null) {
-            try {
-                Process processo = Runtime.getRuntime().exec("javac " + arquivo.getPath());
-                StringBuilder errosdoComando = new StringBuilder();
-                InputStream StreamErro = processo.getErrorStream();
-                InputStreamReader inpStrAux = new InputStreamReader(StreamErro);
-                BufferedReader SaidadoProcesso = new BufferedReader(inpStrAux);
-                String linha = SaidadoProcesso.readLine();
-                while (linha != null) {
-                    errosdoComando.append(linha).append("\n");
-                    linha = SaidadoProcesso.readLine();
-                }
-                SaidadoProcesso.close();
-                errosStr = errosdoComando.toString();
-            } catch (IOException ex) {
-                errosStr = "Não foi possível compilar";
-                Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else {
-            OutputStream erros = new ByteArrayOutputStream();
-            compilador.run(null, null, erros, arquivo.getPath());
-            errosStr = erros.toString();
-        }
+    public String compilar(final String nome) {
+        final var target = new File(EscalonadoresCloud.DIRECTORY, nome +
+                                                                  ".java");
+        final var err = EscalonadoresCloud.compile(target);
+
         try {
             Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (final InterruptedException ex) {
+            Logger.getLogger(EscalonadoresCloud.class.getName())
+                    .log(Level.SEVERE, null, ex);
         }
-        File test = new File(diretorio, escalonador + ".class");
-        if (test.exists()) {
-            inserirLista(escalonador);
+
+        // Check if compilation worked, looking for a .class file
+        if (new File(EscalonadoresCloud.DIRECTORY, nome + ".class").exists()) {
+            this.addPolicy(nome);
         }
-        if (errosStr.equals("")) {
-            return null;
-        }
-        return errosStr;
+
+        return err.isEmpty() ? null : err;
     }
 
-    /**
-     * recebe nome do escalonar e remove ele da lista de escalonadores
-     */
-    private void removerLista(String nomeEscalonador) {
-        if (escalonadores.contains(nomeEscalonador)) {
-            escalonadores.remove(nomeEscalonador);
-            removidos.add(nomeEscalonador);
-        }
-    }
+    private static String compile(final File target) {
+        final var compiler = ToolProvider.getSystemJavaCompiler();
 
-    /**
-     * recebe nome do escalonar e adiciona ele na lista de escalonadores
-     */
-    private void inserirLista(String nome) {
-        if (!escalonadores.contains(nome)) {
-            escalonadores.add(nome);
-            adicionados.add(nome);
-        }
-    }
-
-    /**
-     * cria arquivo java com a politica RoundRobin
-     */
-    private void criarRoundRobin() {
-        String codigoFonte =
-                "package ispd.externo;\n\n"
-                + "import ispd.escalonador.Escalonador;\n"
-                + "import ispd.escalonador.Mestre;\n"
-                + "import ispd.motor.filas.Tarefa;\n"
-                + "import ispd.motor.filas.servidores.CS_Processamento;\n"
-                + "import ispd.motor.filas.servidores.CentroServico;\n"
-                + "import java.util.ArrayList;\n"
-                + "import java.util.List;\n\n"
-                + "/**\n * Implementação do algoritmo de escalonamento Round-Robin\n"
-                + " * Atribui a proxima tarefa da fila (FIFO)\n"
-                + " * para o proximo recurso de uma fila circular de recursos\n"
-                + " * @author denison_usuario\n */\n"
-                + "public class RoundRobin extends Escalonador{\n"
-                + "    private int escravoAtual = -1;\n\n"
-                + "    public RoundRobin(){\n"
-                + "        this.tarefas = new ArrayList<Tarefa>();\n"
-                + "        this.escravos = new ArrayList<CS_Processamento>();\n    }\n\n"
-                + "    @Override\n    public void iniciar() {\n"
-                + "        throw new UnsupportedOperationException(\"Not supported yet.\");\n    }\n\n"
-                + "    @Override\n    public void atualizar() {\n"
-                + "        throw new UnsupportedOperationException(\"Not supported yet.\");\n    }\n\n"
-                + "    @Override\n    public Tarefa escalonarTarefa() {\n"
-                + "        return tarefas.remove(0);\n    }\n\n"
-                + "    @Override\n    public CS_Processamento escalonarRecurso() {\n"
-                + "        escravoAtual++;\n"
-                + "        if (escravos.size()<=escravoAtual) {\n"
-                + "            escravoAtual=0;\n"
-                + "        }\n        return escravos.get(escravoAtual);\n    }\n\n"
-                + "    @Override\n    public void escalonar(Mestre mestre) {\n"
-                + "        Tarefa trf = escalonarTarefa();\n"
-                + "        CS_Processamento rec = escalonarRecurso();\n"
-                + "        trf.setCaminho(escalonarRota(rec));\n"
-                + "        mestre.enviarTarefa(trf);\n    }\n\n"
-                + "    @Override\n    public void adicionarTarefa(Tarefa tarefa) {\n"
-                + "        this.tarefas.add(tarefa);\n    }\n\n"
-                + "    @Override\n    public void adicionarFilaTarefa(ArrayList<Tarefa> tarefa) {\n"
-                + "        throw new UnsupportedOperationException(\"Not supported yet.\");\n    }\n\n"
-                + "    @Override\n    public List<CentroServico> escalonarRota(CentroServico destino) {\n"
-                + "        int index = escravos.indexOf(destino);\n"
-                + "        return new ArrayList<CentroServico>((List<CentroServico>) caminhoEscravo.get(index));\n"
-                + "    }\n\n}";
-        FileWriter arquivoFonte;
-        try {
-            File local = new File(diretorio, "RoundRobin.java");
-            arquivoFonte = new FileWriter(local);
-            arquivoFonte.write(codigoFonte); //grava no arquivo o codigo-fonte Java
-            arquivoFonte.close();
-        } catch (IOException ex) {
-            Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * @param escalonador
-     * @return conteudo básico para criar uma classe que implemente um
-     * escalonador
-     */
-    public static String getEscalonadorJava(String escalonador) {
-        String saida =
-                "package ispd.externo;"
-                + "\n" + "import ispd.escalonadorCloud.EscalonadorCloud;"
-                + "\n" + "import ispd.motor.filas.Tarefa;"
-                + "\n" + "import ispd.motor.filas.servidores.CS_Processamento;"
-                + "\n" + "import ispd.motor.filas.servidores.CentroServico;"
-                + "\n" + "import java.util.ArrayList;"
-                + "\n" + "import java.util.List;"
-                + "\n"
-                + "\n" + "public class " + escalonador + " extends EscalonadorCloud{"
-                + "\n"
-                + "\n" + "    @Override"
-                + "\n" + "    public void iniciar() {"
-                + "\n" + "        throw new UnsupportedOperationException(\"Not supported yet.\");"
-                + "\n" + "    }"
-                + "\n"
-                + "\n" + "    @Override"
-                + "\n" + "    public Tarefa escalonarTarefa() {"
-                + "\n" + "        throw new UnsupportedOperationException(\"Not supported yet.\");"
-                + "\n" + "    }"
-                + "\n"
-                + "\n" + "    @Override"
-                + "\n" + "    public CS_Processamento escalonarRecurso(String usuario) {"
-                + "\n" + "        throw new UnsupportedOperationException(\"Not supported yet.\");"
-                + "\n" + "    }"
-                + "\n"
-                + "\n" + "    @Override"
-                + "\n" + "    public List<CentroServico> escalonarRota(CentroServico destino) {"
-                + "\n" + "        throw new UnsupportedOperationException(\"Not supported yet.\");"
-                + "\n" + "    }"
-                + "\n"
-                + "\n" + "    @Override"
-                + "\n" + "    public void escalonar() {"
-                + "\n" + "        throw new UnsupportedOperationException(\"Not supported yet.\");"
-                + "\n" + "    }"
-                + "\n"
-                + "\n" + "}";
-        return saida;
-    }
-
-    /**
-     * extrai arquivos que são necessarios fora do jar
-     */
-    private void extrairDiretorioJar(File arquivoJar, String diretorio) throws ZipException, IOException {
-        ZipFile jar = null;
-        File arquivo;
-        InputStream is = null;
-        OutputStream os = null;
-        byte[] buffer = new byte[2048]; // 2 Kb //TAMANHO_BUFFER
-        try {
-            jar = new JarFile(arquivoJar);
-            Enumeration e = jar.entries();
-            while (e.hasMoreElements()) {
-                ZipEntry entrada = (JarEntry) e.nextElement();
-                if (entrada.getName().contains(diretorio)) {
-                    arquivo = new File(entrada.getName());
-                    //se for diretório inexistente, cria a estrutura
-                    //e pula pra próxima entrada
-                    if (entrada.isDirectory() && !arquivo.exists()) {
-                        arquivo.mkdirs();
-                        continue;
-                    }
-                    //se a estrutura de diretórios não existe, cria
-                    if (!arquivo.getParentFile().exists()) {
-                        arquivo.getParentFile().mkdirs();
-                    }
-                    try {
-                        //lê o arquivo do zip e grava em disco
-                        is = jar.getInputStream(entrada);
-                        os = new FileOutputStream(arquivo);
-                        int bytesLidos;
-                        if (is == null) {
-                            throw new ZipException("Erro ao ler a entrada do zip: " + entrada.getName());
-                        }
-                        while ((bytesLidos = is.read(buffer)) > 0) {
-                            os.write(buffer, 0, bytesLidos);
-                        }
-                    } finally {
-                        if (is != null) {
-                            try {
-                                is.close();
-                            } catch (Exception ex) {
-                            }
-                        }
-                        if (os != null) {
-                            try {
-                                os.close();
-                            } catch (Exception ex) {
-                            }
-                        }
-                    }
-                }
-            }
-        } finally {
-            if (jar != null) {
-                try {
-                    jar.close();
-                } catch (Exception e) {
-                }
+        if (compiler != null) {
+            final var err = new ByteArrayOutputStream();
+            compiler.run(null, null, err, target.getPath());
+            return err.toString();
+        } else {
+            try {
+                return EscalonadoresCloud.compileManually(target);
+            } catch (final IOException ex) {
+                Logger.getLogger(EscalonadoresCloud.class.getName())
+                        .log(Level.SEVERE, null, ex);
+                return "Não foi possível compilar";
             }
         }
     }
 
     /**
-     * Método responsável por adicionar um escalonador no simulador ele recebe
-     * uma classe Java compila e adiciona ao pacote a classe .java e .class
+     * Add policy to the inner list of policies
+     */
+    private void addPolicy(final String policyName) {
+        if (this.policies.contains(policyName)) {
+            return;
+        }
+
+        this.policies.add(policyName);
+        this.addedPolicies.add(policyName);
+    }
+
+    private static String compileManually(final File target) throws IOException {
+        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
+
+        try (final var err = new BufferedReader(new InputStreamReader(
+                proc.getErrorStream(), StandardCharsets.UTF_8))
+        ) {
+            return err.lines().collect(Collectors.joining("\n"));
+        }
+    }
+
+    /**
+     * Reads the source file from the policy {@code escalonador} and returns a
+     * string with the file contents.
      *
-     * @param nomeArquivoJava
-     * @return true se importar corretamente e false se ocorrer algum erro no
-     * processo
+     * @param escalonador Name of the policy which source file will be read
+     * @return String contents of the file
      */
     @Override
-    public boolean importarEscalonadorJava(File nomeArquivoJava) {
-        //streams
-        File localDestino = new File(diretorio, nomeArquivoJava.getName());
-        String errosStr;
-        //copiar para diretório
-        copiarArquivo(nomeArquivoJava, localDestino);
-        //Compilação
-        JavaCompiler compilador = ToolProvider.getSystemJavaCompiler();
-        if (compilador == null) {
-            try {
-                Process processo = Runtime.getRuntime().exec("javac " + localDestino.getPath());
-                StringBuilder errosdoComando = new StringBuilder();
-                InputStream StreamErro = processo.getErrorStream();
-                InputStreamReader inpStrAux = new InputStreamReader(StreamErro);
-                BufferedReader SaidadoProcesso = new BufferedReader(inpStrAux);
-                String linha = SaidadoProcesso.readLine();
-                while (linha != null) {
-                    errosdoComando.append(linha).append("\n");
-                    linha = SaidadoProcesso.readLine();
-                }
-                SaidadoProcesso.close();
-                errosStr = errosdoComando.toString();
-            } catch (IOException ex) {
-                return false;
-                //Logger.getLogger(GerenciaPacoteEscalonadorJar.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else {
-            OutputStream erros = new ByteArrayOutputStream();
-            compilador.run(null, null, erros, localDestino.getPath());
-            errosStr = erros.toString();
+    public String ler(final String escalonador) {
+        try (final var br = new BufferedReader(
+                new FileReader(
+                        new File(EscalonadoresCloud.DIRECTORY,
+                                escalonador + ".java"),
+                        StandardCharsets.UTF_8)
+        )) {
+            return br.lines().collect(Collectors.joining("\n"));
+        } catch (final IOException ex) {
+            Logger.getLogger(EscalonadoresCloud.class.getName())
+                    .log(Level.SEVERE, null, ex);
+            return null;
         }
-        if (errosStr.length() != 0) {
+    }
+
+    /**
+     * Attempts to remove .java and .class files with the name in {@code
+     * escalonador} and, if successful, removes the policy from the inner list.
+     *
+     * @param escalonador Name of the policy which files will be removed
+     * @return {@code true} if removal is successful
+     */
+    @Override
+    public boolean remover(final String escalonador) {
+        final var classFile = new File(
+                EscalonadoresCloud.DIRECTORY, escalonador + ".class");
+
+        final File javaFile = new File(
+                EscalonadoresCloud.DIRECTORY, escalonador + ".java");
+
+        boolean deleted = false;
+
+        if (classFile.exists()) {
+            if (classFile.delete()) {
+                this.removePolicy(escalonador);
+                deleted = true;
+            }
+        }
+
+        if (javaFile.exists()) {
+            if (javaFile.delete()) {
+                deleted = true;
+            }
+        }
+
+        return deleted;
+    }
+
+    /**
+     * Remove policy of given name from the inner list of policies
+     */
+    private void removePolicy(final String policyName) {
+        if (!this.policies.contains(policyName)) {
+            return;
+        }
+
+        this.policies.remove(policyName);
+        this.removedPolicies.add(policyName);
+    }
+
+    /**
+     * Adds allocation policy coded in file {@code arquivo} to the configured
+     * directory, compiles it, and adds it to the list of allocation policies.
+     *
+     * @param arquivo Java source file containing the allocation policy
+     * @return {@code true} if import occurred successfully and {@code false}
+     * otherwise
+     */
+    @Override
+    public boolean importarEscalonadorJava(final File arquivo) {
+        final var target = new File(EscalonadoresCloud.DIRECTORY,
+                arquivo.getName());
+        EscalonadoresCloud.copyFile(target, arquivo);
+
+        final var err = EscalonadoresCloud.compile(target);
+
+        if (!err.isEmpty()) {
             return false;
-        } else {
-            String nome = nomeArquivoJava.getName().substring(0, nomeArquivoJava.getName().length() - 5);
-            File test = new File(diretorio, nome + ".class");
-            if (!test.exists()) {
-                return false;
-            }
-            inserirLista(nome);
         }
+
+        final var nome = arquivo.getName()
+                .substring(0, arquivo.getName().length() - ".java".length());
+
+        if (!new File(EscalonadoresCloud.DIRECTORY, nome + ".class").exists()) {
+            return false;
+        }
+
+        this.addPolicy(nome);
+
         return true;
     }
 
-    private void copiarArquivo(File arquivoOrigem, File arquivoDestino) {
-        //copiar para diretório
-        if (!arquivoDestino.getPath().equals(arquivoOrigem.getPath())) {
-            FileInputStream origem;
-            FileOutputStream destino;
-            FileChannel fcOrigem;
-            FileChannel fcDestino;
-            try {
-                origem = new FileInputStream(arquivoOrigem);
-                destino = new FileOutputStream(arquivoDestino);
-                fcOrigem = origem.getChannel();
-                fcDestino = destino.getChannel();
-                //Faz a copia
-                fcOrigem.transferTo(0, fcOrigem.size(), fcDestino);
-                origem.close();
-                destino.close();
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(EscalonadoresCloud.class.getName()).log(Level.SEVERE, null, ex);
-            }
+    /**
+     * Copy contents of file from {@code dest} to {@code src}, if their paths
+     * are not equal
+     */
+    private static void copyFile(final File dest, final File src) {
+        if (dest.getPath().equals(src.getPath())) {
+            return;
+        }
+
+        try (final var srcFs = new FileInputStream(src);
+             final var destFs = new FileOutputStream(dest)) {
+            srcFs.transferTo(destFs);
+        } catch (final IOException ex) {
+            Logger.getLogger(EscalonadoresCloud.class.getName())
+                    .log(Level.SEVERE, null, ex);
         }
     }
 
+    /**
+     * @return added policies
+     */
     @Override
     public List listarAdicionados() {
-        return adicionados;
+        return this.addedPolicies;
     }
 
+    /**
+     * @return added policies
+     */
     @Override
     public List listarRemovidos() {
-        return removidos;
+        return this.removedPolicies;
+    }
+
+    private record JarEntryIterable(JarFile jar) implements Iterable<JarEntry> {
+        @Override
+        public Iterator<JarEntry> iterator() {
+            return this.jar.entries().asIterator();
+        }
     }
 }

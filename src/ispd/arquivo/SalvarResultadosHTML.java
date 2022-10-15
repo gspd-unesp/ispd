@@ -1,266 +1,287 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * SalvarResultadosHTML.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.arquivo;
 
 import ispd.gui.MainWindow;
 import ispd.motor.metricas.Metricas;
 import ispd.motor.metricas.MetricasGlobais;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.imageio.ImageIO;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
- * Classe responsável por armazenar resultados obtidos da simulação e
- * transformar em um arquivo html
- *
- * @author denison
+ * Stores simulation results and exports them to a html file
  */
 public class SalvarResultadosHTML {
-
-    private String globais;
-    private String satisfacao;
-    private String tarefas;
-    private String tabela;
-    private String chartstxt;
-    private BufferedImage charts[];
+    private static final double EFFICIENCY_GOOD = 70.0;
+    private static final double EFFICIENCY_BAD = 40.0;
+    private String globalMetrics = null;
+    private String tasks = null;
+    private String table = null;
+    private String chartsText = null;
+    private BufferedImage[] chartImages = null;
 
     /**
-     * Cria String com tabela com os resultados de cada centro de serviços
-     * @param tabela contêm as seguintes colunas: [Label] [Owner] [Processing performed] [Communication performed]
+     * Generates a table with the results of each service center
+     *
+     * @param table Table with the following columns: <b>Label, Owner,
+     *              Processing performed, Communication performed</b>
      */
-    public void setTabela(Object tabela[][]) {
-        //Adicionando resultados na tabela do html
-        this.tabela = "<table align=\"center\" border=\"1\" cellpadding=\"1\" cellspacing=\"1\" style=\"width: 80%;\">\n"
-                    + "            <thead>\n"
-                    + "                <tr>\n"
-                    + "                    <th scope=\"col\">\n"
-                    + "                        <span style=\"color:#800000;\">Label</span></th>\n"
-                    + "                    <th scope=\"col\">\n"
-                    + "                        <span style=\"color:#800000;\">Owner</span></th>\n"
-                    + "                    <th scope=\"col\">\n"
-                    + "                        <span style=\"color:#800000;\">Processing performed</span></th>\n"
-                    + "                    <th scope=\"col\">\n"
-                    + "                        <span style=\"color:#800000;\">Communication&nbsp;performed</span></th>\n"
-                    + "                </tr>\n"
-                    + "            </thead>\n"
-                    + "            <tbody>\n";
-        for (Object[] item : tabela) {
-            this.tabela += "                <tr><td>" + item[0] + "</td><td>" + item[1] + "</td><td>" + item[2] + "</td><td>" + item[3] + "</td></tr>\n";
-        }
-        this.tabela += "            </tbody>\n"
-                     + "        </table>\n";
+    public void setTabela(final Object[][] table) {
+        this.table = """
+                <table align="center" border="1" cellpadding="1" cellspacing="1" style="width: 80%%;">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <span style="color:#800000;">Label</span></th>
+                                    <th scope="col">
+                                        <span style="color:#800000;">Owner</span></th>
+                                    <th scope="col">
+                                        <span style="color:#800000;">Processing performed</span></th>
+                                    <th scope="col">
+                                        <span style="color:#800000;">Communication&nbsp;performed</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            %s
+                            </tbody>
+                        </table>""".formatted(SalvarResultadosHTML.convertTableItemsToHtml(table));
+    }
+
+    private static String convertTableItemsToHtml(final Object[][] table) {
+        return Arrays.stream(table)
+                .map(SalvarResultadosHTML::convertItemToHtml)
+                .collect(Collectors.joining("\n"));
+    }
+
+    private static String convertItemToHtml(final Object[] item) {
+        return "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
+                .formatted(item[0], item[1], item[2], item[3]);
     }
 
     /**
-     * Armazena as imagens dos gráficos e cria string com a ligação dos arquivos para html
-     * @param charts vetor com imagens que devem ser salvas juntos com o html
+     * Stores charts' images and creates a html string connecting the files
+     *
+     * @param charts Array with the images to be saved together with the html
      */
-    public void setCharts(BufferedImage charts[]) {
-        int cont = 0;
-        for (BufferedImage item : charts) {
-            if (item != null) {
-                cont++;
-            }
-        }
-        this.charts = new BufferedImage[cont];
-        cont = 0;
-        this.chartstxt = "";
-        for (BufferedImage item : charts) {
-            if (item != null) {
-                this.charts[cont] = item;
-                this.chartstxt += "<img alt=\"\" src=\"chart" + cont + ".png\" style=\"width: 600px; height: 300px;\" />\n";
-                cont++;
-            }
-        }
+    public void setCharts(final BufferedImage[] charts) {
+        this.chartImages = Arrays.stream(charts)
+                .filter(Objects::nonNull)
+                .toArray(BufferedImage[]::new);
 
+        this.chartsText = IntStream.range(0, this.chartImages.length)
+                .mapToObj(SalvarResultadosHTML::makeImageTag)
+                .collect(Collectors.joining("\n"));
+    }
+
+    private static String makeImageTag(final int cont) {
+        return ("<img alt=\"\" src=\"chart%d.png\" style=\"width: 600px; " +
+                "height: 300px;\" />\n").formatted(cont);
     }
 
     /**
-     * Cria string com satisfação do usuário
-     * @param satisfacao matriz contendo: [nome do usuário][satifação]
+     * Creates and stores internally a string with the global statistics.
+     *
+     * @param metrics Global simulation metrics
      */
-    public void setSatisfacao(Object[][] satisfacao) {
-        if (satisfacao.length > 1) {
-            this.satisfacao = "<ul>";
-            for (int i = 0; i < satisfacao.length; i++) {
-                this.satisfacao += "<li><strong>User" + satisfacao[i][0] + "</strong> = " + satisfacao[i][1] + " %</li>\n";
-            }
-            this.satisfacao += "</ul>";
-        }
+    public void setMetricasGlobais(final MetricasGlobais metrics) {
+        this.globalMetrics = """
+                <li><strong>Total Simulated Time </strong>= %s</li>
+                <li><strong>Satisfaction</strong> = %s %%</li>
+                <li><strong>Idleness of processing resources</strong> = %s %%</li>
+                <li><strong>Idleness of communication resources</strong> = %s %%</li>
+                <li><strong>Efficiency</strong> = %s %%</li>
+                %s
+                <li><strong>Cost Total Processing</strong> = %s</li>
+                <li><strong>Cost Total Memory</strong> = %s</li>
+                <li><strong>Cost Total Disk</strong> = %s</li>
+                """.formatted(
+                metrics.getTempoSimulacao(),
+                metrics.getSatisfacaoMedia(),
+                metrics.getOciosidadeComputacao(),
+                metrics.getOciosidadeComunicacao(),
+                metrics.getEficiencia(),
+                SalvarResultadosHTML.makeEfficiencyDescriptionFromMetrics(metrics),
+                metrics.getCustoTotalProc(),
+                metrics.getCustoTotalMem(),
+                metrics.getCustoTotalDisco()
+        );
     }
 
-    /**
-     * Gera String com as métricas globais
-     * @param globais metricas globais obtidas da simulação
-     */
-    public void setMetricasGlobais(MetricasGlobais globais) {
-        this.globais = "<li><strong>Total Simulated Time </strong>= " + globais.getTempoSimulacao() + "</li>\n";
-        if (satisfacao == null) {
-            this.globais += "<li><strong>Satisfaction</strong> = " + globais.getSatisfacaoMedia() + " %</li>\n";
+    private static String makeEfficiencyDescriptionFromMetrics(final MetricasGlobais metrics) {
+        if (metrics.getEficiencia() > SalvarResultadosHTML.EFFICIENCY_GOOD) {
+            return SalvarResultadosHTML.getEfficiencyDescription(
+                    "GOOD", "00ff00");
+        } else if (metrics.getEficiencia() > SalvarResultadosHTML.EFFICIENCY_BAD) {
+            return SalvarResultadosHTML.getEfficiencyDescription(
+                    "MEDIA", "");
         } else {
-            this.globais += "<li><strong>Satisfaction</strong>" + satisfacao + "</li>\n";
+            return SalvarResultadosHTML.getEfficiencyDescription(
+                    "BAD", "ff0000");
         }
-        this.globais += "<li><strong>Idleness of processing resources</strong> = " + globais.getOciosidadeComputacao() + " %</li>\n"
-                + "<li><strong>Idleness of communication resources</strong> = " + globais.getOciosidadeComunicacao() + " %</li>\n"
-                + "<li><strong>Efficiency</strong> = " + globais.getEficiencia() + " %</li>\n";
-        if (globais.getEficiencia() > 70.0) {
-            this.globais += "<li><span style=\"color:#00ff00;\"><strong>Efficiency GOOD</strong></span></li>\n";
-        } else if (globais.getEficiencia() > 40.0) {
-            this.globais += "<li><strong>Efficiency MEDIA</strong></li>\n ";
-        } else {
-            this.globais += "<li><span style=\"color:#ff0000;\"><strong>Efficiency BAD</strong></span></li>\n";
+    }
+
+    private static String getEfficiencyDescription(
+            final String text, final String color) {
+        final var sb =
+                new StringBuilder("<li><strong>Efficiency %s</strong></li>".formatted(text));
+
+        if (!color.isEmpty()) {
+            sb.insert("<li>".length(),
+                    "<span style=\"color:#%s;\">".formatted(color));
         }
-        this.globais += "<li><strong>Cost Total Processing</strong> = " + globais.getCustoTotalProc() + "</li>\n"
-                + "<li><strong>Cost Total Memory</strong> = " + globais.getCustoTotalMem()+ "</li>\n"
-                + "<li><strong>Cost Total Disk</strong> = " + globais.getCustoTotalDisco()+ "</li>\n";
+
+        return sb.toString();
     }
 
     /**
-     * Cria String com as métricas dos clientes na rede de filas
-     * @param metricas 
+     * Creates a string with client metrics in the queue network
      */
-    public void setMetricasTarefas(Metricas metricas) {
-        double tempoMedioSistemaComunicacao = metricas.getTempoMedioFilaComunicacao() + metricas.getTempoMedioComunicacao();
-        double tempoMedioSistemaProcessamento = metricas.getTempoMedioFilaProcessamento() + metricas.getTempoMedioProcessamento();
-        this.tarefas = "<ul><li><h2>Tasks</h2><ul><li><strong>Communication</strong><ul>\n"
-                + "<li>Queue average time: " + metricas.getTempoMedioFilaComunicacao() + " seconds.</li>\n"
-                + "<li>Communication average time: " + metricas.getTempoMedioComunicacao() + " seconds.</li>\n"
-                + "<li>System average time: " + tempoMedioSistemaComunicacao + " seconds.</li>\n"
-                + "</ul></li><li><strong>Processing</strong><ul>\n"
-                + "<li>Queue average time: " + metricas.getTempoMedioFilaProcessamento() + " seconds.</li>\n"
-                + "<li>Processing average time: " + metricas.getTempoMedioProcessamento() + " seconds.</li>\n"
-                + "<li>System average time: " + tempoMedioSistemaProcessamento + " seconds.</li></ul></li></ul></li></ul>";
+    public void setMetricasTarefas(final Metricas metrics) {
+        final double commQueueAvgTime =
+                metrics.getTempoMedioFilaComunicacao();
+        final double commAvgTime =
+                metrics.getTempoMedioComunicacao();
+        final double procQueueAvgTime =
+                metrics.getTempoMedioFilaProcessamento();
+        final double procAvgTime =
+                metrics.getTempoMedioProcessamento();
+
+        this.tasks = """
+                <ul><li><h2>Tasks</h2><ul><li><strong>Communication</strong><ul>
+                <li>Queue average time: %s seconds.</li>
+                <li>Communication average time: %s seconds.</li>
+                <li>System average time: %s seconds.</li>
+                </ul></li><li><strong>Processing</strong><ul>
+                <li>Queue average time: %s seconds.</li>
+                <li>Processing average time: %s seconds.</li>
+                <li>System average time: %s seconds.</li></ul></li></ul></li></ul>"""
+                .formatted(commQueueAvgTime, commAvgTime,
+                        commQueueAvgTime + commAvgTime,
+                        procQueueAvgTime, procAvgTime,
+                        procQueueAvgTime + procAvgTime);
     }
 
     /**
-     * Cria texto da descrição completa em html contendo os resultados inseridos
-     * @return texto completo do html
+     * Creates a directory with all necessary files to open the html containing
+     * the simulation results
+     *
+     * @param dir Directory to store the files
      */
-    public String getHTMLText() {
-        return "<!DOCTYPE html>\n"
-                + "<html>\n"
-                + "    <head>\n"
-                + "        <title>Simulation Results</title>\n"
-                + "        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n"
-                + "    </head>\n"
-                + "    <body background=\"fundo_html.jpg\" style=\"background-position: top center; background-repeat: no-repeat;\">\n"
-                + "        <h1 id=\"topo\" style=\"text-align: center;\">\n"
-                + "            <span style=\"color:#8b4513;\">\n"
-                + "            <img alt=\"\" src=\"Logo_iSPD_128.png\" align=\"left\" style=\"width: 70px; height: 70px;\" />\n"
-                + "            Simulation Results</span>\n"
-                + "            <img alt=\"\" src=\"Logo_UNESP.png\" align=\"right\" style=\"width: 70px; height: 70px;\" />\n"
-                + "        </h1>\n"
-                + "        <hr /><br />\n"
-                + "        <div>\n"
-                + "            <a href=\"#global\">Global metrics</a> <br/>\n"
-                + "            <a href=\"#table\">Table of Resource</a> <br/>\n"
-                + "            <a href=\"#chart\">Charts</a> <br/>\n"
-                + "        </div>\n"
-                + "        <hr />\n"
-                + "        <h2 id=\"global\" style=\"text-align: center;\">\n"
-                + "            Global metrics</h2>\n"
-                + "        " + globais + tarefas
-                + "        <div>\n"
-                + "            <a href=\"#topo\">Inicio</a>\n"
-                + "        </div>\n"
-                + "        <hr />\n"
-                + "        <h2 id=\"table\" style=\"text-align: center;\">\n"
-                + "            Table of Resource\n"
-                + "        </h2>\n"
-                +          tabela
-                + "        <div>\n"
-                + "            <a href=\"#topo\">Inicio</a>\n"
-                + "        </div>\n"
-                + "        <hr />\n"
-                + "        <h2 id=\"chart\" style=\"text-align: center;\">\n"
-                + "            Charts\n"
-                + "        </h2>\n"
-                + "        <p style=\"text-align: center;\">\n"
-                + "        " + chartstxt
-                + "        </p>\n"
-                + "        <div>\n"
-                + "            <a href=\"#topo\">Inicio</a>\n"
-                + "        </div>\n"
-                + "        <hr />\n"
-                + "        <p style=\"font-size:10px;\">\n"
-                + "            <a href=\"http://gspd.dcce.ibilce.unesp.br/\">GSPD</a></p>\n"
-                + "    </body>\n"
-                + "</html>";
+    public void gerarHTML(final File dir) throws IOException {
+
+        SalvarResultadosHTML.createDirIfNonexistent(dir);
+
+        try (final var pw = new PrintWriter(new FileWriter(
+                new File(dir, "result.html"),
+                StandardCharsets.UTF_8)
+        )) {
+            pw.print(this.generateHtml());
+        }
+
+        for (int i = 0; i < this.chartImages.length; i++) {
+            this.writeChartToFile(dir, i);
+        }
+
+        SalvarResultadosHTML.exportMissingImages(dir);
+    }
+
+    private static void createDirIfNonexistent(final File dir) throws IOException {
+        if (dir.exists()) {
+            return;
+        }
+
+        if (!dir.mkdir()) {
+            throw new IOException("Could not create directory");
+        }
     }
 
     /**
-     * Cria diretório contendo todos os arquivos necessários para abrir um html com os resultados da simulação
-     * @param diretorio diretório para criar arquivos
-     * @throws IOException gera uma exceção se não for possivel criar diretório indicado
+     * Makes the full text in html containing the results
+     *
+     * @return Complete html text
      */
-    public void gerarHTML(File diretorio) throws IOException {
-        if (!diretorio.exists()) {
-            if (!diretorio.mkdir()) {
-                throw new IOException("Could not create directory");
+    private String generateHtml() {
+        return """
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <title>Simulation Results</title>
+                        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                    </head>
+                    <body background="fundo_html.jpg" style="background-position: top center; background-repeat: no-repeat;">
+                        <h1 id="topo" style="text-align: center;">
+                            <span style="color:#8b4513;">
+                            <img alt="" src="Logo_iSPD_128.png" align="left" style="width: 70px; height: 70px;" />
+                            Simulation Results</span>
+                            <img alt="" src="Logo_UNESP.png" align="right" style="width: 70px; height: 70px;" />
+                        </h1>
+                        <hr /><br />
+                        <div>
+                            <a href="#global">Global metrics</a> <br/>
+                            <a href="#table">Table of Resource</a> <br/>
+                            <a href="#chart">Charts</a> <br/>
+                        </div>
+                        <hr />
+                        <h2 id="global" style="text-align: center;">
+                            Global metrics</h2>
+                        %s%s        <div>
+                            <a href="#topo">Inicio</a>
+                        </div>
+                        <hr />
+                        <h2 id="table" style="text-align: center;">
+                            Table of Resource
+                        </h2>
+                %s        <div>
+                            <a href="#topo">Inicio</a>
+                        </div>
+                        <hr />
+                        <h2 id="chart" style="text-align: center;">
+                            Charts
+                        </h2>
+                        <p style="text-align: center;">
+                        %s        </p>
+                        <div>
+                            <a href="#topo">Inicio</a>
+                        </div>
+                        <hr />
+                        <p style="font-size:10px;">
+                            <a href="http://gspd.dcce.ibilce.unesp.br/">GSPD</a></p>
+                    </body>
+                </html>""".formatted(
+                this.globalMetrics,
+                this.tasks,
+                this.table,
+                this.chartsText
+        );
+    }
+
+    private void writeChartToFile(final File dir, final int i) throws IOException {
+        final var out = new File(dir, "chart%d.png".formatted(i));
+        ImageIO.write(this.chartImages[i], "png", out);
+    }
+
+    private static void exportMissingImages(final File dir) throws IOException {
+        for (final var nameAndExtension : new String[][] {
+                { "fundo_html", "jpg" },
+                { "Logo_iSPD_128", "png" },
+                { "Logo_UNESP", "png" },
+        }) {
+            final var file = nameAndExtension[0] + "." + nameAndExtension[1];
+            final var out = new File(dir, file);
+
+            if (!out.exists()) {
+                final var img = ImageIO.read(Objects.requireNonNull(
+                        MainWindow.class.getResource("imagens/" + file)));
+                ImageIO.write(img, nameAndExtension[1], out);
             }
-        }
-        File arquivo = new File(diretorio, "result.html");
-        FileWriter writer;
-        writer = new FileWriter(arquivo);
-        PrintWriter saida = new PrintWriter(writer, true);
-        saida.print(this.getHTMLText());
-        saida.close();
-        writer.close();
-        for (int i = 0; i < charts.length; i++) {
-            arquivo = new File(diretorio, "chart" + i + ".png");
-            ImageIO.write(charts[i], "png", arquivo);
-        }
-        arquivo = new File(diretorio, "fundo_html.jpg");
-        if (!arquivo.exists()) {
-            ImageIO.write(ImageIO.read(MainWindow.class.getResource("imagens/fundo_html.jpg")), "jpg", arquivo);
-        }
-        arquivo = new File(diretorio, "Logo_iSPD_128.png");
-        if (!arquivo.exists()) {
-            ImageIO.write(ImageIO.read(MainWindow.class.getResource("imagens/Logo_iSPD_128.png")), "png", arquivo);
-        }
-        arquivo = new File(diretorio, "Logo_UNESP.png");
-        if (!arquivo.exists()) {
-            ImageIO.write(ImageIO.read(MainWindow.class.getResource("imagens/Logo_UNESP.png")), "png", arquivo);
         }
     }
 }

@@ -12,7 +12,6 @@ import ispd.motor.carga.CargaList;
 import ispd.motor.carga.CargaRandom;
 import ispd.motor.carga.CargaTrace;
 import ispd.motor.carga.GerarCarga;
-import ispd.utils.ValidaValores;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -88,7 +87,6 @@ public class DesenhoGrade extends DrawingArea {
         this.profiles = new HashMap<>(0);
         this.profiles.put("user1", DesenhoGrade.FULL_CAPACITY);
 
-        ValidaValores.removeTodosNomeIcone();
     }
 
     private static Image getImage(final String name) {
@@ -193,7 +191,7 @@ public class DesenhoGrade extends DrawingArea {
                         this.getPosicaoMouseY(), this.iconCount,
                         this.vertexCount);
         this.vertices.add((Vertex) copy);
-        ValidaValores.addNomeIcone(copy.getId().getName());
+        copy.getId();
         this.iconCount++;
         this.vertexCount++;
         this.selectedIcons.add((Icon) copy);
@@ -240,7 +238,6 @@ public class DesenhoGrade extends DrawingArea {
             ((GridItem) temp.getDestination()).getOutboundConnections().add(temp);
             this.selectedIcons.add(temp);
             this.edges.add(temp);
-            ValidaValores.addNomeIcone(temp.getId().getName());
             this.mainWindow.appendNotificacao(this.translate("Network " +
                                                              "connection " +
                                                              "added."));
@@ -272,7 +269,7 @@ public class DesenhoGrade extends DrawingArea {
                         final GridItem de =
                                 (GridItem) ((Edge) iconeRemover).getDestination();
                         de.getInboundConnections().remove((GridItem) iconeRemover);
-                        ValidaValores.removeNomeIcone(((GridItem) iconeRemover).getId().getName());
+                        ((GridItem) iconeRemover).getId();
                         this.edges.remove((Edge) iconeRemover);
                         this.mainWindow.modificar();
                     } else {
@@ -282,16 +279,16 @@ public class DesenhoGrade extends DrawingArea {
                                 ((GridItem) iconeRemover).getInboundConnections();
                         for (final GridItem I : listanos) {
                             this.edges.remove((Edge) I);
-                            ValidaValores.removeNomeIcone(I.getId().getName());
+                            I.getId();
                         }
                         //Remover dados das conexoes q saem
                         listanos =
                                 ((GridItem) iconeRemover).getOutboundConnections();
                         for (final GridItem I : listanos) {
                             this.edges.remove((Edge) I);
-                            ValidaValores.removeNomeIcone(I.getId().getName());
+                            I.getId();
                         }
-                        ValidaValores.removeNomeIcone(((GridItem) iconeRemover).getId().getName());
+                        ((GridItem) iconeRemover).getId();
                         this.vertices.remove((Vertex) iconeRemover);
                         this.mainWindow.modificar();
                     }
@@ -309,7 +306,6 @@ public class DesenhoGrade extends DrawingArea {
         ((GridItem) Destino).getInboundConnections().add(link);
         this.edgeCount++;
         this.iconCount++;
-        ValidaValores.addNomeIcone(link.getId().getName());
         this.edges.add(link);
         for (final Icon icon : this.selectedIcons) {
             icon.setSelected(false);
@@ -358,20 +354,20 @@ public class DesenhoGrade extends DrawingArea {
             case DesenhoGrade.MACHINE -> {
                 vertice = new Machine(x, y, this.vertexCount, this.iconCount,
                         0.0);
-                ValidaValores.addNomeIcone(vertice.getId().getName());
+                vertice.getId();
                 this.mainWindow.appendNotificacao(this.translate(
                         "Machine icon added."));
             }
             case DesenhoGrade.CLUSTER -> {
                 vertice = new Cluster(x, y,
                         this.vertexCount, this.iconCount, 0.0);
-                ValidaValores.addNomeIcone(vertice.getId().getName());
+                vertice.getId();
                 this.mainWindow.appendNotificacao(this.translate(
                         "Cluster icon added."));
             }
             case DesenhoGrade.INTERNET -> {
                 vertice = new Internet(x, y, this.vertexCount, this.iconCount);
-                ValidaValores.addNomeIcone(vertice.getId().getName());
+                vertice.getId();
                 this.mainWindow.appendNotificacao(this.translate(
                         "Internet icon added."));
             }
