@@ -1,50 +1,41 @@
-package ispd.application;
+package ispd.application.terminal;
 
+import ispd.application.Application;
+import ispd.application.ConsoleColors;
 import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.ResultsDialog;
 import ispd.motor.ProgressoSimulacao;
-import ispd.motor.Simulation;
 import ispd.motor.SimulacaoParalela;
 import ispd.motor.SimulacaoSequencial;
+import ispd.motor.Simulation;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.metricas.Metricas;
-import ispd.motor.metricas.MetricasGlobais;
+import org.apache.commons.cli.*;
+import org.w3c.dom.Document;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Inet4Address;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.commons.cli.*;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 /**
  * A class for setting up the terminal part of iSPD and run the simulations.
  */
+@SuppressWarnings("InfiniteLoopStatement")
 public class TerminalApplication implements Application {
-    public static final int DEFAULT_PORT = 2004;
+    private static final int DEFAULT_PORT = 2004;
     private final Optional<File> inputFile;
     private final Optional<File> outputFolder;
     private final Modes mode;
     private final int nThreads;
     private final boolean parallel;
-    private final int port;
+    private final int serverPort;
     private final Options options;
     private final Inet4Address serverAddress;
-    MetricasGlobais globalResults;
-    private int nExecutions;
+    private final int nExecutions;
     private final ProgressoSimulacao simulationProgress;
 
     /**
@@ -58,14 +49,13 @@ public class TerminalApplication implements Application {
         final CommandLine cmd = commandLinePreparation(this.options, args);
 
         this.mode = setMode(cmd);
-        this.port = setPort(cmd);
+        this.serverPort = setPort(cmd);
         this.nExecutions = setNExecutions(cmd);
         this.nThreads = setNThreads(cmd);
         this.inputFile = setInputFile(cmd);
         this.outputFolder = setOutputFolder(cmd);
         this.parallel = setParallelSimulation(cmd);
         this.serverAddress = setServerAddress(cmd);
-        this.globalResults = new MetricasGlobais();
 
         this.simulationProgress = new ProgressoSimulacao() {
             @Override
@@ -139,7 +129,7 @@ public class TerminalApplication implements Application {
         options.addOption("P", "port", true, "specify a port.");
         options.addOption("t", "threads", true, "specify the number of threads.");
         options.addOption("conf", "conf", true, "specify a configuration file.");
-        options.addOption("in", "input", true, "specify the input file of the\n" + "model to simulate.");
+        options.addOption("in", "input", true, "specify the input file of the" + "model to simulate.");
         options.addOption("o", "output", true, "specify an output folder for the html export.");
         options.addOption("e", "executions", true, "specify the number of executions.");
         options.addOption("a", "address", true, "specify the server address.");
@@ -159,7 +149,7 @@ public class TerminalApplication implements Application {
         try {
             return Integer.parseInt(cmd.getOptionValue(op));
         } catch (NumberFormatException e) {
-            System.out.println("\"" + cmd.getOptionValue(op) + "\" is not a valid number\n");
+            System.out.println("\"" + cmd.getOptionValue(op) + "\" is not a valid number");
             System.exit(1);
             throw new AssertionError("should not be reached");
         }
@@ -293,9 +283,9 @@ public class TerminalApplication implements Application {
                 }
             }
             case SERVER ->
-                this.simularRedeServidor();
+                this.serverSimulation();
             case CLIENT ->
-                this.simularRedeCliente(this.serverAddress);
+                this.clientSimulate();
         }
         System.exit(0);
     }
@@ -434,218 +424,36 @@ public class TerminalApplication implements Application {
         return queueNetwork;
     }
 
+
     /**
-     * Executa n simulações do modelo passado por parametro de forma paralela
-     * (usando o motor de execução padrão em várias threads, ou usando o motor experimental de simulação otimista)
+     * Hosts a server for simulating models coming from clients
      */
-    @Deprecated
-    @SuppressWarnings("Optional without isPresent check.")
-    private void simularParalelo() {
-        this.simulationProgress.println("Simulation Initiated.");
-        this.simulationProgress.print("Opening iconic model.");
-        this.simulationProgress.print(" -> ");
-        this.simulationProgress.incProgresso(5);//[5%] --> 5%
-        this.simulationProgress.println("OK", Color.green);
-            //Escrever Modelo
-            //this.modelo(redeDeFilas);
-            //criar tarefas
+    private void serverSimulation() {
+        while (true) {
+            try {
+                    final var simServer = new Server(this.serverPort);
+                    final var newModel = simServer.getMetricsFromClient();
+                    final var modelMetrics = runSimulation(newModel);
 
-        try {
-            Document[] modelo = IconicoXML.clone(this.inputFile.get(), this.nThreads);
-            Metricas metricas = new Metricas(IconicoXML.newListUsers(modelo[0]));
-            //Verifica se foi construido modelo corretamente
-            this.simulationProgress.validarInicioSimulacao(modelo[0]);
-            int inicio = 0, incremento = this.nExecutions / this.nThreads;
-            RunnableImpl[] trabalhador = new RunnableImpl[this.nThreads];
-            Thread[] thread = new Thread[this.nThreads];
-            System.out.println("Será executado com " + this.nThreads + " threads");
-            boolean visible = false;
-            double t1 = System.currentTimeMillis();
-            for (int i = 0; i < this.nThreads - 1; i++) {
-                trabalhador[i] = new RunnableImpl(modelo[i], inicio, incremento);
-                thread[i] = new Thread(trabalhador[i]);
-                thread[i].start();
-                inicio += incremento;
+                    simServer.returnMetricsToClient(modelMetrics);
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
             }
-            trabalhador[this.nThreads - 1] = new RunnableImpl(modelo[this.nThreads - 1], inicio, this.nExecutions - inicio);
-            thread[this.nThreads - 1] = new Thread(trabalhador[this.nThreads - 1]);
-            thread[this.nThreads - 1].start();
-            for (int i = 0; i < this.nThreads; i++) {
-                thread[i].join();
-            }
-            visible = true;
-            double t2 = System.currentTimeMillis();
-
-            //Calcula tempo de simulação em segundos
-            double tempototal = (t2 - t1) / 1000;
-            this.simulationProgress.println("  Total Simulation Execution Time = " + tempototal + "seconds");
-            this.simulationProgress.print("Getting Results.");
-            this.simulationProgress.print(" -> ");
-            if (this.nExecutions > 1 && this.outputFolder != null) {
-                for (int i = 0; i < this.nThreads; i++) {
-                    metricas.addMetrica(trabalhador[i].getMetricas());
-                }
-                metricas.calculaMedia();
-                this.globalResults = metricas.getMetricasGlobais();
-            } else {
-                this.globalResults = new MetricasGlobais();
-                for (int i = 0; i < this.nThreads; i++) {
-                    this.globalResults.add(trabalhador[i].getMetricasGlobais());
-                }
-            }
-            this.simulationProgress.println("OK");
-            this.simulationProgress.println("Results:");
-            if (this.outputFolder != null) {
-                t1 = System.currentTimeMillis();
-                ResultsDialog result = new ResultsDialog(metricas);
-                result.salvarHTML(this.outputFolder.get());
-                t2 = System.currentTimeMillis();
-                //Calcula tempo de simulação em segundos
-                tempototal = (t2 - t1) / 1000;
-                this.simulationProgress.println("  Time to create html = " + tempototal + "seconds");
-            }
-            this.simulationProgress.println(this.globalResults.toString());
-        } catch (Exception erro) {
-            this.simulationProgress.println(erro.getMessage(), Color.red);
-            this.simulationProgress.print("Simulation Aborted", Color.red);
-            this.simulationProgress.println("!", Color.red);
         }
     }
 
     /**
-     * Simulação cliente servidor
-     * Executa as ações do servidor, porem ainda não é a versão definitiva
+     * Sends a model for a server to simulate and receives back its metrics,
+     * printing the results at the end.
      */
-    @Deprecated
-    private void simularRedeServidor() {
-        Document modelo = null;
-        Metricas metricas = new Metricas(null);
-        String origem = null;
-        //Recebendo Modelo
-        System.out.println("Creating a server socket");
+    private void clientSimulate() {
+        final var simClient = new Client(this.serverAddress, this.serverPort);
+        final var model = getModelFromFile();
 
-        try {
-            ServerSocket providerSocket = new ServerSocket(2004, 10);
+        simClient.sendModelToServer(model);
+        final var metrics = simClient.receiveMetricsFromServer();
 
-            System.out.println("Waiting for connection");
-
-            Socket connection = providerSocket.accept();
-
-            origem = connection.getInetAddress().getHostName();
-
-            System.out.println("Connection received from " + origem);
-
-            ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
-
-            System.out.println("Recebendo mensagem");
-
-            this.nExecutions = (Integer) in.readObject();
-            System.out.println("Será feitas " + this.nExecutions + " simulações");
-            modelo = (Document) in.readObject();
-            in.close();
-            System.out.println("Closing connection");
-            providerSocket.close();
-        } catch (Exception ex) {
-            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //Executando simulação
-        if (this.nThreads <= 1) {
-            System.out.println("Será realizado " + this.nExecutions + " simulações.");
-            double t1 = System.currentTimeMillis();
-            for (int i = 1; i <= this.nExecutions; i++) {
-                RedeDeFilas redeDeFilas = IconicoXML.newRedeDeFilas(modelo);
-                List<Tarefa> tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
-                Simulation sim = new SimulacaoSequencial(this.simulationProgress, redeDeFilas, tarefas);//[10%] --> 55 %
-                sim.createRouting();
-                sim.simulate();//[30%] --> 85%
-                Metricas temp = sim.getMetrics();
-                metricas.addMetrica(temp);
-            }
-            double t2 = System.currentTimeMillis();
-            double tempototal = (t2 - t1) / 1000;
-            System.out.println("  Simulation Execution Time = " + tempototal + "seconds");
-        } else {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-        //Enviando Resultados
-        System.out.println("Devolvendo resultados...");
-        try {
-            System.out.println("Creating a server socket");
-            Socket requestSocket = new Socket(origem, 2005);
-            System.out.println("Connection received from " + requestSocket.getInetAddress().getHostName());
-            ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-            this.globalResults = metricas.getMetricasGlobais();
-            System.out.println("Mensagem... resultados obtidos: " + this.globalResults.toString());
-            out.flush();
-            out.writeObject(metricas);
-            out.flush();
-            out.close();
-            System.out.println("Closing connection");
-            requestSocket.close();
-        } catch (Exception ex) {
-            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * Simulação cliente servidor
-     * Executa as ações do cliente, porem ainda não é a versão definitiva
-     */
-    @SuppressWarnings("Optional without isPresent() check.")
-    @Deprecated
-    private void simularRedeCliente(Inet4Address server_address) {
-        //Obtem modelo
-        String server_ip = server_address.getHostAddress();
-        this.simulationProgress.print("Opening iconic model.");
-        this.simulationProgress.print(" -> ");
-        Document modelo = null;
-        try {
-            modelo = IconicoXML.ler(this.inputFile.get());
-        } catch (ParserConfigurationException | IOException | SAXException ex) {
-            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        this.simulationProgress.println("OK", Color.green);
-        //Verifica se foi construido modelo corretamente
-        this.simulationProgress.validarInicioSimulacao(modelo);
-        //Enviar modelo...
-        try {
-            System.out.println("Creating a server socket to " + server_ip + " " + this.port);
-            Socket requestSocket = new Socket(server_ip, 2004);
-            System.out.println("Connection received from " + requestSocket.getInetAddress().getHostName());
-            ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-            System.out.println("Mensagem... número de execuções: " + this.nExecutions);
-            out.flush();
-            out.writeObject(this.nExecutions);
-            out.flush();
-            out.writeObject(modelo);
-            out.flush();
-            out.close();
-            System.out.println("Closing connection");
-            requestSocket.close();
-        } catch (Exception ex) {
-            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        Metricas metricas = new Metricas(IconicoXML.newListUsers(modelo));
-        //Recebendo resultados
-        try {
-            System.out.println("Creating a server socket");
-            ServerSocket providerSocket = new ServerSocket(2005, 10);
-            System.out.println("Waiting for connection");
-            Socket connection = providerSocket.accept();
-            System.out.println("Connection received from " + connection.getInetAddress().getHostName());
-            ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
-            System.out.println("Recebendo mensagem");
-            metricas.addMetrica((Metricas) in.readObject());
-            this.globalResults = metricas.getMetricasGlobais();
-            System.out.println(this.globalResults.toString());
-            in.close();
-            System.out.println("Closing connection");
-            providerSocket.close();
-        } catch (Exception ex) {
-            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //Apresentando Resultados
-        System.out.println("Realizados " + metricas.getNumeroDeSimulacoes() + " simulações");
+        System.out.println(metrics.getMetricasGlobais());
     }
 
     /**
@@ -661,69 +469,5 @@ public class TerminalApplication implements Application {
             this.str = s;
         }
     }
-
-    /**
-     * Classe interna para executar uma simulação em thread
-     */
-    @Deprecated
-    private class RunnableImpl implements Runnable {
-
-        private final Document modelo;
-        private final int numExecucaoThread;
-        private final int inicio;
-        private final Metricas metricas;
-        private final MetricasGlobais metricasGlobais;
-
-        public RunnableImpl(Document modelo, int inicio, int numExecucao) {
-            this.modelo = modelo;
-            this.numExecucaoThread = numExecucao;
-            this.inicio = inicio;
-            this.metricas = new Metricas(null);
-            this.metricasGlobais = new MetricasGlobais();
-        }
-
-        public MetricasGlobais getMetricasGlobais() {
-            return this.metricasGlobais;
-        }
-
-        public Metricas getMetricas() {
-            System.out.println("Simulados: " + this.metricas.getNumeroDeSimulacoes());
-            return this.metricas;
-        }
-
-        @Override
-        public void run() {
-            for (int i = 0; i < this.numExecucaoThread; i++) {
-                double t1 = System.currentTimeMillis();
-                //criar grade
-                RedeDeFilas redeDeFilas;
-                redeDeFilas = IconicoXML.newRedeDeFilas(this.modelo);
-                List<Tarefa> tarefas = IconicoXML.newGerarCarga(this.modelo).toTarefaList(redeDeFilas);
-                //Verifica recursos do modelo e define roteamento
-                Simulation sim = new SimulacaoSequencial(TerminalApplication.this.simulationProgress, redeDeFilas, tarefas);//[10%] --> 55 %
-                sim.createRouting();
-                //Realiza asimulação
-                sim.simulate();//[30%] --> 85%
-                MetricasGlobais global;
-                if (TerminalApplication.this.outputFolder == null) {
-                    global = new MetricasGlobais(redeDeFilas, sim.getTime(null), tarefas);
-                } else {
-                    Metricas temp = sim.getMetrics();
-                    this.metricas.addMetrica(temp);
-                    global = temp.getMetricasGlobais();
-                }
-
-                this.metricasGlobais.setTempoSimulacao(this.metricasGlobais.getTempoSimulacao() + global.getTempoSimulacao());
-                this.metricasGlobais.setSatisfacaoMedia(this.metricasGlobais.getSatisfacaoMedia() + global.getSatisfacaoMedia());
-                this.metricasGlobais.setOciosidadeComputacao(this.metricasGlobais.getOciosidadeComputacao() + global.getOciosidadeComputacao());
-                this.metricasGlobais.setOciosidadeComunicacao(this.metricasGlobais.getOciosidadeComunicacao() + global.getOciosidadeComunicacao());
-                this.metricasGlobais.setEficiencia(this.metricasGlobais.getEficiencia() + global.getEficiencia());
-
-                double t2 = System.currentTimeMillis();
-                //Calcula tempo de simulação em segundos
-                double tempototal = (t2 - t1) / 1000;
-                System.out.println("* Simulation " + (this.inicio + 1 + i) + " Time = " + tempototal + "seconds");
-            }
-        }
-    }
 }
+
