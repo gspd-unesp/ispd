@@ -337,8 +337,8 @@ public class MetricasGlobais implements Serializable {
         texto += String.format("\tCost Total de Memory = %g %%\n", custoTotalMem);
         texto += String.format("\tCost Total de Disk = %g %%\n", custoTotalDisco);
         texto += "\t\tVM Alocation results:";
-        texto += String.format("\tTotal of VMs alocated = %g %%\n", (totaldeVMs - numVMsRejeitadas));
-        texto += String.format("\tTotal of VMs rejected = %g %%\n", numVMsRejeitadas);
+        texto += String.format("\tTotal of VMs alocated = %d %%\n", (totaldeVMs - numVMsRejeitadas));
+        texto += String.format("\tTotal of VMs rejected = %d %%\n", numVMsRejeitadas);
         return texto;
     }
 
