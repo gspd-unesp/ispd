@@ -1,7 +1,6 @@
 package ispd.application.terminal;
 
 import ispd.application.Application;
-import ispd.application.ConsoleColors;
 import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.ResultsDialog;
 import ispd.motor.ProgressoSimulacao;
@@ -11,10 +10,14 @@ import ispd.motor.Simulation;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.metricas.Metricas;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.w3c.dom.Document;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.File;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
@@ -24,12 +27,9 @@ import java.util.Optional;
 /**
  * A class for setting up the terminal part of iSPD and run the simulations.
  */
-@SuppressWarnings("InfiniteLoopStatement")
 public class TerminalApplication implements Application {
     private static final int DEFAULT_PORT = 2004;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<File> inputFile;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<File> outputFolder;
     private final Modes mode;
     private final int nThreads;
@@ -431,6 +431,7 @@ public class TerminalApplication implements Application {
     /**
      * Hosts a server for simulating models coming from clients
      */
+    @SuppressWarnings("InfiniteLoopStatement")
     private void serverSimulation() {
         while (true) {
             try {
@@ -463,7 +464,11 @@ public class TerminalApplication implements Application {
      * An enum for run modes for the terminal application.
      */
     private enum Modes {
-        HELP("h"), VERSION("v"), SIMULATE(""), CLIENT("c"), SERVER("s"),
+        HELP("h"),
+        VERSION("v"),
+        SIMULATE(""),
+        CLIENT("c"),
+        SERVER("s"),
         ;
 
         private final String str;
