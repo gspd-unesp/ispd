@@ -1,42 +1,3 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * Terminal.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- *
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.application;
 
 import ispd.arquivo.xml.IconicoXML;
@@ -49,18 +10,18 @@ import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.metricas.Metricas;
 import ispd.motor.metricas.MetricasGlobais;
+
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Array;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -70,34 +31,21 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 /**
- * Classe de controle para chamada do terminal.
- * Atende aos seguintes parametros:
- * java -jar iSPD.jar [option] [model_file.imsx]
- * [option] pode ser um ou mais:
- *     -n  [number]   number of simulation
- *     -th [number]   number of threads
- *     -p             Optimistic parallel simulation
- *     -o [directory] directory to save html output
- *     -h             print this help message
- *     -v             print the version message
- * @author denison
+ * A class for setting up the terminal part of iSPD and run the simulations.
  */
 public class TerminalApplication implements Application {
     public static final int DEFAULT_PORT = 2004;
-    private final File inputFile;
-    private final File outputFolder ;
-    private final File configFile;
+    private final Optional<File> inputFile;
+    private final Optional<File> outputFolder;
     private final Modes mode;
     private final int nThreads;
-    private final boolean paralelo;
+    private final boolean parallel;
     private final int port;
-    private final  Options options;
+    private final Options options;
     private final Inet4Address serverAddress;
-    //Resultados
-    MetricasGlobais resuladosGlobais;
+    MetricasGlobais globalResults;
     private int nExecutions;
     private final ProgressoSimulacao simulationProgress;
-    private boolean visible = true;
 
     /**
      * Pre run of the terminal application, adding the necessary flags to the
@@ -105,150 +53,34 @@ public class TerminalApplication implements Application {
      *
      * @param args Arguments from the command line.
      */
-    public TerminalApplication (String[] args) {
-        /* Prepare Common Cli */
+    public TerminalApplication(String[] args) {
         this.options = getAllOptions();
         final CommandLine cmd = commandLinePreparation(this.options, args);
 
-        /* Configure all options based on the command line arguments */
         this.mode = setMode(cmd);
         this.port = setPort(cmd);
         this.nExecutions = setNExecutions(cmd);
         this.nThreads = setNThreads(cmd);
-        this.configFile = setConfFile(cmd);
         this.inputFile = setInputFile(cmd);
         this.outputFolder = setOutputFolder(cmd);
-        this.paralelo = setParallelSimulation(cmd);
-        this.simulationProgress = setSimulationProgress();
+        this.parallel = setParallelSimulation(cmd);
         this.serverAddress = setServerAddress(cmd);
+        this.globalResults = new MetricasGlobais();
 
+        this.simulationProgress = new ProgressoSimulacao() {
+            @Override
+            public void incProgresso(int n) {
+            }
+            @Override
+            public void print(String text, Color cor) {
+            }
+        };
 
-        if ((this.mode == Modes.CLIENT || this.mode == Modes.SIMULATE) && this.inputFile == null) {
+        if ((this.mode == Modes.CLIENT || this.mode == Modes.SIMULATE) &&
+                this.inputFile.isEmpty()) {
             System.out.println("It needs a model to simulate.");
             System.exit(1);
         }
-    }
-
-    private Inet4Address setServerAddress(CommandLine cmd) {
-        try {
-            return (Inet4Address) Inet4Address.getByName(cmd.getOptionValue("a"));
-        } catch (UnknownHostException e) {
-            System.out.println(e.getMessage());
-            System.exit(1);
-        }
-
-        return null;
-    }
-
-    private ProgressoSimulacao setSimulationProgress() {
-        switch (this.mode) {
-            case SIMULATE, CLIENT -> {
-                return new ProgressoSimulacao() {
-                    @Override
-                    public void incProgresso(int n) {
-                    }
-
-                    @Override
-                    public void print(String text, Color cor) {
-                        if (TerminalApplication.this.visible) {
-                            System.out.print(text);
-                        }
-                    }
-                };
-            }
-            case SERVER -> {
-                return new ProgressoSimulacao() {
-                    @Override
-                    public void incProgresso(int n) {
-
-                    }
-
-                    @Override
-                    public void print(String text, Color cor) {
-
-                    }
-                };
-
-            }
-            default -> {
-                return null;
-            }
-        }
-    }
-
-    /**
-     * A simple method for creating the Common Cli's command line class.
-     *
-     * @param options The class Common Cli's Options class for the
-     *                 command line options.
-     * @param args    The arguments got from the command line.
-     * @return        The command line class with the chosen options.
-     */
-    private CommandLine commandLinePreparation(Options options, String[] args) {
-        CommandLineParser parser = new DefaultParser();
-
-        try {
-            return parser.parse(options, args);
-
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            System.exit(1);
-        }
-
-        return null;
-    }
-
-    /**
-     * Set options to use in the command line for the configuration of the
-     * simulation.
-     *
-     * @return A class for options of the command line from Common Cli.
-     */
-    private Options getAllOptions() {
-        Options options = new Options();
-
-        options.addOption("h", "help",
-                false, "print this help message.");
-        options.addOption("v", "version",
-                false, "print the version of iSPD.");
-        options.addOption("s", "server",
-                false, "run iSPD as a server.");
-        options.addOption("c", "client",
-                false, "run iSPD as a client.");
-        options.addOption("P", "port",
-                true, "specify a port.");
-        options.addOption("t", "threads",
-                true, "specify the number of threads.");
-        options.addOption("conf", "conf",
-                true, "specify a configuration file.");
-        options.addOption("in", "input",
-                true, "specify the input file of the\n" + "model to simulate.");
-        options.addOption("o", "output",
-                true, "specify an output folder for the html export.");
-        options.addOption("e", "executions",
-                true, "specify the number of executions.");
-        options.addOption("a", "address",
-                true, "specify the server adress.");
-
-        return options;
-    }
-
-    /**
-     * Get a value from an option from the command line.
-     *
-     * @param cmd The CommandLine that is being used.
-     * @param op The string relative to the argument from the command line.
-     * @return The value of the option (if it exists and is valid).
-     */
-    private int setValueFromOption(CommandLine cmd, String op) {
-        try {
-            return Integer.parseInt(cmd.getOptionValue(op));
-        } catch (NumberFormatException e) {
-            System.out.println(e.getMessage());
-            System.exit(1);
-        }
-
-        return 0;
     }
 
     /**
@@ -257,7 +89,89 @@ public class TerminalApplication implements Application {
      * @param cmd CommandLine used in the application.
      * @return An int representing a mode based on the options.
      */
-    private Modes setMode(CommandLine cmd) {
+    private Inet4Address setServerAddress(final CommandLine cmd) {
+        try {
+            if (!cmd.hasOption("a")) {
+                return (Inet4Address) Inet4Address.getByName("127.0.0.1");
+            }
+
+            return (Inet4Address) Inet4Address.getByName(cmd.getOptionValue("a"));
+        } catch (UnknownHostException e) {
+            System.out.println("Error at getting the server address from " +
+                    "command line. (" + e.getMessage() + ")");
+            System.exit(1);
+            throw new AssertionError("should not be reached");
+        }
+    }
+
+    /**
+     * A simple method for creating the Common Cli's command line class.
+     *
+     * @param options The class Common Cli's Options class for the
+     *                command line options.
+     * @param args    The arguments got from the command line.
+     * @return The command line class with the chosen options.
+     */
+    private CommandLine commandLinePreparation(final Options options, final String[] args) {
+        try {
+            return (new DefaultParser()).parse(options, args);
+
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+            throw new AssertionError("Should not be reachable.");
+        }
+    }
+
+    /**
+     * Set options to use in the command line for the configuration of the
+     * simulation.
+     *
+     * @return An object for options of the command line from Common Cli.
+     */
+    private Options getAllOptions() {
+        final Options options = new Options();
+
+        options.addOption("h", "help", false, "print this help message.");
+        options.addOption("v", "version", false, "print the version of iSPD.");
+        options.addOption("s", "server", false, "run iSPD as a server.");
+        options.addOption("c", "client", false, "run iSPD as a client.");
+        options.addOption("P", "port", true, "specify a port.");
+        options.addOption("t", "threads", true, "specify the number of threads.");
+        options.addOption("conf", "conf", true, "specify a configuration file.");
+        options.addOption("in", "input", true, "specify the input file of the\n" + "model to simulate.");
+        options.addOption("o", "output", true, "specify an output folder for the html export.");
+        options.addOption("e", "executions", true, "specify the number of executions.");
+        options.addOption("a", "address", true, "specify the server address.");
+        options.addOption("p", "parallel", false, "runs the simulation parallel.");
+
+        return options;
+    }
+
+    /**
+     * Get a value from an option from the command line.
+     *
+     * @param cmd The CommandLine that is being used.
+     * @param op  The string relative to the argument from the command line.
+     * @return The value of the option (if it exists and is valid).
+     */
+    private int setValueFromOption(final CommandLine cmd, final String op) {
+        try {
+            return Integer.parseInt(cmd.getOptionValue(op));
+        } catch (NumberFormatException e) {
+            System.out.println("\"" + cmd.getOptionValue(op) + "\" is not a valid number\n");
+            System.exit(1);
+            throw new AssertionError("should not be reached");
+        }
+    }
+
+    /**
+     * Set the mode for running the terminal application.
+     *
+     * @param cmd CommandLine used in the application.
+     * @return An int representing a mode based on the options.
+     */
+    private Modes setMode(final CommandLine cmd) {
         for (final var v : Modes.values()) {
             if (cmd.hasOption(v.str)) {
                 return v;
@@ -273,12 +187,10 @@ public class TerminalApplication implements Application {
      * @param cmd The command line class from Common Cli.
      * @return A value from the command line or the default port.
      */
-    private int setPort(CommandLine cmd) {
-        if (!cmd.hasOption("P")) {
-            return DEFAULT_PORT;
-        }
-
-        return setValueFromOption(cmd, "P");
+    private int setPort(final CommandLine cmd) {
+        return cmd.hasOption("P") ?
+                setValueFromOption(cmd, "P") :
+                DEFAULT_PORT;
     }
 
     /**
@@ -302,7 +214,7 @@ public class TerminalApplication implements Application {
             return 1;
         }
 
-        int threads = setValueFromOption(cmd, "t");
+        final int threads = setValueFromOption(cmd, "t");
 
         if (this.nExecutions < 1) {
             System.out.println("Number of executions is invalid (" + this.nExecutions + ")");
@@ -318,69 +230,51 @@ public class TerminalApplication implements Application {
      * @param cmd The command line class from Common Cli.
      * @return A number got from the command line or the default 1.
      */
-    private int setNExecutions(CommandLine cmd) {
-        if (!cmd.hasOption("e")) {
-            return 1;
-        }
-
-        return setValueFromOption(cmd, "e");
+    private int setNExecutions(final CommandLine cmd) {
+        return cmd.hasOption("e") ? setValueFromOption(cmd, "e") : 1;
     }
 
     /**
      * Get the name of the output folder for the html export from the command line.
      *
      * @param cmd The command line class from Common Cli.
-     * @return The name of a folder or null if it doesn't exist.
+     * @return The folder coming from the command line argument or an empty optional.
      */
-    private File setOutputFolder(CommandLine cmd) {
-        if (!cmd.hasOption("o")) {
-            return null;
-        }
-
-        return new File(cmd.getOptionValue("o"));
+    private Optional<File> setOutputFolder(final CommandLine cmd) {
+        return cmd.hasOption("o") ?
+            Optional.of(new File(cmd.getOptionValue("o"))) :
+            Optional.empty();
     }
 
     /**
      * Get the name of the model file from the command line.
-     * @param cmd The command line class from Common Cli.
-     * @return The name of the model file or null if it doesn't exist.
-     */
-    private File setInputFile(CommandLine cmd) {
-        if (cmd.hasOption("in")) {
-            return new File(cmd.getOptionValue("in"));
-        }
-
-        final List<String> restArgs = cmd.getArgList();
-        if (!restArgs.isEmpty()) {
-            return new File(restArgs.get(0));
-        }
-
-        return null;
-    }
-
-    /**
-     * Get the name of the configuration file from the command line.
      *
      * @param cmd The command line class from Common Cli.
-     * @return The name of the configuration file or null if it doesn't exist.
+     * @return A configuration file with information for the simulation
      */
-    private File setConfFile(CommandLine cmd) {
-        if (!cmd.hasOption("conf")) {
-            return null;
+    private Optional<File> setInputFile(CommandLine cmd) {
+        if (cmd.hasOption("in")) {
+            return Optional.of(new File(cmd.getOptionValue("in")));
         }
 
-        return new File(cmd.getOptionValue("conf"));
+        final var restArgs = cmd.getArgList();
+        if (!restArgs.isEmpty()) {
+            return Optional.of(new File(restArgs.get(0)));
+        }
+
+        return Optional.empty();
     }
 
     /**
      * Method for running the simulation based on the configuration done before.
      */
     @Override
-    public void run () {
-        HelpFormatter helpFormatter = new HelpFormatter();
+    public void run() {
+        final HelpFormatter helpFormatter = new HelpFormatter();
 
         switch (this.mode) {
-            case HELP -> helpFormatter.printHelp("java -jar iSPD.jar", this.options);
+            case HELP ->
+                    helpFormatter.printHelp("java -jar iSPD.jar", this.options);
             case VERSION -> System.out.println("""
                     iSPD version 3.1
                       Iconic Simulator of Parallel and Distributed System
@@ -388,127 +282,176 @@ public class TerminalApplication implements Application {
                       Project Info: https://dcce.ibilce.unesp.br/spd
                       Source Code: https://github.com/gspd/ispd""");
             case SIMULATE -> {
-                if (this.inputFile.getName().endsWith(".imsx") && this.inputFile.exists()) {
-                    if (this.nThreads > 1 && !this.paralelo) {
-                        this.simularParalelo();
+                if (this.inputFile.isPresent()) {
+                    var file = this.inputFile.get();
+
+                    if (file.getName().endsWith(".imsx") && file.exists()) {
+                        this.runSimulation();
                     } else {
-                        this.simularSequencial();
+                        System.out.println("iSPD can not open the file: " + file.getName());
                     }
-                } else {
-                    System.out.println("iSPD can not open the file: " + this.inputFile.getName());
                 }
             }
-            case SERVER -> {
+            case SERVER ->
                 this.simularRedeServidor();
-            }
-            case CLIENT -> {
+            case CLIENT ->
                 this.simularRedeCliente(this.serverAddress);
-            }
         }
         System.exit(0);
     }
 
     /**
-     * Executa n simulações do modelo passado por parametro de forma sequencial
-     * (usando o motor de execução padrão)
+     *
      */
-    private void simularSequencial() {
-        this.simulationProgress.println("Simulation Initiated.");
-        try {
-            this.simulationProgress.print("Opening iconic model.");
-            this.simulationProgress.print(" -> ");
-            Document modelo = IconicoXML.ler(this.inputFile);
-            this.simulationProgress.println("OK", Color.green);
-            //Verifica se foi construido modelo corretamente
-            this.simulationProgress.validarInicioSimulacao(modelo);
-            //Escrever Modelo
-            //this.modelo(redeDeFilas);
-            //criar tarefas
+    private void runSimulation() {
+        System.out.println("Simulation Initiated.");
+        System.out.print("Opening iconic model. ->");
 
-            Metricas metricas = new Metricas(IconicoXML.newListUsers(modelo));
-            this.resuladosGlobais = new MetricasGlobais();
-            double total = 0;
+        final Document model = getModelFromFile();
+        final Metricas metrics = new Metricas(IconicoXML.newListUsers(model));
+        double totalDuration = 0.0;
+        for (int i = 1; i <= this.nExecutions; i++) {
+            System.out.println("* Simulation " + i);
 
-            for (int i = 1; i <= this.nExecutions; i++) {
-                double t1 = System.currentTimeMillis();
-                this.simulationProgress.println("* Simulation " + i);
-                //criar grade
-                this.simulationProgress.print("  Mounting network queue.");
-                this.simulationProgress.print(" -> ");
-                RedeDeFilas redeDeFilas = IconicoXML.newRedeDeFilas(modelo);
-                this.simulationProgress.println("OK", Color.green);
-                this.simulationProgress.print("  Creating tasks.");
-                this.simulationProgress.print(" -> ");
-                List<Tarefa> tarefas = IconicoXML.newGerarCarga(modelo).toTarefaList(redeDeFilas);
-                this.simulationProgress.print("OK\n  ", Color.green);
-                //Verifica recursos do modelo e define roteamento
-                Simulation sim;
-                if (!this.paralelo) {
-                    sim = new SimulacaoSequencial(this.simulationProgress, redeDeFilas, tarefas);//[10%] --> 55 %
-                } else {
-                    System.out.println("Execução paralela da simulação");
-                    sim = new SimulacaoParalela(this.simulationProgress, redeDeFilas, tarefas, this.nThreads);
-                }
-                sim.createRouting();
-                //Realiza asimulação
-                this.simulationProgress.println("  Simulating.");
-                //recebe instante de tempo em milissegundos ao iniciar a simulação
-                sim.simulate();//[30%] --> 85%
-                if (this.outputFolder == null) {
-                    this.resuladosGlobais.add(new MetricasGlobais(redeDeFilas, sim.getTime(null), tarefas));
-                } else {
-                    Metricas temp = sim.getMetrics();
-                    metricas.addMetrica(temp);
-                }
-                //Recebe instante de tempo em milissegundos ao fim da execução da simulação
-                double t2 = System.currentTimeMillis();
-                //Calcula tempo de simulação em segundos
-                double tempototal = (t2 - t1) / 1000;
-                total += tempototal;
-                this.simulationProgress.println("  Simulation Execution Time = " + tempototal + "seconds");
-            }
-            if (this.nExecutions > 1 && this.outputFolder != null) {
-                metricas.calculaMedia();
-                this.resuladosGlobais = metricas.getMetricasGlobais();
-            }
-            this.simulationProgress.println("Results:");
-            if (this.nExecutions > 1) {
-                this.simulationProgress.println("  Total Simulation Execution Time = " + total + "seconds");
-            }
-            if (this.outputFolder != null) {
-                this.resuladosGlobais = metricas.getMetricasGlobais();
-                double t1 = System.currentTimeMillis();
-                ResultsDialog result = new ResultsDialog(metricas);
-                result.salvarHTML(this.outputFolder);
-                double t2 = System.currentTimeMillis();
-                //Calcula tempo de simulação em segundos
-                double tempototal = (t2 - t1) / 1000;
-                this.simulationProgress.println("  Time to create html = " + tempototal + "seconds");
-            }
-            this.simulationProgress.println(this.resuladosGlobais.toString());
-        } catch (Exception erro) {
-            this.simulationProgress.println(erro.getMessage(), Color.red);
-            this.simulationProgress.print("Simulation Aborted", Color.red);
-            this.simulationProgress.println("!", Color.red);
+            final double preSimInstant = System.currentTimeMillis();
+            final Metricas simMetric = runSimulation(model);
+            final double postSimInstant = System.currentTimeMillis();
+            final double totalSimDuration = (postSimInstant - preSimInstant) / 1000.0;
+
+            System.out.println("Simulation Execution Time = " + totalSimDuration + "seconds");
+
+            totalDuration += totalSimDuration;
+            metrics.addMetrica(simMetric);
         }
+
+        printSimulationResults(metrics, totalDuration);
+    }
+
+    /**
+     * Print the simulation results
+     *
+     * @param metrics The metrics from the simulations
+     * @param totalDuration The total duration of the simulations
+     */
+    private void printSimulationResults(final Metricas metrics, final double totalDuration) {
+        System.out.println("Results:");
+        metrics.calculaMedia();
+
+        System.out.println("  Total Simulation Execution Time = " + totalDuration + "seconds");
+        System.out.println(metrics.getMetricasGlobais());
+
+        if (this.outputFolder.isPresent()) {
+            ResultsDialog result = new ResultsDialog(metrics);
+            result.salvarHTML(this.outputFolder.get());
+
+            System.out.println("Results were exported to " + this.outputFolder.get().getName());
+        }
+    }
+
+    /**
+     * Get a model from the xml file containing the configuration of
+     * the simulation.
+     *
+     * @return The model coming from the configuration file
+     */
+    private Document getModelFromFile() {
+        if (this.inputFile.isEmpty()) {
+            System.out.println("The ");
+            System.exit(-1);
+        }
+        try {
+            final Document model = IconicoXML.ler(this.inputFile.get());
+            System.out.println(model.toString() + this.inputFile.get().getName());
+            System.out.println(ConsoleColors.GREEN + "OK" + ConsoleColors.RESET);
+
+            this.simulationProgress.validarInicioSimulacao(model);
+
+            return model;
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            System.exit(-1);
+            throw new AssertionError("Code shouldn't be reachable.");
+        }
+    }
+
+    /**
+     * Run a simulation from a model
+     *
+     * @param model A model with configurations for a simulation
+     * @return The metrics resulted from the simulation
+     */
+    private Metricas runSimulation(final Document model) {
+        final var queueNetwork = createQueueNetwork(model);
+        final var jobs = createJobsList(model, queueNetwork);
+        final var sim = selectSimulation(queueNetwork, jobs);
+
+        sim.createRouting();
+
+        sim.simulate();
+
+        return sim.getMetrics();
+    }
+
+    /**
+     * Select a simulation type based on the <i>parallel</i> field from the class.
+     *
+     * @param queueNetwork The queueNetwork created from the model of a simulation
+     * @param jobs The job list
+     * @return The chosen simulation
+     */
+    private Simulation selectSimulation(final RedeDeFilas queueNetwork, final List<Tarefa> jobs) {
+        return this.parallel ?
+                new SimulacaoParalela(this.simulationProgress, queueNetwork, jobs, this.nThreads) :
+                new SimulacaoSequencial(this.simulationProgress, queueNetwork, jobs);
+    }
+
+    /**
+     * Create a job list from the model and the queue network from it.
+     * 
+     * @param model The model from the simulation
+     * @param queueNetwork The queue network from the model
+     * @return The respective job list from the model
+     */
+    private List<Tarefa> createJobsList(final Document model, final RedeDeFilas queueNetwork) {
+        System.out.print("  Creating tasks: ");
+        final var jobs = IconicoXML.newGerarCarga(model).toTarefaList(queueNetwork);
+        System.out.print(ConsoleColors.GREEN + "OK\n  " + ConsoleColors.RESET);
+
+        return jobs;
+    }
+
+    /**
+     * Create a queue network from a simulation model.
+     *
+     * @param model The model from a simulation
+     * @return A queue network from the model
+     */
+    private RedeDeFilas createQueueNetwork(final Document model) {
+        System.out.print("  Mounting network queue: ");
+        final var queueNetwork = IconicoXML.newRedeDeFilas(model);
+        System.out.println(ConsoleColors.GREEN + "OK" + ConsoleColors.RESET);
+
+        return queueNetwork;
     }
 
     /**
      * Executa n simulações do modelo passado por parametro de forma paralela
      * (usando o motor de execução padrão em várias threads, ou usando o motor experimental de simulação otimista)
      */
+    @Deprecated
+    @SuppressWarnings("Optional without isPresent check.")
     private void simularParalelo() {
         this.simulationProgress.println("Simulation Initiated.");
-        try {
-            this.simulationProgress.print("Opening iconic model.");
-            this.simulationProgress.print(" -> ");
-            this.simulationProgress.incProgresso(5);//[5%] --> 5%
-            this.simulationProgress.println("OK", Color.green);
+        this.simulationProgress.print("Opening iconic model.");
+        this.simulationProgress.print(" -> ");
+        this.simulationProgress.incProgresso(5);//[5%] --> 5%
+        this.simulationProgress.println("OK", Color.green);
             //Escrever Modelo
             //this.modelo(redeDeFilas);
             //criar tarefas
 
-            Document[] modelo = IconicoXML.clone(this.inputFile, this.nThreads);
+        try {
+            Document[] modelo = IconicoXML.clone(this.inputFile.get(), this.nThreads);
             Metricas metricas = new Metricas(IconicoXML.newListUsers(modelo[0]));
             //Verifica se foi construido modelo corretamente
             this.simulationProgress.validarInicioSimulacao(modelo[0]);
@@ -516,7 +459,7 @@ public class TerminalApplication implements Application {
             RunnableImpl[] trabalhador = new RunnableImpl[this.nThreads];
             Thread[] thread = new Thread[this.nThreads];
             System.out.println("Será executado com " + this.nThreads + " threads");
-            this.visible = false;
+            boolean visible = false;
             double t1 = System.currentTimeMillis();
             for (int i = 0; i < this.nThreads - 1; i++) {
                 trabalhador[i] = new RunnableImpl(modelo[i], inicio, incremento);
@@ -530,7 +473,7 @@ public class TerminalApplication implements Application {
             for (int i = 0; i < this.nThreads; i++) {
                 thread[i].join();
             }
-            this.visible = true;
+            visible = true;
             double t2 = System.currentTimeMillis();
 
             //Calcula tempo de simulação em segundos
@@ -543,11 +486,11 @@ public class TerminalApplication implements Application {
                     metricas.addMetrica(trabalhador[i].getMetricas());
                 }
                 metricas.calculaMedia();
-                this.resuladosGlobais = metricas.getMetricasGlobais();
+                this.globalResults = metricas.getMetricasGlobais();
             } else {
-                this.resuladosGlobais = new MetricasGlobais();
+                this.globalResults = new MetricasGlobais();
                 for (int i = 0; i < this.nThreads; i++) {
-                    this.resuladosGlobais.add(trabalhador[i].getMetricasGlobais());
+                    this.globalResults.add(trabalhador[i].getMetricasGlobais());
                 }
             }
             this.simulationProgress.println("OK");
@@ -555,13 +498,13 @@ public class TerminalApplication implements Application {
             if (this.outputFolder != null) {
                 t1 = System.currentTimeMillis();
                 ResultsDialog result = new ResultsDialog(metricas);
-                result.salvarHTML(this.outputFolder);
+                result.salvarHTML(this.outputFolder.get());
                 t2 = System.currentTimeMillis();
                 //Calcula tempo de simulação em segundos
                 tempototal = (t2 - t1) / 1000;
                 this.simulationProgress.println("  Time to create html = " + tempototal + "seconds");
             }
-            this.simulationProgress.println(this.resuladosGlobais.toString());
+            this.simulationProgress.println(this.globalResults.toString());
         } catch (Exception erro) {
             this.simulationProgress.println(erro.getMessage(), Color.red);
             this.simulationProgress.print("Simulation Aborted", Color.red);
@@ -573,14 +516,15 @@ public class TerminalApplication implements Application {
      * Simulação cliente servidor
      * Executa as ações do servidor, porem ainda não é a versão definitiva
      */
+    @Deprecated
     private void simularRedeServidor() {
         Document modelo = null;
         Metricas metricas = new Metricas(null);
         String origem = null;
         //Recebendo Modelo
-        try {
-            System.out.println("Creating a server socket");
+        System.out.println("Creating a server socket");
 
+        try {
             ServerSocket providerSocket = new ServerSocket(2004, 10);
 
             System.out.println("Waiting for connection");
@@ -630,8 +574,8 @@ public class TerminalApplication implements Application {
             Socket requestSocket = new Socket(origem, 2005);
             System.out.println("Connection received from " + requestSocket.getInetAddress().getHostName());
             ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-            this.resuladosGlobais = metricas.getMetricasGlobais();
-            System.out.println("Mensagem... resultados obtidos: " + this.resuladosGlobais.toString());
+            this.globalResults = metricas.getMetricasGlobais();
+            System.out.println("Mensagem... resultados obtidos: " + this.globalResults.toString());
             out.flush();
             out.writeObject(metricas);
             out.flush();
@@ -647,14 +591,16 @@ public class TerminalApplication implements Application {
      * Simulação cliente servidor
      * Executa as ações do cliente, porem ainda não é a versão definitiva
      */
-    private void simularRedeCliente(Inet4Address server) {
+    @SuppressWarnings("Optional without isPresent() check.")
+    @Deprecated
+    private void simularRedeCliente(Inet4Address server_address) {
         //Obtem modelo
-        String server_ip = server.getHostAddress();
+        String server_ip = server_address.getHostAddress();
         this.simulationProgress.print("Opening iconic model.");
         this.simulationProgress.print(" -> ");
         Document modelo = null;
         try {
-            modelo = IconicoXML.ler(this.inputFile);
+            modelo = IconicoXML.ler(this.inputFile.get());
         } catch (ParserConfigurationException | IOException | SAXException ex) {
             Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -690,8 +636,8 @@ public class TerminalApplication implements Application {
             ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
             System.out.println("Recebendo mensagem");
             metricas.addMetrica((Metricas) in.readObject());
-            this.resuladosGlobais = metricas.getMetricasGlobais();
-            System.out.println(this.resuladosGlobais.toString());
+            this.globalResults = metricas.getMetricasGlobais();
+            System.out.println(this.globalResults.toString());
             in.close();
             System.out.println("Closing connection");
             providerSocket.close();
@@ -703,42 +649,10 @@ public class TerminalApplication implements Application {
     }
 
     /**
-     * Realiza a leitura de um arquivo de configuração para a simulação cliente/servidor
-//     * @param configuracao aquivo com linhas contendo: [servidor/ip] [porta] [numero de simulações]
-//     * @return vetor contendo todos os objetos lidos do arquivo
+     * An enum for run modes for the terminal application.
      */
-//    private Object[] lerConfiguracao(File configuracao) {
-//        ArrayList<String> config = new ArrayList<>();
-//        FileReader arq = null;
-//        try {
-//            arq = new FileReader(configuracao);
-//            BufferedReader lerArq = new BufferedReader(arq);
-//            String linha = lerArq.readLine();
-//            while (linha != null) {
-//                config.addAll(Arrays.asList(linha.split(" ")));
-//                System.out.printf("%s\n", linha);
-//                linha = lerArq.readLine();
-//            }
-//        } catch (IOException ex) {
-//            Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-//        } finally {
-//            try {
-//                if (arq != null) {
-//                    arq.close();
-//                }
-//            } catch (IOException ex) {
-//                Logger.getLogger(TerminalApplication.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }
-//        return config.toArray();
-//    }
-
     public enum Modes {
-        HELP("h"),
-        VERSION("v"),
-        SIMULATE(""),
-        CLIENT("c"),
-        SERVER("s"),
+        HELP("h"), VERSION("v"), SIMULATE(""), CLIENT("c"), SERVER("s"),
         ;
 
         final private String str;
@@ -751,6 +665,7 @@ public class TerminalApplication implements Application {
     /**
      * Classe interna para executar uma simulação em thread
      */
+    @Deprecated
     private class RunnableImpl implements Runnable {
 
         private final Document modelo;
@@ -796,7 +711,6 @@ public class TerminalApplication implements Application {
                     Metricas temp = sim.getMetrics();
                     this.metricas.addMetrica(temp);
                     global = temp.getMetricasGlobais();
-
                 }
 
                 this.metricasGlobais.setTempoSimulacao(this.metricasGlobais.getTempoSimulacao() + global.getTempoSimulacao());
