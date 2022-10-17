@@ -1,6 +1,7 @@
 package ispd.gui;
 
 import ispd.arquivo.xml.IconicoXML;
+import ispd.gui.results.ResultsDialog;
 import ispd.gui.utils.ButtonBuilder;
 import ispd.motor.ProgressoSimulacao;
 import ispd.motor.SimulacaoSequencial;
@@ -189,8 +190,7 @@ public class SimulationDialog extends JDialog implements Runnable {
                 //Apresentar resultados
                 this.progressTracker.print("Showing results.");
                 this.progressTracker.print(" -> ");
-                final Window janelaResultados = new ResultsDialog(null, metrica,
-                        queueNetwork, tasks);
+                final Window janelaResultados = new ResultsDialog(null, metrica, queueNetwork, tasks);
                 this.incrementProgress(10);//[10%] --> 100%
                 this.progressTracker.println("OK", Color.green);
                 this.progressTracker.println("Simulation Execution Time = " + tempototal + "seconds");

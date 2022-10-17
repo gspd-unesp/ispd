@@ -606,7 +606,7 @@ public abstract class CS_Processamento extends CentroServico {
         lista_pares.add(par); 
     }
     
-    public List getListaProcessamento(){
+    public List<ParesOrdenadosUso> getListaProcessamento(){
         Collections.sort(lista_pares);
         return (this.lista_pares);
     }

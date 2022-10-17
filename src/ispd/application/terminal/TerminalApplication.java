@@ -1,8 +1,9 @@
 package ispd.application.terminal;
 
 import ispd.application.Application;
+import ispd.arquivo.SalvarResultadosHTML;
 import ispd.arquivo.xml.IconicoXML;
-import ispd.gui.ResultsDialog;
+import ispd.gui.auxiliar.SimulationResultChartMaker;
 import ispd.motor.ProgressoSimulacao;
 import ispd.motor.SimulacaoParalela;
 import ispd.motor.SimulacaoSequencial;
@@ -334,8 +335,14 @@ public class TerminalApplication implements Application {
         System.out.println(metrics.getMetricasGlobais());
 
         if (this.outputFolder.isPresent()) {
-            ResultsDialog result = new ResultsDialog(metrics);
-            result.salvarHTML(this.outputFolder.get());
+            final var html = new SalvarResultadosHTML();
+            final var chartMaker = new SimulationResultChartMaker(metrics);
+
+            html.setMetricasTarefas(metrics);
+            html.setMetricasGlobais(metrics.getMetricasGlobais());
+            html.setTabela(metrics.makeResourceTable());
+
+            html.saveHtml(this.outputFolder.get(), chartMaker);
 
             System.out.println("Results were exported to " + this.outputFolder.get().getName());
         }

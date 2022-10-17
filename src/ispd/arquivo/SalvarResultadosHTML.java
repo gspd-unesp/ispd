@@ -1,20 +1,23 @@
 package ispd.arquivo;
 
 import ispd.gui.MainWindow;
+import ispd.gui.auxiliar.SimulationResultChartMaker;
 import ispd.motor.metricas.Metricas;
 import ispd.motor.metricas.MetricasGlobais;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import javax.imageio.ImageIO;
 
 /**
  * Stores simulation results and exports them to a html file
@@ -282,6 +285,37 @@ public class SalvarResultadosHTML {
                         MainWindow.class.getResource("imagens/" + file)));
                 ImageIO.write(img, nameAndExtension[1], out);
             }
+        }
+    }
+
+    /**
+     * This method save the simulation results in the specified directory.
+     *
+     * @param directory the directory where the simulation results are saved.
+     * @param charts the simulation chart maker
+     */
+    public void saveHtml(final File directory,
+                          final SimulationResultChartMaker charts) {
+        final var chartsImage = Stream.of(
+                        charts.getProcessingBarChart(),
+                        charts.getProcessingPieChart(),
+                        charts.getCommunicationBarChart(),
+                        charts.getCommunicationPieChart(),
+                        charts.getComputingPowerPerMachineChart(),
+                        charts.getComputingPowerPerTaskChart(),
+                        charts.getComputingPowerPerUserChart()
+                )
+                .filter(Objects::nonNull)
+                .map((chart) -> chart.getChart().createBufferedImage(1200, 600))
+                .toArray(BufferedImage[]::new);
+
+        this.setCharts(chartsImage);
+
+        try {
+            this.gerarHTML(directory);
+        } catch (final IOException e) {
+            throw new RuntimeException("An error occurred to generate the " +
+                    "HTML file containing the simulation results.", e);
         }
     }
 }

@@ -1,775 +1,586 @@
 package ispd.gui.auxiliar;
 
+import ispd.gui.results.ResultsDialog;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.filas.servidores.implementacao.CS_Maquina;
+import ispd.motor.metricas.Metricas;
 import ispd.motor.metricas.MetricasComunicacao;
 import ispd.motor.metricas.MetricasProcessamento;
+import ispd.utils.Pair;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryLabelPositions;
-import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYStepAreaRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
- * Class which creates and configures charts for simulation results.
+ * A {@link SimulationResultChartMaker} class is used to create charts of
+ * multiples types containing information from simulation results.
  */
-public class SimulationResultChartMaker {
-    private static final Double ZERO = 0.0;
-    private static final double ONE_HUNDRED_PERCENT = 100.0;
-    private static final Dimension PREFERRED_CHART_SIZE
-            = new Dimension(600, 300);
-    public ChartPanel PreemptionPerUser = null;
-    public RedeDeFilas rede = null;
-    private ChartPanel processingBarChart = null;
-    private ChartPanel processingPieChart = null;
-    private ChartPanel communicationPieChart = null;
-    private ChartPanel userThroughTime1 = null;
-    private ChartPanel UserThroughTime2 = null;
-    private ChartPanel machineThroughTime = null;
-    private ChartPanel TaskThroughTime = null;
-    private double poderComputacionalTotal = 0;
+public final class SimulationResultChartMaker {
 
+    /**
+     * It represents the processing bar chart, that is, a chart containing
+     * information about the performed processing for machines (including the
+     * cluster ones) in a vertical bar view.
+     */
+    private final ChartPanel processingBarChart;
+
+    /**
+     * It represents the processing pie chart, that is, a chart containing
+     * information about the performed processing for machines (including the
+     * cluster ones) in a pie view.
+     */
+    private final ChartPanel processingPieChart;
+
+    /**
+     * It represents the communication bar chart, that is, a chart containing
+     * information about the performed communication for machines (including the
+     * cluster ones) and links in a vertical bar view.
+     */
+    private final ChartPanel communicationBarChart;
+
+    /**
+     * It represents the communication pie chart, that is, a chart containing
+     * information about the performed communication for machines (including the
+     * cluster ones) and links in a pie view.
+     */
+    private final ChartPanel communicationPieChart;
+
+    /**
+     * It represents the computing power per machine through time chart, that is,
+     * a chart containing information about the computing power use through time
+     * for each machine (including the cluster ones) in a vertical bar view.
+     */
+    private ChartPanel computingPowerPerMachineChart;
+
+    /**
+     * It represents the computing power per user through time chart, that is, a
+     * chart containing information about the computing power use through time
+     * for each user in a vertical bar view.
+     */
+    private ChartPanel computingPowerPerUserChart;
+
+    /**
+     * It represents the computing power per task through time chart, that is, a
+     * chart containing information about the computing power use through time
+     * for each task in a vertical bar view.
+     */
+    private ChartPanel computingPowerPerTaskChart;
+
+    /**
+     * Constructor which specifies the metrics. The processing and communication
+     * charts are built while this constructor is initialized.
+     *
+     * @param metrics the metrics
+     */
+    public SimulationResultChartMaker(final Metricas metrics) {
+        final var processingCharts
+                = this.makeProcessingCharts(metrics.getMetricasProcessamento());
+        final var communicationCharts
+                = this.makeCommunicationCharts(metrics.getMetricasComunicacao());
+
+        this.processingBarChart = processingCharts.getFirst();
+        this.processingPieChart = processingCharts.getSecond();
+
+        this.communicationBarChart = communicationCharts.getFirst();
+        this.communicationPieChart = communicationCharts.getSecond();
+    }
+
+    /**
+     * Constructor which specifies the metrics, queue network and the task list.
+     * Moreover, all charts to be displayed at the results dialog will be built
+     * in this constructor initialization.
+     * <p>
+     * It is supposed that metrics, queue network and task list are all not null.
+     * Otherwise, {@link NullPointerException} instances may be thrown.
+     *
+     * @param metrics the metrics
+     * @param queueNetwork the queue network
+     * @param taskList the task list
+     */
+    public SimulationResultChartMaker(final Metricas metrics,
+                                      final RedeDeFilas queueNetwork,
+                                      final List<Tarefa> taskList) {
+        this(metrics);
+
+        final var computingPowerPerMachineChartInfo
+                = this.makeComputingPowerPerMachineChart(queueNetwork);
+
+        this.computingPowerPerMachineChart = computingPowerPerMachineChartInfo.getFirst();
+        this.computingPowerPerUserChart = this.makeComputingPowerPerUserChart(taskList,
+                computingPowerPerMachineChartInfo.getSecond(), queueNetwork);
+        this.computingPowerPerTaskChart = this.makeComputingPowerPerTaskChart(taskList,
+                computingPowerPerMachineChartInfo.getSecond());
+    }
+
+    /**
+     * It builds the bar and pie processing charts; these charts are returned in
+     * an instance of {@link Pair} containing the bar and pie chart, respectively.
+     *
+     * @param processingMap the processing map containing the processing metrics
+     *                      for each machine
+     *
+     * @return an instance of {@link Pair} containing the bar and pie processing
+     *         charts, respectively
+     *
+     * @throws NullPointerException if processing map is {@code null}
+     */
+    private Pair<ChartPanel, ChartPanel> makeProcessingCharts(
+            final Map<String, MetricasProcessamento> processingMap) {
+        /* It ensures that the processing map is not null */
+        if (processingMap == null)
+            throw new NullPointerException("processingMap is null." +
+                    " It could not be possible generate the processing charts.");
+
+        final var barChartData = new DefaultCategoryDataset();
+        final var pieChartData = new DefaultPieDataset();
+
+        /* Add the processing metrics information to both bar and pie charts. */
+        for (final var processingMetrics : processingMap.values()) {
+            final String name;
+            final var processedMFlops = processingMetrics.getMFlopsProcessados();
+
+            if (processingMetrics.getnumeroMaquina() == 0)
+                name = processingMetrics.getId();
+            else
+                name = processingMetrics.getId() + " node " + processingMetrics.getnumeroMaquina();
+
+            barChartData.addValue(processedMFlops, "vermelho", name);
+            pieChartData.insertValue(0, name, processedMFlops);
+        }
+
+        final var barChart = ChartFactory.createBarChart(
+                "Total processed in each resource", // Title
+                "Resource",                              // X-axis title
+                "MFlops",                                // Y-axis title
+                barChartData,                            // Chart data
+                PlotOrientation.VERTICAL,                // Chart orientation
+                false,                                   // Legend
+                false,                                   // Tooltips
+                false                                    // URL
+        );
+
+        final var pieChart = ChartFactory.createPieChart(
+                "Total processed in each resource", // Title
+                pieChartData,                            // Chart data
+                true,                                    // Legend
+                false,                                   // Tooltips
+                false                                    // URL
+        );
+
+        return makeBarPieChartPair(barChart, pieChart, processingMap);
+    }
+
+    /**
+     * It builds the bar and pie communication charts; these charts are returned
+     * in an instance of {@link Pair} containing the bar and pie chart, respectively.
+     *
+     * @param communicationMap the communication map containing the communication
+     *                         metrics for each network link
+     *
+     * @return an instance of {@link Pair} containing the bar and pie processing
+     *         charts, respectively
+     *
+     * @throws NullPointerException if communication map is {@code null}
+     */
+    private Pair<ChartPanel, ChartPanel> makeCommunicationCharts(
+            final Map<String, MetricasComunicacao> communicationMap) {
+        /* It ensures that the processing map is not null */
+        if (communicationMap == null)
+            throw new NullPointerException("communicationMap is null." +
+                    " It could not be possible generate the communication charts.");
+
+        final var barChartData = new DefaultCategoryDataset();
+        final var pieChartData = new DefaultPieDataset();
+
+        for (final var communicationMetrics : communicationMap.values()) {
+            final var transmittedMBits = communicationMetrics.getMbitsTransmitidos();
+            final var id = communicationMetrics.getId();
+
+            barChartData.addValue(transmittedMBits, "vermelho", id);
+            pieChartData.insertValue(0, id, transmittedMBits);
+        }
+
+        final var barChart = ChartFactory.createBarChart(
+                "Total communication in each resource", // Title
+                "Resource",                                  // X-axis title
+                "Mbits",                                     // Y-axis title
+                barChartData,                                // Chart data
+                PlotOrientation.VERTICAL,                    // Chart orientation
+                false,                                       // Legend
+                false,                                       // Tooltips
+                false                                        // URL
+        );
+
+        final var pieChart = ChartFactory.createPieChart(
+                "Total communication in each resource", // Title
+                pieChartData,                                // Chart data
+                true,                                        // Legend
+                false,                                       // Tooltips
+                false                                        // URL
+        );
+
+        return makeBarPieChartPair(barChart, pieChart, communicationMap);
+    }
+
+    /**
+     * It builds the bar chart for the computing power per machine results and
+     * calculates the total computational power; these values are returned in
+     * an instance of {@link Pair}, respectively.
+     *
+     * @param queueNetwork the queue network
+     *
+     * @return an instance of {@link Pair} containing the bar chart for the
+     *         computing power per machine results and the total computational
+     *         power, respectively
+     */
+    private Pair<ChartPanel, Double> makeComputingPowerPerMachineChart(
+            final RedeDeFilas queueNetwork) {
+        final var chartData = new XYSeriesCollection();
+        var totalComputationalPower = 0.0;
+
+        /* It checks if the amount of machines is greater than or equal to 21, then */
+        /* the computing power per machine chart is not going to be returned, just */
+        /* the total computational power. */
+        if (queueNetwork.getMaquinas().size() >= 21) {
+            for (final var machine : queueNetwork.getMaquinas())
+                totalComputationalPower += machine.getPoderComputacional()
+                        - machine.getOcupacao() * machine.getPoderComputacional();
+            return new Pair<>(null, totalComputationalPower);
+        }
+
+        for (final var machine : queueNetwork.getMaquinas()) {
+            /* The interval list in which the intervals represent the period of time */
+            /* in which the machine was executing. */
+            final var useIntervals = machine.getListaProcessamento();
+
+            totalComputationalPower += machine.getPoderComputacional()
+                    - machine.getOcupacao() * machine.getPoderComputacional();
+
+            /* Did the machine execute something? */
+            if (useIntervals.isEmpty())
+                continue;
+
+            final XYSeries xySeries;
+
+            if (machine.getnumeroMaquina() == 0)
+                xySeries = new XYSeries(machine.getId());
+            else
+                xySeries = new XYSeries(machine.getId() + " node " + machine.getnumeroMaquina());
+
+            for (final var interval : useIntervals) {
+                final var usePercentage = 100.0 - (machine.getOcupacao() * 100.0);
+
+                xySeries.add(interval.getInicio(), usePercentage);
+                xySeries.add(interval.getFim(), usePercentage);
+            }
+
+            chartData.addSeries(xySeries);
+        }
+
+        final var barChart = ChartFactory.createXYAreaChart(
+                "Use of total computing power through time \nMachines", // Title
+                "Time (seconds)",                                      // X-axis title
+                "Rate of use of computing power for each node (%)",    // Y-axis title
+                chartData,                                             // Chart data
+                PlotOrientation.VERTICAL,                              // Chart orientation
+                true,                                                  // Legend
+                true,                                                  // Tooltips
+                false                                                  // URL
+        );
+
+        final var barChartPanel = new ChartPanel(barChart);
+
+        barChartPanel.setPreferredSize(ResultsDialog.CHART_PREFERRED_SIZE);
+
+        return new Pair<>(barChartPanel, totalComputationalPower);
+    }
+
+    /**
+     * It builds the bar chart for the computing power per task results.
+     *
+     * @param tasks the tasks used to calculate the results
+     * @param totalComputingPower the total computational power
+     *
+     * @return the bar chart for the computing power per task results
+     */
+    private ChartPanel makeComputingPowerPerTaskChart(
+            final Collection<? extends Tarefa> tasks,
+            final double totalComputingPower) {
+        /* Ensure the tasks is not null */
+        if (tasks == null)
+            throw new NullPointerException("tasks is null. " +
+                    "It was not possible to build the computing power through time per task chart.");
+
+        /* It checks if the amount of tasks is greater than or equal to 50, then */
+        /* the computing power through time per task chart is not going to be returned. */
+        if (tasks.size() >= 50)
+            return null;
+
+        final var chartData = new XYSeriesCollection();
+
+        for (final var task : tasks) {
+            final var xySeries = new XYSeries("task " + task.getIdentificador());
+            final var serviceCenterProcessing = (CS_Processamento) task.getLocalProcessamento();
+
+            if (serviceCenterProcessing == null)
+                continue;
+
+            final var userPercentage = serviceCenterProcessing.getPoderComputacional()
+                    / totalComputingPower * 100.0;
+
+            for (int j = 0; j < task.getTempoInicial().size(); j++) {
+                final double startTime = task.getTempoInicial().get(j);
+                final double endTime = task.getTempoFinal().get(j);
+
+                xySeries.add(startTime, 0.0);
+                xySeries.add(startTime, userPercentage);
+
+                xySeries.add(endTime, userPercentage);
+                xySeries.add(endTime, 0.0);
+            }
+
+            chartData.addSeries(xySeries);
+        }
+
+        final var barChart = ChartFactory.createXYAreaChart(
+                "Use of total computing power through time \nTasks", // Title
+                "Time (seconds)",                                         // X-axis title
+                "Rate of use of computing power for each task (%)",       // Y-axis title
+                chartData,                                                // Chart data
+                PlotOrientation.VERTICAL,                                 // Chart orientation
+                true,                                                     // Legend
+                true,                                                     // Tooltips
+                false                                                     // URL
+        );
+
+        final var barChartPanel = new ChartPanel(barChart);
+
+        barChartPanel.setPreferredSize(ResultsDialog.CHART_PREFERRED_SIZE);
+
+        return barChartPanel;
+    }
+
+    /**
+     * It builds the bar chart for the computing power per user results.
+     *
+     * @param tasks the tasks used to calculate the results
+     * @param totalComputationalPower the total computational power
+     * @param queueNetwork the queue network
+     *
+     * @return the bar chart for the computing power per user results
+     */
+    private ChartPanel makeComputingPowerPerUserChart(
+            final Collection<? extends Tarefa> tasks,
+            final double totalComputationalPower,
+            final RedeDeFilas queueNetwork) {
+        final var userOperationTimeList = new ArrayList<UserOperationTime>();
+        final var usersNumber = queueNetwork.getUsuarios().size();
+        final var users = new HashMap<String, Integer>();
+
+        final var usersXYSeries = new XYSeries[usersNumber];
+        final var usersUtilization = new double[usersNumber];
+
+        final var chartData = new XYSeriesCollection();
+
+        /* Initialization of the above declared variables */
+        for (int i = 0; i < usersNumber; i++) {
+            final var user = queueNetwork.getUsuarios().get(i);
+
+            users.put(user, i);
+
+            usersUtilization[i] = 0;
+            usersXYSeries[i] = new XYSeries(user);
+        }
+
+        /* Add each task as two points in the user operation time list */
+        for (final var task : tasks) {
+            final var serviceCenterProcessing
+                    = (CS_Processamento) task.getLocalProcessamento();
+
+            if (serviceCenterProcessing == null)
+                continue;
+
+            for (int i = 0; i < task.getTempoInicial().size(); i++) {
+                final var startTime = task.getTempoInicial().get(i);
+                final var endTime = task.getTempoFinal().get(i);
+
+                final var usePercentage = task.getHistoricoProcessamento()
+                        .get(i).getPoderComputacional() / totalComputationalPower * 100.0;
+                final var owner = users.get(task.getProprietario());
+
+                final var startUserOperationTime
+                        = new UserOperationTime(startTime, true, usePercentage, owner);
+                final var endUserOperationTime
+                        = new UserOperationTime(endTime, false, usePercentage, owner);
+
+                userOperationTimeList.add(startUserOperationTime);
+                userOperationTimeList.add(endUserOperationTime);
+            }
+        }
+
+        Collections.sort(userOperationTimeList);
+
+        for (final var userOperationTime : userOperationTimeList) {
+            final var userId = userOperationTime.getUserId();
+
+            for (int i = userId; i < usersNumber; i++) {
+                final var xySeries = usersXYSeries[i];
+                var utilization = usersUtilization[i];
+
+                /* Save previous values */
+                xySeries.add(userOperationTime.getTime(), utilization);
+
+                if (userOperationTime.isStartTime())
+                    utilization += userOperationTime.getNodeUse();
+                else
+                    utilization -= userOperationTime.getNodeUse();
+
+                /* Save the new value */
+                xySeries.add(userOperationTime.getTime(), utilization);
+
+                /* Update the user utilization */
+                usersUtilization[i] = utilization;
+            }
+        }
+
+        /* Add the series to the chart data for each user */
+        for (int i = 0; i < usersNumber; i++)
+            chartData.addSeries(usersXYSeries[i]);
+
+        final var barChart = ChartFactory.createXYAreaChart(
+                "Use of total computing power through time \nUsers", // Title
+                "Time (seconds)",                                         // X-axis title
+                "Rate of use of computing power for each user (%)",       // Y-axis title
+                chartData,                                                // Chart data
+                PlotOrientation.VERTICAL,                                 // Chart orientation
+                true,                                                     // Legend
+                true,                                                     // Tooltips
+                false                                                     // URL
+        );
+
+        final var barChartPanel = new ChartPanel(barChart);
+
+        barChartPanel.setPreferredSize(ResultsDialog.CHART_PREFERRED_SIZE);
+
+        return barChartPanel;
+    }
+
+    /**
+     * It returns an instance of {@link Pair} containing chart panels representing
+     * the bar and pie chart, respectively. Moreover, for both charts the chart
+     * preferred size is already set. Finally, if the amount of labels in the
+     * bar chart domain axis is greater than {@code 10}, then the labels is
+     * rotated {@code 45} degrees counterclockwise.
+     *
+     * @param barChart the bar chart
+     * @param pieChart the pie chart
+     * @param barChartMap the bar chart map containing the information that is
+     *                    used to build the bar chart
+     *
+     * @return an instance of {@link Pair} containing chart panels representing
+     *         the bar and pie chart, respectively
+     */
+    private static Pair<ChartPanel, ChartPanel> makeBarPieChartPair(final JFreeChart barChart,
+                                                             final JFreeChart pieChart,
+                                                             final Map<String, ?> barChartMap) {
+        /* It rotates the bar chart's X-axis labels in 45 degrees. */
+        if (barChartMap.size() > 10)
+            barChart.getCategoryPlot().getDomainAxis()
+                    .setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+
+        final var barChartPanel = new ChartPanel(barChart);
+        final var pieChartPanel = new ChartPanel(pieChart);
+
+        barChartPanel.setPreferredSize(ResultsDialog.CHART_PREFERRED_SIZE);
+        pieChartPanel.setPreferredSize(ResultsDialog.CHART_PREFERRED_SIZE);
+
+        return new Pair<>(barChartPanel, pieChartPanel);
+    }
+
+    /* Getters */
+
+    /**
+     * It returns the processing bar chart. This chart contains the processing
+     * results for each machine in a bar representation.
+     *
+     * @return the processing bar chart
+     */
     public ChartPanel getProcessingBarChart() {
         return this.processingBarChart;
     }
 
-    public ChartPanel getCommunicationBarChart() {
-        return null;
-    }
-
+    /**
+     * It returns the processing pie chart. This chart contains the processing
+     * results for each machine in a pie representation.
+     *
+     * @return the processing pie chart
+     */
     public ChartPanel getProcessingPieChart() {
         return this.processingPieChart;
     }
 
+    /**
+     * It returns the communication bar chart. This chart contains the
+     * communication results for each network link in a bar representation.
+     *
+     * @return the communication bar chart
+     */
+    public ChartPanel getCommunicationBarChart() {
+        return this.communicationBarChart;
+    }
+
+    /**
+     * It returns the communication pie chart. This chart contains the
+     * communication results for each network link in a pie representation.
+     *
+     * @return the communication pie chart
+     */
     public ChartPanel getCommunicationPieChart() {
         return this.communicationPieChart;
     }
 
-    public ChartPanel getUserThroughTimeChart1() {
-        return this.userThroughTime1;
-    }
-
-    public ChartPanel getUserThroughTimeChart2() {
-        return this.UserThroughTime2;
-    }
-
-    public ChartPanel getMachineThroughTimeChart() {
-        return this.machineThroughTime;
-    }
-
-    public ChartPanel getTaskThroughTimeChart() {
-        return this.TaskThroughTime;
-    }
-
-    public void criarProcessamento(
-            final Map<String, ? extends MetricasProcessamento> metrics) {
-        this.processingBarChart = SimulationResultChartMaker.makeBarChart(metrics);
-        this.processingPieChart = SimulationResultChartMaker.makePieChart(metrics);
-    }
-
-    private static ChartPanel makeBarChart(
-            final Map<String, ? extends MetricasProcessamento> metrics) {
-        final var chart = ChartFactory.createBarChart(
-                "Total processed on each " +
-                        "resource",
-                "Resource",
-                "Mflops",
-                SimulationResultChartMaker.makeBarChartData(metrics),
-                PlotOrientation.VERTICAL,
-                false,
-                false,
-                false
-        );
-
-        if (SimulationResultChartMaker.shouldInclineXAxis(metrics)) {
-            SimulationResultChartMaker.inclineChartXAxis(chart);
-        }
-
-        return SimulationResultChartMaker.panelWithPreferredSize(chart);
-    }
-
-    private static ChartPanel makePieChart(
-            final Map<String, ? extends MetricasProcessamento> metrics) {
-        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createPieChart(
-                "Total processed on each resource",
-                SimulationResultChartMaker.makePieChartData(metrics),
-                true,
-                false,
-                false
-        ));
-    }
-
-    private static DefaultCategoryDataset makeBarChartData(
-            final Map<String, ? extends MetricasProcessamento> metrics) {
-        final var data = new DefaultCategoryDataset();
-        if (metrics == null) {
-            return data;
-        }
-        metrics.values().forEach(v -> data.addValue(
-                v.getMFlopsProcessados(),
-                "vermelho",
-                SimulationResultChartMaker.makeKey(v)));
-        return data;
-    }
-
-    private static boolean shouldInclineXAxis(
-            final Map<String, ? extends MetricasProcessamento> metrics) {
-        return metrics != null && metrics.size() > 10;
-    }
-
-    private static void inclineChartXAxis(final JFreeChart chart) {
-        chart.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
-    }
-
-    private static ChartPanel panelWithPreferredSize(final JFreeChart chart) {
-        final var panel = new ChartPanel(chart);
-        panel.setPreferredSize(SimulationResultChartMaker.PREFERRED_CHART_SIZE);
-        return panel;
-    }
-
-    private static DefaultPieDataset makePieChartData(
-            final Map<String, ? extends MetricasProcessamento> metrics) {
-        final var data = new DefaultPieDataset();
-        if (metrics == null) {
-            return data;
-        }
-        metrics.values().forEach(v -> data.insertValue(
-                0,
-                SimulationResultChartMaker.makeKey(v),
-                v.getMFlopsProcessados())
-        );
-        return data;
-    }
-
-    private static String makeKey(final MetricasProcessamento mt) {
-        final var id = mt.getId();
-        final var machineNum = mt.getnumeroMaquina();
-        return machineNum == 0 ? id
-                : "%s node %d".formatted(id, machineNum);
-    }
-
-    public void criarComunicacao(
-            final Map<String, ? extends MetricasComunicacao> metrics) {
-        final var commsPieChartData = new DefaultPieDataset();
-
-        if (metrics != null) {
-            for (final var link : metrics.values()) {
-                commsPieChartData.insertValue(
-                        0, link.getId(), link.getMbitsTransmitidos());
-            }
-        }
-
-        this.communicationPieChart =
-                SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createPieChart(
-                        "Total communication in each resource",
-                        commsPieChartData,
-                        true,
-                        false,
-                        false
-                ));
-    }
-
-    public void criarProcessamentoTempoTarefa(
-            final Iterable<? extends Tarefa> tasks) {
-        this.TaskThroughTime = this.makeTaskThroughTimeChart(tasks);
-    }
-
-    private ChartPanel makeTaskThroughTimeChart(
-            final Iterable<? extends Tarefa> tasks) {
-        return new ChartPanel(ChartFactory.createXYAreaChart(
-                "Use of total computing power through time \nTasks",
-                "Time (seconds)",
-                "Rate of total use of computing power (%)",
-                this.makeTTTChartData(tasks),
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false)
-        );
-    }
-
-    private XYSeriesCollection makeTTTChartData(
-            final Iterable<? extends Tarefa> tasks) {
-
-        final var data = new XYSeriesCollection();
-
-        tasks.forEach(task -> this.addTaskToChartData(task, data));
-
-        return data;
-    }
-
-    private void addTaskToChartData(
-            final Tarefa task, final XYSeriesCollection chartData) {
-        final var series = this.makeTaskTimeSeries(task);
-        if (series == null) return;
-        chartData.addSeries(series);
-    }
-
-    private XYSeries makeTaskTimeSeries(final Tarefa task) {
-        final var temp = (CS_Processamento) task.getLocalProcessamento();
-
-        if (temp == null) {
-            return null;
-        }
-
-        final var series =
-                new XYSeries("task %d".formatted(task.getIdentificador()));
-
-        final Double usage =
-                temp.getPoderComputacional() / this.poderComputacionalTotal * 100;
-
-        Stream.concat(
-                task.getTempoInicial().stream(),
-                task.getTempoFinal().stream()
-        ).forEach(time -> {
-            series.add(time, SimulationResultChartMaker.ZERO);
-            series.add(time, usage);
-        });
-
-        return series;
+    /**
+     * It returns the computing power per machine chart. This chart contains the
+     * computational power usage through time for each machine in a bar representation.
+     *
+     * @return the computing power per machine chart
+     */
+    public ChartPanel getComputingPowerPerMachineChart() {
+        return this.computingPowerPerMachineChart;
     }
 
     /**
-     * Cria o gráfico que demonstra o uso de cada recurso do sistema através
-     * do tempo.
-     * Ele recebe como parâmetro a lista com as maquinas que processaram
-     * durante a simulação.
+     * It returns the computing power per user chart. This chart contains the
+     * computational power usage through time for each user in a bar representation.
+     *
+     * @return the computing power per user chart
      */
-    public void criarProcessamentoTempoMaquina(final RedeDeFilas qn) {
-        this.machineThroughTime = this.makeMachineProcTimeChart(qn);
+    public ChartPanel getComputingPowerPerUserChart() {
+        return this.computingPowerPerUserChart;
     }
 
-    private ChartPanel makeMachineProcTimeChart(final RedeDeFilas qn) {
-        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createXYAreaChart(
-                "Use of computing power through time \nMachines",
-                "Time (seconds)",
-                "Rate of use of computing power for each node (%)",
-                this.getMachineProcTimeChartData(qn),
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        ));
-    }
-
-    private XYSeriesCollection getMachineProcTimeChartData(final RedeDeFilas qn) {
-        final var data = new XYSeriesCollection();
-        if (qn.getMaquinas() == null) {
-            return data;
-        }
-        qn.getMaquinas().forEach(machine ->
-                this.addMachineStatsToChartData(data, machine));
-        return data;
-    }
-
-    private void addMachineStatsToChartData(
-            final XYSeriesCollection data, final CS_Processamento machine) {
-        this.poderComputacionalTotal += SimulationResultChartMaker.computationalPowerForMachine(machine);
-
-        final List<ParesOrdenadosUso> list = machine.getListaProcessamento();
-
-        if (list.isEmpty()) {
-            return;
-        }
-
-        final var timeSeries = SimulationResultChartMaker.buildSeriesForMachine(machine, list);
-
-        data.addSeries(timeSeries);
-    }
-
-    private static double computationalPowerForMachine(final CS_Processamento machine) {
-        final var power = machine.getPoderComputacional();
-        return power - (machine.getOcupacao() * power);
-    }
-
-    private static XYSeries buildSeriesForMachine(
-            final CS_Processamento machine,
-            final List<? extends ParesOrdenadosUso> list) {
-        final Double usage = SimulationResultChartMaker.ONE_HUNDRED_PERCENT
-                             - (machine.getOcupacao() * SimulationResultChartMaker.ONE_HUNDRED_PERCENT);
-
-        final var title = SimulationResultChartMaker.isMachineCluster(machine)
-                ? "%s node %d".formatted(
-                machine.getId(), machine.getnumeroMaquina())
-                : machine.getId();
-        final var timeSeries = new XYSeries(title);
-
-        final var count = list.size();
-        for (int i = 0; i < count; ++i) {
-            final var currInterval = list.get(i);
-            timeSeries.add(currInterval.getInicio(), usage);
-            timeSeries.add(currInterval.getFim(), usage);
-            if (i + 1 < count) {
-                final var nextInterval = list.get(i + 1);
-                timeSeries.add(currInterval.getFim(), SimulationResultChartMaker.ZERO);
-                timeSeries.add(nextInterval.getInicio(), SimulationResultChartMaker.ZERO);
-            }
-        }
-
-        return timeSeries;
-    }
-
-    private static boolean isMachineCluster(final CS_Processamento machine) {
-        return machine.getnumeroMaquina() != 0;
-    }
-
-    public void criarProcessamentoTempoUser(
-            final Collection<? extends Tarefa> tasks, final RedeDeFilas qn) {
-        final int userCount = qn.getUsuarios().size();
-
-        final var timeSeries1 = SimulationResultChartMaker.userSeries(qn);
-        final var userUsage1 = new Double[userCount];
-        final var chartData1 = new XYSeriesCollection();
-
-        final var timeSeries2 = SimulationResultChartMaker.userSeries(qn);
-        final var userUsage2 = new Double[userCount];
-        final var chartData2 = new XYSeriesCollection();
-
-        final var list =
-                this.makeUserTimesList(tasks, SimulationResultChartMaker.makeUserMap(qn));
-
-        for (final var useTime : list) {
-            final int userId = useTime.getUserId();
-            for (int id = userId; id < userCount; id++) {
-                this.updateUserUsage(timeSeries1[id], userUsage1, useTime, id);
-            }
-            this.updateUserUsage(timeSeries2[userId], userUsage2, useTime,
-                    userId);
-        }
-
-        for (int i = 0; i < userCount; i++) {
-            chartData1.addSeries(timeSeries1[i]);
-        }
-
-        for (int i = 0; i < userCount; i++) {
-            chartData2.addSeries(timeSeries2[i]);
-        }
-
-        final JFreeChart chart1 = ChartFactory.createXYAreaChart(
-                "Use of total computing power through time\nUsers",
-                "Time (seconds)",
-                "Rate of total use of computing power (%)",
-                chartData2,
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        );
-
-        final JFreeChart chart2 = ChartFactory.createXYLineChart(
-                "Use of total computing power through time\nUsers",
-                "Time (seconds)",
-                "Rate of total use of computing power (%)",
-                chartData1,
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        );
-
-        this.setPlotRenderer(chart2);
-
-        final ChartPanel chartPanel1 = SimulationResultChartMaker.panelWithPreferredSize(chart1);
-        this.userThroughTime1 = chartPanel1;
-
-        final ChartPanel chartPanel2 = SimulationResultChartMaker.panelWithPreferredSize(chart2);
-        this.UserThroughTime2 = chartPanel2;
-    }
-
-    private static XYSeries[] userSeries(final RedeDeFilas qn) {
-        final int userCount = qn.getUsuarios().size();
-        final var series = new XYSeries[userCount];
-        for (int i = 0; i < userCount; i++) {
-            series[i] = new XYSeries(qn.getUsuarios().get(i));
-        }
-        return series;
-    }
-
-    private ArrayList<UserOperationTime> makeUserTimesList(
-            final Collection<? extends Tarefa> tasks,
-            final Map<String, Integer> users) {
-        final var list = new ArrayList<UserOperationTime>(0);
-
-        if (tasks.isEmpty()) {
-            return list;
-        }
-
-        for (final var task : tasks) {
-            this.addTaskStatsToList(task, list, users);
-        }
-
-        Collections.sort(list);
-        return list;
-    }
-
-    private static Map<String, Integer> makeUserMap(final RedeDeFilas qn) {
-        final int userCount = qn.getUsuarios().size();
-        final Map<String, Integer> users = new HashMap<>(userCount);
-        for (int i = 0; i < userCount; i++) {
-            users.put(qn.getUsuarios().get(i), i);
-        }
-        return users;
-    }
-
-    private void updateUserUsage(
-            final XYSeries timeSeries,
-            final Double[] usages,
-            final UserOperationTime userTime,
-            final int index) {
-        timeSeries.add(userTime.getTime(), usages[index]);
-        if (userTime.isStartTime()) {
-            usages[index] += userTime.getNodeUse();
-        } else {
-            usages[index] -= userTime.getNodeUse();
-        }
-        timeSeries.add(userTime.getTime(), usages[index]);
-    }
-
-    private void setPlotRenderer(final JFreeChart user2) {
-        final var xyPlot = (XYPlot) user2.getPlot();
-        xyPlot.setDomainPannable(true);
-        final var xyStepAreaRenderer = new XYStepAreaRenderer(2);
-        xyStepAreaRenderer.setDataBoundsIncludesVisibleSeriesOnly(false);
-        xyStepAreaRenderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator());
-        xyStepAreaRenderer.setDefaultEntityRadius(6);
-        xyPlot.setRenderer(xyStepAreaRenderer);
-    }
-
-    private void addTaskStatsToList(
-            final Tarefa task,
-            final Collection<? super UserOperationTime> list,
-            final Map<String, Integer> users) {
-        if (task.getLocalProcessamento() == null) {
-            return;
-        }
-
-        final int intervalCount = task.getTempoInicial().size();
-        for (int i = 0; i < intervalCount; i++) {
-            final var usage = this.calculateUsage(task, i);
-            final var ownerId = users.get(task.getProprietario());
-            list.add(new UserOperationTime(
-                    task.getTempoInicial().get(i),
-                    true,
-                    usage,
-                    ownerId
-            ));
-            list.add(new UserOperationTime(
-                    task.getTempoFinal().get(i),
-                    false,
-                    usage,
-                    ownerId
-            ));
-        }
-    }
-
-    private double calculateUsage(final Tarefa task, final int i) {
-        return (task.getHistoricoProcessamento().get(i).getPoderComputacional() / this.poderComputacionalTotal) * SimulationResultChartMaker.ONE_HUNDRED_PERCENT;
-    }
-
-    public ChartPanel criarGraficoPorTarefa(
-            final Collection<? extends Tarefa> tasks,
-            final int taskId) {
-
-        final var task = tasks.stream()
-                .filter(t -> t.getIdentificador() == taskId)
-                .findFirst()
-                .orElse(null);
-
-        if (task == null || task.getEstado() == Tarefa.CANCELADO) {
-            return null;
-        }
-
-        final double totalProcessedMFlops =
-                SimulationResultChartMaker.calculateTotalProcessedMFlops(task);
-
-        final var chartData = new DefaultCategoryDataset();
-        SimulationResultChartMaker.addTaskProcessingData(chartData, task.getTamProcessamento(),
-                "Usefull processing", totalProcessedMFlops);
-        SimulationResultChartMaker.addTaskProcessingData(chartData, task.getMflopsDesperdicados(),
-                "Wasted processing", totalProcessedMFlops);
-
-        final var chart = ChartFactory.createStackedBarChart(
-                "MFlop usage for task " + taskId,
-                "",
-                "% of total MFlop executed for the task",
-                chartData,
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        );
-
-        final ChartPanel panel = SimulationResultChartMaker.panelWithPreferredSize(chart);
-        return panel;
-    }
-
-    private static double calculateTotalProcessedMFlops(final Tarefa task) {
-        final int historySize = task.getHistoricoProcessamento().size();
-        double total = 0.0;
-        for (int i = 0; i < historySize; i++) {
-            total += task.getHistoricoProcessamento().get(i).getMflopsProcessados(
-                    task.getTempoFinal().get(i) - task.getTempoInicial().get(i));
-        }
-        return total;
-    }
-
-    private static void addTaskProcessingData(
-            final DefaultCategoryDataset data,
-            final double processing,
-            final String title,
-            final double totalProcessing) {
-        data.addValue(
-                processing / totalProcessing * SimulationResultChartMaker.ONE_HUNDRED_PERCENT,
-                title,
-                "Task size :%s MFlop, total executed for task: %s MFlop"
-                        .formatted(processing, totalProcessing)
-        );
-    }
-
-    public ChartPanel criarGraficoAproveitamento(
-            final Collection<? extends Tarefa> tasks) {
-        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createStackedBarChart(
-                "Processing efficiency",
-                "",
-                "% of total MFlop executed",
-                SimulationResultChartMaker.makeUsageChartData(tasks),
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        ));
-    }
-
-    private static DefaultCategoryDataset makeUsageChartData(
-            final Collection<? extends Tarefa> tasks) {
-
-        final double useful = tasks.stream()
-                .filter(t -> t.getEstado() != Tarefa.CANCELADO)
-                .mapToDouble(Tarefa::getTamProcessamento)
-                .sum();
-
-        final double wasted = tasks.stream()
-                .mapToDouble(Tarefa::getMflopsDesperdicados)
-                .sum();
-
-        final double total = wasted + useful;
-
-        final var chartData = new DefaultCategoryDataset();
-        SimulationResultChartMaker.addProcessingData(
-                chartData, "Usefull Processing", useful, total);
-        SimulationResultChartMaker.addProcessingData(
-                chartData, "Wasted Processing", wasted, total);
-        return chartData;
-    }
-
-    private static void addProcessingData(
-            final DefaultCategoryDataset chartData,
-            final String title,
-            final double processing,
-            final double totalProcessing) {
-        chartData.addValue(processing / totalProcessing * SimulationResultChartMaker.ONE_HUNDRED_PERCENT, title, "MFlop Usage");
-    }
-
-    public ChartPanel criarGraficoNumTarefasAproveitamento(
-            final Iterable<? extends Tarefa> tasks) {
-        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createStackedBarChart(
-                "Processing efficiency",
-                "",
-                "Number of tasks",
-                SimulationResultChartMaker.makeChartDataForTaskCount(tasks),
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        ));
-    }
-
-    private static DefaultCategoryDataset makeChartDataForTaskCount(
-            final Iterable<? extends Tarefa> tasks) {
-
-        int cancelled = 0;
-        int withoutWaste = 0;
-        int withWaste = 0;
-
-        for (final var task : tasks) {
-            if (task.getEstado() == Tarefa.CANCELADO) {
-                cancelled++;
-            } else if (task.getMflopsDesperdicados() == 0.0) {
-                withoutWaste++;
-            } else {
-                withWaste++;
-            }
-        }
-
-        final var chartData = new DefaultCategoryDataset();
-
-        chartData.addValue(
-                withWaste, "Number of tasks", "Tasks with waste");
-        chartData.addValue(
-                withoutWaste, "Number of tasks", "Tasks without waste");
-        chartData.addValue(
-                cancelled, "Number of tasks", "Canceled Tasks");
-
-        return chartData;
-    }
-
-    public void criarGraficoPreempcao(
-            final RedeDeFilas qn,
-            final Iterable<? extends Tarefa> tasks) {
-        this.PreemptionPerUser =
-                SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createStackedBarChart(
-                        "Tasks preempted per user",
-                        "",
-                        "Number of tasks",
-                        SimulationResultChartMaker.makePreemptionChartData(qn, tasks),
-                        PlotOrientation.VERTICAL,
-                        true,
-                        true,
-                        false
-                ));
-    }
-
-    private static DefaultCategoryDataset makePreemptionChartData(
-            final RedeDeFilas qn,
-            final Iterable<? extends Tarefa> tasks) {
-
-        final var preemptedTasks =
-                SimulationResultChartMaker.calculatePreemptedTasksPerUser(qn, tasks);
-
-        final var chartData = new DefaultCategoryDataset();
-
-        final int userCount = qn.getUsuarios().size();
-        for (int i = 0; i < userCount; i++) {
-            chartData.addValue(
-                    preemptedTasks.get(i),
-                    "Number of tasks",
-                    qn.getUsuarios().get(i)
-            );
-        }
-
-        return chartData;
-    }
-
-    private static ArrayList<Integer> calculatePreemptedTasksPerUser(
-            final RedeDeFilas qn,
-            final Iterable<? extends Tarefa> tasks) {
-        final var preemptedTasks = SimulationResultChartMaker.preemptiveTasksList(qn);
-
-        for (final var task : tasks) {
-            final int userIndex =
-                    qn.getUsuarios().indexOf(task.getProprietario());
-
-            if (SimulationResultChartMaker.taskIsPreempted(task)) {
-                preemptedTasks.set(
-                        userIndex, 1 + preemptedTasks.get(userIndex));
-            }
-        }
-
-        return preemptedTasks;
-    }
-
-    private static ArrayList<Integer> preemptiveTasksList(final RedeDeFilas qn) {
-        final int userCount = qn.getUsuarios().size();
-        final var preemptiveTasks = new ArrayList<Integer>(userCount);
-        for (int i = 0; i < userCount; i++) {
-            preemptiveTasks.add(0);
-        }
-        return preemptiveTasks;
-    }
-
-    private static boolean taskIsPreempted(final Tarefa task) {
-        return task.getMflopsDesperdicados() > 0.0 && task.getEstado() != Tarefa.CANCELADO;
-    }
-
-    public ChartPanel gerarGraficoPorMaquina(
-            final List<Tarefa> tasks,
-            final String machineId) {
-
-        final var machine = this.rede.getMaquinas().stream()
-                .filter(machine1 -> machine1.getId().equals(machineId))
-                .findFirst()
-                .orElse(null);
-
-        if (machine == null) {
-            return null;
-        }
-
-        return SimulationResultChartMaker.panelWithPreferredSize(ChartFactory.createStackedBarChart(
-                "Processing efficiency for resource %s".formatted(machine.getId()),
-                "",
-                "% of total MFlop executed",
-                SimulationResultChartMaker.makePerMachineChartData(machine),
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false
-        ));
-    }
-
-    private static DefaultCategoryDataset makePerMachineChartData(final CS_Maquina machine) {
-        double usedMFlops = 0.0;
-        double lostMFlops = 0.0;
-
-        for (final var task : machine.getHistorico()) {
-            final var machines = task.getHistoricoProcessamento();
-            final int count = machines.size();
-            for (int i = 0; i < count; ++i) {
-                if (!machine.getId().equals(machines.get(i).getId())) {
-                    continue;
-                }
-
-                final double processed = machine.getMflopsProcessados(
-                        task.getTempoFinal().get(i) - task.getTempoInicial().get(i));
-
-                if (task.getMflopsDesperdicados() == 0.0) {
-                    usedMFlops += processed;
-                    continue;
-                }
-
-                final double checkpoint = task.getCheckPoint();
-
-                if (checkpoint == 0.0) {
-                    lostMFlops += processed;
-                    continue;
-                }
-
-                final double quotient = processed / checkpoint;
-                final double remainder = processed % checkpoint;
-                usedMFlops += quotient - remainder;
-                lostMFlops += remainder;
-            }
-        }
-
-        final double total = lostMFlops + usedMFlops;
-        final var data = new DefaultCategoryDataset();
-        SimulationResultChartMaker.addProcessingData(
-                data, "Usefull Processing", usedMFlops, total);
-        SimulationResultChartMaker.addProcessingData(
-                data, "Wasted Processing", lostMFlops, total);
-        return data;
-    }
-
-    public void calculaPoderTotal(final RedeDeFilas rdf) {
-        for (final CS_Processamento maq : rdf.getMaquinas()) {
-            this.poderComputacionalTotal += SimulationResultChartMaker.computationalPowerForMachine(maq);
-        }
+    /**
+     * It returns the computing power per task chart. This chart contains the
+     * computational power usage through time for each task in a bar representation.
+     *
+     * @return the computing power per task chart
+     */
+    public ChartPanel getComputingPowerPerTaskChart() {
+        return this.computingPowerPerTaskChart;
     }
 }

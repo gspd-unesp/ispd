@@ -52,6 +52,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,6 +193,7 @@ public class Metricas implements Serializable {
         this.usuarios = redeDeFilas.getUsuarios();
 
         //Maps
+        metricasSatisfacao = new HashMap<>();
         satisfacaoGeralSim = new HashMap<>();
         satisfacaoGeralUso = new HashMap<>();
         consumoEnergiaTotalUsuario = new HashMap<>();
@@ -355,6 +357,59 @@ public class Metricas implements Serializable {
         this.historicoTempoInicial.add(metrica.getTempoInicial());
         this.historicoTurnaroundTime.add(metrica.getTurnaroudTime());
         this.historicoTempoSim.add(metrica.getTEMPOSIM());
+    }
+
+
+    /**
+     * It creates the resources table. The resources table contains results of
+     * performed computation for each machine adn performed communication for
+     * each network link.
+     *
+     * @return a table containing information about performed computation for
+     *         each machine and performed communication for each network link.
+     */
+    public Object[][] makeResourceTable() {
+        final var table = new ArrayList<Object[]>();
+
+        /* Add table entries for processing metrics */
+        if (this.metricasProcessamento != null) {
+            for (final MetricasProcessamento processingMetrics
+                    : this.metricasProcessamento.values()) {
+                final String name;
+
+                if (processingMetrics.getnumeroMaquina() == 0)
+                    name = processingMetrics.getId();
+                else
+                    name = processingMetrics.getId() + " node " + processingMetrics.getnumeroMaquina();
+
+                table.add(Arrays.asList(
+                        name,
+                        processingMetrics.getProprietario(),
+                        processingMetrics.getSegundosDeProcessamento(),
+                        0.0d
+                ).toArray());
+            }
+        }
+
+        /* Add table entries for communication metrics */
+        if (this.metricasComunicacao != null) {
+            for (final MetricasComunicacao communicationMetrics
+                    : this.metricasComunicacao.values()) {
+
+                table.add(Arrays.asList(
+                        communicationMetrics.getId(),
+                        "---",
+                        0.0d,
+                        communicationMetrics.getSegundosDeTransmissao()
+                ).toArray());
+            }
+        }
+
+        final var tableArray = new Object[table.size()][4];
+        for (int i = 0; i < table.size(); i++)
+            tableArray[i] = table.get(i);
+
+        return tableArray;
     }
 
     public RedeDeFilas getRedeDeFilas() {
@@ -676,9 +731,18 @@ public class Metricas implements Serializable {
             limitesConsumoTempoUso.put(user, limiteConsUso.multiply(BigDecimal.valueOf(fim - inicio)));
             tempoFinalExec.put(user, BigDecimal.valueOf(fim));
             tempoInicialExec.put(user, BigDecimal.valueOf(inicio));
-            
-            BigDecimal alpha = consumoMaxLocal.get(user).divide(consumoLocal.get(user), 2, RoundingMode.DOWN);
-            BigDecimal betaSim = (((consumoEnergiaTotalUsuario.get(user).negate()).add(consumoTotalSistema)).divide(limitesConsumoTempoSim.get(user), 2, RoundingMode.DOWN)).add(BigDecimal.ONE);
+
+            BigDecimal alpha;
+            if (consumoLocal.get(user).compareTo(BigDecimal.ZERO) == 0)
+                alpha = BigDecimal.ZERO;
+            else
+                alpha = consumoMaxLocal.get(user).divide(consumoLocal.get(user), 2, RoundingMode.DOWN);
+
+            BigDecimal betaSim;
+            if (limitesConsumoTempoSim.get(user).compareTo(BigDecimal.ZERO) == 0)
+                betaSim = BigDecimal.ZERO;
+            else
+                betaSim = (((consumoEnergiaTotalUsuario.get(user).negate()).add(consumoTotalSistema)).divide(limitesConsumoTempoSim.get(user), 2, RoundingMode.DOWN)).add(BigDecimal.ONE);
             
             alphaUsuarios.put(user, alpha);
             betaTempoSim.put(user, betaSim);
@@ -686,11 +750,9 @@ public class Metricas implements Serializable {
             BigDecimal satisGeralSim = (satisfacaoGeralSim.get(user)).multiply((alpha.multiply(betaSim)));
 
             satisfacaoGeralSim.put(user, satisGeralSim);
+            betaTempoUso.put(user, betaSim);
             
-            BigDecimal betaUso = (((consumoEnergiaTotalUsuario.get(user).negate()).add(consumoTotalSistema)).divide(limitesConsumoTempoUso.get(user), 2, RoundingMode.DOWN)).add(BigDecimal.ONE);
-            betaTempoUso.put(user, betaUso);
-            
-            BigDecimal satisGeralUso = (satisfacaoGeralUso.get(user)).multiply((alpha.multiply(betaUso)));
+            BigDecimal satisGeralUso = (satisfacaoGeralUso.get(user)).multiply((alpha.multiply(betaSim)));
             
             satisfacaoGeralUso.put(user, satisGeralUso);
             turnaroundTime.put(user,turnaroundTime.get(user).divide(BigDecimal.valueOf(tarefasConcluidas.get(user)),BigDecimal.ROUND_UP));
@@ -946,5 +1008,9 @@ public class Metricas implements Serializable {
 
     private Double getTEMPOSIM() {
         return this.tempoSIM;
+    }
+
+    public boolean hasCancelledTasks() {
+        return this.numTarefasCanceladas > 0;
     }
 }
