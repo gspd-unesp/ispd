@@ -1,78 +1,22 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * IconicoXML.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- *
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.arquivo.xml;
 
+import ispd.arquivo.xml.models.builders.CloudQueueNetworkBuilder;
+import ispd.arquivo.xml.models.builders.IconicModelBuilder;
+import ispd.arquivo.xml.models.builders.LoadBuilder;
+import ispd.arquivo.xml.models.builders.QueueNetworkBuilder;
+import ispd.arquivo.xml.models.builders.ServiceCenterBuilder;
+import ispd.arquivo.xml.utils.WrappedDocument;
+import ispd.arquivo.xml.utils.WrappedElement;
 import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Vertex;
-import ispd.gui.iconico.grade.Cluster;
-import ispd.gui.iconico.grade.Internet;
-import ispd.gui.iconico.grade.GridItem;
-import ispd.gui.iconico.grade.Link;
-import ispd.gui.iconico.grade.Machine;
 import ispd.gui.iconico.grade.VirtualMachine;
-import ispd.motor.carga.CargaForNode;
-import ispd.motor.carga.CargaList;
-import ispd.motor.carga.CargaRandom;
-import ispd.motor.carga.CargaTrace;
 import ispd.motor.carga.GerarCarga;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
-import ispd.motor.filas.servidores.CS_Comunicacao;
-import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.filas.servidores.CentroServico;
-import ispd.motor.filas.servidores.implementacao.CS_Internet;
-import ispd.motor.filas.servidores.implementacao.CS_Link;
-import ispd.motor.filas.servidores.implementacao.CS_Maquina;
-import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
-import ispd.motor.filas.servidores.implementacao.CS_Mestre;
-import ispd.motor.filas.servidores.implementacao.CS_Switch;
-import ispd.motor.filas.servidores.implementacao.CS_VMM;
-import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import ispd.motor.filas.servidores.implementacao.Vertice;
-import ispd.motor.metricas.MetricasUsuarios;
-import ispd.utils.ValidaValores;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -82,1426 +26,809 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Realiza manupulações com o arquivo xml do modelo icônico
- *
- * @author denison
+ * Class responsible for manipulating xml files into iconic or simulable models,
+ * and building a document with a model from an iconic one.
  */
 public class IconicoXML {
-
-    public static Document newRedeDeFilas() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    private Document descricao;
-    private Element system;
-    private Element load;
-    private int tipoModelo;
+    private static final Element[] NO_CHILDREN = {};
+    private static final Object[][] NO_ATTRS = {};
+    private static final int DEFAULT_MODEL_TYPE = -1;
+    private final WrappedDocument doc =
+            new WrappedDocument(ManipuladorXML.newDocument());
+    private final Element system = this.doc.createElement("system");
+    private Element load = null;
 
     public IconicoXML() {
-        descricao = ManipuladorXML.novoDocumento();
-        system = descricao.createElement("system");
-        system.setAttribute("version", "1.2");
-        load = null;
-        descricao.appendChild(system);
+        this(IconicoXML.DEFAULT_MODEL_TYPE);
     }
 
-    public IconicoXML(int tipoModelo) {
-        this.tipoModelo = tipoModelo;
-        descricao = ManipuladorXML.novoDocumento();
-
-        /**
-         * o número da versão define se o tipo de modelo que está sendo salvo,
-         * desta forma: 2.1 -> modelo de grade 2.2 -> modelo de nuvem IaaS 2.3
-         * .> modelo de nuvem PaaS
-         *
-         * author: Diogo Tavares
-         */
-        system = descricao.createElement("system");
-        if (tipoModelo == PickModelTypeDialog.GRID) {
-            system.setAttribute("version", "2.1");
-        } else if (tipoModelo == PickModelTypeDialog.IAAS) {
-            system.setAttribute("version", "2.2");
-        } else if (tipoModelo == PickModelTypeDialog.PAAS) {
-            system.setAttribute("version", "2.3");
-        }
-
-        load = null;
-        descricao.appendChild(system);
+    public IconicoXML(final int modelType) {
+        this.system.setAttribute("version",
+                IconicoXML.getVersionForModelType(modelType));
+        this.doc.appendChild(this.system);
     }
 
     /**
-     * Este método sobrescreve ou cria arquivo xml do modelo iconico
+     * @throws IllegalArgumentException if modelType is not in -1, 0, 1 or 2
+     */
+    private static String getVersionForModelType(final int modelType) {
+        return switch (modelType) {
+            case PickModelTypeDialog.GRID -> "2.1";
+            case PickModelTypeDialog.IAAS -> "2.2";
+            case PickModelTypeDialog.PAAS -> "2.3";
+            case IconicoXML.DEFAULT_MODEL_TYPE -> "1.2";
+            default -> throw new IllegalArgumentException(
+                    "Invalid model type " + modelType);
+        };
+    }
+
+    /**
+     * Write iconic model in {@link Document} to path
      *
-     * @param documento modelo iconico
-     * @param arquivo local que será salvo
-     * @return indica se arquivo foi salvo corretamente
+     * @param doc  {@link Document} containing an iconic model
+     * @param path path in which to save the file
+     * @return {@code true} if the file was saved successfully, {@code false}
+     * otherwise
      */
-    public static boolean escrever(Document documento, File arquivo) {
-        return ManipuladorXML.escrever(documento, arquivo, "iSPD.dtd", false);
+    public static boolean escrever(final Document doc, final File path) {
+        return ManipuladorXML.write(doc, path, "iSPD.dtd", false);
     }
 
     /**
-     * Realiza a leitura de um arquivo xml contendo o modelo iconico
-     * especificado pelo iSPD.dtd
+     * Reads xml file in path and parses it into a {@link Document}
+     * containing an iconic model
      *
-     * @param xmlFile endereço do arquivo xml
-     * @return modelo iconico obtido do arquivo
+     * @param path path to xml file with an iconic model
+     * @return {@link Document} with the iconic model in the file
      */
-    public static Document ler(File xmlFile) throws ParserConfigurationException, IOException, SAXException {
-        return ManipuladorXML.ler(xmlFile, "iSPD.dtd");
+    public static Document ler(final File path) throws ParserConfigurationException, IOException, SAXException {
+        return ManipuladorXML.read(path, "iSPD.dtd");
     }
 
     /**
-     * Verifica se modelo está completo
+     * Checks the integrity of the model in the {@link Document}.
+     * Performs very simple checks such as if the model has at least one user
+     * and machine.
+     *
+     * @param doc {@link Document} containing iconic model
+     * @throws IllegalArgumentException if the model is incomplete
      */
-    public static void validarModelo(Document documento) throws IllegalArgumentException {
-        org.w3c.dom.NodeList owner = documento.getElementsByTagName("owner");
-        org.w3c.dom.NodeList maquinas = documento.getElementsByTagName("machine");
-        org.w3c.dom.NodeList clusters = documento.getElementsByTagName("cluster");
-        org.w3c.dom.NodeList internet = documento.getElementsByTagName("internet");
-        org.w3c.dom.NodeList links = documento.getElementsByTagName("link");
-        org.w3c.dom.NodeList vms = documento.getElementsByTagName("vitualMac");
-        org.w3c.dom.NodeList cargas = documento.getElementsByTagName("load");
-        if (owner.getLength() == 0) {
+    public static void validarModelo(final Document doc) {
+        final var document = new WrappedDocument(doc);
+
+        if (document.hasNoOwners()) {
             throw new IllegalArgumentException("The model has no users.");
         }
-        if (maquinas.getLength() == 0 && clusters.getLength() == 0) {
+
+        if (document.hasNoMachines() && document.hasNoClusters()) {
             throw new IllegalArgumentException("The model has no icons.");
         }
-        if (cargas.getLength() == 0) {
-            throw new IllegalArgumentException("One or more  workloads have not been configured.");
+
+        if (document.hasNoLoads()) {
+            throw new IllegalArgumentException(
+                    "One or more workloads have not been configured.");
         }
-        boolean achou = false;
-        int i = 0;
-        while (!achou && i < maquinas.getLength()) {
-            org.w3c.dom.Element maquina = (org.w3c.dom.Element) maquinas.item(i);
-            if (maquina.getElementsByTagName("master").getLength() > 0) {
-                achou = true;
-            }
-            i++;
-        }
-        if (!achou) {
-            throw new IllegalArgumentException("One or more parameters have not been configured.");
-        }
-        //laço para validar cada elemento do modelo
-        for (i = 0; i < maquinas.getLength(); i++) {
-            maquinas.item(i).getAttributes();
+
+        if (document.hasNoMasters()) {
+            throw new IllegalArgumentException(
+                    "One or more parameters have not been configured.");
         }
     }
 
     /**
-     * Converte um modelo iconico em uma rede de filas para o motor de simulação
+     * Convert an iconic model into a queue network, usable in the simulation
+     * motor.
      *
-     * @param modelo Objeto obtido a partir do xml com a grade computacional
-     * modelada
-     * @return Rede de filas simulável contruida conforme modelo
+     * @param model Object from xml with modeled computational grid
+     * @return Simulable queue network, in accordance to given model
      */
-    public static RedeDeFilas newRedeDeFilas(Document modelo) {
-        NodeList docmaquinas = modelo.getElementsByTagName("machine");
-        NodeList docclusters = modelo.getElementsByTagName("cluster");
-        NodeList docinternet = modelo.getElementsByTagName("internet");
-        NodeList doclinks = modelo.getElementsByTagName("link");
-        NodeList owners = modelo.getElementsByTagName("owner");
-
-        HashMap<Integer, CentroServico> centroDeServicos = new HashMap<Integer, CentroServico>();
-        HashMap<CentroServico, List<CS_Maquina>> escravosCluster = new HashMap<CentroServico, List<CS_Maquina>>();
-        List<CS_Processamento> mestres = new ArrayList<CS_Processamento>();
-        List<CS_Maquina> maqs = new ArrayList<CS_Maquina>();
-        List<CS_VirtualMac> vms = new ArrayList<CS_VirtualMac>();
-        List<CS_Comunicacao> links = new ArrayList<CS_Comunicacao>();
-        List<CS_Internet> nets = new ArrayList<CS_Internet>();
-        //cria lista de usuarios e o poder computacional cedido por cada um
-        HashMap<String, Double> usuarios = new HashMap<String, Double>();
-        HashMap<String,Double> perfis = new HashMap<String,Double>();
-        for (int i = 0; i < owners.getLength(); i++) {
-            Element owner = (Element) owners.item(i);
-            usuarios.put(owner.getAttribute("id"), 0.0);
-            perfis.put(owner.getAttribute("id"), Double.parseDouble(owner.getAttribute("powerlimit")));
-        }
-        //cria maquinas, mestres, internets e mestres dos clusters
-        //Realiza leitura dos icones de máquina
-        for (int i = 0; i < docmaquinas.getLength(); i++) {
-            Element maquina = (Element) docmaquinas.item(i);
-            Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            if (maquina.getElementsByTagName("master").getLength() > 0) {
-                Element master = (Element) maquina.getElementsByTagName("master").item(0);
-                CS_Mestre mestre = new CS_Mestre(
-                        maquina.getAttribute("id"),
-                        maquina.getAttribute("owner"),
-                        Double.parseDouble(maquina.getAttribute("power")),
-                        Double.parseDouble(maquina.getAttribute("load")),
-                        master.getAttribute("scheduler")/*Escalonador*/,
-                        Double.parseDouble(maquina.getAttribute("energy")));
-                centroDeServicos.put(global, mestre);
-                mestres.add(mestre);
-                usuarios.put(mestre.getProprietario(), usuarios.get(mestre.getProprietario()) + mestre.getPoderComputacional());
-            } else {
-                CS_Maquina maq = new CS_Maquina(
-                        maquina.getAttribute("id"),
-                        maquina.getAttribute("owner"),
-                        Double.parseDouble(maquina.getAttribute("power")),
-                        1/*num processadores*/,
-                        Double.parseDouble(maquina.getAttribute("load")),
-                        Double.parseDouble(maquina.getAttribute("energy")));
-                maqs.add(maq);
-                centroDeServicos.put(global, maq);
-                usuarios.put(maq.getProprietario(), usuarios.get(maq.getProprietario()) + maq.getPoderComputacional());
-            }
-        }
-        //Realiza leitura dos icones de cluster
-        for (int i = 0; i < docclusters.getLength(); i++) {
-            Element cluster = (Element) docclusters.item(i);
-            Element id = (Element) cluster.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            if (Boolean.parseBoolean(cluster.getAttribute("master"))) {
-                CS_Mestre clust = new CS_Mestre(
-                        cluster.getAttribute("id"),
-                        cluster.getAttribute("owner"),
-                        Double.parseDouble(cluster.getAttribute("power")),
-                        0.0,
-                        cluster.getAttribute("scheduler")/*Escalonador*/,
-                        Double.parseDouble(cluster.getAttribute("energy")));
-                mestres.add(clust);
-                centroDeServicos.put(global, clust);
-                //Contabiliza para o usuario poder computacional do mestre
-                int numeroEscravos = Integer.parseInt(cluster.getAttribute("nodes"));
-                double total = clust.getPoderComputacional() + (clust.getPoderComputacional() * numeroEscravos);
-                usuarios.put(clust.getProprietario(), total + usuarios.get(clust.getProprietario()));
-                CS_Switch Switch = new CS_Switch(
-                        cluster.getAttribute("id"),
-                        Double.parseDouble(cluster.getAttribute("bandwidth")),
-                        0.0,
-                        Double.parseDouble(cluster.getAttribute("latency")));
-                links.add(Switch);
-                clust.addConexoesEntrada(Switch);
-                clust.addConexoesSaida(Switch);
-                Switch.addConexoesEntrada(clust);
-                Switch.addConexoesSaida(clust);
-                for (int j = 0; j < numeroEscravos; j++) {
-                    CS_Maquina maq = new CS_Maquina(
-                            cluster.getAttribute("id"),
-                            cluster.getAttribute("owner"),
-                            Double.parseDouble(cluster.getAttribute("power")),
-                            1/*numero de processadores*/,
-                            0.0/*TaxaOcupacao*/,
-                            j + 1/*identificador da maquina no cluster*/,
-                            Double.parseDouble(cluster.getAttribute("energy")));
-                    maq.addConexoesSaida(Switch);
-                    maq.addConexoesEntrada(Switch);
-                    Switch.addConexoesEntrada(maq);
-                    Switch.addConexoesSaida(maq);
-                    maq.addMestre(clust);
-                    clust.addEscravo(maq);
-                    maqs.add(maq);
-                    //não adicionei referencia ao switch nem aos escrevos do cluster aos centros de serviços
-                }
-            } else {
-                CS_Switch Switch = new CS_Switch(
-                        cluster.getAttribute("id"),
-                        Double.parseDouble(cluster.getAttribute("bandwidth")),
-                        0.0,
-                        Double.parseDouble(cluster.getAttribute("latency")));
-                links.add(Switch);
-                centroDeServicos.put(global, Switch);
-                //Contabiliza para o usuario poder computacional do mestre
-                double total = Double.parseDouble(cluster.getAttribute("power"))
-                        * Integer.parseInt(cluster.getAttribute("nodes"));
-                usuarios.put(cluster.getAttribute("owner"), total + usuarios.get(cluster.getAttribute("owner")));
-                ArrayList<CS_Maquina> maqTemp = new ArrayList<CS_Maquina>();
-                int numeroEscravos = Integer.parseInt(cluster.getAttribute("nodes"));
-                for (int j = 0; j < numeroEscravos; j++) {
-                    CS_Maquina maq = new CS_Maquina(
-                            cluster.getAttribute("id"),
-                            cluster.getAttribute("owner"),
-                            Double.parseDouble(cluster.getAttribute("power")),
-                            1/*numero de processadores*/,
-                            0.0/*TaxaOcupacao*/,
-                            j + 1/*identificador da maquina no cluster*/,
-                        Double.parseDouble(cluster.getAttribute("energy")));
-                    maq.addConexoesSaida(Switch);
-                    maq.addConexoesEntrada(Switch);
-                    Switch.addConexoesEntrada(maq);
-                    Switch.addConexoesSaida(maq);
-                    maqTemp.add(maq);
-                    maqs.add(maq);
-                }
-                escravosCluster.put(Switch, maqTemp);
-            }
-        }
-
-        //Realiza leitura dos icones de internet
-        for (int i = 0; i < docinternet.getLength(); i++) {
-            Element inet = (Element) docinternet.item(i);
-            Element id = (Element) inet.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            CS_Internet net = new CS_Internet(
-                    inet.getAttribute("id"),
-                    Double.parseDouble(inet.getAttribute("bandwidth")),
-                    Double.parseDouble(inet.getAttribute("load")),
-                    Double.parseDouble(inet.getAttribute("latency")));
-            nets.add(net);
-            centroDeServicos.put(global, net);
-        }
-        //cria os links e realiza a conexão entre os recursos
-        for (int i = 0; i < doclinks.getLength(); i++) {
-            Element link = (Element) doclinks.item(i);
-
-            CS_Link cslink = new CS_Link(
-                    link.getAttribute("id"),
-                    Double.parseDouble(link.getAttribute("bandwidth")),
-                    Double.parseDouble(link.getAttribute("load")),
-                    Double.parseDouble(link.getAttribute("latency")));
-            links.add(cslink);
-
-            //adiciona entrada e saida desta conexão
-            Element connect = (Element) link.getElementsByTagName("connect").item(0);
-            Vertice origem = (Vertice) centroDeServicos.get(Integer.parseInt(connect.getAttribute("origination")));
-            Vertice destino = (Vertice) centroDeServicos.get(Integer.parseInt(connect.getAttribute("destination")));
-            cslink.setConexoesSaida((CentroServico) destino);
-            destino.addConexoesEntrada(cslink);
-            cslink.setConexoesEntrada((CentroServico) origem);
-            origem.addConexoesSaida(cslink);
-        }
-        //adiciona os escravos aos mestres
-        for (int i = 0; i < docmaquinas.getLength(); i++) {
-            Element maquina = (Element) docmaquinas.item(i);
-            Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            if (maquina.getElementsByTagName("master").getLength() > 0) {
-                Element master = (Element) maquina.getElementsByTagName("master").item(0);
-                NodeList slaves = master.getElementsByTagName("slave");
-                CS_Mestre mestre = (CS_Mestre) centroDeServicos.get(global);
-                for (int j = 0; j < slaves.getLength(); j++) {
-                    Element slave = (Element) slaves.item(j);
-                    CentroServico maq = centroDeServicos.get(Integer.parseInt(slave.getAttribute("id")));
-                    if (maq instanceof CS_Processamento) {
-                        mestre.addEscravo((CS_Processamento) maq);
-                        if (maq instanceof CS_Maquina) {
-                            CS_Maquina maqTemp = (CS_Maquina) maq;
-                            maqTemp.addMestre(mestre);
-                        }
-                    } else if (maq instanceof CS_Switch) {
-                        for (CS_Maquina escr : escravosCluster.get(maq)) {
-                            escr.addMestre(mestre);
-                            mestre.addEscravo(escr);
-                        }
-                    }
-                }
-            }
-        }
-        //verifica se há usuarios sem nenhum recurso
-        ArrayList<String> proprietarios = new ArrayList<String>();
-        ArrayList<Double> poderComp = new ArrayList<Double>();
-        ArrayList<Double> perfil = new ArrayList<>();
-        for (String user : usuarios.keySet()) {
-            proprietarios.add(user);
-            poderComp.add(usuarios.get(user));
-            perfil.add(perfis.get(user));
-        }
-        //cria as métricas de usuarios para cada mestre
-        for (CS_Processamento mestre : mestres) {
-            CS_Mestre mst = (CS_Mestre) mestre;
-            MetricasUsuarios mu = new MetricasUsuarios();
-            mu.addAllUsuarios(proprietarios, poderComp);
-            mst.getEscalonador().setMetricaUsuarios(mu);
-        }
-        RedeDeFilas rdf = new RedeDeFilas(mestres, maqs, links, nets, perfis);
-        //cria as métricas de usuarios globais da rede de filas
-        MetricasUsuarios mu = new MetricasUsuarios();
-        mu.addAllUsuarios(proprietarios, poderComp, perfil);
-        rdf.setUsuarios(proprietarios);
-        return rdf;
-    }
-
-    public static RedeDeFilasCloud newRedeDeFilasCloud(Document modelo) {
-        NodeList docmaquinas = modelo.getElementsByTagName("machine");
-        NodeList docclusters = modelo.getElementsByTagName("cluster");
-        NodeList docinternet = modelo.getElementsByTagName("internet");
-        NodeList doclinks = modelo.getElementsByTagName("link");
-        NodeList owners = modelo.getElementsByTagName("owner");
-        //---v incluindo as máquinas virtuais
-        NodeList docVMs = modelo.getElementsByTagName("virtualMac");
-
-        HashMap<Integer, CentroServico> centroDeServicos = new HashMap<Integer, CentroServico>();
-        HashMap<CentroServico, List<CS_MaquinaCloud>> escravosCluster = new HashMap<CentroServico, List<CS_MaquinaCloud>>();
-        List<CS_Processamento> VMMs = new ArrayList<CS_Processamento>();
-        List<CS_MaquinaCloud> maqs = new ArrayList<CS_MaquinaCloud>();
-        List<CS_VirtualMac> vms = new ArrayList<CS_VirtualMac>();
-        List<CS_Comunicacao> links = new ArrayList<CS_Comunicacao>();
-        List<CS_Internet> nets = new ArrayList<CS_Internet>();
-        //cria lista de usuarios e o poder computacional cedido por cada um
-        HashMap<String, Double> usuarios = new HashMap<String, Double>();
-        for (int i = 0; i < owners.getLength(); i++) {
-            Element owner = (Element) owners.item(i);
-            usuarios.put(owner.getAttribute("id"), 0.0);
-        }
-        //cria maquinas, mestres, internets e mestres dos clusters
-        //Realiza leitura dos icones de máquina
-        for (int i = 0; i < docmaquinas.getLength(); i++) {
-            Element maquina = (Element) docmaquinas.item(i);
-            Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            if (maquina.getElementsByTagName("master").getLength() > 0) {
-                Element master = (Element) maquina.getElementsByTagName("master").item(0);
-                Element carac = (Element) maquina.getElementsByTagName("characteristic").item(0);
-                Element proc = (Element) carac.getElementsByTagName("process").item(0);
-                Element memoria = (Element) carac.getElementsByTagName("memory").item(0);
-                Element disco = (Element) carac.getElementsByTagName("hard_disk").item(0);
-                Element custo = (Element) carac.getElementsByTagName("cost").item(0);
-                //instancia o CS_VMM         
-                CS_VMM mestre = new CS_VMM(
-                        maquina.getAttribute("id"),
-                        maquina.getAttribute("owner"),
-                        Double.parseDouble(proc.getAttribute("power")),
-                        Double.parseDouble(memoria.getAttribute("size")),
-                        Double.parseDouble(disco.getAttribute("size")),
-                        Double.parseDouble(maquina.getAttribute("load")),
-                        master.getAttribute("scheduler")/*Escalonador*/,
-                        master.getAttribute("vm_alloc"));
-                VMMs.add(mestre);
-                centroDeServicos.put(global, mestre);
-                //Contabiliza para o usuario poder computacional do mestre
-                usuarios.put(mestre.getProprietario(), usuarios.get(mestre.getProprietario()) + mestre.getPoderComputacional());
-            } else {
-                //acessa as características do máquina
-                Element caracteristica = (Element) maquina.getElementsByTagName("characteristic").item(0);
-                Element custo = (Element) caracteristica.getElementsByTagName("cost").item(0);
-                Element processamento = (Element) caracteristica.getElementsByTagName("process").item(0);
-                Element memoria = (Element) caracteristica.getElementsByTagName("memory").item(0);
-                Element disco = (Element) caracteristica.getElementsByTagName("hard_disk").item(0);
-                //instancia um CS_MaquinaCloud
-                CS_MaquinaCloud maq = new CS_MaquinaCloud(
-                        maquina.getAttribute("id"),
-                        maquina.getAttribute("owner"),
-                        Double.parseDouble(processamento.getAttribute("power")),
-                        Integer.parseInt(processamento.getAttribute("number")),
-                        Double.parseDouble(maquina.getAttribute("load")),
-                        Double.parseDouble(memoria.getAttribute("size")),
-                        Double.parseDouble(disco.getAttribute("size")),
-                        Double.parseDouble(custo.getAttribute("cost_proc")),
-                        Double.parseDouble(custo.getAttribute("cost_mem")),
-                        Double.parseDouble(custo.getAttribute("cost_disk"))
-                );
-                maqs.add(maq);
-                centroDeServicos.put(global, maq);
-                usuarios.put(maq.getProprietario(), usuarios.get(maq.getProprietario()) + maq.getPoderComputacional());
-            }
-        }
-        //Realiza leitura dos icones de cluster
-        for (int i = 0; i < docclusters.getLength(); i++) {
-            Element cluster = (Element) docclusters.item(i);
-            Element id = (Element) cluster.getElementsByTagName("icon_id").item(0);
-            Element carac = (Element) cluster.getElementsByTagName("characteristic").item(0);
-            Element proc = (Element) carac.getElementsByTagName("process").item(0);
-            Element mem = (Element) carac.getElementsByTagName("memory").item(0);
-            Element disc = (Element) carac.getElementsByTagName("hard_disk").item(0);
-
-            int global = Integer.parseInt(id.getAttribute("global"));
-            if (Boolean.parseBoolean(cluster.getAttribute("master"))) {
-                CS_VMM clust = new CS_VMM(
-                        cluster.getAttribute("id"),
-                        cluster.getAttribute("owner"),
-                        Double.parseDouble(proc.getAttribute("power")),
-                        Double.parseDouble(mem.getAttribute("size")),
-                        Double.parseDouble(disc.getAttribute("size")),
-                        0.0,
-                        cluster.getAttribute("scheduler")/*Escalonador*/,
-                        cluster.getAttribute("vm_alloc"));
-                VMMs.add(clust);
-                centroDeServicos.put(global, clust);
-                //Contabiliza para o usuario poder computacional do mestre
-                int numeroEscravos = Integer.parseInt(cluster.getAttribute("nodes"));
-                double total = clust.getPoderComputacional() + (clust.getPoderComputacional() * numeroEscravos);
-                usuarios.put(clust.getProprietario(), total + usuarios.get(clust.getProprietario()));
-                CS_Switch Switch = new CS_Switch(
-                        (cluster.getAttribute("id") + "switch"),
-                        Double.parseDouble(cluster.getAttribute("bandwidth")),
-                        0.0,
-                        Double.parseDouble(cluster.getAttribute("latency")));
-                links.add(Switch);
-                clust.addConexoesEntrada(Switch);
-                clust.addConexoesSaida(Switch);
-                Switch.addConexoesEntrada(clust);
-                Switch.addConexoesSaida(clust);
-                for (int j = 0; j < numeroEscravos; j++) {
-                    Element caracteristica = (Element) cluster.getElementsByTagName("characteristic").item(0);
-                    Element custo = (Element) caracteristica.getElementsByTagName("cost").item(0);
-                    Element processamento = (Element) caracteristica.getElementsByTagName("process").item(0);
-                    Element memoria = (Element) caracteristica.getElementsByTagName("memory").item(0);
-                    Element disco = (Element) caracteristica.getElementsByTagName("hard_disk").item(0);
-                    CS_MaquinaCloud maq = new CS_MaquinaCloud(
-                            (cluster.getAttribute("id") + "." + j),
-                            cluster.getAttribute("owner"),
-                            Double.parseDouble(processamento.getAttribute("power")),
-                            Integer.parseInt(processamento.getAttribute("number")),
-                            Double.parseDouble(memoria.getAttribute("size")),
-                            Double.parseDouble(disco.getAttribute("size")),
-                            Double.parseDouble(custo.getAttribute("cost_proc")),
-                            Double.parseDouble(custo.getAttribute("cost_mem")),
-                            Double.parseDouble(custo.getAttribute("cost_disk")),
-                            0.0/*TaxaOcupacao*/,
-                            j + 1/*identificador da maquina no cluster*/);
-                    maq.addConexoesSaida(Switch);
-                    maq.addConexoesEntrada(Switch);
-                    Switch.addConexoesEntrada(maq);
-                    Switch.addConexoesSaida(maq);
-                    maq.addMestre(clust);
-                    clust.addEscravo(maq);
-                    maqs.add(maq);
-                    //não adicionei referencia ao switch nem aos escrevos do cluster aos centros de serviços
-                }
-            } else {
-                CS_Switch Switch = new CS_Switch(
-                        (cluster.getAttribute("id") + "switch"),
-                        Double.parseDouble(cluster.getAttribute("bandwidth")),
-                        0.0,
-                        Double.parseDouble(cluster.getAttribute("latency")));
-                links.add(Switch);
-                centroDeServicos.put(global, Switch);
-                //Contabiliza para o usuario poder computacional do mestre
-                double total = Double.parseDouble(cluster.getAttribute("power"))
-                        * Integer.parseInt(cluster.getAttribute("nodes"));
-                usuarios.put(cluster.getAttribute("owner"), total + usuarios.get(cluster.getAttribute("owner")));
-                ArrayList<CS_MaquinaCloud> maqTemp = new ArrayList<CS_MaquinaCloud>();
-                int numeroEscravos = Integer.parseInt(cluster.getAttribute("nodes"));
-                for (int j = 0; j < numeroEscravos; j++) {
-                    Element caracteristica = (Element) cluster.getElementsByTagName("characteristic");
-                    Element custo = (Element) caracteristica.getElementsByTagName("cost");
-                    Element processamento = (Element) caracteristica.getElementsByTagName("process");
-                    Element memoria = (Element) caracteristica.getElementsByTagName("memory");
-                    Element disco = (Element) caracteristica.getElementsByTagName("hard_disk");
-                    CS_MaquinaCloud maq = new CS_MaquinaCloud(
-                            (cluster.getAttribute("id") + "." + j),
-                            cluster.getAttribute("owner"),
-                            Double.parseDouble(processamento.getAttribute("power")),
-                            Integer.parseInt(processamento.getAttribute("number")),
-                            Double.parseDouble(memoria.getAttribute("size")),
-                            Double.parseDouble(disco.getAttribute("size")),
-                            Double.parseDouble(custo.getAttribute("cost_proc")),
-                            Double.parseDouble(custo.getAttribute("cost_mem")),
-                            Double.parseDouble(custo.getAttribute("cost_disk")),
-                            0.0/*TaxaOcupacao*/,
-                            j + 1/*identificador da maquina no cluster*/);
-                    maq.addConexoesSaida(Switch);
-                    maq.addConexoesEntrada(Switch);
-                    Switch.addConexoesEntrada(maq);
-                    Switch.addConexoesSaida(maq);
-                    maqTemp.add(maq);
-                    maqs.add(maq);
-                }
-                escravosCluster.put(Switch, maqTemp);
-            }
-        }
-
-        //Realiza leitura dos icones de internet
-        for (int i = 0; i < docinternet.getLength(); i++) {
-            Element inet = (Element) docinternet.item(i);
-            Element id = (Element) inet.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            CS_Internet net = new CS_Internet(
-                    inet.getAttribute("id"),
-                    Double.parseDouble(inet.getAttribute("bandwidth")),
-                    Double.parseDouble(inet.getAttribute("load")),
-                    Double.parseDouble(inet.getAttribute("latency")));
-            nets.add(net);
-            centroDeServicos.put(global, net);
-        }
-        //cria os links e realiza a conexão entre os recursos
-        for (int i = 0; i < doclinks.getLength(); i++) {
-            Element link = (Element) doclinks.item(i);
-
-            CS_Link cslink = new CS_Link(
-                    link.getAttribute("id"),
-                    Double.parseDouble(link.getAttribute("bandwidth")),
-                    Double.parseDouble(link.getAttribute("load")),
-                    Double.parseDouble(link.getAttribute("latency")));
-            links.add(cslink);
-
-            //adiciona entrada e saida desta conexão
-            Element connect = (Element) link.getElementsByTagName("connect").item(0);
-            Vertice origem = (Vertice) centroDeServicos.get(Integer.parseInt(connect.getAttribute("origination")));
-            Vertice destino = (Vertice) centroDeServicos.get(Integer.parseInt(connect.getAttribute("destination")));
-            cslink.setConexoesSaida((CentroServico) destino);
-            destino.addConexoesEntrada(cslink);
-            cslink.setConexoesEntrada((CentroServico) origem);
-            origem.addConexoesSaida(cslink);
-        }
-        //adiciona os escravos aos mestres
-        for (int i = 0; i < docmaquinas.getLength(); i++) {
-            Element maquina = (Element) docmaquinas.item(i);
-            Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            if (maquina.getElementsByTagName("master").getLength() > 0) {
-                Element master = (Element) maquina.getElementsByTagName("master").item(0);
-                NodeList slaves = master.getElementsByTagName("slave");
-                CS_VMM mestre = (CS_VMM) centroDeServicos.get(global);
-                for (int j = 0; j < slaves.getLength(); j++) {
-                    Element slave = (Element) slaves.item(j);
-                    CentroServico maq = centroDeServicos.get(Integer.parseInt(slave.getAttribute("id")));
-                    if (maq instanceof CS_Processamento) {
-                        mestre.addEscravo((CS_Processamento) maq);
-                        if (maq instanceof CS_MaquinaCloud) {
-                            CS_MaquinaCloud maqTemp = (CS_MaquinaCloud) maq;
-                            //trecho de debbuging
-                            System.out.println(maqTemp.getId() + " adicionou como mestre: " + mestre.getId());
-                            //fim dbg
-                            maqTemp.addMestre(mestre);
-                        }
-                    } else if (maq instanceof CS_Switch) {
-                        for (CS_MaquinaCloud escr : escravosCluster.get(maq)) {
-                            escr.addMestre(mestre);
-                            mestre.addEscravo(escr);
-                        }
-                    }
-                }
-            }
-        }
-        
-        //Realiza leitura dos ícones de máquina virtual
-        for (int i = 0; i < docVMs.getLength(); i++) {
-            Element virtualMac = (Element) docVMs.item(i);
-            CS_VirtualMac VM = new CS_VirtualMac(virtualMac.getAttribute("id"),
-                    virtualMac.getAttribute("owner"),
-                    Integer.parseInt(virtualMac.getAttribute("power")),
-                    Double.parseDouble(virtualMac.getAttribute("mem_alloc")),
-                    Double.parseDouble(virtualMac.getAttribute("disk_alloc")),
-                    virtualMac.getAttribute("op_system"));
-            //adicionando VMM responsável pela VM
-            for (CS_Processamento aux : VMMs) {
-                //System.out.println("id vmm:" + aux.getId());
-                //System.out.println("id do vmm na vm:" + virtualMac.getAttribute("vmm") );
-                if (virtualMac.getAttribute("vmm").equals(aux.getId())) {
-                    //atentar ao fato de que a solução falha se o nome do vmm for alterado e não atualizado na tabela das vms
-                    //To do: corrigir problema futuramente
-                    VM.addVMM((CS_VMM) aux);
-                    //adicionando VM para o VMM
-                    
-                    CS_VMM vmm = (CS_VMM) aux;
-                    vmm.addVM(VM);
-                    
-                }
-
-            }
-            vms.add(VM);
-        }
-
-        //verifica se há usuarios sem nenhum recurso
-        ArrayList<String> proprietarios = new ArrayList<String>();
-        ArrayList<Double> poderComp = new ArrayList<Double>();
-        for (String user : usuarios.keySet()) {
-            proprietarios.add(user);
-            poderComp.add(usuarios.get(user));
-        }
-        //cria as métricas de usuarios para cada mestre
-        for (CS_Processamento mestre : VMMs) {
-            CS_VMM mst = (CS_VMM) mestre;
-            MetricasUsuarios mu = new MetricasUsuarios();
-            mu.addAllUsuarios(proprietarios, poderComp);
-            mst.getEscalonador().setMetricaUsuarios(mu);
-        }
-        RedeDeFilasCloud rdf = new RedeDeFilasCloud(VMMs, maqs, vms, links, nets);
-        //cria as métricas de usuarios globais da rede de filas
-        MetricasUsuarios mu = new MetricasUsuarios();
-        mu.addAllUsuarios(proprietarios, poderComp);
-        rdf.setUsuarios(proprietarios);
-        return rdf;
+    public static RedeDeFilas newRedeDeFilas(final Document model) {
+        return new QueueNetworkBuilder(new WrappedDocument(model)).build();
     }
 
     /**
-     * Obtem a configuração da carga de trabalho contida em um modelo iconico
+     * Convert an iconic model into a cloud queue network, usable in the cloud
+     * simulation motor.
      *
-     * @param modelo contem conteudo recuperado de um arquivo xml
-     * @return carga de trabalho contida no modelo
+     * @param model Object from xml with modeled computational grid
+     * @return Simulable cloud queue network, in accordance to given model
      */
-    public static GerarCarga newGerarCarga(Document modelo) {
-        org.w3c.dom.NodeList cargas = modelo.getElementsByTagName("load");
-        GerarCarga cargasConfiguracao = null;
-        //Realiza leitura da configuração de carga do modelo
-        if (cargas.getLength() != 0) {
-            Element cargaAux = (Element) cargas.item(0);
-            cargas = cargaAux.getElementsByTagName("random");
-            if (cargas.getLength() != 0) {
-                Element carga = (Element) cargas.item(0);
-                int numeroTarefas = Integer.parseInt(carga.getAttribute("tasks"));
-                int timeOfArrival = Integer.parseInt(carga.getAttribute("time_arrival"));
-                int minComputacao = 0;
-                int maxComputacao = 0;
-                int AverageComputacao = 0;
-                double ProbabilityComputacao = 0;
-                int minComunicacao = 0;
-                int maxComunicacao = 0;
-                int AverageComunicacao = 0;
-                double ProbabilityComunicacao = 0;
-                NodeList size = carga.getElementsByTagName("size");
-                for (int i = 0; i < size.getLength(); i++) {
-                    Element size1 = (Element) size.item(i);
-                    if (size1.getAttribute("type").equals("computing")) {
-                        minComputacao = Integer.parseInt(size1.getAttribute("minimum"));
-                        maxComputacao = Integer.parseInt(size1.getAttribute("maximum"));
-                        AverageComputacao = Integer.parseInt(size1.getAttribute("average"));
-                        ProbabilityComputacao = Double.parseDouble(size1.getAttribute("probability"));
-                    } else if (size1.getAttribute("type").equals("communication")) {
-                        minComunicacao = Integer.parseInt(size1.getAttribute("minimum"));
-                        maxComunicacao = Integer.parseInt(size1.getAttribute("maximum"));
-                        AverageComunicacao = Integer.parseInt(size1.getAttribute("average"));
-                        ProbabilityComunicacao = Double.parseDouble(size1.getAttribute("probability"));
-                    }
-                }
-                cargasConfiguracao = new CargaRandom(numeroTarefas, minComputacao, maxComputacao, AverageComputacao, ProbabilityComputacao, minComunicacao, maxComunicacao, AverageComunicacao, ProbabilityComunicacao, timeOfArrival);
-            }
-            cargas = cargaAux.getElementsByTagName("node");
-            if (cargas.getLength() != 0) {
-                List<CargaForNode> tarefasDoNo = new ArrayList<CargaForNode>();
-                for (int i = 0; i < cargas.getLength(); i++) {
-                    Element carga = (Element) cargas.item(i);
-                    String aplicacao = carga.getAttribute("application");
-                    String proprietario = carga.getAttribute("owner");
-                    String escalonador = carga.getAttribute("id_master");
-                    int numeroTarefas = Integer.parseInt(carga.getAttribute("tasks"));
-                    double minComputacao = 0;
-                    double maxComputacao = 0;
-                    double minComunicacao = 0;
-                    double maxComunicacao = 0;
-                    NodeList size = carga.getElementsByTagName("size");
-                    for (int j = 0; j < size.getLength(); j++) {
-                        Element size1 = (Element) size.item(j);
-                        if (size1.getAttribute("type").equals("computing")) {
-                            minComputacao = Double.parseDouble(size1.getAttribute("minimum"));
-                            maxComputacao = Double.parseDouble(size1.getAttribute("maximum"));
-                        } else if (size1.getAttribute("type").equals("communication")) {
-                            minComunicacao = Double.parseDouble(size1.getAttribute("minimum"));
-                            maxComunicacao = Double.parseDouble(size1.getAttribute("maximum"));
-                        }
-                    }
-                    CargaForNode item = new CargaForNode(aplicacao, proprietario, escalonador, numeroTarefas, maxComputacao, minComputacao, maxComunicacao, minComunicacao);
-                    tarefasDoNo.add(item);
-                }
-                cargasConfiguracao = new CargaList(tarefasDoNo, GerarCarga.FORNODE);
-            }
-            cargas = cargaAux.getElementsByTagName("trace");
-            if (cargas.getLength() != 0) {
-                Element carga = (Element) cargas.item(0);
-                File filepath = new File(carga.getAttribute("file_path"));
-                Integer num_tarefas = Integer.parseInt(carga.getAttribute("tasks"));
-                String formato = carga.getAttribute("format");
-                if (filepath.exists()) {
-                    cargasConfiguracao = new CargaTrace(filepath, num_tarefas, formato);
-                }
-            }
-        }
-        return cargasConfiguracao;
+    public static RedeDeFilasCloud newRedeDeFilasCloud(final Document model) {
+        return (RedeDeFilasCloud) new CloudQueueNetworkBuilder(
+                new WrappedDocument(model)).build();
     }
 
-    private static void setCaracteristicas(GridItem item, NodeList elementsByTagName) {
-        Machine maq = null;
-        Cluster clust = null;
-        if (item instanceof Machine) {
-            maq = (Machine) item;
-        } else if (item instanceof Cluster) {
-            clust = (Cluster) item;
+    /**
+     * Get load configuration containing in the iconic model present in the
+     * {@link Document}
+     *
+     * @return {@link GerarCarga} with load configuration from the model, if
+     * a valid one is present, {@code null} otherwise
+     * @see LoadBuilder
+     * @see ispd.motor.carga.CargaTrace
+     * @see ispd.motor.carga.CargaList
+     * @see ispd.motor.carga.CargaRandom
+     */
+    public static GerarCarga newGerarCarga(final Document doc) {
+        final var model = LoadBuilder.build(new WrappedDocument(doc));
+        if (model.isEmpty()) {
+            return null;
         }
-        if (elementsByTagName.getLength() > 0 && clust != null) {
-            Element caracteristicas = (Element) elementsByTagName.item(0);
-            Element process = (Element) caracteristicas.getElementsByTagName("process").item(0);
-            clust.setComputationalPower(Double.valueOf(process.getAttribute("power")));
-            clust.setCoreCount(Integer.valueOf(process.getAttribute("number")));
-            Element memory = (Element) caracteristicas.getElementsByTagName("memory").item(0);
-            clust.setRam(Double.valueOf(memory.getAttribute("size")));
-            Element disk = (Element) caracteristicas.getElementsByTagName("hard_disk").item(0);
-            clust.setHardDisk(Double.valueOf(disk.getAttribute("size")));
-            if (caracteristicas.getElementsByTagName("cost").getLength() > 0) {
-                Element cost = (Element) caracteristicas.getElementsByTagName("cost").item(0);
-                clust.setCostPerProcessing(Double.valueOf(cost.getAttribute("cost_proc")));
-                clust.setCostPerMemory(Double.valueOf(cost.getAttribute("cost_mem")));
-                clust.setCostPerDisk(Double.valueOf(cost.getAttribute("cost_disk")));
-            }
-        } else if (elementsByTagName.getLength() > 0 && maq != null) {
-            Element caracteristicas = (Element) elementsByTagName.item(0);
-            Element process = (Element) caracteristicas.getElementsByTagName("process").item(0);
-            maq.setComputationalPower(Double.valueOf(process.getAttribute("power")));
-            maq.setCoreCount(Integer.valueOf(process.getAttribute("number")));
-            Element memory = (Element) caracteristicas.getElementsByTagName("memory").item(0);
-            maq.setRam(Double.valueOf(memory.getAttribute("size")));
-            Element disk = (Element) caracteristicas.getElementsByTagName("hard_disk").item(0);
-            maq.setHardDisk(Double.valueOf(disk.getAttribute("size")));
-            if (caracteristicas.getElementsByTagName("cost").getLength() > 0) {
-                Element cost = (Element) caracteristicas.getElementsByTagName("cost").item(0);
-                maq.setCostPerProcessing(Double.valueOf(cost.getAttribute("cost_proc")));
-                maq.setCostPerMemory(Double.valueOf(cost.getAttribute("cost_mem")));
-                maq.setCostPerDisk(Double.valueOf(cost.getAttribute("cost_disk")));
-            }
-
-        }
+        return model.get();
     }
 
-    public static void newGrade(Document descricao, Set<Vertex> vertices, Set<Edge> arestas) {
-        HashMap<Integer, Object> icones = new HashMap<Integer, Object>();
-        NodeList maquinas = descricao.getElementsByTagName("machine");
-        NodeList clusters = descricao.getElementsByTagName("cluster");
-        NodeList internet = descricao.getElementsByTagName("internet");
-        NodeList links = descricao.getElementsByTagName("link");
-        //Realiza leitura dos icones de cluster
-        for (int i = 0; i < clusters.getLength(); i++) {
-            Element cluster = (Element) clusters.item(i);
-            Element pos = (Element) cluster.getElementsByTagName("position").item(0);
-            int x = Integer.parseInt(pos.getAttribute("x"));
-            int y = Integer.parseInt(pos.getAttribute("y"));
-            Element id = (Element) cluster.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            int local = Integer.parseInt(id.getAttribute("local"));
-            Cluster clust = new Cluster(x, y, local, global, Double.parseDouble(cluster.getAttribute("power")));
-            clust.setSelected(false);
-            vertices.add(clust);
-            icones.put(global, clust);
-            clust.getId().setName(cluster.getAttribute("id"));
-            ValidaValores.addNomeIcone(clust.getId().getName());
-            clust.setComputationalPower(Double.parseDouble(cluster.getAttribute("power")));
-            setCaracteristicas(clust, cluster.getElementsByTagName("characteristic"));
-            clust.setSlaveCount(Integer.parseInt(cluster.getAttribute("nodes")));
-            clust.setBandwidth(Double.parseDouble(cluster.getAttribute("bandwidth")));
-            clust.setLatency(Double.parseDouble(cluster.getAttribute("latency")));
-            clust.setSchedulingAlgorithm(cluster.getAttribute("scheduler"));
-            clust.setVmmAllocationPolicy(cluster.getAttribute("vm_alloc"));
-            clust.setOwner(cluster.getAttribute("owner"));
-            clust.setMaster(Boolean.parseBoolean(cluster.getAttribute("master")));
-        }
-        //Realiza leitura dos icones de internet
-        for (int i = 0; i < internet.getLength(); i++) {
-            Element inet = (Element) internet.item(i);
-            Element pos = (Element) inet.getElementsByTagName("position").item(0);
-            int x = Integer.parseInt(pos.getAttribute("x"));
-            int y = Integer.parseInt(pos.getAttribute("y"));
-            Element id = (Element) inet.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            int local = Integer.parseInt(id.getAttribute("local"));
-            Internet net = new Internet(x, y, local, global);
-            net.setSelected(false);
-            vertices.add(net);
-            icones.put(global, net);
-            net.getId().setName(inet.getAttribute("id"));
-            ValidaValores.addNomeIcone(net.getId().getName());
-            net.setBandwidth(Double.parseDouble(inet.getAttribute("bandwidth")));
-            net.setLoadFactor(Double.parseDouble(inet.getAttribute("load")));
-            net.setLatency(Double.parseDouble(inet.getAttribute("latency")));
-        }
-        //Realiza leitura dos icones de máquina
-        for (int i = 0; i < maquinas.getLength(); i++) {
-            Element maquina = (Element) maquinas.item(i);
-            if (maquina.getElementsByTagName("master").getLength() <= 0) {
-                Element pos = (Element) maquina.getElementsByTagName("position").item(0);
-                int x = Integer.parseInt(pos.getAttribute("x"));
-                int y = Integer.parseInt(pos.getAttribute("y"));
-                Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
-                int global = Integer.parseInt(id.getAttribute("global"));
-                int local = Integer.parseInt(id.getAttribute("local"));
-                Machine maq = new Machine(x, y, local, global, Double.parseDouble(maquina.getAttribute("energy")));
-                maq.setSelected(false);
-                icones.put(global, maq);
-                vertices.add(maq);
-                maq.getId().setName(maquina.getAttribute("id"));
-                ValidaValores.addNomeIcone(maq.getId().getName());
-                maq.setComputationalPower(Double.parseDouble(maquina.getAttribute("power")));
-                setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
-                maq.setLoadFactor(Double.parseDouble(maquina.getAttribute("load")));
-                maq.setOwner(maquina.getAttribute("owner"));
-            } else {
-                Element pos = (Element) maquina.getElementsByTagName("position").item(0);
-                int x = Integer.parseInt(pos.getAttribute("x"));
-                int y = Integer.parseInt(pos.getAttribute("y"));
-                Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
-                int global = Integer.parseInt(id.getAttribute("global"));
-                int local = Integer.parseInt(id.getAttribute("local"));
-                Machine maq = new Machine(x, y, local, global, Double.parseDouble(maquina.getAttribute("energy")));
-                maq.setSelected(false);
-                icones.put(global, maq);
-            }
-        }
-        //Realiza leitura dos mestres
-        for (int i = 0; i < maquinas.getLength(); i++) {
-            Element maquina = (Element) maquinas.item(i);
-            if (maquina.getElementsByTagName("master").getLength() > 0) {
-                Element id = (Element) maquina.getElementsByTagName("icon_id").item(0);
-                int global = Integer.parseInt(id.getAttribute("global"));
-                Machine maq = (Machine) icones.get(global);
-                vertices.add(maq);
-                maq.getId().setName(maquina.getAttribute("id"));
-                ValidaValores.addNomeIcone(maq.getId().getName());
-                maq.setComputationalPower(Double.parseDouble(maquina.getAttribute("power")));
-                setCaracteristicas(maq, maquina.getElementsByTagName("characteristic"));
-                maq.setLoadFactor(Double.parseDouble(maquina.getAttribute("load")));
-                maq.setOwner(maquina.getAttribute("owner"));
-                Element master = (Element) maquina.getElementsByTagName("master").item(0);
-                maq.setSchedulingAlgorithm(master.getAttribute("scheduler"));
-                maq.setVmmAllocationPolicy(master.getAttribute("vm_alloc"));
-                maq.setMaster(true);
-                NodeList slaves = master.getElementsByTagName("slave");
-                List<GridItem> escravos = new ArrayList<GridItem>(slaves.getLength());
-                for (int j = 0; j < slaves.getLength(); j++) {
-                    Element slave = (Element) slaves.item(j);
-                    GridItem escravo = (GridItem) icones.get(Integer.parseInt(slave.getAttribute("id")));
-                    if (escravo != null) {
-                        escravos.add(escravo);
-                    }
-                }
-                maq.setSlaves(escravos);
-            }
-        }
-        //Realiza leitura dos icones de rede
-        for (int i = 0; i < links.getLength(); i++) {
-            Element link = (Element) links.item(i);
-            Element id = (Element) link.getElementsByTagName("icon_id").item(0);
-            int global = Integer.parseInt(id.getAttribute("global"));
-            int local = Integer.parseInt(id.getAttribute("local"));
-            int x = 0, y = 0, px = 0, py = 0;
-            Element connect = (Element) link.getElementsByTagName("connect").item(0);
-            Vertex origem = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("origination")));
-            Vertex destino = (Vertex) icones.get(Integer.parseInt(connect.getAttribute("destination")));
-            Link lk = new Link(origem, destino, local, global);
-            lk.setSelected(false);
-            ((GridItem) origem).getOutboundConnections().add(lk);
-            ((GridItem) destino).getInboundConnections().add(lk);
-            arestas.add(lk);
-            lk.getId().setName(link.getAttribute("id"));
-            ValidaValores.addNomeIcone(lk.getId().getName());
-            lk.setBandwidth(Double.parseDouble(link.getAttribute("bandwidth")));
-            lk.setLoadFactor(Double.parseDouble(link.getAttribute("load")));
-            lk.setLatency(Double.parseDouble(link.getAttribute("latency")));
-        }
+    /**
+     * Add iconic model vertices and edges to the collections passed as
+     * arguments. <b>The collections are modified.</b>
+     *
+     * @param doc {@link Document} containing the iconic model
+     * @see IconicModelBuilder
+     */
+    public static void newGrade(
+            final Document doc,
+            final Collection<? super Vertex> vertices,
+            final Collection<? super Edge> edges) {
+        final var model = new IconicModelBuilder(
+                new WrappedDocument(doc)).build();
+        vertices.addAll(model.vertices());
+        edges.addAll(model.edges());
     }
 
-    public static HashSet<String> newSetUsers(Document descricao) {
-        NodeList owners = descricao.getElementsByTagName("owner");
-        HashSet<String> usuarios = new HashSet<String>();
-        //Realiza leitura dos usuários/proprietários do modelo
-        for (int i = 0; i < owners.getLength(); i++) {
-            Element owner = (Element) owners.item(i);
-            usuarios.add(owner.getAttribute("id"));
-        }
-        return usuarios;
+    /**
+     * @return set with all user ids from the iconic model
+     */
+    public static HashSet<String> newSetUsers(final Document doc) {
+        return new WrappedDocument(doc).owners()
+                .map(WrappedElement::id)
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
-    public static List<String> newListUsers(Document descricao) {
-        NodeList owners = descricao.getElementsByTagName("owner");
-        List<String> usuarios = new ArrayList<String>();
-        //Realiza leitura dos usuários/proprietários do modelo
-        for (int i = 0; i < owners.getLength(); i++) {
-            Element owner = (Element) owners.item(i);
-            usuarios.add(owner.getAttribute("id"));
-        }
-        return usuarios;
+    /**
+     * @return list with all user ids from the iconic model
+     */
+    public static List<String> newListUsers(final Document doc) {
+        return new WrappedDocument(doc).owners()
+                .map(WrappedElement::id)
+                .toList();
     }
 
-    public static HashSet<VirtualMachine> newListVirtualMachines(Document descricao) {
-        NodeList owners = descricao.getElementsByTagName("virtualMac");
-        HashSet<VirtualMachine> maqVirtuais = new HashSet<VirtualMachine>();
-        for (int i = 0; i < owners.getLength(); i++) {
-            Element owner = (Element) owners.item(i);
-            VirtualMachine mac = new VirtualMachine(owner.getAttribute("id"),
-                    owner.getAttribute("owner"),
-                    owner.getAttribute("vmm"),
-                    Integer.parseInt(owner.getAttribute("power")),
-                    Double.parseDouble(owner.getAttribute("mem_alloc")),
-                    Double.parseDouble(owner.getAttribute("disk_alloc")),
-                    owner.getAttribute("op_system"));
-            maqVirtuais.add(mac);
-        }
-        return maqVirtuais;
+    /**
+     * @return set with all virtual machines from the (cloud) iconic model
+     */
+    public static HashSet<VirtualMachine> newListVirtualMachines(final Document doc) {
+        return new WrappedDocument(doc).virtualMachines()
+                .map(ServiceCenterBuilder::aVirtualMachineWithVmm)
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
-    public static Document[] clone(File file, int number) throws ParserConfigurationException, IOException, SAXException {
-        Document[] documento = new Document[number];
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    /**
+     * @return map with all user power limits, indexed by id
+     */
+    public static HashMap<String, Double> newListPerfil(final Document doc) {
+        return new WrappedDocument(doc).owners()
+                .collect(Collectors.toMap(
+                        WrappedElement::id,
+                        WrappedElement::powerLimit,
+                        (prev, next) -> next,
+                        HashMap::new
+                ));
+    }
+
+    /**
+     * Parse xml file multiple times, producing copies of the resulting
+     * {@link Document}
+     *
+     * @param file   file to be parsed
+     * @param number number of copies to be produced
+     * @return array of length {@code number} of identical {@link Document}s
+     * @throws SAXException if the file is ill-formed
+     */
+    public static Document[] clone(final File file, final int number)
+            throws ParserConfigurationException, IOException, SAXException {
+
+        final var builder = IconicoXML.getCloningBuilder();
+
+        final var docs = new Document[number];
+
+        for (int i = 0; i < number; i++) {
+            builder.setEntityResolver(new CloningEntityResolver());
+            docs[i] = builder.parse(file);
+        }
+
+        return docs;
+    }
+
+    private static DocumentBuilder getCloningBuilder() throws ParserConfigurationException {
+        final var factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         factory.setValidating(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        //Indicar local do arquivo .dtd
-        for (int i = 0; i < number; i++) {
-            builder.setEntityResolver(new EntityResolver() {
-                InputSource substitute = new InputSource(IconicoXML.class.getResourceAsStream("iSPD.dtd"));
+        return factory.newDocumentBuilder();
+    }
 
-                public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-                    return substitute;
+    /**
+     * Add users' ids and power limit info to the current model being built.
+     *
+     * @param users  collection of userIds
+     * @param limits map with users' power limits
+     * @throws NullPointerException if a user id given in the collection is
+     *                              missing from the map of power limits
+     */
+    public void addUsers(final Collection<String> users,
+                         final Map<String, Double> limits) {
+        users.stream()
+                .map(user -> this.anElement("owner",
+                        "id", user,
+                        "powerlimit", limits.get(user)
+                ))
+                .forEach(this.system::appendChild);
+    }
+
+    /**
+     * Create an element with only two attributes, k1 and k2, with values v1
+     * and v2, respectively.
+     * See {@link #anElement(String, Object[][], Node[])} for further info.
+     *
+     * @return element with two attributes k1, k2 of value v1, v2
+     */
+    private Element anElement(
+            final String name,
+            final String k1, final Object v1,
+            final String k2, final Object v2) {
+        return this.anElement(name, new Object[][] {
+                { k1, v1 },
+                { k2, v2 },
+        });
+    }
+
+    /**
+     * Create an element with no children.
+     * See {@link #anElement(String, Object[][], Node[])} for further info.
+     *
+     * @return children-less element.
+     */
+    private Element anElement(
+            final String name, final Object[][] attrs) {
+        return this.anElement(name, attrs, IconicoXML.NO_CHILDREN);
+    }
+
+    /**
+     * Create an element in the {@link Document} being currently built.
+     * The element needs a name, a map of attributes, and (optionally) children.
+     *
+     * @param name     name of the element
+     * @param attrs    array of width 2 (key, value) with the attributes to
+     *                 be added to the element
+     * @param children children to be appended to the built element
+     * @return Element with the given name, attributes and children
+     */
+    private Element anElement(
+            final String name,
+            final Object[][] attrs,
+            final Node[] children) {
+        final var e = this.doc.createElement(name);
+
+        for (final var attr : attrs) {
+            final var key = attr[0];
+            final var value = attr[1];
+            e.setAttribute((String) key, value.toString());
+        }
+
+        Arrays.stream(children)
+                .forEach(e::appendChild);
+
+        return e;
+    }
+
+    /**
+     * Add internet icon with the given attributes to the current model being
+     * built.
+     */
+    public void addInternet(
+            final int x, final int y,
+            final int idLocal, final int idGlobal, final String name,
+            final double bandwidth, final double internetLoad,
+            final double latency) {
+        this.system.appendChild(this.anElement(
+                "internet", new Object[][] {
+                        { "id", name },
+                        { "bandwidth", bandwidth },
+                        { "load", internetLoad },
+                        { "latency", latency },
+                }, new Element[] {
+                        this.aPositionElement(x, y),
+                        this.anIconIdElement(idGlobal, idLocal),
                 }
-            });
-            documento[i] = builder.parse(file);
+        ));
+    }
+
+    /**
+     * Add cluster icon with the given attributes to the current model being
+     * built.
+     * <b>Note:</b> its computational, storage and memory costs are set to 0.
+     */
+    public void addCluster(
+            final Integer x, final Integer y,
+            final Integer localId, final Integer globalId, final String name,
+            final Integer slaveCount,
+            final Double power, final Integer coreCount,
+            final Double memory, final Double disk,
+            final Double bandwidth, final Double latency,
+            final String scheduler,
+            final String owner,
+            final Boolean isMaster,
+            final Double energy) {
+        this.system.appendChild(this.anElement(
+                "cluster", new Object[][] {
+                        { "nodes", slaveCount },
+                        { "power", power },
+                        { "bandwidth", bandwidth },
+                        { "latency", latency },
+                        { "scheduler", scheduler },
+                        { "owner", owner },
+                        { "master", isMaster },
+                        { "id", name },
+                        { "energy", energy },
+                }, new Node[] {
+                        this.aPositionElement(x, y),
+                        this.anIconIdElement(globalId, localId),
+                        this.newCharacteristic(
+                                power, coreCount, memory, disk,
+                                0.0, 0.0, 0.0
+                        ),
+                }
+        ));
+    }
+
+    /**
+     * Add IaaS cluster icon with the given attributes to the current model
+     * being built.
+     * <B>Note:</B> no 'energy' attribute is added to the element.
+     */
+    public void addClusterIaaS(
+            final Integer x, final Integer y,
+            final Integer localId, final Integer globalId, final String name,
+            final Integer slaveCount,
+            final Double power, final Integer coreCount,
+            final Double memory, final Double disk,
+            final Double bandwidth, final Double latency,
+            final String scheduler, final String vmAlloc,
+            final Double processingCost, final Double memoryCost,
+            final Double diskCost,
+            final String owner, final Boolean isMaster) {
+        this.system.appendChild(this.anElement(
+                "cluster", new Object[][] {
+                        { "id", name },
+                        { "nodes", slaveCount },
+                        { "power", power },
+                        { "bandwidth", bandwidth },
+                        { "latency", latency },
+                        { "scheduler", scheduler },
+                        { "vm_alloc", vmAlloc },
+                        { "owner", owner },
+                        { "master", isMaster },
+                }, new Node[] {
+                        this.aPositionElement(x, y),
+                        this.anIconIdElement(globalId, localId),
+                        this.newCharacteristic(
+                                power, coreCount, memory, disk,
+                                processingCost, memoryCost, diskCost
+                        )
+                }
+        ));
+    }
+
+    /**
+     * Create an element with icon id information: those being the local and
+     * global ids.
+     */
+    private Element anIconIdElement(final int global, final int local) {
+        return this.anElement("icon_id", "global", global, "local", local);
+    }
+
+    /**
+     * Create an element with attributes describing the characteristics of a
+     * processing center, such as computational power and cost, storage, etc.
+     */
+    private Node newCharacteristic(final Double power, final Integer coreCount,
+                                   final Double memory, final Double disk,
+                                   final Double processingCost,
+                                   final Double memoryCost,
+                                   final Double diskCost) {
+        return this.anElement(
+                "characteristic", IconicoXML.NO_ATTRS, new Element[] {
+                        this.anElement("process",
+                                "power", power,
+                                "number", coreCount),
+                        this.anElement("memory", "size", memory),
+                        this.anElement("hard_disk", "size", disk),
+                        this.anElement("cost", new Object[][] {
+                                { "cost_proc", processingCost },
+                                { "cost_mem", memoryCost },
+                                { "cost_disk", diskCost },
+                        }),
+                }
+        );
+    }
+
+    /**
+     * Add a machine icon with the given attributes to the current model being
+     * built.
+     */
+    public void addMachine(
+            final Integer x, final Integer y,
+            final Integer localId, final Integer globalId, final String name,
+            final Double power, final Double occupancy,
+            final String scheduler, final String owner,
+            final Integer coreCount, final Double memory, final Double disk,
+            final boolean isMaster, final Collection<Integer> slaves,
+            final Double energy) {
+        this.addMachineInner(x, y, localId, globalId, name,
+                power, occupancy, scheduler, owner, coreCount, memory, disk,
+                null, null, null, isMaster, slaves,
+                new Object[][] { { "energy", energy } }, IconicoXML.NO_ATTRS
+        );
+    }
+
+    /**
+     * Create an element with attributes describing the characteristics of a
+     * processing center, but without costs.
+     * See
+     * {@link #newCharacteristic(Double, Integer, Double, Double, Double, Double, Double)} for further info.
+     */
+    private Node newCharacteristic(final Double power, final Integer coreCount,
+                                   final Double memory, final Double disk) {
+        return this.anElement(
+                "characteristic", IconicoXML.NO_ATTRS, new Element[] {
+                        this.anElement("process",
+                                "power", power,
+                                "number", coreCount
+                        ),
+                        this.anElement("memory", "size", memory),
+                        this.anElement("hard_disk", "size", disk),
+                });
+    }
+
+    /**
+     * Create a simple element with just a name and one attribute
+     */
+    private Element anElement(
+            final String name, final String key, final Object value) {
+        return this.anElement(name, new Object[][] {
+                { key, value },
+        });
+    }
+
+    /**
+     * Add a machine icon with the given attributes to the current model being
+     * built.
+     * <b>Notes:</b> No 'energy' attribute is added to the element; costs are
+     * set to 0.
+     * See
+     * {@link #addMachine(Integer, Integer, Integer, Integer, String, Double, Double, String, String, Integer, Double, Double, boolean, Collection, Double)}.
+     */
+    public void addMachine(
+            final Integer x, final Integer y,
+            final Integer localId, final Integer globalId, final String name,
+            final Double power, final Double occupancy,
+            final String scheduler, final String owner,
+            final Integer coreCount, final Double memory, final Double disk,
+            final boolean isMaster, final Collection<Integer> slaves) {
+        this.addMachineInner(x, y, localId, globalId, name,
+                power, occupancy, scheduler, owner, coreCount, memory, disk,
+                0.0, 0.0, 0.0, isMaster, slaves,
+                IconicoXML.NO_ATTRS, IconicoXML.NO_ATTRS
+        );
+    }
+
+    /**
+     * Add a IaaS machine icon with the given attributes to the current model
+     * being built.
+     * <b>Notes:</b> No 'energy' attribute is added to the element; an extra
+     * 'vm_alloc' attribute is added, compared to the other machine-adding
+     * methods.
+     * See
+     * {@link #addMachine(Integer, Integer, Integer, Integer, String, Double, Double, String, String, Integer, Double, Double, boolean, Collection, Double)}.
+     */
+    public void addMachineIaaS(
+            final Integer x, final Integer y,
+            final Integer localId, final Integer globalId, final String name,
+            final Double power, final Double occupancy,
+            final String vmAlloc, final String scheduler, final String owner,
+            final Integer coreCount, final Double memory, final Double disk,
+            final Double costPerProcessing,
+            final Double costPerMemory,
+            final Double costPerDisk,
+            final boolean isMaster, final Collection<Integer> slaves) {
+        this.addMachineInner(x, y, localId, globalId, name,
+                power, occupancy, scheduler, owner, coreCount, memory, disk,
+                costPerProcessing, costPerMemory, costPerDisk, isMaster, slaves,
+                IconicoXML.NO_ATTRS, new Object[][] { { "vm_alloc", vmAlloc }, }
+        );
+    }
+
+    /**
+     * Helper method to abstract away the addition of a machine element to
+     * the model being built. It takes in all attributes in common between
+     * the methods
+     * {@link #addMachine(Integer, Integer, Integer, Integer, String, Double, Double, String, String, Integer, Double, Double, boolean, Collection)},
+     * {@link #addMachine(Integer, Integer, Integer, Integer, String, Double, Double, String, String, Integer, Double, Double, boolean, Collection, Double)},
+     * and
+     * {@link #addMachineIaaS(Integer, Integer, Integer, Integer, String, Double, Double, String, String, String, Integer, Double, Double, Double, Double, Double, boolean, Collection)},
+     * but also two extra params, {@code extraAttrs} and {@code
+     * extraMasterAttrs}, which are arrays containing the specific attributes
+     * of each of the outer methods.
+     *
+     * @param isMaster         indicates whether or not to include a inner
+     *                         'master' element
+     * @param extraAttrs       extra attributes to be added ot the element
+     * @param extraMasterAttrs extra attributes to be added ot the inner
+     *                         'master' element, if the element is a master
+     */
+    private void addMachineInner(
+            final Integer x, final Integer y,
+            final Integer localId, final Integer globalId, final String name,
+            final Double power, final Double occupancy,
+            final String scheduler, final String owner,
+            final Integer coreCount, final Double memory, final Double disk,
+            final Double costPerProcessing,
+            final Double costPerMemory,
+            final Double costPerDisk,
+            final boolean isMaster, final Collection<Integer> slaves,
+            final Object[][] extraAttrs, final Object[][] extraMasterAttrs) {
+        // Note: Arrays.asList returns a fixed-size list, which throws on .add()
+        final var attrList = Arrays.stream(new Object[][] {
+                { "id", name },
+                { "power", power },
+                { "load", occupancy },
+                { "owner", owner },
+        }).collect(Collectors.toList());
+
+        attrList.addAll(Arrays.asList(extraAttrs));
+
+        final Node characteristic;
+
+        if (costPerProcessing != null) {
+            characteristic = this.newCharacteristic(
+                    power, coreCount, memory, disk,
+                    costPerProcessing, costPerMemory, costPerDisk
+            );
+        } else {
+            characteristic = this.newCharacteristic(
+                    power, coreCount, memory, disk
+            );
         }
-        //inputStream.close();
-        return documento;
-    }
 
-    
-    public static HashMap<String,Double> newListPerfil(Document descricao) {
-        NodeList owners = descricao.getElementsByTagName("owner");
-        HashMap<String,Double> perfis = new HashMap<>();
-        //Realiza leitura dos usuários/proprietários do modelo
-        for (int i = 0; i < owners.getLength(); i++) {
-            Element owner = (Element) owners.item(i);
-            perfis.put(owner.getAttribute("id"),Double.parseDouble(owner.getAttribute("powerlimit")));
+        final var machine = this.anElement(
+                "machine", attrList.toArray(Object[][]::new), new Node[] {
+                        this.aPositionElement(x, y),
+                        this.anIconIdElement(globalId, localId),
+                        characteristic,
+                }
+        );
+
+        if (isMaster) {
+            machine.appendChild(this.aMasterElement(
+                    scheduler, slaves, extraMasterAttrs
+            ));
         }
-        return perfis;
+
+        this.system.appendChild(machine);
     }
 
-    public void addUsers(Collection<String> usuarios, HashMap<String,Double> perfis) {
-        for (String user : usuarios) {
-            Element owner = descricao.createElement("owner");
-            owner.setAttribute("id", user);
-            owner.setAttribute("powerlimit", perfis.get(user).toString());
-            system.appendChild(owner);
+    /**
+     * Create a master element with given scheduling policy, and slaves as
+     * children.
+     *
+     * @param extraAttrs potential extra attributes to add to the element
+     */
+    private Element aMasterElement(final String scheduler,
+                                   final Collection<Integer> slaves,
+                                   final Object[][] extraAttrs) {
+        // Note: Arrays.asList returns a fixed-size list, which throws on .add()
+        final var attrList = Arrays.stream(new Object[][] {
+                { "scheduler", scheduler },
+        }).collect(Collectors.toList());
+
+        attrList.addAll(Arrays.asList(extraAttrs));
+
+        return this.anElement(
+                "master", attrList.toArray(Object[][]::new),
+                slaves.stream()
+                        .map(this::aSlaveElement)
+                        .toArray(Element[]::new)
+        );
+    }
+
+    /**
+     * Simple slave element with given id
+     */
+    private Element aSlaveElement(final Integer id) {
+        return this.anElement("slave", "id", id);
+    }
+
+    /**
+     * Add a link icon with the given attributes to the current model being
+     * built.
+     */
+    public void addLink(
+            final int x0, final int y0,
+            final int x1, final int y1,
+            final int localId, final int globalId,
+            final String name, final double bandwidth,
+            final double linkLoad, final double latency,
+            final int origination, final int destination) {
+        this.system.appendChild(this.anElement(
+                "link", new Object[][] {
+                        { "id", name },
+                        { "bandwidth", bandwidth },
+                        { "load", linkLoad },
+                        { "latency", latency },
+                }, new Element[] {
+                        this.anElement("connect",
+                                "origination", origination,
+                                "destination", destination),
+                        this.aPositionElement(x0, y0),
+                        this.aPositionElement(x1, y1),
+                        this.anIconIdElement(globalId, localId),
+                }
+        ));
+    }
+
+    /**
+     * Create a position element with position information (x, y)
+     */
+    private Element aPositionElement(final int x, final int y) {
+        return this.anElement("position", "x", x, "y", y);
+    }
+
+    /**
+     * Add a virtual machine icon with the given attributes to the current
+     * model being built.
+     */
+    public void addVirtualMachines(
+            final String id, final String owner, final String vmm,
+            final int power, final double memory, final double disk,
+            final String os) {
+        this.system.appendChild(this.anElement(
+                "virtualMac", new Object[][] {
+                        { "id", id },
+                        { "owner", owner },
+                        { "vmm", vmm },
+                        { "power", power },
+                        { "mem_alloc", memory },
+                        { "disk_alloc", disk },
+                        { "op_system", os },
+                }
+        ));
+    }
+
+    /**
+     * Add a random load to the current model being built.
+     *
+     * @apiNote This method just be called at most <b>once</b>> per instance,
+     * and not mixed with calls to
+     * {@link #setLoadTrace(String, String, String)} or
+     * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
+     */
+    public void setLoadRandom(
+            final Integer taskCount, final Integer arrivalTime,
+            final Integer compMax, final Integer compAvg,
+            final Integer compMin, final Double compProb,
+            final Integer commMax, final Integer commAvg,
+            final Integer commMin, final Double commProb) {
+        this.addElementToLoad(this.anElement(
+                "random", new Object[][] {
+                        { "tasks", taskCount },
+                        { "time_arrival", arrivalTime },
+                }, new Element[] {
+                        this.anElement("size", new Object[][] {
+                                { "type", "computing" },
+                                { "maximum", compMax },
+                                { "average", compAvg },
+                                { "minimum", compMin },
+                                { "probability", compProb },
+                        }),
+                        this.anElement("size", new Object[][] {
+                                { "type", "communication" },
+                                { "maximum", commMax },
+                                { "average", commAvg },
+                                { "minimum", commMin },
+                                { "probability", commProb },
+                        }),
+                }
+        ));
+    }
+
+    private void addElementToLoad(final Node elem) {
+        this.createLoadIfNull();
+        this.load.appendChild(elem);
+    }
+
+    private void createLoadIfNull() {
+        if (this.load == null) {
+            this.load = this.doc.createElement("load");
+            this.system.appendChild(this.load);
         }
     }
 
-    public void addInternet(int x, int y, int idLocal, int idGlobal, String nome,
-            double banda, double ocupacao, double latencia) {
-        Element aux;
-        Element posicao = descricao.createElement("position");
-        posicao.setAttribute("x", Integer.toString(x));
-        posicao.setAttribute("y", Integer.toString(y));
-        Element icon_id = descricao.createElement("icon_id");
-        icon_id.setAttribute("global", Integer.toString(idGlobal));
-        icon_id.setAttribute("local", Integer.toString(idLocal));
-
-        aux = descricao.createElement("internet");
-        aux.setAttribute("bandwidth", Double.toString(banda));
-        aux.setAttribute("load", Double.toString(ocupacao));
-        aux.setAttribute("latency", Double.toString(latencia));
-
-        aux.setAttribute("id", nome);
-        aux.appendChild(posicao);
-        aux.appendChild(icon_id);
-        system.appendChild(aux);
-    }
-
-    public void addCluster(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-                           Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
-                           Double memoriaRAM, Double discoRigido,
-                           Double banda, Double latencia,
-                           String algoritmo, String proprietario, Boolean mestre, Double energy) {
-        Element aux;
-        Element posicao = descricao.createElement("position");
-        posicao.setAttribute("x", x.toString());
-        posicao.setAttribute("y", y.toString());
-        Element icon_id = descricao.createElement("icon_id");
-        icon_id.setAttribute("global", idGlobal.toString());
-        icon_id.setAttribute("local", idLocal.toString());
-
-        aux = descricao.createElement("cluster");
-        aux.setAttribute("nodes", numeroEscravos.toString());
-        aux.setAttribute("power", poderComputacional.toString());
-        aux.setAttribute("bandwidth", banda.toString());
-        aux.setAttribute("latency", latencia.toString());
-        aux.setAttribute("scheduler", algoritmo);
-        aux.setAttribute("owner", proprietario);
-        aux.setAttribute("master", mestre.toString());
-        aux.setAttribute("energy",Double.toString(energy));
-
-        aux.setAttribute("id", nome);
-        aux.appendChild(posicao);
-        aux.appendChild(icon_id);
-        aux.appendChild(newCharacteristic(poderComputacional, numeroNucleos, memoriaRAM, discoRigido));
-        system.appendChild(aux);
-    }
-
-    public void addCluster(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-                           Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
-                           Double memoriaRAM, Double discoRigido,
-                           Double banda, Double latencia,
-                           String algoritmo, String proprietario, Boolean mestre) {
-        Element aux;
-        Element posicao = descricao.createElement("position");
-        posicao.setAttribute("x", x.toString());
-        posicao.setAttribute("y", y.toString());
-        Element icon_id = descricao.createElement("icon_id");
-        icon_id.setAttribute("global", idGlobal.toString());
-        icon_id.setAttribute("local", idLocal.toString());
-
-        aux = descricao.createElement("cluster");
-        aux.setAttribute("nodes", numeroEscravos.toString());
-        aux.setAttribute("power", poderComputacional.toString());
-        aux.setAttribute("bandwidth", banda.toString());
-        aux.setAttribute("latency", latencia.toString());
-        aux.setAttribute("scheduler", algoritmo);
-        aux.setAttribute("owner", proprietario);
-        aux.setAttribute("master", mestre.toString());
-
-        aux.setAttribute("id", nome);
-        aux.appendChild(posicao);
-        aux.appendChild(icon_id);
-        aux.appendChild(newCharacteristic(poderComputacional, numeroNucleos, memoriaRAM, discoRigido, 0.0, 0.0, 0.0));
-        system.appendChild(aux);
-    }
-
-    public void addClusterIaaS(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-                               Integer numeroEscravos, Double poderComputacional, Integer numeroNucleos,
-                               Double memoriaRAM, Double discoRigido,
-                               Double banda, Double latencia,
-                               String algoritmo,String alloc, Double CostperProcessing,
-                               Double Costpermemory, Double CostperDisk,
-                               String proprietario, Boolean mestre) {
-        Element aux;
-        Element posicao = descricao.createElement("position");
-        posicao.setAttribute("x", x.toString());
-        posicao.setAttribute("y", y.toString());
-        Element icon_id = descricao.createElement("icon_id");
-        icon_id.setAttribute("global", idGlobal.toString());
-        icon_id.setAttribute("local", idLocal.toString());
-
-        aux = descricao.createElement("cluster");
-        aux.setAttribute("nodes", numeroEscravos.toString());
-        aux.setAttribute("power", poderComputacional.toString());
-        aux.setAttribute("bandwidth", banda.toString());
-        aux.setAttribute("latency", latencia.toString());
-        aux.setAttribute("scheduler", algoritmo);
-        aux.setAttribute("vm_alloc", alloc);
-        aux.setAttribute("owner", proprietario);
-        aux.setAttribute("master", mestre.toString());
-
-        aux.setAttribute("id", nome);
-        aux.appendChild(posicao);
-        aux.appendChild(icon_id);
-        aux.appendChild(newCharacteristic(poderComputacional, numeroNucleos, memoriaRAM, discoRigido,
-                CostperProcessing, Costpermemory, CostperDisk));
-        system.appendChild(aux);
-    }
-
-    public void addMachine(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-                           Double poderComputacional, Double ocupacao, String algoritmo, String proprietario,
-                           Integer numeroNucleos, Double memoriaRAM, Double discoRigido,
-                           boolean mestre, Collection<Integer> escravos, Double energy) {
-        Element aux;
-        Element posicao = descricao.createElement("position");
-        posicao.setAttribute("x", x.toString());
-        posicao.setAttribute("y", y.toString());
-        Element icon_id = descricao.createElement("icon_id");
-        icon_id.setAttribute("global", idGlobal.toString());
-        icon_id.setAttribute("local", idLocal.toString());
-
-        aux = descricao.createElement("machine");
-        aux.setAttribute("power", Double.toString(poderComputacional));
-        aux.setAttribute("load", Double.toString(ocupacao));
-        aux.setAttribute("owner", proprietario);
-        aux.setAttribute("energy",Double.toString(energy));
-        if (mestre) {
-            //preenche escravos
-            Element master = descricao.createElement("master");
-            master.setAttribute("scheduler", algoritmo);
-            for (Integer escravo : escravos) {
-                Element slave = descricao.createElement("slave");
-                slave.setAttribute("id", escravo.toString());
-                master.appendChild(slave);
-            }
-            aux.appendChild(master);
-        }
-        aux.setAttribute("id", nome);
-        aux.appendChild(posicao);
-        aux.appendChild(icon_id);
-        aux.appendChild(newCharacteristic(poderComputacional, numeroNucleos, memoriaRAM, discoRigido));
-        system.appendChild(aux);
-    }
-
-    public void addMachine(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-                           Double poderComputacional, Double ocupacao, String algoritmo, String proprietario,
-                           Integer numeroNucleos, Double memoriaRAM, Double discoRigido,
-                           boolean mestre, Collection<Integer> escravos) {
-        Element aux;
-        Element posicao = descricao.createElement("position");
-        posicao.setAttribute("x", x.toString());
-        posicao.setAttribute("y", y.toString());
-        Element icon_id = descricao.createElement("icon_id");
-        icon_id.setAttribute("global", idGlobal.toString());
-        icon_id.setAttribute("local", idLocal.toString());
-
-        aux = descricao.createElement("machine");
-        aux.setAttribute("power", Double.toString(poderComputacional));
-        aux.setAttribute("load", Double.toString(ocupacao));
-        aux.setAttribute("owner", proprietario);
-        if (mestre) {
-            //preenche escravos
-            Element master = descricao.createElement("master");
-            master.setAttribute("scheduler", algoritmo);
-            for (Integer escravo : escravos) {
-                Element slave = descricao.createElement("slave");
-                slave.setAttribute("id", escravo.toString());
-                master.appendChild(slave);
-            }
-            aux.appendChild(master);
-        }
-        aux.setAttribute("id", nome);
-        aux.appendChild(posicao);
-        aux.appendChild(icon_id);
-        aux.appendChild(newCharacteristic(poderComputacional, numeroNucleos, memoriaRAM, discoRigido, 0.0, 0.0, 0.0));
-        system.appendChild(aux);
-    }
-
-    public void addMachineIaaS(Integer x, Integer y, Integer idLocal, Integer idGlobal, String nome,
-                               Double poderComputacional, Double ocupacao, String alloc, String algoritmo, String proprietario,
-                               Integer numeroNucleos, Double memoriaRAM, Double discoRigido, Double CostperProcessing,
-                               Double Costpermemory, Double CostperDisk,
-                               boolean mestre, Collection<Integer> escravos) {
-        Element aux;
-        Element posicao = descricao.createElement("position");
-        posicao.setAttribute("x", x.toString());
-        posicao.setAttribute("y", y.toString());
-        Element icon_id = descricao.createElement("icon_id");
-        icon_id.setAttribute("global", idGlobal.toString());
-        icon_id.setAttribute("local", idLocal.toString());
-
-        aux = descricao.createElement("machine");
-        aux.setAttribute("power", Double.toString(poderComputacional));
-        aux.setAttribute("load", Double.toString(ocupacao));
-        aux.setAttribute("owner", proprietario);
-        //aux.setAttribute("cost_proc", CostperProcessing.toString());
-        //aux.setAttribute("cost_mem", Costpermemory.toString());
-        //aux.setAttribute("cost_disk", CostperDisk.toString());
-
-        if (mestre) {
-            //preenche escravos
-            Element master = descricao.createElement("master");
-            master.setAttribute("scheduler", algoritmo);
-            master.setAttribute("vm_alloc", alloc);
-            for (Integer escravo : escravos) {
-                Element slave = descricao.createElement("slave");
-                slave.setAttribute("id", escravo.toString());
-                master.appendChild(slave);
-            }
-            aux.appendChild(master);
-        }
-        aux.setAttribute("id", nome);
-        aux.appendChild(posicao);
-        aux.appendChild(icon_id);
-        aux.appendChild(newCharacteristic(poderComputacional, numeroNucleos, memoriaRAM, discoRigido,
-                CostperProcessing, Costpermemory, CostperDisk));
-        system.appendChild(aux);
-    }
-
-    public void addLink(int x0, int y0, int x1, int y1, int idLocal, int idGlobal, String nome,
-            double banda, double taxaOcupacao, double latencia, int origem, int destino) {
-        Element aux = null;
-        Element posicao = descricao.createElement("position");
-        posicao.setAttribute("x", Integer.toString(x0));
-        posicao.setAttribute("y", Integer.toString(y0));
-        Element icon_id = descricao.createElement("icon_id");
-        icon_id.setAttribute("global", Integer.toString(idGlobal));
-        icon_id.setAttribute("local", Integer.toString(idLocal));
-
-        aux = descricao.createElement("link");
-        aux.setAttribute("bandwidth", Double.toString(banda));
-        aux.setAttribute("load", Double.toString(taxaOcupacao));
-        aux.setAttribute("latency", Double.toString(latencia));
-        Element connect = descricao.createElement("connect");
-        connect.setAttribute("origination", Integer.toString(origem));
-        connect.setAttribute("destination", Integer.toString(destino));
-        aux.appendChild(connect);
-        aux.appendChild(posicao);
-        posicao = descricao.createElement("position");
-        posicao.setAttribute("x", Integer.toString(x1));
-        posicao.setAttribute("y", Integer.toString(y1));
-
-        aux.setAttribute("id", nome);
-        aux.appendChild(posicao);
-        aux.appendChild(icon_id);
-        system.appendChild(aux);
-    }
-
-    public void addVirtualMachines(String id, String user, String VMM, int poderComputacional,
-            double memAlocada, double discoAlocado, String OS) {
-        Element aux;
-        aux = descricao.createElement("virtualMac");
-        aux.setAttribute("id", id);
-        aux.setAttribute("owner", user);
-        aux.setAttribute("vmm", VMM);
-        aux.setAttribute("power", Integer.toString(poderComputacional));
-        aux.setAttribute("mem_alloc", Double.toString(memAlocada));
-        aux.setAttribute("disk_alloc", Double.toString(discoAlocado));
-        aux.setAttribute("op_system", OS);
-        system.appendChild(aux);
-    }
-
-    public void setLoadRandom(Integer numeroTarefas, Integer timeToArrival,
-            Integer maxComputacao, Integer averageComputacao, Integer minComputacao, Double probabilityComputacao,
-            Integer maxComunicacao, Integer averageComunicacao, Integer minComunicacao, Double probabilityComunicacao) {
-        if (load == null) {
-            load = descricao.createElement("load");
-            system.appendChild(load);
-        }
-        Element xmlRandom = descricao.createElement("random");
-        xmlRandom.setAttribute("tasks", numeroTarefas.toString());
-        xmlRandom.setAttribute("time_arrival", timeToArrival.toString());
-        Element size = descricao.createElement("size");
-        size.setAttribute("type", "computing");
-        size.setAttribute("maximum", maxComputacao.toString());
-        size.setAttribute("average", averageComputacao.toString());
-        size.setAttribute("minimum", minComputacao.toString());
-        size.setAttribute("probability", probabilityComputacao.toString());
-        xmlRandom.appendChild(size);
-        size = descricao.createElement("size");
-        size.setAttribute("type", "communication");
-        size.setAttribute("maximum", maxComunicacao.toString());
-        size.setAttribute("average", averageComunicacao.toString());
-        size.setAttribute("minimum", minComunicacao.toString());
-        size.setAttribute("probability", probabilityComunicacao.toString());
-        xmlRandom.appendChild(size);
-        load.appendChild(xmlRandom);
-    }
-
+    /**
+     * Add a per-node load to the current model being built.
+     *
+     * @apiNote This method may be called more than once per instance,
+     * however it should be mixed with calls to
+     * {@link #setLoadTrace(String, String, String)} or
+     * {@link #setLoadRandom(Integer, Integer, Integer, Integer, Integer, Double, Integer, Integer, Integer, Double)}.
+     */
     public void addLoadNo(
-            String aplicacao, String proprietario, String escalonador, Integer numeroTarefas,
-            Double maxComputacao, Double minComputacao,
-            Double maxComunicacao, Double minComunicacao) {
-        if (load == null) {
-            load = descricao.createElement("load");
-            system.appendChild(load);
-        }
-        Element xmlNode = descricao.createElement("node");
-        xmlNode.setAttribute("application", aplicacao);
-        xmlNode.setAttribute("owner", proprietario);
-        xmlNode.setAttribute("id_master", escalonador);
-        xmlNode.setAttribute("tasks", numeroTarefas.toString());
-        Element size = descricao.createElement("size");
-        size.setAttribute("type", "computing");
-        size.setAttribute("maximum", maxComputacao.toString());
-        size.setAttribute("minimum", minComputacao.toString());
-        xmlNode.appendChild(size);
-        size = descricao.createElement("size");
-        size.setAttribute("type", "communication");
-        size.setAttribute("maximum", maxComunicacao.toString());
-        size.setAttribute("minimum", minComunicacao.toString());
-        xmlNode.appendChild(size);
-        load.appendChild(xmlNode);
+            final String application,
+            final String owner,
+            final String masterId,
+            final Integer taskCount,
+            final Double maxComp, final Double minComp,
+            final Double maxComm, final Double minComm) {
+        this.addElementToLoad(this.anElement(
+                "node", new Object[][] {
+                        { "application", application },
+                        { "owner", owner },
+                        { "id_master", masterId },
+                        { "tasks", taskCount },
+                }, new Element[] {
+                        this.anElement("size", new Object[][] {
+                                { "type", "computing" },
+                                { "maximum", maxComp },
+                                { "minimum", minComp },
+                        }),
+                        this.anElement("size", new Object[][] {
+                                { "type", "communication" },
+                                { "maximum", maxComm },
+                                { "minimum", minComm },
+                        }),
+                }
+        ));
     }
 
-    public void setLoadTrace(String file, String task, String format) {
-        if (load == null) {
-            load = descricao.createElement("load");
-            system.appendChild(load);
-        }
-        Element xmlTrace = descricao.createElement("trace");
-        xmlTrace.setAttribute("file_path", file);
-        xmlTrace.setAttribute("tasks", task);
-        xmlTrace.setAttribute("format", format);
-        load.appendChild(xmlTrace);
+    /**
+     * Add a trace load to the current model being built.
+     *
+     * @apiNote This method just be called at most <b>once</b>> per instance,
+     * and not mixed with calls to
+     * {@link #setLoadRandom(Integer, Integer, Integer, Integer, Integer, Double, Integer, Integer, Integer, Double)} or
+     * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
+     */
+    public void setLoadTrace(
+            final String file, final String tasks, final String format) {
+        this.addElementToLoad(this.anElement(
+                "trace", new String[][] {
+                        { "file_path", file },
+                        { "tasks", tasks },
+                        { "format", format },
+                }
+        ));
     }
 
+    /**
+     * Get {@link Document} with iconic model generated.
+     */
     public Document getDescricao() {
-        return descricao;
+        return this.doc.document;
     }
 
-    /**
-     * It creates the characteristic group element containing the information
-     * about computational power core count, amount of memory ram and
-     * amount of hard disk.
-     * <p><br />
-     * An example of such element returned by the following argument list
-     * <ul>
-     *     <li>computationalPower: 20</li>
-     *     <li>coreCount: 32</li>
-     *     <li>memoryRamAmount: 16</li>
-     *     <li>hardDiskAmount: 4096</li>
-     * </ul>
-     *
-     * is given by
-     *
-     * <pre>{@code
-     * <characteristic>
-     *  <process number="32" power="20.0"/>
-     *  <memory size="16.0"/>
-     *  <hard_disk size="4096.0"/>
-     * </characteristic>
-     * }</pre>
-     *
-     * @param computationalPower the computational power
-     * @param coreCount the core count
-     * @param memoryRamAmount the memory ram amount
-     * @param hardDiskAmount the hard disk amount.
-     *
-     * @return a characteristic group element containing information about
-     *         core count, memory ram and hard disk amount.
-     */
-    private Element newCharacteristic(final double computationalPower,
-                                   final int coreCount,
-                                   final double memoryRamAmount,
-                                   final double hardDiskAmount) {
-        final Element characteristic = this.descricao.createElement("characteristic");
-        final Element process = this.descricao.createElement("process");
-        final Element memory = this.descricao.createElement("memory");
-        final Element hardDisk = this.descricao.createElement("hard_disk");
+    private static class CloningEntityResolver implements EntityResolver {
+        private final InputSource substitute = new InputSource(
+                IconicoXML.class.getResourceAsStream("iSPD.dtd"));
 
-        process.setAttribute("power", String.valueOf(computationalPower));
-        process.setAttribute("number", String.valueOf(coreCount));
-
-        memory.setAttribute("size", String.valueOf(memoryRamAmount));
-        hardDisk.setAttribute("size", String.valueOf(hardDiskAmount));
-
-        characteristic.appendChild(process);
-        characteristic.appendChild(memory);
-        characteristic.appendChild(hardDisk);
-
-        return characteristic;
-    }
-
-    /**
-     * It creates the characteristic group element containing the information
-     * about computational power, core count, memory ram and hard disk amount,
-     * cost per processing, cost per memory and cost per disk.
-     * <p><br />
-     * An example of such element returned by the following argument list
-     * <ul>
-     *  <li>computationalPower: 20</li>
-     *  <li>coreCount: 16</li>
-     *  <li>memoryRamAmount: 20</li>
-     *  <li>hardDiskAmount: 40</li>
-     *  <li>costPerProcessing: 5</li>
-     *  <li>costPerMemory: 15</li>
-     *  <li>costPerDisk: 2</li>
-     * </ul>
-     *
-     * is given by
-     *
-     * <pre>{@code
-     * <characteristic>
-     *  <process number="16" power="20.0"/>
-     *  <memory size="20.0"/>
-     *  <hard_disk size="40.0"/>
-     *  <cost cost_disk="2.0" cost_mem="15.0" cost_proc="5.0"/>
-     * </characteristic>
-     * }</pre>
-     *
-     * @param computationalPower the computational power
-     * @param coreCount the core count
-     * @param memoryRamAmount the memory ram amount
-     * @param hardDiskAmount the hard disk amount
-     * @param costPerProcessing the core per processing
-     * @param costPerMemory the cost per memory
-     * @param costPerDisk the cost per disk
-     *
-     * @return a characteristic group element containing the information about
-     *         computational power, core count, memory and hard disk amount,
-     *         and cost for processing, memory and disk.
-     */
-    private Element newCharacteristic(final double computationalPower,
-                                      final int coreCount,
-                                      final double memoryRamAmount,
-                                      final double hardDiskAmount,
-                                      final double costPerProcessing,
-                                      final double costPerMemory,
-                                      final double costPerDisk) {
-        final Element characteristic = this.newCharacteristic(computationalPower,
-                coreCount, memoryRamAmount, hardDiskAmount);
-        final Element cost = this.descricao.createElement("cost");
-
-        cost.setAttribute("cost_proc", String.valueOf(costPerProcessing));
-        cost.setAttribute("cost_mem", String.valueOf(costPerMemory));
-        cost.setAttribute("cost_disk", String.valueOf(costPerDisk));
-
-        characteristic.appendChild(cost);
-        return characteristic;
+        public InputSource resolveEntity(
+                final String publicId, final String systemId) {
+            return this.substitute;
+        }
     }
 }

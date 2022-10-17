@@ -106,7 +106,7 @@ public class InterpretadorGridSim {
         LinkedList<String> user = new LinkedList<String>();
         LinkedList<String> mestre = new LinkedList<String>();
         HashMap<JavaParser.ResourceChar, String> idGlobal = new HashMap<JavaParser.ResourceChar, String>();
-        Document descricao = ispd.arquivo.xml.ManipuladorXML.novoDocumento();
+        Document descricao = ispd.arquivo.xml.ManipuladorXML.newDocument();
         Element system = descricao.createElement("system");
         Element load = descricao.createElement("load");
         system.setAttribute("version", "1");

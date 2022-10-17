@@ -6,15 +6,15 @@ package ispd.gui.auxiliar;
  */
 public class ParesOrdenadosUso implements Comparable<ParesOrdenadosUso> {
     // TODO: Rename
-    private final Double start;
-    private final Double end;
+    private final double start;
+    private final double end;
 
     public ParesOrdenadosUso(final double start, final double end) {
         this.start = start;
         this.end = end;
     }
 
-    public Double getFim() {
+    public double getFim() {
         return this.end;
     }
 
@@ -25,10 +25,10 @@ public class ParesOrdenadosUso implements Comparable<ParesOrdenadosUso> {
 
     @Override
     public int compareTo(final ParesOrdenadosUso o) {
-        return this.start.compareTo(o.getInicio());
+        return Double.compare(this.start, o.start);
     }
 
-    public Double getInicio() {
+    public double getInicio() {
         return this.start;
     }
 }

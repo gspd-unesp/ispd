@@ -1,14 +1,6 @@
 package ispd.gui;
 
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -70,7 +62,7 @@ public class PickSimulationFaultsDialog extends JFrame {
         final JButton jButtonSelecionarFalhas = new JButton();
         final JLabel jLabel22 = new JLabel();
 
-        this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.setTitle("SelectFaults");
         this.setLocation(new java.awt.Point(300, 100));
 
