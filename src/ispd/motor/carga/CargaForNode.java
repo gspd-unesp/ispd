@@ -158,7 +158,7 @@ public class CargaForNode extends GerarCarga {
     }
 
     private static double fromTwoStageUniform(
-            final Distribution random, final Double min, final Double max) {
+            final Distribution random, final double min, final double max) {
         return random.twoStageUniform(min, min + (max - min) / 2, max, 1);
     }
 
@@ -166,7 +166,7 @@ public class CargaForNode extends GerarCarga {
         return "NoDelay".equals(this.owner) ? 120 : 0;
     }
 
-    public Integer getNumeroTarefas() {
+    public int getNumeroTarefas() {
         return this.taskCount;
     }
 
@@ -196,19 +196,19 @@ public class CargaForNode extends GerarCarga {
         return this.application;
     }
 
-    public Double getMaxComputacao() {
+    public double getMaxComputacao() {
         return this.maxComputation;
     }
 
-    public Double getMaxComunicacao() {
+    public double getMaxComunicacao() {
         return this.maxCommunication;
     }
 
-    public Double getMinComputacao() {
+    public double getMinComputacao() {
         return this.minComputation;
     }
 
-    public Double getMinComunicacao() {
+    public double getMinComunicacao() {
         return this.minCommunication;
     }
 
