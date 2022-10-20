@@ -2,7 +2,6 @@ package ispd.motor.carga;
 
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.random.Distribution;
 
@@ -17,6 +16,7 @@ import java.util.stream.IntStream;
  */
 public class CargaForNode extends GerarCarga {
     private static final double FILE_RECEIVE_TIME = 0.0009765625;
+    private static final int ON_NO_DELAY = 120;
     private final String application;
     private final String owner;
     private final String schedulerId;
@@ -25,14 +25,14 @@ public class CargaForNode extends GerarCarga {
     private final double minComputation;
     private final double maxCommunication;
     private final double minCommunication;
-    private int nextAvailableTaskId = 0;
 
     /**
      * Create a per-node workload with the given parameters
      *
      * @param application      application of the workload
      * @param owner            name of the user responsible for the workload
-     * @param schedulerId      id of the machine responsible for scheduling this workload's tasks
+     * @param schedulerId      id of the machine responsible for scheduling
+     *                         this workload's tasks
      * @param taskCount        total number of tasks
      * @param maxComputation   computation maximum
      * @param minComputation   computation minimum
@@ -55,42 +55,12 @@ public class CargaForNode extends GerarCarga {
     }
 
     /**
-     * Create an instance from the given {@link String}.
-     * The string is expected to have the same format as one produced by this class' {@link #toString()} method.
-     *
-     * @param s the {@link String} to be parsed into an instance of this class.
-     * @return the constructed instance.
-     * @throws ArrayIndexOutOfBoundsException if the string does not have enough 'fields' present
-     * @throws NumberFormatException          if fields 2-6 are not formatted correctly.
-     */
-    /* package-private */
-    static GerarCarga newGerarCarga(final String s) {
-        final var values = s.split(" ");
-        final String scheduler = values[0];
-        final int taskCount = Integer.parseInt(values[1]);
-        final double maxComputation = Double.parseDouble(values[2]);
-        final double minComputation = Double.parseDouble(values[3]);
-        final double maxCommunication = Double.parseDouble(values[4]);
-        final double minCommunication = Double.parseDouble(values[5]);
-
-        return new CargaForNode(
-                "application0",
-                "user1",
-                scheduler,
-                taskCount,
-                maxComputation,
-                minComputation,
-                maxCommunication,
-                minCommunication
-        );
-    }
-
-    /**
      * Build a {@link Vector} with data from this instance:
-     * {@link #application}, {@link #owner}, {@link #schedulerId}, {@link #taskCount},
+     * {@link #application}, {@link #owner},
+     * {@link #schedulerId}, {@link #taskCount},
      * and minimums and maximums for computation and communication.
-     * The order of the attributes after {@link #owner} is the same as the one used in this class'
-     * {@link #toString()} and {@link #newGerarCarga(String)} methods.
+     * The order of the attributes after {@link #owner} is the same as the
+     * one used in this class' {@link #toString()} method.
      *
      * @return {@link Vector} with this instance's data.
      */
@@ -109,30 +79,52 @@ public class CargaForNode extends GerarCarga {
 
     @Override
     public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
-        return rdf.getMestres().stream()
+        return this.toTaskList(rdf, new SequentialIntegerGenerator());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %d %f %f %f %f",
+                this.schedulerId, this.taskCount,
+                this.maxComputation, this.minComputation,
+                this.maxCommunication, this.minCommunication
+        );
+    }
+
+    @Override
+    public int getTipo() {
+        return GerarCarga.FORNODE;
+    }
+
+    public List<Tarefa> toTaskList(
+            final RedeDeFilas qn, final Generator<Integer> idGenerator) {
+        return qn.getMestres().stream()
                 .filter(this::hasCorrectId)
                 .findFirst()
-                .map(this::makeTaskListOriginatingAt)
+                .map(proc -> this.makeTaskListOriginatingAt(proc, idGenerator))
                 .orElseGet(ArrayList::new);
     }
 
-    private boolean hasCorrectId(final CS_Processamento m) {
+    private boolean hasCorrectId(final CentroServico m) {
         return m.getId().equals(this.schedulerId);
     }
 
-    private List<Tarefa> makeTaskListOriginatingAt(final CentroServico origin) {
+    private List<Tarefa> makeTaskListOriginatingAt(
+            final CentroServico origin, final Generator<Integer> idGenerator) {
         final var random = new Distribution(System.currentTimeMillis());
 
         return IntStream.range(0, this.taskCount)
-                .mapToObj(i -> this.makeTaskOriginatingAt(origin, random))
+                .mapToObj(i -> this.makeTaskOriginatingAt(
+                        origin, random, idGenerator))
                 .collect(Collectors.toList());
     }
 
     private Tarefa makeTaskOriginatingAt(
-            final CentroServico origin, final Distribution random) {
+            final CentroServico origin, final Distribution random,
+            final Generator<Integer> idGenerator) {
 
         return new Tarefa(
-                this.nextTaskId(),
+                idGenerator.next(),
                 this.owner,
                 this.application,
                 origin,
@@ -151,41 +143,17 @@ public class CargaForNode extends GerarCarga {
         );
     }
 
-    private int nextTaskId() {
-        final var value = this.nextAvailableTaskId;
-        this.nextAvailableTaskId++;
-        return value;
-    }
-
     private static double fromTwoStageUniform(
             final Distribution random, final double min, final double max) {
         return random.twoStageUniform(min, min + (max - min) / 2, max, 1);
     }
 
     private int calculateDelay() {
-        return "NoDelay".equals(this.owner) ? 120 : 0;
+        return "NoDelay".equals(this.owner) ? CargaForNode.ON_NO_DELAY : 0;
     }
 
     public int getNumeroTarefas() {
         return this.taskCount;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s %d %f %f %f %f",
-                this.schedulerId, this.taskCount,
-                this.maxComputation, this.minComputation,
-                this.maxCommunication, this.minCommunication
-        );
-    }
-
-    @Override
-    public int getTipo() {
-        return GerarCarga.FORNODE;
-    }
-
-    void setInicioIdentificadorTarefa(final int newNextId) {
-        this.nextAvailableTaskId = newNextId;
     }
 
     public String getEscalonador() {

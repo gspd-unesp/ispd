@@ -1,111 +1,77 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * CargaList.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.motor.carga;
 
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
+import java.util.stream.Collectors;
 
 /**
- * Descreve como gerar tarefas na forma por nó mestre
- *
- * @author denison
+ * Represents a workload from a homogeneous collection of other workloads.
+ * Specifically, when used to host a collection of per-node tasks, the method
+ * {@link #toTarefaList(RedeDeFilas)} can be used to collect all per-node
+ * tasks into a single, flat list.
  */
 public class CargaList extends GerarCarga {
+    private final int loadType;
+    private final List<GerarCarga> workloadList;
 
-    private int tipo;
-    private List<GerarCarga> configuracaoNo;
-
-    public CargaList(List configuracaoNo, int tipo) {
-        this.tipo = tipo;
-        this.configuracaoNo = configuracaoNo;
-    }
-
-    public static GerarCarga newGerarCarga(String entrada) {
-        CargaList newObj = null;
-        String[] linhas = entrada.split("\n");
-        List<CargaForNode> nos = new ArrayList<CargaForNode>();
-        for (int i = 0; i < linhas.length; i++) {
-            CargaForNode newNo = (CargaForNode) CargaForNode.newGerarCarga(linhas[i]);
-            if (newNo != null) {
-                nos.add(newNo);
-            }
-        }
-        if (nos.size() > 0) {
-            newObj = new CargaList(nos, GerarCarga.FORNODE);
-        }
-        return newObj;
+    /**
+     * Instantiate a CargaList from a homogeneous {@code List} of other
+     * {@link GerarCarga}s.
+     *
+     * @param workloadList list of {@link GerarCarga}s
+     * @param loadType     type of {@link GerarCarga}s hosted in the given list
+     */
+    public CargaList(final List workloadList, final int loadType) {
+        this.loadType = loadType;
+        this.workloadList = workloadList;
     }
 
     public List<GerarCarga> getList() {
-        return configuracaoNo;
+        return this.workloadList;
     }
 
+    /**
+     * Make a task list from the inner per-node load list, or an <b>empty</b>
+     * one if another type of {@link GerarCarga} is in the list.
+     *
+     * @param rdf Queue network in which the tasks will be used
+     * @return {@code List} with all, flattened, tasks in the per-node
+     * workloads in {@link #workloadList}, or an empty {@code ArrayList} if
+     * the type of workloads in the list is not {@link CargaForNode}.
+     */
     @Override
-    public List<Tarefa> toTarefaList(RedeDeFilas rdf) {
-        List<Tarefa> tarefas = new ArrayList<Tarefa>();
-        int inicio = 0;
-        if (tipo == GerarCarga.FORNODE) {
-            for (GerarCarga item : this.configuracaoNo) {
-                CargaForNode carga = (CargaForNode) item;
-                carga.setInicioIdentificadorTarefa(inicio);
-                inicio += carga.getNumeroTarefas();
-                tarefas.addAll(carga.toTarefaList(rdf));
-            }
+    public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
+        if (this.loadType != GerarCarga.FORNODE) {
+            return new ArrayList<>(0);
         }
-        return tarefas;
+
+        final var generator = new SequentialIntegerGenerator();
+
+        return this.workloadList.stream()
+                .map(CargaForNode.class::cast)
+                .flatMap(load -> load.toTaskList(rdf, generator).stream())
+                .collect(Collectors.toList());
     }
 
+    /**
+     * @return all string representations of the workloads in the inner list,
+     * concatenated together with {@code newlines}.
+     */
     @Override
     public String toString() {
-        StringBuilder saida = new StringBuilder();
-        for (GerarCarga cargaTaskNode : configuracaoNo) {
-            saida.append(cargaTaskNode.toString()).append("\n");
-        }
-        return saida.toString();
+        return this.workloadList.stream()
+                .map(GerarCarga::toString)
+                .collect(Collectors.joining("\n"));
     }
 
+    /**
+     * @return the type of workload in the inner list {@link #workloadList}.
+     */
     @Override
     public int getTipo() {
-        return tipo;
+        return this.loadType;
     }
 }
