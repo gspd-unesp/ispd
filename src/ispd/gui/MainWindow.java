@@ -933,7 +933,7 @@ public class MainWindow extends JFrame implements KeyListener {
         this.configureFileFilterAndChooser(
                 "Iconic Model of Simulation",
                 MainWindow.ISPD_FILE_EXTENSIONS,
-                true // TODO: Undo this
+                true 
         );
 
         if (this.jFileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
@@ -1196,7 +1196,7 @@ public class MainWindow extends JFrame implements KeyListener {
         final boolean isSelected = box.isSelected();
         final String text = isSelected ? textIfSelected : textIfUnselected;
         box.setSelected(isSelected);
-        if (this.drawingArea != null) // TODO: Consumer<DrawingArea, Boolean> ?
+        if (this.drawingArea != null) 
             drawingAreaSetter.accept(isSelected);
         if (event != null)
             this.appendNotificacao(this.translate(text));
@@ -1238,7 +1238,7 @@ public class MainWindow extends JFrame implements KeyListener {
                 "Drawing grid enabled.",
                 "Drawing grid disabled.",
                 status -> this.drawingArea.setGridOn(status), // Do this to
-                // avoid NPE when no file is open // TODO: Disable when no file
+                // avoid NPE when no file is open 
                 evt
         );
     }
@@ -1560,7 +1560,7 @@ public class MainWindow extends JFrame implements KeyListener {
     }
 
     private void updateDrawingVms(final VmConfiguration vmConfigWindow) {
-        // TODO: Feature envy
+        
         this.drawingArea.setUsers(vmConfigWindow.atualizaUsuarios());
         this.drawingArea.setVirtualMachines(vmConfigWindow.getMaqVirtuais());
     }

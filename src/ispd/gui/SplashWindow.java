@@ -51,7 +51,7 @@ public class SplashWindow extends JWindow {
         final var area = this.getBounds();
         final BufferedImage capture = robot.createScreenCapture(
                 new Rectangle(area.x, area.y, area.width, area.height));
-        // TODO: Possibly inline area
+        
         g.drawImage(capture, 0, 0, null);
     }
 
@@ -63,7 +63,7 @@ public class SplashWindow extends JWindow {
                 Overlay.BORDER_SIZE,
                 width - Overlay.BORDER_SIZE,
                 height - Overlay.BORDER_SIZE,
-                // TODO: i3 = 2 * BORDER_SIZE ? (it seems offset)
+                
                 Overlay.ARC_SIZE,
                 Overlay.ARC_SIZE
         );
@@ -76,7 +76,7 @@ public class SplashWindow extends JWindow {
         if (imageUrl != null)
             return new ImageIcon(imageUrl);
 
-        // TODO: Study MRE arguments
+        
         throw new MissingResourceException(
                 "Missing .gif for splash window",
                 URL.class.getName(),
@@ -112,7 +112,7 @@ public class SplashWindow extends JWindow {
     private static class Text {
         private static final int X_OFFSET = 40;
         private static final int Y_OFFSET = 50;
-        // TODO: is 2 spaces correct in copyright?
+        
         private static final String CONTENT =
                 "Copyright (c) 2010 - 2014 GSPD.  All rights reserved.";
     }

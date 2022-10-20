@@ -21,7 +21,7 @@ public class ValidaValores {
             "this", "throw", "throws", "transient", "true", "try",
             "void", "volatile",
             "while"
-    ); // TODO: Add var? Any other keywords?
+    ); 
 
     public static boolean validaNomeClasse(final String name) {
         return name.matches("[a-zA-Z$_][a-zA-Z\\d$_]*")

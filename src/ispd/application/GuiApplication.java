@@ -33,7 +33,7 @@ public class GuiApplication implements Application {
 
         final var mainWindow = GuiApplication.buildMainWindow();
 
-        // TODO: Can exceptionLogger be instantiated after creating main window?
+        
         exceptionLogger.setParentComponent(mainWindow);
 
         return mainWindow;
@@ -57,7 +57,7 @@ public class GuiApplication implements Application {
     }
 
     private static void logWithMainLogger(final Throwable ex) {
-        // TODO: Perhaps message instead of 'null'?
+        
         Logger.getLogger(GuiApplication.class.getName())
                 .log(Level.SEVERE, null, ex);
     }
