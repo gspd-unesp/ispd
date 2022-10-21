@@ -141,7 +141,8 @@ public class UserConfigurationDialog extends JDialog {
     }
 
     private void onAddClick(final ActionEvent evt) {
-        final String add = JOptionPane.showInputDialog(
+         String add="";
+         add = JOptionPane.showInputDialog(
                 this,
                 this.translate("Enter the name"),
                 this.translate("Add"),
@@ -149,12 +150,11 @@ public class UserConfigurationDialog extends JDialog {
         );
 
         // TODO: Parse result and error.
-        String sResult ="";
-        sResult =JOptionPane.showInputDialog(this,
+        String sResult =JOptionPane.showInputDialog(this,
                         "Enter user power comsumption limit");
 
 
-        if (!this.userSet.contains(add) && !add.isEmpty() && !sResult.isEmpty() && !this.userSet.contains(sResult) ){
+        if (add != null && sResult != null && !add.isEmpty() && !this.userSet.contains(add)  && !sResult.isEmpty() && !this.userSet.contains(sResult) ){
             final Double result =
                     Double.parseDouble(sResult);
             this.userSet.add(add);
