@@ -79,7 +79,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     void setMaquina(final Machine machine, final Iterable<String> users) {
         this.machine = machine;
         this.vmm_policies.setSelectedItem(this.machine.getVmmAllocationPolicy());
-        // TODO: Superclass?
+        
         this.schedulers.setSelectedItem(this.machine.getSchedulingAlgorithm());
         this.users.removeAllItems();
         for (final var s : users) {
@@ -246,7 +246,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     }
 
     private class ButtonActionListener implements ActionListener {
-        // TODO: Identical to inner class in MachineTable, refactor!
+        
         @Override
         public void actionPerformed(final ActionEvent evt) {
             this.calculateThings();

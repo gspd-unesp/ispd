@@ -239,7 +239,7 @@ public class GraphicSimulation extends Simulation {
     // recupera o próximo evento e o executa. executa estes eventos de acordo com sua ordem de chegada de forma a evitar
     // a execução de um evento antes de outro que seria criado anteriormente
     private void commonLoop() {
-        // TODO: Learn what this do
+        
         FutureEvent actualEvent = this.futureEvents.poll();
         this.time = actualEvent.getCreationTime();
         switch (actualEvent.getType()) {

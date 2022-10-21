@@ -34,10 +34,10 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler {
     private static final int SCROLL_PANE_PREFERRED_HEIGHT = 300;
     private final JTextArea textArea = LogExceptions.readonlyTextArea();
 
-    // TODO: Create specialized error window
+    
     private final JScrollPane scrollPane =
             LogExceptions.resizedScrollPaneFrom(this.textArea);
-    private Component parentComponent; // TODO: Can we make this final?
+    private Component parentComponent; 
 
     public LogExceptions(final Component gui) {
         this.parentComponent = gui;
@@ -49,7 +49,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler {
     private static void createErrorFolderIfNonExistent() {
         final var aux = new File(LogExceptions.ERROR_FOLDER_PATH);
 
-        // TODO: Throw if directory can't be created
+        
 
         if (aux.exists())
             return;
@@ -77,7 +77,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler {
 
     @Override
     public void uncaughtException(final Thread t, final Throwable e) {
-        // TODO: Is this necessary?
+        
         final var errStream = new ByteArrayOutputStream();
         e.printStackTrace(new PrintStream(errStream));
         this.processError(errStream);
@@ -93,7 +93,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler {
                             errorStream);
             this.displayError(errorMessage);
 
-            errorStream.reset(); // TODO: Maybe in a finally block?
+            errorStream.reset(); 
 
         } catch (final IOException e) {
             JOptionPane.showMessageDialog(this.parentComponent,
@@ -131,7 +131,7 @@ public class LogExceptions implements Thread.UncaughtExceptionHandler {
 
         this.textArea.setText(formattedMessage);
 
-        // TODO: scrollPane.toString()?
+        
         JOptionPane.showMessageDialog(this.parentComponent, this.scrollPane,
                 "System Error", JOptionPane.ERROR_MESSAGE);
     }

@@ -66,7 +66,7 @@
 <!ATTLIST master vm_alloc CDATA "---">
 <!ATTLIST master scheduler CDATA "---">
 
-<!ELEMENT machine (master?,position,icon_id,characteristic?)>
+<!ELEMENT machine (position,icon_id,characteristic?,master?)>
 <!ATTLIST machine id ID #REQUIRED>
 <!ATTLIST machine power CDATA "0.0">
 <!ATTLIST machine load CDATA "0.0">

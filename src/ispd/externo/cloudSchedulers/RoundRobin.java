@@ -59,7 +59,7 @@ public class RoundRobin extends EscalonadorCloud {
         System.out.println("---------------------------");
         final var task = this.escalonarTarefa();
         final var taskOwner = task.getProprietario();
-        this.slavesUser = // TODO: Maybe local var?
+        this.slavesUser = 
                 (LinkedList<CS_Processamento>) this.getVMsAdequadas(
                         taskOwner, this.escravos);
 
