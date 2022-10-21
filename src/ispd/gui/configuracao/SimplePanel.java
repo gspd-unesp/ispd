@@ -9,7 +9,7 @@ public class SimplePanel extends JPanel {
     private final JLabel label = new JLabel();
 
     public SimplePanel() {
-        // TODO: Receive text on constructor
+        
         this.initComponents();
     }
 

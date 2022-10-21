@@ -365,7 +365,7 @@ public class Escalonadores implements ManipularArquivos {
      */
     @Override
     public boolean importarEscalonadorJava(final File arquivo) {
-        // TODO: Merge this and method compilar() into one
+        
 
         final var target = new File(Escalonadores.DIRECTORY, arquivo.getName());
         Escalonadores.copyFile(target, arquivo);

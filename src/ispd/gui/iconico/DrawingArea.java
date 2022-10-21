@@ -471,7 +471,7 @@ public abstract class DrawingArea extends JPanel
         this.rectangleWidth = x - this.rectangleX;
         this.rectangleHeight = y - this.rectangleY;
 
-        // TODO: This logic is duplicated in many places
+        
         final int retX;
         final int retLag;
         if (this.rectangleWidth < 0) {
