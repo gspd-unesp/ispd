@@ -2,9 +2,9 @@ package ispd.gui;
 
 import ispd.arquivo.xml.TraceXML;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
-import ispd.motor.carga.CargaForNode;
-import ispd.motor.carga.CargaList;
-import ispd.motor.carga.CargaRandom;
+import ispd.motor.carga.CollectionWorkloadGenerator;
+import ispd.motor.carga.PerNodeWorkloadGenerator;
+import ispd.motor.carga.RandomWorkloadGenerator;
 import ispd.motor.carga.CargaTrace;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
@@ -823,7 +823,7 @@ public class LoadConfigurationDialog extends JDialog {
 
         switch (loadGenerator.getType()) {
             case RANDOM -> {
-                final CargaRandom random = (CargaRandom) loadGenerator;
+                final RandomWorkloadGenerator random = (RandomWorkloadGenerator) loadGenerator;
                 this.jSpinnerNumTarefas.setValue(random.getNumeroTarefas());
                 this.jSpinnerMinComputacao.setValue(random.getMinComputacao());
                 this.jSpinnerMaxComputacao.setValue(random.getMaxComputacao());
@@ -837,9 +837,9 @@ public class LoadConfigurationDialog extends JDialog {
                 this.setTipo(WorkloadGeneratorType.RANDOM);
             }
             case PER_NODE -> {
-                final CargaList nodes = (CargaList) loadGenerator;
+                final CollectionWorkloadGenerator nodes = (CollectionWorkloadGenerator) loadGenerator;
                 for (final WorkloadGenerator item : nodes.getList()) {
-                    final CargaForNode node = (CargaForNode) item;
+                    final PerNodeWorkloadGenerator node = (PerNodeWorkloadGenerator) item;
                     this.tableRow.add(node.toVector());
                 }
                 this.indexTable = this.tableRow.size();
@@ -1139,7 +1139,7 @@ public class LoadConfigurationDialog extends JDialog {
                         Double.parseDouble(this.jSpinnerProbabilityComunicacao.getValue().toString());
                 final int timeArriv =
                         (Integer) this.jSpinnerTimeOfArrival.getValue();
-                this.loadGenerator = new CargaRandom(numTaref, minComp, maxComp,
+                this.loadGenerator = new RandomWorkloadGenerator(numTaref, minComp, maxComp,
                         aveComp, probComp, minComun, maxComun, aveComun,
                         probComun, timeArriv);
             } catch (final Exception ex) {
@@ -1152,7 +1152,7 @@ public class LoadConfigurationDialog extends JDialog {
                 for (final List item : this.tableRow) {
                     configuracaoNo.add(LoadConfigurationDialog.loadGeneratorFromTableRow(item));
                 }
-                this.loadGenerator = new CargaList(configuracaoNo,
+                this.loadGenerator = new CollectionWorkloadGenerator(configuracaoNo,
                         WorkloadGeneratorType.PER_NODE);
             } catch (final Exception ex) {
                 Logger.getLogger(LoadConfigurationDialog.class.getName()).log(Level.SEVERE, null, ex);
@@ -1170,7 +1170,7 @@ public class LoadConfigurationDialog extends JDialog {
     }
 
     private static WorkloadGenerator loadGeneratorFromTableRow(final List row) {
-        return new CargaForNode(
+        return new PerNodeWorkloadGenerator(
                 row.get(0).toString(),
                 row.get(1).toString(),
                 row.get(2).toString(),

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 /**
  * Represents a load generated randomly, from a collection of intervals.
  */
-public class CargaRandom implements WorkloadGenerator {
+public class RandomWorkloadGenerator implements WorkloadGenerator {
     private static final double FILE_RECEIVE_TIME_1KB = 0.0009765625;
     private final int taskCount;
     private final int compMinimum;
@@ -23,7 +23,7 @@ public class CargaRandom implements WorkloadGenerator {
     private final double commProbability;
     private final int arrivalTime;
 
-    public CargaRandom(
+    public RandomWorkloadGenerator(
             final int taskCount,
             final int compMinimum, final int compMaximum,
             final int compAverage, final double compProbability,
@@ -129,19 +129,19 @@ public class CargaRandom implements WorkloadGenerator {
                     "application1",
                     master,
                     this.random.twoStageUniform(
-                            CargaRandom.this.commMinimum,
-                            CargaRandom.this.commAverage,
-                            CargaRandom.this.commMaximum,
-                            CargaRandom.this.commProbability
+                            RandomWorkloadGenerator.this.commMinimum,
+                            RandomWorkloadGenerator.this.commAverage,
+                            RandomWorkloadGenerator.this.commMaximum,
+                            RandomWorkloadGenerator.this.commProbability
                     ),
-                    CargaRandom.FILE_RECEIVE_TIME_1KB,
+                    RandomWorkloadGenerator.FILE_RECEIVE_TIME_1KB,
                     this.random.twoStageUniform(
-                            CargaRandom.this.compMinimum,
-                            CargaRandom.this.compAverage,
-                            CargaRandom.this.compMaximum,
-                            CargaRandom.this.compProbability
+                            RandomWorkloadGenerator.this.compMinimum,
+                            RandomWorkloadGenerator.this.compAverage,
+                            RandomWorkloadGenerator.this.compMaximum,
+                            RandomWorkloadGenerator.this.compProbability
                     ),
-                    this.random.nextExponential(CargaRandom.this.arrivalTime)
+                    this.random.nextExponential(RandomWorkloadGenerator.this.arrivalTime)
             );
         }
     }

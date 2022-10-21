@@ -7,9 +7,9 @@ import ispd.gui.iconico.DrawingArea;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Icon;
 import ispd.gui.iconico.Vertex;
-import ispd.motor.carga.CargaForNode;
-import ispd.motor.carga.CargaList;
-import ispd.motor.carga.CargaRandom;
+import ispd.motor.carga.PerNodeWorkloadGenerator;
+import ispd.motor.carga.CollectionWorkloadGenerator;
+import ispd.motor.carga.RandomWorkloadGenerator;
 import ispd.motor.carga.CargaTrace;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
@@ -603,7 +603,7 @@ public class DesenhoGrade extends DrawingArea {
 
         //configurar carga
         if (this.loadConfiguration != null) {
-            if (this.loadConfiguration instanceof final CargaRandom cr) {
+            if (this.loadConfiguration instanceof final RandomWorkloadGenerator cr) {
                 xml.setLoadRandom(cr.getNumeroTarefas(), cr.getTimeToArrival(),
                         cr.getMaxComputacao(), cr.getAverageComputacao(),
                         cr.getMinComputacao(), cr.getProbabilityComputacao(),
@@ -611,8 +611,8 @@ public class DesenhoGrade extends DrawingArea {
                         cr.getMinComunicacao(), cr.getProbabilityComunicacao());
             } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.PER_NODE) {
                 for (final WorkloadGenerator node :
-                        ((CargaList) this.loadConfiguration).getList()) {
-                    final CargaForNode no = (CargaForNode) node;
+                        ((CollectionWorkloadGenerator) this.loadConfiguration).getList()) {
+                    final PerNodeWorkloadGenerator no = (PerNodeWorkloadGenerator) node;
                     xml.addLoadNo(no.getAplicacao(), no.getProprietario(),
                             no.getEscalonador(), no.getNumeroTarefas(),
                             no.getMaxComputacao(), no.getMinComputacao(),

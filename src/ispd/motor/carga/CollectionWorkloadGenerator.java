@@ -13,18 +13,18 @@ import java.util.stream.Collectors;
  * {@link #makeTaskList(RedeDeFilas)} can be used to collect all per-node
  * tasks into a single, flat list.
  */
-public class CargaList implements WorkloadGenerator {
+public class CollectionWorkloadGenerator implements WorkloadGenerator {
     private final WorkloadGeneratorType type;
     private final List<WorkloadGenerator> workloadList;
 
     /**
-     * Instantiate a CargaList from a homogeneous {@code List} of other
+     * Instantiate a CollectionWorkloadGenerator from a homogeneous {@code List} of other
      * {@link WorkloadGenerator}s.
      *
      * @param workloadList list of {@link WorkloadGenerator}s
      * @param type     type of {@link WorkloadGenerator}s hosted in the given list
      */
-    public CargaList(final List workloadList, final WorkloadGeneratorType type) {
+    public CollectionWorkloadGenerator(final List workloadList, final WorkloadGeneratorType type) {
         this.type = type;
         this.workloadList = workloadList;
     }
@@ -40,7 +40,7 @@ public class CargaList implements WorkloadGenerator {
      * @param qn Queue network in which the tasks will be used
      * @return {@code List} with all, flattened, tasks in the per-node
      * workloads in {@link #workloadList}, or an empty {@code ArrayList} if
-     * the type of workloads in the list is not {@link CargaForNode}.
+     * the type of workloads in the list is not {@link PerNodeWorkloadGenerator}.
      */
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
@@ -49,7 +49,7 @@ public class CargaList implements WorkloadGenerator {
         }
 
         return this.workloadList.stream()
-                .map(CargaForNode.class::cast)
+                .map(PerNodeWorkloadGenerator.class::cast)
                 .flatMap(load -> load.makeTaskList(qn).stream())
                 .collect(Collectors.toList());
     }

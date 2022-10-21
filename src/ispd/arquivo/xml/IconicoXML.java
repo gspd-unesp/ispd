@@ -11,6 +11,8 @@ import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Vertex;
 import ispd.gui.iconico.grade.VirtualMachine;
+import ispd.motor.carga.CollectionWorkloadGenerator;
+import ispd.motor.carga.RandomWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
@@ -155,8 +157,8 @@ public class IconicoXML {
      * a valid one is present, {@code null} otherwise
      * @see LoadBuilder
      * @see ispd.motor.carga.CargaTrace
-     * @see ispd.motor.carga.CargaList
-     * @see ispd.motor.carga.CargaRandom
+     * @see CollectionWorkloadGenerator
+     * @see RandomWorkloadGenerator
      */
     public static WorkloadGenerator newGerarCarga(final Document doc) {
         final var model = LoadBuilder.build(new WrappedDocument(doc));

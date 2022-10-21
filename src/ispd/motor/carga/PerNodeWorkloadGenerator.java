@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Represents a workload on a per-node basis.
  */
-public class CargaForNode implements WorkloadGenerator {
+public class PerNodeWorkloadGenerator implements WorkloadGenerator {
     private static final double FILE_RECEIVE_TIME = 0.0009765625;
     private static final int ON_NO_DELAY = 120;
     private final String application;
@@ -38,7 +38,7 @@ public class CargaForNode implements WorkloadGenerator {
      * @param maxCommunication communication maximum
      * @param minCommunication communication minimum
      */
-    public CargaForNode(
+    public PerNodeWorkloadGenerator(
             final String application, final String owner,
             final String schedulerId, final int taskCount,
             final double maxComputation, final double minComputation,
@@ -110,7 +110,7 @@ public class CargaForNode implements WorkloadGenerator {
     }
 
     private int calculateDelay() {
-        return "NoDelay".equals(this.owner) ? CargaForNode.ON_NO_DELAY : 0;
+        return "NoDelay".equals(this.owner) ? PerNodeWorkloadGenerator.ON_NO_DELAY : 0;
     }
 
     public int getNumeroTarefas() {
@@ -150,19 +150,19 @@ public class CargaForNode implements WorkloadGenerator {
         public Tarefa makeTaskFrom(final CS_Processamento master) {
             return new Tarefa(
                     this.idGenerator.next(),
-                    CargaForNode.this.owner,
-                    CargaForNode.this.application,
+                    PerNodeWorkloadGenerator.this.owner,
+                    PerNodeWorkloadGenerator.this.application,
                     master,
                     this.fromTwoStageUniform(
-                            CargaForNode.this.minCommunication,
-                            CargaForNode.this.maxCommunication
+                            PerNodeWorkloadGenerator.this.minCommunication,
+                            PerNodeWorkloadGenerator.this.maxCommunication
                     ),
-                    CargaForNode.FILE_RECEIVE_TIME,
+                    PerNodeWorkloadGenerator.FILE_RECEIVE_TIME,
                     this.fromTwoStageUniform(
-                            CargaForNode.this.minComputation,
-                            CargaForNode.this.maxComputation
+                            PerNodeWorkloadGenerator.this.minComputation,
+                            PerNodeWorkloadGenerator.this.maxComputation
                     ),
-                    this.random.nextExponential(5) + CargaForNode.this.calculateDelay()
+                    this.random.nextExponential(5) + PerNodeWorkloadGenerator.this.calculateDelay()
             );
         }
 

@@ -3,9 +3,9 @@ package ispd.arquivo.xml.models.builders;
 import ispd.arquivo.xml.utils.SizeInfo;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.motor.carga.CargaForNode;
-import ispd.motor.carga.CargaList;
-import ispd.motor.carga.CargaRandom;
+import ispd.motor.carga.CollectionWorkloadGenerator;
+import ispd.motor.carga.PerNodeWorkloadGenerator;
+import ispd.motor.carga.RandomWorkloadGenerator;
 import ispd.motor.carga.CargaTrace;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
@@ -58,14 +58,14 @@ public class LoadBuilder {
                 .map(LoadBuilder::traceLoadFromElement);
     }
 
-    private static CargaRandom randomLoadFromElement(final WrappedElement e) {
+    private static RandomWorkloadGenerator randomLoadFromElement(final WrappedElement e) {
         final var computation = LoadBuilder.getSizeInfoFromElement(
                 e, WrappedElement::isComputingType, SizeInfo::new);
 
         final var communication = LoadBuilder.getSizeInfoFromElement(
                 e, WrappedElement::isCommunicationType, SizeInfo::new);
 
-        return new CargaRandom(
+        return new RandomWorkloadGenerator(
                 e.tasks(),
                 (int) computation.minimum(), (int) computation.maximum(),
                 (int) computation.average(), computation.probability(),
@@ -75,7 +75,7 @@ public class LoadBuilder {
         );
     }
 
-    private static Optional<CargaList> nodeLoadsFromElement(final WrappedElement e) {
+    private static Optional<CollectionWorkloadGenerator> nodeLoadsFromElement(final WrappedElement e) {
         final var nodeLoads = e.nodeLoads()
                 .map(LoadBuilder::nodeLoadFromElement)
                 .toList();
@@ -84,7 +84,7 @@ public class LoadBuilder {
             return Optional.empty();
         }
 
-        return Optional.of(new CargaList(nodeLoads, WorkloadGeneratorType.PER_NODE));
+        return Optional.of(new CollectionWorkloadGenerator(nodeLoads, WorkloadGeneratorType.PER_NODE));
     }
 
     private static CargaTrace traceLoadFromElement(final WrappedElement e) {
@@ -108,14 +108,14 @@ public class LoadBuilder {
                 .orElseGet(SizeInfo::new);
     }
 
-    private static CargaForNode nodeLoadFromElement(final WrappedElement e) {
+    private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e) {
         final var computation = LoadBuilder.getSizeInfoFromElement(
                 e, WrappedElement::isComputingType, SizeInfo::rangeFrom);
 
         final var communication = LoadBuilder.getSizeInfoFromElement(
                 e, WrappedElement::isCommunicationType, SizeInfo::rangeFrom);
 
-        return new CargaForNode(e.application(),
+        return new PerNodeWorkloadGenerator(e.application(),
                 e.owner(), e.masterId(), e.tasks(),
                 computation.maximum(), computation.minimum(),
                 communication.maximum(), communication.minimum()
