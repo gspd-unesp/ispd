@@ -1,22 +1,22 @@
 package ispd.motor.carga;
 
+import ispd.escalonador.Escalonador;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
-import ispd.motor.random.Distribution;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class TraceLoadHelper {
-
     private static final int USER_FIELD_INDEX = 11;
     private static final int HEADER_LINE_COUNT = 5;
     private static final double RECEIVING_FILE_SIZE = 0.0009765625;
@@ -27,42 +27,46 @@ class TraceLoadHelper {
     private final int taskCount;
     private final String traceType;
     private final RedeDeFilas queueNetwork;
-    private final Distribution random =
-            new Distribution(System.currentTimeMillis());
 
     TraceLoadHelper(
-            final RedeDeFilas rdf,
+            final RedeDeFilas qn,
             final String traceType,
             final int taskCount) {
-        this.queueNetwork = rdf;
+        this.queueNetwork = qn;
         this.traceType = traceType;
         this.taskCount = taskCount;
     }
 
     List<Tarefa> toTaskList(final String path) {
+        try (final var br = new BufferedReader(
+                new FileReader(path, StandardCharsets.UTF_8))) {
 
-        try (final var br = new BufferedReader(new FileReader(path))) {
+            final var attrs = br.lines()
+                    .skip(TraceLoadHelper.HEADER_LINE_COUNT)
+                    .findFirst()
+                    .orElseThrow()
+                    .split("\"");
 
-            TraceLoadHelper.skipHeader(br);
-            final String[] attrs = this.parseAttrs(br);
+            this.addUserIfNotPresent(attrs);
 
-            if ("SWF".equals(this.traceType) || "GWF".equals(this.traceType)) {
-                this.addTasksToMachines(
-                        (master) -> this.addTaskSwfGwf(master, attrs));
-            } else if ("iSPD".equals(this.traceType)) {
-                this.addTasksToMachines(
-                        (master) -> this.addTaskIspd(master, attrs));
-            }
+            final var taskList = this.makeTaskBuilderForType(attrs)
+                    .makeTasksDistributedBetweenMasters(
+                            this.queueNetwork, this.taskCount);
 
-            for (final var master : this.queueNetwork.getMestres()) {
-                ((CS_Mestre) master).getEscalonador().getMetricaUsuarios().addAllUsuarios(
-                        this.users,
-                        this.computationalPowers,
-                        this.profiles
-                );
-            }
+            this.tasks.addAll(taskList);
+
+            this.queueNetwork.getMestres().stream()
+                    .map(CS_Mestre.class::cast)
+                    .map(CS_Mestre::getEscalonador)
+                    .map(Escalonador::getMetricaUsuarios)
+                    .forEach((metrics) -> metrics.addAllUsuarios(
+                            this.users,
+                            this.computationalPowers,
+                            this.profiles
+                    ));
 
             this.queueNetwork.getUsuarios().addAll(this.users);
+
             return this.tasks;
 
         } catch (final IOException ex) {
@@ -73,106 +77,29 @@ class TraceLoadHelper {
         return null;
     }
 
-    private static void skipHeader(final BufferedReader bf) throws IOException {
-        int i = 0;
-        while (bf.ready() && i < TraceLoadHelper.HEADER_LINE_COUNT) {
-            bf.readLine();
-            i++;
+    private void addUserIfNotPresent(final String[] attrs) {
+        final var userId = attrs[TraceLoadHelper.USER_FIELD_INDEX];
+        if (!this.queueNetwork.getUsuarios().contains(userId) && !this.users.contains(userId)) {
+            this.addDefaultUser(userId);
         }
     }
 
-    private String[] parseAttrs(final BufferedReader bf) throws IOException {
-        final String[] attrs = bf.readLine().split("\"");
-        final String user = attrs[TraceLoadHelper.USER_FIELD_INDEX];
-        if (!this.queueNetwork.getUsuarios().contains(user) && !this.users.contains(user)) {
-            this.addDefaultUser(attrs);
-        }
-        return attrs;
-    }
-
-    private void addTasksToMachines(final AddTaskFunction add) throws IOException {
-        for (final var master : this.queueNetwork.getMestres()) {
-            TraceLoadHelper.addTasksToMaster(
-                    master, this.tasksPerMaster(), add);
+    private TaskBuilder makeTaskBuilderForType(final String[] attrs) {
+        if (Set.of("SWF", "GWF").contains(this.traceType)) {
+            return new SwfGwfTaskBuilder(attrs);
         }
 
-        TraceLoadHelper.addTasksToMaster(
-                this.firstMaster(), this.taskRemainder(), add);
-    }
-
-    private void addTaskSwfGwf(
-            final CS_Processamento master,
-            final String[] attrs) {
-        final var task = this.makeTaskAndAddToList(
-                master,
-                fs -> this.random.twoStageUniform(200, 5000, 25000, 0.5),
-                fs -> Double.parseDouble(fs[7]) * this.averageComputationalPower(),
-                attrs
-        );
-
-        if (attrs[5].contains("0") || attrs[5].contains("5")) {
-            task.setLocalProcessamento(master);
-            task.cancelar(0);
+        if ("iSPD".equals(this.traceType)) {
+            return new IspdTaskBuilder(attrs);
         }
+
+        throw new RuntimeException();
     }
 
-    private void addTaskIspd(
-            final CS_Processamento master,
-            final String[] attrs) {
-        this.makeTaskAndAddToList(
-                master,
-                fs -> Double.parseDouble(fs[9]),
-                fs -> Double.parseDouble(fs[7]),
-                attrs
-        );
-    }
-
-    private void addDefaultUser(final String[] attrs) {
-        this.users.add(attrs[TraceLoadHelper.USER_FIELD_INDEX]);
+    private void addDefaultUser(final String userId) {
+        this.users.add(userId);
         this.profiles.add(100.0);
         this.computationalPowers.add(0.0);
-    }
-
-    private static void addTasksToMaster(
-            final CS_Processamento master,
-            final int count,
-            final AddTaskFunction addFun) throws IOException {
-        for (int i = 0; i < count; i++) {
-            addFun.accept(master);
-        }
-    }
-
-    private int tasksPerMaster() {
-        return this.taskCount / this.queueNetwork.getMestres().size();
-    }
-
-    private CS_Processamento firstMaster() {
-        return this.queueNetwork.getMestres().get(0);
-    }
-
-    private int taskRemainder() {
-        return this.taskCount % this.queueNetwork.getMestres().size();
-    }
-
-    private Tarefa makeTaskAndAddToList(
-            final CS_Processamento master,
-            final Function<String[], Double> sentFileSize,
-            final Function<String[], Double> processingTime,
-            final String[] attrs) {
-        final var task = new Tarefa(
-                Integer.parseInt(attrs[1]),
-                attrs[TraceLoadHelper.USER_FIELD_INDEX],
-                "application1",
-                master,
-                sentFileSize.apply(attrs),
-                TraceLoadHelper.RECEIVING_FILE_SIZE,
-                processingTime.apply(attrs),
-                Double.parseDouble(attrs[3])
-        );
-
-        this.tasks.add(task);
-
-        return task;
     }
 
     private double averageComputationalPower() {
@@ -182,8 +109,71 @@ class TraceLoadHelper {
                 .orElse(0.0);
     }
 
-    @FunctionalInterface
-    private interface AddTaskFunction {
-        void accept(CS_Processamento master) throws IOException;
+    public abstract static class TraceTaskBuilder extends TaskBuilder {
+        protected final String[] attrs;
+
+        protected TraceTaskBuilder(final String[] attrs) {
+            this.attrs = attrs;
+        }
+
+        @Override
+        public Tarefa makeTaskFor(final CS_Processamento master) {
+            return new Tarefa(
+                    Integer.parseInt(this.attrs[1]),
+                    this.attrs[TraceLoadHelper.USER_FIELD_INDEX],
+                    "application1",
+                    master,
+                    this.calculateSentFileSize(),
+                    TraceLoadHelper.RECEIVING_FILE_SIZE,
+                    this.calculateProcessingTime(),
+                    Double.parseDouble(this.attrs[3])
+            );
+        }
+
+        protected abstract double calculateSentFileSize();
+
+        protected double calculateProcessingTime() {
+            return Double.parseDouble(this.attrs[7]);
+        }
+    }
+
+    private class IspdTaskBuilder extends TraceTaskBuilder {
+        public IspdTaskBuilder(final String[] attrs) {
+            super(attrs);
+        }
+
+        @Override
+        protected double calculateSentFileSize() {
+            return Double.parseDouble(this.attrs[9]);
+        }
+    }
+
+    private class SwfGwfTaskBuilder extends TraceTaskBuilder {
+        public SwfGwfTaskBuilder(final String[] attrs) {
+            super(attrs);
+        }
+
+        @Override
+        public Tarefa makeTaskFor(final CS_Processamento master) {
+            final var task = super.makeTaskFor(master);
+
+            if (this.attrs[5].contains("0") || this.attrs[5].contains("5")) {
+                task.setLocalProcessamento(master);
+                task.cancelar(0);
+            }
+
+            return task;
+        }
+
+        @Override
+        protected double calculateSentFileSize() {
+            return this.random.twoStageUniform(200, 5000, 25000, 0.5);
+        }
+
+        @Override
+        protected double calculateProcessingTime() {
+            return super.calculateProcessingTime()
+                   * TraceLoadHelper.this.averageComputationalPower();
+        }
     }
 }

@@ -12,6 +12,7 @@ import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Vertex;
 import ispd.gui.iconico.grade.VirtualMachine;
 import ispd.motor.carga.CollectionWorkloadGenerator;
+import ispd.motor.carga.TraceFileWorkloadGenerator;
 import ispd.motor.carga.RandomWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
@@ -156,7 +157,7 @@ public class IconicoXML {
      * @return {@link WorkloadGenerator} with load configuration from the model, if
      * a valid one is present, {@code null} otherwise
      * @see LoadBuilder
-     * @see ispd.motor.carga.CargaTrace
+     * @see TraceFileWorkloadGenerator
      * @see CollectionWorkloadGenerator
      * @see RandomWorkloadGenerator
      */

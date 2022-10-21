@@ -10,7 +10,7 @@ import ispd.gui.iconico.Vertex;
 import ispd.motor.carga.PerNodeWorkloadGenerator;
 import ispd.motor.carga.CollectionWorkloadGenerator;
 import ispd.motor.carga.RandomWorkloadGenerator;
-import ispd.motor.carga.CargaTrace;
+import ispd.motor.carga.TraceFileWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
 import org.w3c.dom.Document;
@@ -619,7 +619,7 @@ public class DesenhoGrade extends DrawingArea {
                             no.getMaxComunicacao(), no.getMinComunicacao());
                 }
             } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.TRACE) {
-                final CargaTrace trace = (CargaTrace) this.loadConfiguration;
+                final TraceFileWorkloadGenerator trace = (TraceFileWorkloadGenerator) this.loadConfiguration;
                 xml.setLoadTrace(trace.getFile().toString(),
                         trace.getNumberTasks().toString(),
                         trace.getTraceType());

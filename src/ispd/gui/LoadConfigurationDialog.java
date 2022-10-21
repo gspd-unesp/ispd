@@ -5,7 +5,7 @@ import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.motor.carga.CollectionWorkloadGenerator;
 import ispd.motor.carga.PerNodeWorkloadGenerator;
 import ispd.motor.carga.RandomWorkloadGenerator;
-import ispd.motor.carga.CargaTrace;
+import ispd.motor.carga.TraceFileWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
 
@@ -846,7 +846,7 @@ public class LoadConfigurationDialog extends JDialog {
                 this.setTipo(WorkloadGeneratorType.PER_NODE);
             }
             case TRACE -> {
-                final CargaTrace trace = (CargaTrace) loadGenerator;
+                final TraceFileWorkloadGenerator trace = (TraceFileWorkloadGenerator) loadGenerator;
                 this.file = trace.getFile();
                 this.traceType = trace.getTraceType();
                 this.traceTaskNumber = trace.getNumberTasks();
@@ -1159,7 +1159,7 @@ public class LoadConfigurationDialog extends JDialog {
             }
         } else if (this.jRadioButtonTraces.isSelected()) {
             //configura a carga apartir do arquivo aberto..
-            this.loadGenerator = new CargaTrace(this.file, this.traceTaskNumber,
+            this.loadGenerator = new TraceFileWorkloadGenerator(this.file, this.traceTaskNumber,
                     this.traceType);
         }
         this.setVisible(false);

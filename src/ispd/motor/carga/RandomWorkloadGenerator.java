@@ -5,7 +5,6 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Represents a load generated randomly, from a collection of intervals.
@@ -44,25 +43,13 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
 
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
-        final var masters = qn.getMestres();
-        final var masterCount = masters.size();
+        return new RandomTaskBuilder()
+                .makeTasksDistributedBetweenMasters(qn, this.taskCount);
+    }
 
-        final var taskBuilder = new RandomTaskBuilder();
-        final var tasks = masters.stream()
-                .flatMap(m -> taskBuilder.makeMultipleTasksFrom(m,
-                        this.taskCount / masterCount))
-                .collect(Collectors.toList());
-
-        final var remainderTasksMaster = masters.get(0);
-
-        final var remainingTasks = taskBuilder
-                .makeMultipleTasksFrom(remainderTasksMaster,
-                        this.taskCount % masterCount)
-                .toList();
-
-        tasks.addAll(remainingTasks);
-
-        return tasks;
+    @Override
+    public WorkloadGeneratorType getType() {
+        return WorkloadGeneratorType.RANDOM;
     }
 
     @Override
@@ -73,11 +60,6 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
                 this.commMinimum, this.commMaximum,
                 this.commAverage, this.commProbability,
                 0, this.arrivalTime, this.taskCount);
-    }
-
-    @Override
-    public WorkloadGeneratorType getType() {
-        return WorkloadGeneratorType.RANDOM;
     }
 
     public Integer getNumeroTarefas() {
@@ -122,7 +104,7 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
 
     private class RandomTaskBuilder extends TaskBuilder {
         @Override
-        public Tarefa makeTaskFrom(final CS_Processamento master) {
+        public Tarefa makeTaskFor(final CS_Processamento master) {
             return new Tarefa(
                     this.idGenerator.next(),
                     master.getProprietario(),

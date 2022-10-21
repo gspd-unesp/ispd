@@ -6,7 +6,7 @@ import ispd.arquivo.xml.utils.WrappedElement;
 import ispd.motor.carga.CollectionWorkloadGenerator;
 import ispd.motor.carga.PerNodeWorkloadGenerator;
 import ispd.motor.carga.RandomWorkloadGenerator;
-import ispd.motor.carga.CargaTrace;
+import ispd.motor.carga.TraceFileWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
 
@@ -87,11 +87,11 @@ public class LoadBuilder {
         return Optional.of(new CollectionWorkloadGenerator(nodeLoads, WorkloadGeneratorType.PER_NODE));
     }
 
-    private static CargaTrace traceLoadFromElement(final WrappedElement e) {
+    private static TraceFileWorkloadGenerator traceLoadFromElement(final WrappedElement e) {
         final var file = new File(e.filePath());
 
         if (file.exists()) {
-            return new CargaTrace(file, e.tasks(), e.format());
+            return new TraceFileWorkloadGenerator(file, e.tasks(), e.format());
         }
 
         return null;

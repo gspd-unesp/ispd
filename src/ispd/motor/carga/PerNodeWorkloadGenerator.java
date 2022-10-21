@@ -105,7 +105,7 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
 
     private List<Tarefa> makeTaskListOriginatingAt(final CS_Processamento origin) {
         return new PerNodeTaskBuilder()
-                .makeMultipleTasksFrom(origin, this.taskCount)
+                .makeMultipleTasksFor(origin, this.taskCount)
                 .collect(Collectors.toList());
     }
 
@@ -147,7 +147,7 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
 
     private class PerNodeTaskBuilder extends TaskBuilder {
         @Override
-        public Tarefa makeTaskFrom(final CS_Processamento master) {
+        public Tarefa makeTaskFor(final CS_Processamento master) {
             return new Tarefa(
                     this.idGenerator.next(),
                     PerNodeWorkloadGenerator.this.owner,
