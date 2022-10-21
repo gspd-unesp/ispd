@@ -163,6 +163,9 @@ public class UserConfigurationDialog extends JDialog {
             user.add(result);
             this.users.add(user);
             this.jScrollPane1.setViewportView(this.table);
+        }else{
+            JOptionPane.showMessageDialog(null, "Insert values corectly");
+
         }
 
     }
