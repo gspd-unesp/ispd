@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 /**
  * Represents a load generated randomly, from a collection of intervals.
  */
-public class CargaRandom extends GerarCarga {
+public class CargaRandom implements WorkloadGenerator {
     private static final double FILE_RECEIVE_TIME_1KB = 0.0009765625;
     private final int taskCount;
     private final int compMinimum;
@@ -43,8 +43,8 @@ public class CargaRandom extends GerarCarga {
     }
 
     @Override
-    public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
-        final var masters = rdf.getMestres();
+    public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
+        final var masters = qn.getMestres();
         final var masterCount = masters.size();
 
         final var taskBuilder = new RandomTaskBuilder();
@@ -76,8 +76,8 @@ public class CargaRandom extends GerarCarga {
     }
 
     @Override
-    public int getTipo() {
-        return GerarCarga.RANDOM;
+    public WorkloadGeneratorType getType() {
+        return WorkloadGeneratorType.RANDOM;
     }
 
     public Integer getNumeroTarefas() {

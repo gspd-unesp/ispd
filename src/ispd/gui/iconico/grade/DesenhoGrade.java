@@ -11,7 +11,8 @@ import ispd.motor.carga.CargaForNode;
 import ispd.motor.carga.CargaList;
 import ispd.motor.carga.CargaRandom;
 import ispd.motor.carga.CargaTrace;
-import ispd.motor.carga.GerarCarga;
+import ispd.motor.carga.WorkloadGenerator;
+import ispd.motor.carga.WorkloadGeneratorType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -65,7 +66,7 @@ public class DesenhoGrade extends DrawingArea {
     private int modelType = PickModelTypeDialog.GRID;
     private HashSet<String> users;
     private HashMap<String, Double> profiles;
-    private GerarCarga loadConfiguration = null;
+    private WorkloadGenerator loadConfiguration = null;
     private int edgeCount = 0;
     private int vertexCount = 0;
     private int iconCount = 0;
@@ -162,11 +163,11 @@ public class DesenhoGrade extends DrawingArea {
         this.users = users;
     }
 
-    public GerarCarga getLoadConfiguration() {
+    public WorkloadGenerator getLoadConfiguration() {
         return this.loadConfiguration;
     }
 
-    public void setLoadConfiguration(final GerarCarga loadConfiguration) {
+    public void setLoadConfiguration(final WorkloadGenerator loadConfiguration) {
         this.loadConfiguration = loadConfiguration;
     }
 
@@ -495,12 +496,12 @@ public class DesenhoGrade extends DrawingArea {
         }
         saida.append("CARGA");
         if (this.loadConfiguration != null) {
-            switch (this.loadConfiguration.getTipo()) {
-                case GerarCarga.RANDOM ->
+            switch (this.loadConfiguration.getType()) {
+                case RANDOM ->
                         saida.append(" RANDOM\n").append(this.loadConfiguration.toString()).append("\n");
-                case GerarCarga.FORNODE ->
+                case PER_NODE ->
                         saida.append(" MAQUINA\n").append(this.loadConfiguration.toString()).append("\n");
-                case GerarCarga.TRACE ->
+                case TRACE ->
                         saida.append(" TRACE\n").append(this.loadConfiguration.toString()).append("\n");
             }
         }
@@ -608,8 +609,8 @@ public class DesenhoGrade extends DrawingArea {
                         cr.getMinComputacao(), cr.getProbabilityComputacao(),
                         cr.getMaxComunicacao(), cr.getAverageComunicacao(),
                         cr.getMinComunicacao(), cr.getProbabilityComunicacao());
-            } else if (this.loadConfiguration.getTipo() == GerarCarga.FORNODE) {
-                for (final GerarCarga node :
+            } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.PER_NODE) {
+                for (final WorkloadGenerator node :
                         ((CargaList) this.loadConfiguration).getList()) {
                     final CargaForNode no = (CargaForNode) node;
                     xml.addLoadNo(no.getAplicacao(), no.getProprietario(),
@@ -617,7 +618,7 @@ public class DesenhoGrade extends DrawingArea {
                             no.getMaxComputacao(), no.getMinComputacao(),
                             no.getMaxComunicacao(), no.getMinComunicacao());
                 }
-            } else if (this.loadConfiguration.getTipo() == GerarCarga.TRACE) {
+            } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.TRACE) {
                 final CargaTrace trace = (CargaTrace) this.loadConfiguration;
                 xml.setLoadTrace(trace.getFile().toString(),
                         trace.getNumberTasks().toString(),

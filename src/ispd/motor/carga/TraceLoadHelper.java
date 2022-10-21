@@ -176,9 +176,7 @@ class TraceLoadHelper {
     }
 
     private double averageComputationalPower() {
-        return this.queueNetwork
-                .getMaquinas()
-                .parallelStream()
+        return this.queueNetwork.getMaquinas().stream()
                 .mapToDouble(CS_Processamento::getPoderComputacional)
                 .average()
                 .orElse(0.0);

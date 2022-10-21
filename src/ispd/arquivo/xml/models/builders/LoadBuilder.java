@@ -7,7 +7,8 @@ import ispd.motor.carga.CargaForNode;
 import ispd.motor.carga.CargaList;
 import ispd.motor.carga.CargaRandom;
 import ispd.motor.carga.CargaTrace;
-import ispd.motor.carga.GerarCarga;
+import ispd.motor.carga.WorkloadGenerator;
+import ispd.motor.carga.WorkloadGeneratorType;
 
 import java.io.File;
 import java.util.Optional;
@@ -27,9 +28,9 @@ public class LoadBuilder {
      * @return {@link Optional} containing parsed load, if there was a valid
      * one in the document. Otherwise, an empty Optional.
      * @see ispd.arquivo.xml.IconicoXML
-     * @see GerarCarga
+     * @see WorkloadGenerator
      */
-    public static Optional<? extends GerarCarga> build(final WrappedDocument doc) {
+    public static Optional<? extends WorkloadGenerator> build(final WrappedDocument doc) {
         final var load = doc.loads().findFirst();
 
         if (load.isEmpty()) {
@@ -83,7 +84,7 @@ public class LoadBuilder {
             return Optional.empty();
         }
 
-        return Optional.of(new CargaList(nodeLoads, GerarCarga.FORNODE));
+        return Optional.of(new CargaList(nodeLoads, WorkloadGeneratorType.PER_NODE));
     }
 
     private static CargaTrace traceLoadFromElement(final WrappedElement e) {

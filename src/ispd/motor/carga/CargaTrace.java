@@ -49,8 +49,7 @@ import ispd.motor.filas.Tarefa;
 import java.io.File;
 import java.util.List;
 
-public class CargaTrace extends GerarCarga {
-
+public class CargaTrace implements WorkloadGenerator {
     private final String type;
     private final File file;
     private final String filePath;
@@ -69,19 +68,18 @@ public class CargaTrace extends GerarCarga {
     }
 
     @Override
-    public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
-        return new TraceLoadHelper(rdf, this.type, this.taskCount).toTaskList(this.filePath);
+    public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
+        return new TraceLoadHelper(qn, this.type, this.taskCount).toTaskList(this.filePath);
     }
 
     @Override
     public String toString() {
         return this.file.getAbsolutePath();
-
     }
 
     @Override
-    public int getTipo() {
-        return GerarCarga.TRACE;
+    public WorkloadGeneratorType getType() {
+        return WorkloadGeneratorType.TRACE;
     }
 
     public String getTraceType() {

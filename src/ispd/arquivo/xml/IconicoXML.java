@@ -11,7 +11,7 @@ import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Vertex;
 import ispd.gui.iconico.grade.VirtualMachine;
-import ispd.motor.carga.GerarCarga;
+import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import org.w3c.dom.Document;
@@ -151,14 +151,14 @@ public class IconicoXML {
      * Get load configuration containing in the iconic model present in the
      * {@link Document}
      *
-     * @return {@link GerarCarga} with load configuration from the model, if
+     * @return {@link WorkloadGenerator} with load configuration from the model, if
      * a valid one is present, {@code null} otherwise
      * @see LoadBuilder
      * @see ispd.motor.carga.CargaTrace
      * @see ispd.motor.carga.CargaList
      * @see ispd.motor.carga.CargaRandom
      */
-    public static GerarCarga newGerarCarga(final Document doc) {
+    public static WorkloadGenerator newGerarCarga(final Document doc) {
         final var model = LoadBuilder.build(new WrappedDocument(doc));
         if (model.isEmpty()) {
             return null;

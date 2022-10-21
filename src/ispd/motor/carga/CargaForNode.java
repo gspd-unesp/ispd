@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Represents a workload on a per-node basis.
  */
-public class CargaForNode extends GerarCarga {
+public class CargaForNode implements WorkloadGenerator {
     private static final double FILE_RECEIVE_TIME = 0.0009765625;
     private static final int ON_NO_DELAY = 120;
     private final String application;
@@ -77,8 +77,12 @@ public class CargaForNode extends GerarCarga {
     }
 
     @Override
-    public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
-        return this.toTaskList(rdf);
+    public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
+        return qn.getMestres().stream()
+                .filter(this::hasCorrectId)
+                .findFirst()
+                .map(this::makeTaskListOriginatingAt)
+                .orElseGet(ArrayList::new);
     }
 
     @Override
@@ -91,16 +95,8 @@ public class CargaForNode extends GerarCarga {
     }
 
     @Override
-    public int getTipo() {
-        return GerarCarga.FORNODE;
-    }
-
-    public List<Tarefa> toTaskList(final RedeDeFilas qn) {
-        return qn.getMestres().stream()
-                .filter(this::hasCorrectId)
-                .findFirst()
-                .map(this::makeTaskListOriginatingAt)
-                .orElseGet(ArrayList::new);
+    public WorkloadGeneratorType getType() {
+        return WorkloadGeneratorType.PER_NODE;
     }
 
     private boolean hasCorrectId(final CentroServico m) {

@@ -165,7 +165,7 @@ public class SimulationDialog extends JDialog implements Runnable {
                 this.progressTracker.print("Creating tasks.");
                 this.progressTracker.print(" -> ");
                 tasks =
-                        IconicoXML.newGerarCarga(this.model).toTarefaList(queueNetwork);
+                        IconicoXML.newGerarCarga(this.model).makeTaskList(queueNetwork);
                 this.incrementProgress(10);//[10%] --> 45%
                 this.progressTracker.println("OK", Color.green);
                 //Verifica recursos do modelo e define roteamento
@@ -206,7 +206,7 @@ public class SimulationDialog extends JDialog implements Runnable {
                 this.progressTracker.print("Creating tasks.");
                 this.progressTracker.print(" -> ");
                 tasks =
-                        IconicoXML.newGerarCarga(this.model).toTarefaList(cloudQueueNetwork);
+                        IconicoXML.newGerarCarga(this.model).makeTaskList(cloudQueueNetwork);
                 this.incrementProgress(10);//[10%] --> 45%
                 this.progressTracker.println("OK", Color.green);
                 //Verifica recursos do modelo e define roteamento
