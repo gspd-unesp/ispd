@@ -2,14 +2,13 @@ package ispd.motor.carga;
 
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
+import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.motor.random.Distribution;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Represents a workload on a per-node basis.
@@ -79,7 +78,7 @@ public class CargaForNode extends GerarCarga {
 
     @Override
     public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
-        return this.toTaskList(rdf, new SequentialIntegerGenerator());
+        return this.toTaskList(rdf);
     }
 
     @Override
@@ -96,12 +95,11 @@ public class CargaForNode extends GerarCarga {
         return GerarCarga.FORNODE;
     }
 
-    public List<Tarefa> toTaskList(
-            final RedeDeFilas qn, final Generator<Integer> idGenerator) {
+    public List<Tarefa> toTaskList(final RedeDeFilas qn) {
         return qn.getMestres().stream()
                 .filter(this::hasCorrectId)
                 .findFirst()
-                .map(proc -> this.makeTaskListOriginatingAt(proc, idGenerator))
+                .map(this::makeTaskListOriginatingAt)
                 .orElseGet(ArrayList::new);
     }
 
@@ -109,43 +107,10 @@ public class CargaForNode extends GerarCarga {
         return m.getId().equals(this.schedulerId);
     }
 
-    private List<Tarefa> makeTaskListOriginatingAt(
-            final CentroServico origin, final Generator<Integer> idGenerator) {
-        final var random = new Distribution(System.currentTimeMillis());
-
-        return IntStream.range(0, this.taskCount)
-                .mapToObj(i -> this.makeTaskOriginatingAt(
-                        origin, random, idGenerator))
+    private List<Tarefa> makeTaskListOriginatingAt(final CS_Processamento origin) {
+        return new PerNodeTaskBuilder()
+                .makeMultipleTasksFrom(origin, this.taskCount)
                 .collect(Collectors.toList());
-    }
-
-    private Tarefa makeTaskOriginatingAt(
-            final CentroServico origin, final Distribution random,
-            final Generator<Integer> idGenerator) {
-
-        return new Tarefa(
-                idGenerator.next(),
-                this.owner,
-                this.application,
-                origin,
-                CargaForNode.fromTwoStageUniform(
-                        random,
-                        this.minCommunication,
-                        this.maxCommunication
-                ),
-                CargaForNode.FILE_RECEIVE_TIME,
-                CargaForNode.fromTwoStageUniform(
-                        random,
-                        this.minComputation,
-                        this.maxComputation
-                ),
-                random.nextExponential(5) + this.calculateDelay()
-        );
-    }
-
-    private static double fromTwoStageUniform(
-            final Distribution random, final double min, final double max) {
-        return random.twoStageUniform(min, min + (max - min) / 2, max, 1);
     }
 
     private int calculateDelay() {
@@ -182,5 +147,32 @@ public class CargaForNode extends GerarCarga {
 
     public String getProprietario() {
         return this.owner;
+    }
+
+    private class PerNodeTaskBuilder extends TaskBuilder {
+        @Override
+        public Tarefa makeTaskFrom(final CS_Processamento master) {
+            return new Tarefa(
+                    this.idGenerator.next(),
+                    CargaForNode.this.owner,
+                    CargaForNode.this.application,
+                    master,
+                    this.fromTwoStageUniform(
+                            CargaForNode.this.minCommunication,
+                            CargaForNode.this.maxCommunication
+                    ),
+                    CargaForNode.FILE_RECEIVE_TIME,
+                    this.fromTwoStageUniform(
+                            CargaForNode.this.minComputation,
+                            CargaForNode.this.maxComputation
+                    ),
+                    this.random.nextExponential(5) + CargaForNode.this.calculateDelay()
+            );
+        }
+
+        private double fromTwoStageUniform(final double min, final double max) {
+            return this.random.twoStageUniform(
+                    min, min + (max - min) / 2, max, 1);
+        }
     }
 }

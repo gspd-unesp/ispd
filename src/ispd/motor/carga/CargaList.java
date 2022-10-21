@@ -52,7 +52,7 @@ public class CargaList extends GerarCarga {
 
         return this.workloadList.stream()
                 .map(CargaForNode.class::cast)
-                .flatMap(load -> load.toTaskList(rdf, generator).stream())
+                .flatMap(load -> load.toTaskList(rdf).stream())
                 .collect(Collectors.toList());
     }
 

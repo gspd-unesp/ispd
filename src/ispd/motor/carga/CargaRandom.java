@@ -1,170 +1,78 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e
- * Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
- *  USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates.
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * CargaRandom.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e
- * Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- *
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.motor.carga;
 
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.random.Distribution;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Descreve como gerar tarefas na forma randomica
- *
- * @author denison
+ * Represents a load generated randomly, from a collection of intervals.
  */
 public class CargaRandom extends GerarCarga {
+    private static final double FILE_RECEIVE_TIME_1KB = 0.0009765625;
+    private final int taskCount;
+    private final int compMinimum;
+    private final int compMaximum;
+    private final int compAverage;
+    private final double compProbability;
+    private final int commMinimum;
+    private final int commMaximum;
+    private final int commAverage;
+    private final double commProbability;
+    private final int arrivalTime;
 
-    private int numeroTarefas;
-    private int minComputacao;
-    private int maxComputacao;
-    private int AverageComputacao;
-    private double ProbabilityComputacao;
-    private int minComunicacao;
-    private int maxComunicacao;
-    private int AverageComunicacao;
-    private double ProbabilityComunicacao;
-    private int timeOfArrival;
-
-    public CargaRandom(int numeroTarefas, int minComputacao,
-                       int maxComputacao, int AverageComputacao,
-                       double ProbabilityComputacao, int minComunicacao,
-                       int maxComunicacao, int AverageComunicacao,
-                       double ProbabilityComunicacao, int timeToArrival) {
-        this.numeroTarefas = numeroTarefas;
-        this.minComputacao = minComputacao;
-        this.maxComputacao = maxComputacao;
-        this.AverageComputacao = AverageComputacao;
-        this.ProbabilityComputacao = ProbabilityComputacao;
-        this.minComunicacao = minComunicacao;
-        this.maxComunicacao = maxComunicacao;
-        this.AverageComunicacao = AverageComunicacao;
-        this.ProbabilityComunicacao = ProbabilityComunicacao;
-        this.timeOfArrival = timeToArrival;
-    }
-
-    public static GerarCarga newGerarCarga(String entrada) {
-        CargaRandom newObj;
-        String aux = entrada.replace("\n", " ");
-        String[] valores = aux.split(" ");
-        int minComputacao = Integer.parseInt(valores[0]);
-        int AverageComputacao = Integer.parseInt(valores[1]);
-        int maxComputacao = Integer.parseInt(valores[2]);
-        double ProbabilityComputacao = Double.parseDouble(valores[3]);
-        int minComunicacao = Integer.parseInt(valores[4]);
-        int AverageComunicacao = Integer.parseInt(valores[5]);
-        int maxComunicacao = Integer.parseInt(valores[6]);
-        double ProbabilityComunicacao = Double.parseDouble(valores[7]);
-        //não usado --> valores[8]
-        int timeOfArrival = Integer.parseInt(valores[9]);
-        int numeroTarefas = Integer.parseInt(valores[10]);
-        newObj = new CargaRandom(numeroTarefas,
-                minComputacao, maxComputacao, AverageComputacao,
-                ProbabilityComputacao,
-                minComunicacao, maxComunicacao, AverageComunicacao,
-                ProbabilityComunicacao,
-                timeOfArrival);
-        return newObj;
+    public CargaRandom(
+            final int taskCount,
+            final int compMinimum, final int compMaximum,
+            final int compAverage, final double compProbability,
+            final int commMinimum, final int commMaximum,
+            final int commAverage, final double commProbability,
+            final int arrivalTime) {
+        this.taskCount = taskCount;
+        this.compMinimum = compMinimum;
+        this.compMaximum = compMaximum;
+        this.compAverage = compAverage;
+        this.compProbability = compProbability;
+        this.commMinimum = commMinimum;
+        this.commMaximum = commMaximum;
+        this.commAverage = commAverage;
+        this.commProbability = commProbability;
+        this.arrivalTime = arrivalTime;
     }
 
     @Override
-    public List<Tarefa> toTarefaList(RedeDeFilas rdf) {
-        List<Tarefa> tarefas = new ArrayList<Tarefa>();
-        int identificador = 0;
-        int quantidadePorMestre =
-                this.getNumeroTarefas() / rdf.getMestres().size();
-        int resto = this.getNumeroTarefas() % rdf.getMestres().size();
-        Distribution gerador =
-                new Distribution((int) System.currentTimeMillis());
-        for (CS_Processamento mestre : rdf.getMestres()) {
-            for (int i = 0; i < quantidadePorMestre; i++) {
-                Tarefa tarefa = new Tarefa(
-                        identificador,
-                        mestre.getProprietario(),
-                        "application1",
-                        mestre,
-                        gerador.twoStageUniform(minComunicacao,
-                                AverageComunicacao, maxComunicacao,
-                                ProbabilityComunicacao),
-                        0.0009765625 /*arquivo recebimento*/,
-                        gerador.twoStageUniform(minComputacao,
-                                AverageComputacao, maxComputacao,
-                                ProbabilityComputacao),
-                        gerador.nextExponential(timeOfArrival)/*tempo de
-                        criação*/);
-                tarefas.add(tarefa);
-                identificador++;
-            }
-        }
-        for (int i = 0; i < resto; i++) {
-            Tarefa tarefa = new Tarefa(
-                    identificador,
-                    rdf.getMestres().get(0).getProprietario(),
-                    "application1",
-                    rdf.getMestres().get(0),
-                    gerador.twoStageUniform(minComunicacao,
-                            AverageComunicacao, maxComunicacao,
-                            ProbabilityComunicacao),
-                    0.0009765625 /*arquivo recebimento 1 kbit*/,
-                    gerador.twoStageUniform(minComputacao, AverageComputacao,
-                            maxComputacao, ProbabilityComputacao),
-                    gerador.nextExponential(timeOfArrival)/*tempo de criação*/);
-            tarefas.add(tarefa);
-            identificador++;
-        }
-        return tarefas;
+    public List<Tarefa> toTarefaList(final RedeDeFilas rdf) {
+        final var masters = rdf.getMestres();
+        final var masterCount = masters.size();
+
+        final var taskBuilder = new RandomTaskBuilder();
+        final var tasks = masters.stream()
+                .flatMap(m -> taskBuilder.makeMultipleTasksFrom(m,
+                        this.taskCount / masterCount))
+                .collect(Collectors.toList());
+
+        final var remainderTasksMaster = masters.get(0);
+
+        final var remainingTasks = taskBuilder
+                .makeMultipleTasksFrom(remainderTasksMaster,
+                        this.taskCount % masterCount)
+                .toList();
+
+        tasks.addAll(remainingTasks);
+
+        return tasks;
     }
 
     @Override
     public String toString() {
         return String.format("%d %d %d %f\n%d %d %d %f\n%d %d %d",
-                this.minComputacao, this.AverageComputacao,
-                this.maxComputacao, this.ProbabilityComputacao,
-                this.minComunicacao, this.maxComunicacao,
-                this.AverageComunicacao, this.ProbabilityComunicacao,
-                0, this.timeOfArrival, this.numeroTarefas);
+                this.compMinimum, this.compAverage,
+                this.compMaximum, this.compProbability,
+                this.commMinimum, this.commMaximum,
+                this.commAverage, this.commProbability,
+                0, this.arrivalTime, this.taskCount);
     }
 
     @Override
@@ -173,83 +81,68 @@ public class CargaRandom extends GerarCarga {
     }
 
     public Integer getNumeroTarefas() {
-        return numeroTarefas;
+        return this.taskCount;
     }
 
-    public void setNumeroTarefas(int numeroTarefas) {
-        this.numeroTarefas = numeroTarefas;
-    }
-
-    //Gets e sets
     public Integer getAverageComputacao() {
-        return AverageComputacao;
-    }
-
-    public void setAverageComputacao(int AverageComputacao) {
-        this.AverageComputacao = AverageComputacao;
+        return this.compAverage;
     }
 
     public Integer getAverageComunicacao() {
-        return AverageComunicacao;
-    }
-
-    public void setAverageComunicacao(int AverageComunicacao) {
-        this.AverageComunicacao = AverageComunicacao;
+        return this.commAverage;
     }
 
     public Double getProbabilityComputacao() {
-        return ProbabilityComputacao;
-    }
-
-    public void setProbabilityComputacao(double ProbabilityComputacao) {
-        this.ProbabilityComputacao = ProbabilityComputacao;
+        return this.compProbability;
     }
 
     public Double getProbabilityComunicacao() {
-        return ProbabilityComunicacao;
-    }
-
-    public void setProbabilityComunicacao(double ProbabilityComunicacao) {
-        this.ProbabilityComunicacao = ProbabilityComunicacao;
+        return this.commProbability;
     }
 
     public Integer getMaxComputacao() {
-        return maxComputacao;
-    }
-
-    public void setMaxComputacao(int maxComputacao) {
-        this.maxComputacao = maxComputacao;
+        return this.compMaximum;
     }
 
     public Integer getMaxComunicacao() {
-        return maxComunicacao;
-    }
-
-    public void setMaxComunicacao(int maxComunicacao) {
-        this.maxComunicacao = maxComunicacao;
+        return this.commMaximum;
     }
 
     public Integer getMinComputacao() {
-        return minComputacao;
-    }
-
-    public void setMinComputacao(int minComputacao) {
-        this.minComputacao = minComputacao;
+        return this.compMinimum;
     }
 
     public Integer getMinComunicacao() {
-        return minComunicacao;
-    }
-
-    public void setMinComunicacao(int minComunicacao) {
-        this.minComunicacao = minComunicacao;
+        return this.commMinimum;
     }
 
     public Integer getTimeToArrival() {
-        return timeOfArrival;
+        return this.arrivalTime;
     }
 
-    public void setTimeToArrival(int timeToArrival) {
-        this.timeOfArrival = timeToArrival;
+    private class RandomTaskBuilder extends TaskBuilder {
+        @Override
+        public Tarefa makeTaskFrom(final CS_Processamento master) {
+            return new Tarefa(
+                    this.idGenerator.next(),
+                    master.getProprietario(),
+                    "application1",
+                    master,
+                    this.random.twoStageUniform(
+                            CargaRandom.this.commMinimum,
+                            CargaRandom.this.commAverage,
+                            CargaRandom.this.commMaximum,
+                            CargaRandom.this.commProbability
+                    ),
+                    CargaRandom.FILE_RECEIVE_TIME_1KB,
+                    this.random.twoStageUniform(
+                            CargaRandom.this.compMinimum,
+                            CargaRandom.this.compAverage,
+                            CargaRandom.this.compMaximum,
+                            CargaRandom.this.compProbability
+                    ),
+                    this.random.nextExponential(CargaRandom.this.arrivalTime)
+            );
+        }
     }
 }
