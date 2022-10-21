@@ -748,7 +748,7 @@ public class MainWindow extends JFrame implements KeyListener {
         this.jFileChooser.setAcceptAllFileFilterUsed(false);
         this.jFileChooser.setFileFilter(this.fileFilter);
         this.jFileChooser.setFileView(new IspdFileView());
-        this.jFileChooser.setSelectedFile(this.configure.getLastFile());
+        //this.jFileChooser.setSelectedFile(this.configure.getLastFile());
     }
 
     private void jMenuItemManageActionPerformed(final ActionEvent evt) {

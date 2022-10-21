@@ -149,11 +149,14 @@ public class UserConfigurationDialog extends JDialog {
         );
 
         // TODO: Parse result and error.
-        final Double result =
-                Double.parseDouble(JOptionPane.showInputDialog(this,
-                "Enter user power comsumption limit"));
+        String sResult ="";
+        sResult =JOptionPane.showInputDialog(this,
+                        "Enter user power comsumption limit");
 
-        if (!this.userSet.contains(add) && !add.isEmpty()) {
+
+        if (!this.userSet.contains(add) && !add.isEmpty() && !sResult.isEmpty() && !this.userSet.contains(sResult) ){
+            final Double result =
+                    Double.parseDouble(sResult);
             this.userSet.add(add);
             final Vector user = new Vector<String>();
             user.add(add);
@@ -161,6 +164,7 @@ public class UserConfigurationDialog extends JDialog {
             this.users.add(user);
             this.jScrollPane1.setViewportView(this.table);
         }
+
     }
 
     private URL getResource(final String name) {
