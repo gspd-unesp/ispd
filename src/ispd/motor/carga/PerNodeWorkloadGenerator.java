@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
  * Represents a workload on a per-node basis.
  */
 public class PerNodeWorkloadGenerator implements WorkloadGenerator {
-    private static final double FILE_RECEIVE_TIME = 0.0009765625;
-    private static final int ON_NO_DELAY = 120;
     private final String application;
     private final String owner;
     private final String schedulerId;
@@ -86,15 +84,6 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
     }
 
     @Override
-    public String toString() {
-        return String.format("%s %d %f %f %f %f",
-                this.schedulerId, this.taskCount,
-                this.maxComputation, this.minComputation,
-                this.maxCommunication, this.minCommunication
-        );
-    }
-
-    @Override
     public WorkloadGeneratorType getType() {
         return WorkloadGeneratorType.PER_NODE;
     }
@@ -109,8 +98,13 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
                 .collect(Collectors.toList());
     }
 
-    private int calculateDelay() {
-        return "NoDelay".equals(this.owner) ? PerNodeWorkloadGenerator.ON_NO_DELAY : 0;
+    @Override
+    public String toString() {
+        return String.format("%s %d %f %f %f %f",
+                this.schedulerId, this.taskCount,
+                this.maxComputation, this.minComputation,
+                this.maxCommunication, this.minCommunication
+        );
     }
 
     public int getNumeroTarefas() {
@@ -146,6 +140,8 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
     }
 
     private class PerNodeTaskBuilder extends TaskBuilder {
+        private static final int ON_NO_DELAY = 120;
+
         @Override
         public Tarefa makeTaskFor(final CS_Processamento master) {
             return new Tarefa(
@@ -157,18 +153,23 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
                             PerNodeWorkloadGenerator.this.minCommunication,
                             PerNodeWorkloadGenerator.this.maxCommunication
                     ),
-                    PerNodeWorkloadGenerator.FILE_RECEIVE_TIME,
+                    TaskBuilder.FILE_RECEIVE_TIME,
                     this.fromTwoStageUniform(
                             PerNodeWorkloadGenerator.this.minComputation,
                             PerNodeWorkloadGenerator.this.maxComputation
                     ),
-                    this.random.nextExponential(5) + PerNodeWorkloadGenerator.this.calculateDelay()
+                    this.random.nextExponential(5) + this.calculateDelay()
             );
         }
 
         private double fromTwoStageUniform(final double min, final double max) {
             return this.random.twoStageUniform(
                     min, min + (max - min) / 2, max, 1);
+        }
+
+        private int calculateDelay() {
+            return "NoDelay".equals(PerNodeWorkloadGenerator.this.owner) ?
+                    ON_NO_DELAY : 0;
         }
     }
 }

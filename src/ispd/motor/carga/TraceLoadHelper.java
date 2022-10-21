@@ -5,6 +5,7 @@ import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
+import ispd.motor.metricas.MetricasUsuarios;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -12,14 +13,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class TraceLoadHelper {
-    private static final int USER_FIELD_INDEX = 11;
     private static final int HEADER_LINE_COUNT = 5;
-    private static final double RECEIVING_FILE_SIZE = 0.0009765625;
     private final List<Tarefa> tasks = new ArrayList<>(0);
     private final List<String> users = new ArrayList<>(0);
     private final List<Double> computationalPowers = new ArrayList<>(0);
@@ -38,68 +37,90 @@ class TraceLoadHelper {
     }
 
     List<Tarefa> toTaskList(final String path) {
+        final var taskInfo = TraceLoadHelper.getTaskInfoFromFile(path);
+
+        if (taskInfo.isEmpty())
+            return null;
+
+        this.addUserIfNotPresent(taskInfo.get());
+
+        final var taskList = this.makeTaskBuilderForType(taskInfo.get())
+                .makeTasksDistributedBetweenMasters(
+                        this.queueNetwork, this.taskCount);
+
+        this.tasks.addAll(taskList);
+
+        this.queueNetwork.getMestres().stream()
+                .map(CS_Mestre.class::cast)
+                .map(CS_Mestre::getEscalonador)
+                .map(Escalonador::getMetricaUsuarios)
+                .forEach(this::updateMetrics);
+
+        this.queueNetwork.getUsuarios().addAll(this.users);
+
+        return this.tasks;
+    }
+
+    private static Optional<TaskInfo> getTaskInfoFromFile(final String filePath) {
         try (final var br = new BufferedReader(
-                new FileReader(path, StandardCharsets.UTF_8))) {
-
-            final var attrs = br.lines()
-                    .skip(TraceLoadHelper.HEADER_LINE_COUNT)
-                    .findFirst()
-                    .orElseThrow()
-                    .split("\"");
-
-            this.addUserIfNotPresent(attrs);
-
-            final var taskList = this.makeTaskBuilderForType(attrs)
-                    .makeTasksDistributedBetweenMasters(
-                            this.queueNetwork, this.taskCount);
-
-            this.tasks.addAll(taskList);
-
-            this.queueNetwork.getMestres().stream()
-                    .map(CS_Mestre.class::cast)
-                    .map(CS_Mestre::getEscalonador)
-                    .map(Escalonador::getMetricaUsuarios)
-                    .forEach((metrics) -> metrics.addAllUsuarios(
-                            this.users,
-                            this.computationalPowers,
-                            this.profiles
-                    ));
-
-            this.queueNetwork.getUsuarios().addAll(this.users);
-
-            return this.tasks;
-
+                new FileReader(filePath, StandardCharsets.UTF_8))) {
+            return Optional.of(TraceLoadHelper.getTaskInfoFromFile(br));
         } catch (final IOException ex) {
             Logger.getLogger(TraceLoadHelper.class.getName())
                     .log(Level.SEVERE, null, ex);
-        }
-
-        return null;
-    }
-
-    private void addUserIfNotPresent(final String[] attrs) {
-        final var userId = attrs[TraceLoadHelper.USER_FIELD_INDEX];
-        if (!this.queueNetwork.getUsuarios().contains(userId) && !this.users.contains(userId)) {
-            this.addDefaultUser(userId);
+            return Optional.empty();
         }
     }
 
-    private TaskBuilder makeTaskBuilderForType(final String[] attrs) {
-        if (Set.of("SWF", "GWF").contains(this.traceType)) {
-            return new SwfGwfTaskBuilder(attrs);
+    private void addUserIfNotPresent(final TaskInfo info) {
+        if (!this.isUserPresent(info.user())) {
+            this.addDefaultUser(info.user());
+        }
+    }
+
+    private TaskBuilder makeTaskBuilderForType(final TaskInfo info) {
+        if (this.isExternalTraceModel()) {
+            return new ExternalModelTaskBuilder(info);
         }
 
         if ("iSPD".equals(this.traceType)) {
-            return new IspdTaskBuilder(attrs);
+            return new IspdTaskBuilder(info);
         }
 
         throw new RuntimeException();
+    }
+
+    private void updateMetrics(final MetricasUsuarios metrics) {
+        metrics.addAllUsuarios(
+                this.users,
+                this.computationalPowers,
+                this.profiles
+        );
+    }
+
+    private static TaskInfo getTaskInfoFromFile(final BufferedReader br) {
+        return br.lines()
+                .skip(TraceLoadHelper.HEADER_LINE_COUNT)
+                .findFirst()
+                .map(TaskInfo::new)
+                .orElseThrow();
+    }
+
+    private boolean isUserPresent(final String userId) {
+        return this.queueNetwork.getUsuarios().contains(userId) || this.users.contains(userId);
     }
 
     private void addDefaultUser(final String userId) {
         this.users.add(userId);
         this.profiles.add(100.0);
         this.computationalPowers.add(0.0);
+    }
+
+    private boolean isExternalTraceModel() {
+        return switch (this.traceType) {
+            case "SWF", "GWF" -> true;
+            default -> false;
+        };
     }
 
     private double averageComputationalPower() {
@@ -110,54 +131,98 @@ class TraceLoadHelper {
     }
 
     public abstract static class TraceTaskBuilder extends TaskBuilder {
-        protected final String[] attrs;
+        protected final TaskInfo taskInfo;
 
-        protected TraceTaskBuilder(final String[] attrs) {
-            this.attrs = attrs;
+        protected TraceTaskBuilder(final TaskInfo taskInfo) {
+            this.taskInfo = taskInfo;
         }
 
         @Override
         public Tarefa makeTaskFor(final CS_Processamento master) {
             return new Tarefa(
-                    Integer.parseInt(this.attrs[1]),
-                    this.attrs[TraceLoadHelper.USER_FIELD_INDEX],
+                    this.taskInfo.id(),
+                    this.taskInfo.user(),
                     "application1",
                     master,
                     this.calculateSentFileSize(),
-                    TraceLoadHelper.RECEIVING_FILE_SIZE,
+                    TaskBuilder.FILE_RECEIVE_TIME,
                     this.calculateProcessingTime(),
-                    Double.parseDouble(this.attrs[3])
+                    this.taskInfo.creationTime()
             );
         }
 
         protected abstract double calculateSentFileSize();
 
         protected double calculateProcessingTime() {
-            return Double.parseDouble(this.attrs[7]);
+            return this.taskInfo.processingTime();
+        }
+    }
+
+    static class TaskInfo {
+        private final String[] fields;
+
+        private TaskInfo(final String s) {
+            this(s.split("\""));
+        }
+
+        private TaskInfo(final String[] fields) {
+            this.fields = fields;
+        }
+
+        public int id() {
+            return Integer.parseInt(this.fields[1]);
+        }
+
+        public String user() {
+            return this.fields[11];
+        }
+
+        public double processingTime() {
+            return this.fieldAsDouble(7);
+        }
+
+        private double fieldAsDouble(final int index) {
+            return Double.parseDouble(this.fields[index]);
+        }
+
+        public double sentFileSize() {
+            return this.fieldAsDouble(9);
+        }
+
+        public double creationTime() {
+            return this.fieldAsDouble(3);
+        }
+
+        private boolean shouldBeCanceled() {
+            return this.status().contains("0") || this.status().contains("5");
+        }
+
+        private String status() {
+            return this.fields[5];
         }
     }
 
     private class IspdTaskBuilder extends TraceTaskBuilder {
-        public IspdTaskBuilder(final String[] attrs) {
-            super(attrs);
+        public IspdTaskBuilder(final TaskInfo taskInfo) {
+            super(taskInfo);
         }
 
         @Override
         protected double calculateSentFileSize() {
-            return Double.parseDouble(this.attrs[9]);
+            return this.taskInfo.sentFileSize();
         }
     }
 
-    private class SwfGwfTaskBuilder extends TraceTaskBuilder {
-        public SwfGwfTaskBuilder(final String[] attrs) {
-            super(attrs);
+    private class ExternalModelTaskBuilder extends TraceTaskBuilder {
+        public ExternalModelTaskBuilder(final TaskInfo taskInfo) {
+            super(taskInfo);
         }
 
         @Override
         public Tarefa makeTaskFor(final CS_Processamento master) {
             final var task = super.makeTaskFor(master);
 
-            if (this.attrs[5].contains("0") || this.attrs[5].contains("5")) {
+            if (this.taskInfo.shouldBeCanceled()) {
                 task.setLocalProcessamento(master);
                 task.cancelar(0);
             }

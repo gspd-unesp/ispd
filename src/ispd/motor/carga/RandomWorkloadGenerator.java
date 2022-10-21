@@ -10,7 +10,6 @@ import java.util.List;
  * Represents a load generated randomly, from a collection of intervals.
  */
 public class RandomWorkloadGenerator implements WorkloadGenerator {
-    private static final double FILE_RECEIVE_TIME_1KB = 0.0009765625;
     private final int taskCount;
     private final int compMinimum;
     private final int compMaximum;
@@ -116,7 +115,7 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
                             RandomWorkloadGenerator.this.commMaximum,
                             RandomWorkloadGenerator.this.commProbability
                     ),
-                    RandomWorkloadGenerator.FILE_RECEIVE_TIME_1KB,
+                    TaskBuilder.FILE_RECEIVE_TIME,
                     this.random.twoStageUniform(
                             RandomWorkloadGenerator.this.compMinimum,
                             RandomWorkloadGenerator.this.compAverage,
