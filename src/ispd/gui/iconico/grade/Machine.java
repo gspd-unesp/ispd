@@ -150,6 +150,9 @@ public class Machine extends VertexGridItem {
         machine.loadFactor = this.loadFactor;
         machine.master = this.master;
         machine.owner = this.owner;
+        machine.coreCount = this.coreCount;
+        machine.ram = this.ram;
+        machine.hardDisk = this.hardDisk;
         machine.checkConfiguration();
 
         return machine;
