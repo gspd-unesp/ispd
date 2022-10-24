@@ -169,7 +169,7 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
 
         private int calculateDelay() {
             return "NoDelay".equals(PerNodeWorkloadGenerator.this.owner) ?
-                    ON_NO_DELAY : 0;
+                    PerNodeTaskBuilder.ON_NO_DELAY : 0;
         }
     }
 }

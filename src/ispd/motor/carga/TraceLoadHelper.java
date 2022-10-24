@@ -19,46 +19,26 @@ import java.util.logging.Logger;
 
 class TraceLoadHelper {
     private static final int HEADER_LINE_COUNT = 5;
-    private final List<Tarefa> tasks = new ArrayList<>(0);
-    private final List<String> users = new ArrayList<>(0);
-    private final List<Double> computationalPowers = new ArrayList<>(0);
-    private final List<Double> profiles = new ArrayList<>(0);
+    private final List<Tarefa> tasks = new ArrayList<>();
+    private final List<String> users = new ArrayList<>();
+    private final List<Double> computationalPowers = new ArrayList<>();
+    private final List<Double> profiles = new ArrayList<>();
     private final int taskCount;
     private final String traceType;
     private final RedeDeFilas queueNetwork;
 
     TraceLoadHelper(
-            final RedeDeFilas qn,
-            final String traceType,
-            final int taskCount) {
+            final RedeDeFilas qn, final String traceType, final int taskCount) {
         this.queueNetwork = qn;
         this.traceType = traceType;
         this.taskCount = taskCount;
     }
 
     List<Tarefa> toTaskList(final String path) {
-        final var taskInfo = TraceLoadHelper.getTaskInfoFromFile(path);
-
-        if (taskInfo.isEmpty())
-            return null;
-
-        this.addUserIfNotPresent(taskInfo.get());
-
-        final var taskList = this.makeTaskBuilderForType(taskInfo.get())
-                .makeTasksDistributedBetweenMasters(
-                        this.queueNetwork, this.taskCount);
-
-        this.tasks.addAll(taskList);
-
-        this.queueNetwork.getMestres().stream()
-                .map(CS_Mestre.class::cast)
-                .map(CS_Mestre::getEscalonador)
-                .map(Escalonador::getMetricaUsuarios)
-                .forEach(this::updateMetrics);
-
-        this.queueNetwork.getUsuarios().addAll(this.users);
-
-        return this.tasks;
+        return TraceLoadHelper
+                .getTaskInfoFromFile(path)
+                .map(this::processTaskInfo)
+                .orElse(null);
     }
 
     private static Optional<TaskInfo> getTaskInfoFromFile(final String filePath) {
@@ -70,6 +50,34 @@ class TraceLoadHelper {
                     .log(Level.SEVERE, null, ex);
             return Optional.empty();
         }
+    }
+
+    private List<Tarefa> processTaskInfo(final TaskInfo taskInfo) {
+        this.addUserIfNotPresent(taskInfo);
+
+        final var taskList = this.makeTaskBuilderForType(taskInfo)
+                .makeTasksDistributedBetweenMasters(
+                        this.queueNetwork, this.taskCount);
+
+        this.tasks.addAll(taskList);
+
+        this.queueNetwork.getMestres().stream()
+                .map(CS_Mestre.class::cast)
+                .map(CS_Mestre::getEscalonador)
+                .map(Escalonador::getMetricaUsuarios)
+                .forEach(this::updateUserMetrics);
+
+        this.queueNetwork.getUsuarios().addAll(this.users);
+
+        return this.tasks;
+    }
+
+    private static TaskInfo getTaskInfoFromFile(final BufferedReader br) {
+        return br.lines()
+                .skip(TraceLoadHelper.HEADER_LINE_COUNT)
+                .findFirst()
+                .map(TaskInfo::new)
+                .orElseThrow();
     }
 
     private void addUserIfNotPresent(final TaskInfo info) {
@@ -90,20 +98,12 @@ class TraceLoadHelper {
         throw new RuntimeException();
     }
 
-    private void updateMetrics(final MetricasUsuarios metrics) {
+    private void updateUserMetrics(final MetricasUsuarios metrics) {
         metrics.addAllUsuarios(
                 this.users,
                 this.computationalPowers,
                 this.profiles
         );
-    }
-
-    private static TaskInfo getTaskInfoFromFile(final BufferedReader br) {
-        return br.lines()
-                .skip(TraceLoadHelper.HEADER_LINE_COUNT)
-                .findFirst()
-                .map(TaskInfo::new)
-                .orElseThrow();
     }
 
     private boolean isUserPresent(final String userId) {
