@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Class to build a queue network from a model in a {@link WrappedDocument}.
@@ -36,19 +35,16 @@ public class QueueNetworkBuilder {
             new HashMap<>(0);
     private final List<CS_Processamento> masters = new ArrayList<>();
     private final List<CS_Maquina> machines = new ArrayList<>();
-    private final Map<String, Double> powerLimits;
+    private final Map<String, Double> powerLimits = new HashMap<>();
 
-    public QueueNetworkBuilder(final WrappedDocument doc) {
-        this.powerLimits = doc.owners().collect(Collectors.toMap(
-                WrappedElement::id, o -> 0.0,
-                (prev, next) -> next, HashMap::new
-        ));
-
+    public QueueNetworkBuilder parseDoc(final WrappedDocument doc) {
+        doc.owners().forEach(o -> this.powerLimits.put(o.id(), 0.0));
         doc.machines().forEach(this::processMachineElement);
         doc.clusters().forEach(this::processClusterElement);
         doc.internets().forEach(this::processInternetElement);
         doc.links().forEach(this::processLinkElement);
         doc.masters().forEach(this::addSlavesToMachine);
+        return this;
     }
 
     private void processMachineElement(final WrappedElement e) {

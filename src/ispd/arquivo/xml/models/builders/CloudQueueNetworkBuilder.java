@@ -31,12 +31,14 @@ public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
             new HashMap<>();
     private final List<CS_MaquinaCloud> cloudMachines = new ArrayList<>();
     private final List<CS_VirtualMac> virtualMachines = new ArrayList<>();
-    private final List<CS_Processamento> virtualMachineMasters =
-            new ArrayList<>();
+    private final List<CS_Processamento> virtualMachineMasters = new ArrayList<>();
 
-    public CloudQueueNetworkBuilder(final WrappedDocument doc) {
-        super(doc);
+    @Override
+    public QueueNetworkBuilder parseDoc(final WrappedDocument doc)
+    {
+        super.parseDoc(doc);
         doc.virtualMachines().forEach(this::processVirtualMachineElement);
+        return this;
     }
 
     private void processVirtualMachineElement(final WrappedElement e) {
