@@ -133,7 +133,7 @@ public class IconicoXML {
      */
     public static RedeDeFilas newRedeDeFilas(final Document model) {
         return new QueueNetworkBuilder()
-                .parseDoc(new WrappedDocument(model))
+                .parseDocument(new WrappedDocument(model))
                 .build();
     }
 
@@ -146,7 +146,7 @@ public class IconicoXML {
      */
     public static RedeDeFilasCloud newRedeDeFilasCloud(final Document model) {
         return (RedeDeFilasCloud) new CloudQueueNetworkBuilder()
-                .parseDoc(new WrappedDocument(model))
+                .parseDocument(new WrappedDocument(model))
                 .build();
     }
 

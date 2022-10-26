@@ -34,9 +34,9 @@ public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
     private final List<CS_Processamento> virtualMachineMasters = new ArrayList<>();
 
     @Override
-    public QueueNetworkBuilder parseDoc(final WrappedDocument doc)
+    public QueueNetworkBuilder parseDocument(final WrappedDocument doc)
     {
-        super.parseDoc(doc);
+        super.parseDocument(doc);
         doc.virtualMachines().forEach(this::processVirtualMachineElement);
         return this;
     }

@@ -29,21 +29,30 @@ import java.util.Map;
 public class QueueNetworkBuilder {
     protected final Map<Integer, CentroServico> serviceCenters =
             new HashMap<>();
-    protected final List<CS_Comunicacao> links = new ArrayList<>();
     protected final List<CS_Internet> internets = new ArrayList<>();
+    protected final List<CS_Comunicacao> links = new ArrayList<>();
+    private final Map<String, Double> powerLimits = new HashMap<>();
+    private final List<CS_Maquina> machines = new ArrayList<>();
+    private final List<CS_Processamento> masters = new ArrayList<>();
     private final Map<CentroServico, List<CS_Maquina>> clusterSlaves =
             new HashMap<>(0);
-    private final List<CS_Processamento> masters = new ArrayList<>();
-    private final List<CS_Maquina> machines = new ArrayList<>();
-    private final Map<String, Double> powerLimits = new HashMap<>();
+    protected boolean hasParsedDoc = false;
 
-    public QueueNetworkBuilder parseDoc(final WrappedDocument doc) {
+    public QueueNetworkBuilder parseDocument(final WrappedDocument doc) {
+        if (this.hasParsedDoc) {
+            throw new IllegalStateException(
+                    ".parseDocument(doc) method called twice.");
+        }
+
         doc.owners().forEach(o -> this.powerLimits.put(o.id(), 0.0));
         doc.machines().forEach(this::processMachineElement);
         doc.clusters().forEach(this::processClusterElement);
         doc.internets().forEach(this::processInternetElement);
         doc.links().forEach(this::processLinkElement);
         doc.masters().forEach(this::addSlavesToMachine);
+
+        this.hasParsedDoc = true;
+
         return this;
     }
 
@@ -198,12 +207,21 @@ public class QueueNetworkBuilder {
      * links, and user configurations found in the document.
      */
     public RedeDeFilas build() {
+        this.throwIfNoDocumentWasParsed();
+
         final var helper = new UserPowerLimit(this.powerLimits);
         this.setSchedulersUserMetrics(helper);
 
         final var queueNetwork = this.initQueueNetwork();
         queueNetwork.setUsuarios(helper.getOwners());
         return queueNetwork;
+    }
+
+    private void throwIfNoDocumentWasParsed() {
+        if (!this.hasParsedDoc) {
+            throw new IllegalStateException(
+                    ".build() method called without a document parsed.");
+        }
     }
 
     protected void setSchedulersUserMetrics(final UserPowerLimit helper) {
