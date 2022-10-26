@@ -54,10 +54,10 @@ public class QueueNetworkBuilder {
             new HashMap<>(0);
     /**
      * Whether this instance has already parsed a document successfully.
-     * Every instance should be responsible for parsing <b>only one</b>
+     * Each instance should be responsible for parsing <b>only one</b>
      * document.
      */
-    private boolean hasParsedDoc = false;
+    private boolean hasParsedADocument = false;
 
     /**
      * Parse the required {@link CentroServico}s and user power limits from
@@ -71,7 +71,7 @@ public class QueueNetworkBuilder {
      *                               parse a {@link WrappedDocument}.
      */
     public QueueNetworkBuilder parseDocument(final WrappedDocument doc) {
-        if (this.hasParsedDoc) {
+        if (this.hasParsedADocument) {
             throw new IllegalStateException(
                     ".parseDocument(doc) method called twice.");
         }
@@ -83,7 +83,7 @@ public class QueueNetworkBuilder {
         doc.links().forEach(this::processLinkElement);
         doc.masters().forEach(this::addSlavesToMachine);
 
-        this.hasParsedDoc = true;
+        this.hasParsedADocument = true;
 
         return this;
     }
@@ -301,7 +301,7 @@ public class QueueNetworkBuilder {
     }
 
     private void throwIfNoDocumentWasParsed() {
-        if (!this.hasParsedDoc) {
+        if (!this.hasParsedADocument) {
             throw new IllegalStateException(
                     ".build() method called without a document parsed.");
         }
