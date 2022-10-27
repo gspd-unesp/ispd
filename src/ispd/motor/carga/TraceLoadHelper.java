@@ -56,7 +56,7 @@ class TraceLoadHelper {
         this.addUserIfNotPresent(taskInfo);
 
         final var taskList = this.makeTaskBuilderForType(taskInfo)
-                .makeTasksDistributedBetweenMasters(
+                .makeTasksEvenlyDistributedBetweenMasters(
                         this.queueNetwork, this.taskCount);
 
         this.tasks.addAll(taskList);

@@ -43,7 +43,7 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
         return new RandomTaskBuilder()
-                .makeTasksDistributedBetweenMasters(qn, this.taskCount);
+                .makeTasksEvenlyDistributedBetweenMasters(qn, this.taskCount);
     }
 
     @Override

@@ -20,25 +20,22 @@ public abstract class TaskBuilder {
         this.random = new Distribution(System.currentTimeMillis());
     }
 
-    public List<Tarefa> makeTasksDistributedBetweenMasters(
+    public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(
             final RedeDeFilas qn, final int taskCount) {
         final var masters = qn.getMestres();
-        final var masterCount = masters.size();
-        final var perMaster = taskCount / masterCount;
-        final var remainder = taskCount % masterCount;
 
-        return Stream.concat(
-                masters.stream().flatMap(
-                        m -> this.makeMultipleTasksFor(m, perMaster)),
-                this.makeMultipleTasksFor(masters.get(0), remainder)
-        ).collect(Collectors.toList());
+        return IntStream.range(0, taskCount)
+                .map(i -> i % masters.size())
+                .mapToObj(masters::get)
+                .map(this::makeTaskFor)
+                .collect(Collectors.toList());
     }
+
+    public abstract Tarefa makeTaskFor(final CS_Processamento master);
 
     public Stream<Tarefa> makeMultipleTasksFor(
             final CS_Processamento master, final int quantity) {
         return IntStream.range(0, quantity)
                 .mapToObj(i -> this.makeTaskFor(master));
     }
-
-    public abstract Tarefa makeTaskFor(final CS_Processamento master);
 }
