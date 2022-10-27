@@ -3,10 +3,10 @@ package ispd.motor.carga;
 import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.servidores.CS_Processamento;
 
-public class GlobalSequentialTaskBuilder extends RandomicSequentialTaskBuilder {
+public class GlobalTaskBuilder extends RandomicTaskBuilder {
     private final double taskCreationTime;
 
-    public GlobalSequentialTaskBuilder(
+    public GlobalTaskBuilder(
             final double taskCreationTime,
             final TaskSize computation, final TaskSize communication) {
         super(computation, communication);

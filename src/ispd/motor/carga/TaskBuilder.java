@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public abstract class TaskBuilder {
-    static final double FILE_RECEIVE_TIME = 0.0009765625;
+    public static final double FILE_RECEIVE_TIME = 0.0009765625;
 
     public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(
             final RedeDeFilas qn, final int taskCount) {

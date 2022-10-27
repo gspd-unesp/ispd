@@ -3,12 +3,12 @@ package ispd.motor.carga;
 import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.servidores.CS_Processamento;
 
-public class PerNodeSequentialTaskBuilder extends RandomicSequentialTaskBuilder {
+public class PerNodeTaskBuilder extends RandomicTaskBuilder {
     private static final int ON_NO_DELAY = 120;
     private final String owner;
     private final String application;
 
-    public PerNodeSequentialTaskBuilder(
+    public PerNodeTaskBuilder(
             final String owner, final String application,
             final TaskSize computation, final TaskSize communication) {
         super(computation, communication);
@@ -33,6 +33,6 @@ public class PerNodeSequentialTaskBuilder extends RandomicSequentialTaskBuilder 
 
     private int calculateDelay() {
         return "NoDelay".equals(this.owner) ?
-                PerNodeSequentialTaskBuilder.ON_NO_DELAY : 0;
+                PerNodeTaskBuilder.ON_NO_DELAY : 0;
     }
 }

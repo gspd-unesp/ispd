@@ -38,7 +38,7 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
 
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
-        return new GlobalSequentialTaskBuilder(
+        return new GlobalTaskBuilder(
                 this.arrivalTime, this.computation, this.communication)
                 .makeTasksEvenlyDistributedBetweenMasters(qn, this.taskCount);
     }

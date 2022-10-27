@@ -5,13 +5,13 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.random.Distribution;
 
-abstract class RandomicSequentialTaskBuilder extends TaskBuilder {
+abstract class RandomicTaskBuilder extends TaskBuilder {
     protected final Distribution random;
     private final IdGenerator idGenerator;
     private final TaskSize computation;
     private final TaskSize communication;
 
-    protected RandomicSequentialTaskBuilder(
+    protected RandomicTaskBuilder(
             final TaskSize computation, final TaskSize communication) {
         this.idGenerator = new IdGenerator();
         this.random = new Distribution(System.currentTimeMillis());

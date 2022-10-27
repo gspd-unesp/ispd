@@ -106,7 +106,7 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     }
 
     private List<Tarefa> makeTaskListOriginatingAt(final CS_Processamento origin) {
-        return new PerNodeSequentialTaskBuilder(
+        return new PerNodeTaskBuilder(
                 this.owner, this.application, this.computation,
                 this.communication)
                 .makeMultipleTasksFor(origin, this.taskCount)
