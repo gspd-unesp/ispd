@@ -8,8 +8,10 @@ import ispd.motor.random.Distribution;
  * (parameters for a two-stage uniform distribution).
  */
 public record TaskSize(
-        double minimum, double maximum,
-        double average, double probability) {
+        double minimum,
+        double maximum,
+        double average,
+        double probability) {
     private static final double EVEN_PROBABILITY = 0.5;
 
     /**
@@ -86,6 +88,13 @@ public record TaskSize(
         );
     }
 
+    /**
+     * Makes a string with the values of the fields of this instance, in a
+     * human-readable manner.
+     *
+     * @return {@link String} representing how this instance is initialized,
+     * in a human-readable format.
+     */
     @Override
     public String toString() {
         return "TaskSize(min=%f, max=%f, avg=%f, prob=%f)".formatted(

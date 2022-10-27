@@ -1,5 +1,6 @@
 package ispd.motor.carga;
 
+import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -11,15 +12,9 @@ import java.util.List;
  */
 public class RandomWorkloadGenerator implements WorkloadGenerator {
     private final int taskCount;
-    private final int compMinimum;
-    private final int compMaximum;
-    private final int compAverage;
-    private final double compProbability;
-    private final int commMinimum;
-    private final int commMaximum;
-    private final int commAverage;
-    private final double commProbability;
     private final int arrivalTime;
+    private final TaskSize computation;
+    private final TaskSize communication;
 
     public RandomWorkloadGenerator(
             final int taskCount,
@@ -28,15 +23,23 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
             final int commMinimum, final int commMaximum,
             final int commAverage, final double commProbability,
             final int arrivalTime) {
+        this(taskCount,
+                arrivalTime, new TaskSize(
+                        compMinimum, compMaximum,
+                        compAverage, compProbability),
+                new TaskSize(
+                        commMinimum, commMaximum,
+                        commAverage, commProbability)
+        );
+    }
+
+    public RandomWorkloadGenerator(
+            final int taskCount, final int arrivalTime,
+            final TaskSize computation,
+            final TaskSize communication) {
         this.taskCount = taskCount;
-        this.compMinimum = compMinimum;
-        this.compMaximum = compMaximum;
-        this.compAverage = compAverage;
-        this.compProbability = compProbability;
-        this.commMinimum = commMinimum;
-        this.commMaximum = commMaximum;
-        this.commAverage = commAverage;
-        this.commProbability = commProbability;
+        this.computation = computation;
+        this.communication = communication;
         this.arrivalTime = arrivalTime;
     }
 
@@ -53,11 +56,11 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
 
     @Override
     public String toString() {
-        return String.format("%d %d %d %f\n%d %d %d %f\n%d %d %d",
-                this.compMinimum, this.compAverage,
-                this.compMaximum, this.compProbability,
-                this.commMinimum, this.commMaximum,
-                this.commAverage, this.commProbability,
+        return String.format("%f %f %f %f\n%f %f %f %f\n%d %d %d",
+                this.computation.minimum(), this.computation.average(),
+                this.computation.maximum(), this.computation.probability(),
+                this.communication.minimum(), this.communication.maximum(),
+                this.communication.average(), this.communication.probability(),
                 0, this.arrivalTime, this.taskCount);
     }
 
@@ -65,36 +68,36 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
         return this.taskCount;
     }
 
-    public Integer getAverageComputacao() {
-        return this.compAverage;
+    public double getAverageComputacao() {
+        return this.computation.average();
     }
 
-    public Integer getAverageComunicacao() {
-        return this.commAverage;
+    public double getAverageComunicacao() {
+        return this.communication.average();
     }
 
-    public Double getProbabilityComputacao() {
-        return this.compProbability;
+    public double getProbabilityComputacao() {
+        return this.computation.probability();
     }
 
-    public Double getProbabilityComunicacao() {
-        return this.commProbability;
+    public double getProbabilityComunicacao() {
+        return this.communication.probability();
     }
 
-    public Integer getMaxComputacao() {
-        return this.compMaximum;
+    public double getMaxComputacao() {
+        return this.computation.maximum();
     }
 
-    public Integer getMaxComunicacao() {
-        return this.commMaximum;
+    public double getMaxComunicacao() {
+        return this.communication.maximum();
     }
 
-    public Integer getMinComputacao() {
-        return this.compMinimum;
+    public double getMinComputacao() {
+        return this.computation.minimum();
     }
 
-    public Integer getMinComunicacao() {
-        return this.commMinimum;
+    public double getMinComunicacao() {
+        return this.communication.minimum();
     }
 
     public Integer getTimeToArrival() {
@@ -109,19 +112,9 @@ public class RandomWorkloadGenerator implements WorkloadGenerator {
                     master.getProprietario(),
                     "application1",
                     master,
-                    this.random.twoStageUniform(
-                            RandomWorkloadGenerator.this.commMinimum,
-                            RandomWorkloadGenerator.this.commAverage,
-                            RandomWorkloadGenerator.this.commMaximum,
-                            RandomWorkloadGenerator.this.commProbability
-                    ),
+                    RandomWorkloadGenerator.this.communication.rollTwoStageUniform(this.random),
                     TaskBuilder.FILE_RECEIVE_TIME,
-                    this.random.twoStageUniform(
-                            RandomWorkloadGenerator.this.compMinimum,
-                            RandomWorkloadGenerator.this.compAverage,
-                            RandomWorkloadGenerator.this.compMaximum,
-                            RandomWorkloadGenerator.this.compProbability
-                    ),
+                    RandomWorkloadGenerator.this.computation.rollTwoStageUniform(this.random),
                     this.random.nextExponential(RandomWorkloadGenerator.this.arrivalTime)
             );
         }

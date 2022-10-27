@@ -723,11 +723,11 @@ public class IconicoXML {
      * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
      */
     public void setLoadRandom(
-            final Integer taskCount, final Integer arrivalTime,
-            final Integer compMax, final Integer compAvg,
-            final Integer compMin, final Double compProb,
-            final Integer commMax, final Integer commAvg,
-            final Integer commMin, final Double commProb) {
+            final int taskCount, final int arrivalTime,
+            final double compMax, final double compAvg,
+            final double compMin, final double compProb,
+            final double commMax, final double commAvg,
+            final double commMin, final double commProb) {
         this.addElementToLoad(this.anElement(
                 "random", new Object[][] {
                         { "tasks", taskCount },
@@ -769,7 +769,7 @@ public class IconicoXML {
      * @apiNote This method may be called more than once per instance,
      * however it should be mixed with calls to
      * {@link #setLoadTrace(String, String, String)} or
-     * {@link #setLoadRandom(Integer, Integer, Integer, Integer, Integer, Double, Integer, Integer, Integer, Double)}.
+     * {@link #setLoadRandom(int, int, double, double, double, double, double, double, double, double)}.
      */
     public void addLoadNo(
             final String application,
@@ -804,7 +804,7 @@ public class IconicoXML {
      *
      * @apiNote This method just be called at most <b>once</b>> per instance,
      * and not mixed with calls to
-     * {@link #setLoadRandom(Integer, Integer, Integer, Integer, Integer, Double, Integer, Integer, Integer, Double)} or
+     * {@link #setLoadRandom(int, int, double, double, double, double, double, double, double, double)} or
      * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
      */
     public void setLoadTrace(

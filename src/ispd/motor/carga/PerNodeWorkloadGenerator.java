@@ -23,7 +23,7 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
     private final TaskSize communication;
 
     /**
-     * Create a per-node workload with the given parameters
+     * Create a per-node workload generator with the given parameters
      *
      * @param application      application of the workload
      * @param owner            name of the user responsible for the workload
@@ -40,12 +40,33 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
             final String schedulerId, final int taskCount,
             final double maxComputation, final double minComputation,
             final double maxCommunication, final double minCommunication) {
+        this(application, owner, schedulerId, taskCount,
+                new TaskSize(maxComputation, minComputation),
+                new TaskSize(maxCommunication, minCommunication)
+        );
+    }
+
+    /**
+     * Create a per-node workload generator with the given parameters
+     *
+     * @param application   application of the workload
+     * @param owner         name of the user responsible for the workload
+     * @param schedulerId   id of the machine responsible for scheduling
+     *                      this workload's tasks
+     * @param taskCount     total number of tasks
+     * @param computation   {@link TaskSize} about the computation size
+     * @param communication {@link TaskSize} about the communication size
+     */
+    public PerNodeWorkloadGenerator(
+            final String application, final String owner,
+            final String schedulerId, final int taskCount,
+            final TaskSize computation, final TaskSize communication) {
         this.application = application;
         this.owner = owner;
         this.schedulerId = schedulerId;
         this.taskCount = taskCount;
-        this.computation = new TaskSize(minComputation, maxComputation);
-        this.communication = new TaskSize(minCommunication, maxCommunication);
+        this.computation = computation;
+        this.communication = communication;
     }
 
     /**

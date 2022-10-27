@@ -31,11 +31,12 @@ public class WrappedElement {
      * acquired from {@link #minimum()} and {@link #maximum()}.
      *
      * @return {@link TaskSize} with a minimum and maximum values as the
-     * respective tags in this instance, and {@code 0} for both average and
-     * probability.
+     * respective tags in this instance, and default values for the fields
+     * {@link TaskSize#average()} and {@link TaskSize#probability()}.
+     * @see TaskSize#TaskSize(double, double)
      */
     public TaskSize toTaskSizeRange() {
-        return new TaskSize(this.minimum(), this.maximum(), 0, 0);
+        return new TaskSize(this.minimum(), this.maximum());
     }
 
     /**

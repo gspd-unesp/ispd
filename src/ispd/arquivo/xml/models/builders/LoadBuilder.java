@@ -1,6 +1,5 @@
 package ispd.arquivo.xml.models.builders;
 
-import ispd.motor.carga.task.TaskSize;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
 import ispd.motor.carga.CollectionWorkloadGenerator;
@@ -9,6 +8,7 @@ import ispd.motor.carga.RandomWorkloadGenerator;
 import ispd.motor.carga.TraceFileWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
+import ispd.motor.carga.task.TaskSize;
 
 import java.io.File;
 import java.util.Optional;
@@ -59,20 +59,16 @@ public class LoadBuilder {
     }
 
     private static RandomWorkloadGenerator randomLoadFromElement(final WrappedElement e) {
-        final var computation = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isComputingType, WrappedElement::toTaskSize);
+        final var computation = LoadBuilder.getTaskSizeFromElement(
+                e, WrappedElement::isComputingType,
+                WrappedElement::toTaskSize);
 
-        final var communication = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isCommunicationType, WrappedElement::toTaskSize);
+        final var communication = LoadBuilder.getTaskSizeFromElement(
+                e, WrappedElement::isCommunicationType,
+                WrappedElement::toTaskSize);
 
         return new RandomWorkloadGenerator(
-                e.tasks(),
-                (int) computation.minimum(), (int) computation.maximum(),
-                (int) computation.average(), computation.probability(),
-                (int) communication.minimum(), (int) communication.maximum(),
-                (int) communication.average(), communication.probability(),
-                e.arrivalTime()
-        );
+                e.tasks(), e.arrivalTime(), computation, communication);
     }
 
     private static Optional<CollectionWorkloadGenerator> nodeLoadsFromElement(final WrappedElement e) {
@@ -84,7 +80,8 @@ public class LoadBuilder {
             return Optional.empty();
         }
 
-        return Optional.of(new CollectionWorkloadGenerator(nodeLoads, WorkloadGeneratorType.PER_NODE));
+        return Optional.of(new CollectionWorkloadGenerator(nodeLoads,
+                WorkloadGeneratorType.PER_NODE));
     }
 
     private static TraceFileWorkloadGenerator traceLoadFromElement(final WrappedElement e) {
@@ -97,7 +94,7 @@ public class LoadBuilder {
         return null;
     }
 
-    private static TaskSize getSizeInfoFromElement(
+    private static TaskSize getTaskSizeFromElement(
             final WrappedElement element,
             final Predicate<? super WrappedElement> predicate,
             final Function<? super WrappedElement, TaskSize> builder) {
@@ -109,16 +106,18 @@ public class LoadBuilder {
     }
 
     private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e) {
-        final var computation = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isComputingType, WrappedElement::toTaskSizeRange);
+        final var computation = LoadBuilder.getTaskSizeFromElement(
+                e, WrappedElement::isComputingType,
+                WrappedElement::toTaskSizeRange);
 
-        final var communication = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isCommunicationType, WrappedElement::toTaskSizeRange);
+        final var communication = LoadBuilder.getTaskSizeFromElement(
+                e, WrappedElement::isCommunicationType,
+                WrappedElement::toTaskSizeRange);
 
-        return new PerNodeWorkloadGenerator(e.application(),
-                e.owner(), e.masterId(), e.tasks(),
-                computation.maximum(), computation.minimum(),
-                communication.maximum(), communication.minimum()
+        return new PerNodeWorkloadGenerator(
+                e.application(), e.owner(), e.masterId(), e.tasks(),
+                computation,
+                communication
         );
     }
 
