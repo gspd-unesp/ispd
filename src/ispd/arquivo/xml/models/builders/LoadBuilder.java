@@ -74,6 +74,7 @@ public class LoadBuilder {
     private static Optional<CollectionWorkloadGenerator> nodeLoadsFromElement(final WrappedElement e) {
         final var nodeLoads = e.nodeLoads()
                 .map(LoadBuilder::nodeLoadFromElement)
+                .map(WorkloadGenerator.class::cast)
                 .toList();
 
         if (nodeLoads.isEmpty()) {

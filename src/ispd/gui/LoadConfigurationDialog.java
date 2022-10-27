@@ -1148,7 +1148,7 @@ public class LoadConfigurationDialog extends JDialog {
         } else if (this.jRadioButtonForNode.isSelected()) {
             try {
                 final List<WorkloadGenerator> configuracaoNo =
-                        new ArrayList(this.tableRow.size());
+                        new ArrayList<>(this.tableRow.size());
                 for (final List item : this.tableRow) {
                     configuracaoNo.add(LoadConfigurationDialog.loadGeneratorFromTableRow(item));
                 }

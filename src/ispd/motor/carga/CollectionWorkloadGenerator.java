@@ -24,7 +24,7 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
      * @param workloadList list of {@link WorkloadGenerator}s
      * @param type     type of {@link WorkloadGenerator}s hosted in the given list
      */
-    public CollectionWorkloadGenerator(final List workloadList, final WorkloadGeneratorType type) {
+    public CollectionWorkloadGenerator(final List<WorkloadGenerator> workloadList, final WorkloadGeneratorType type) {
         this.type = type;
         this.workloadList = workloadList;
     }
