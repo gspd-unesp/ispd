@@ -1,5 +1,6 @@
 package ispd.motor.carga;
 
+import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -18,10 +19,8 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
     private final String owner;
     private final String schedulerId;
     private final int taskCount;
-    private final double maxComputation;
-    private final double minComputation;
-    private final double maxCommunication;
-    private final double minCommunication;
+    private final TaskSize computation;
+    private final TaskSize communication;
 
     /**
      * Create a per-node workload with the given parameters
@@ -45,10 +44,8 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
         this.owner = owner;
         this.schedulerId = schedulerId;
         this.taskCount = taskCount;
-        this.maxComputation = maxComputation;
-        this.minComputation = minComputation;
-        this.maxCommunication = maxCommunication;
-        this.minCommunication = minCommunication;
+        this.computation = new TaskSize(minComputation, maxComputation);
+        this.communication = new TaskSize(minCommunication, maxCommunication);
     }
 
     /**
@@ -67,10 +64,10 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
         temp.add(1, this.owner);
         temp.add(2, this.schedulerId);
         temp.add(3, String.valueOf(this.taskCount));
-        temp.add(4, String.valueOf(this.maxComputation));
-        temp.add(5, String.valueOf(this.minComputation));
-        temp.add(6, String.valueOf(this.maxCommunication));
-        temp.add(7, String.valueOf(this.minCommunication));
+        temp.add(4, String.valueOf(this.computation.minimum()));
+        temp.add(5, String.valueOf(this.computation.maximum()));
+        temp.add(6, String.valueOf(this.communication.minimum()));
+        temp.add(7, String.valueOf(this.communication.maximum()));
         return temp;
     }
 
@@ -102,8 +99,8 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
     public String toString() {
         return String.format("%s %d %f %f %f %f",
                 this.schedulerId, this.taskCount,
-                this.maxComputation, this.minComputation,
-                this.maxCommunication, this.minCommunication
+                this.computation.maximum(), this.computation.minimum(),
+                this.communication.maximum(), this.communication.minimum()
         );
     }
 
@@ -120,19 +117,19 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
     }
 
     public double getMaxComputacao() {
-        return this.maxComputation;
+        return this.computation.maximum();
     }
 
     public double getMaxComunicacao() {
-        return this.maxCommunication;
+        return this.communication.maximum();
     }
 
     public double getMinComputacao() {
-        return this.minComputation;
+        return this.computation.minimum();
     }
 
     public double getMinComunicacao() {
-        return this.minCommunication;
+        return this.communication.minimum();
     }
 
     public String getProprietario() {
@@ -149,22 +146,11 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
                     PerNodeWorkloadGenerator.this.owner,
                     PerNodeWorkloadGenerator.this.application,
                     master,
-                    this.fromTwoStageUniform(
-                            PerNodeWorkloadGenerator.this.minCommunication,
-                            PerNodeWorkloadGenerator.this.maxCommunication
-                    ),
+                    PerNodeWorkloadGenerator.this.communication.rollTwoStageUniform(this.random),
                     TaskBuilder.FILE_RECEIVE_TIME,
-                    this.fromTwoStageUniform(
-                            PerNodeWorkloadGenerator.this.minComputation,
-                            PerNodeWorkloadGenerator.this.maxComputation
-                    ),
+                    PerNodeWorkloadGenerator.this.computation.rollTwoStageUniform(this.random),
                     this.random.nextExponential(5) + this.calculateDelay()
             );
-        }
-
-        private double fromTwoStageUniform(final double min, final double max) {
-            return this.random.twoStageUniform(
-                    min, min + (max - min) / 2, max, 1);
         }
 
         private int calculateDelay() {

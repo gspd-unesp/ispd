@@ -1,5 +1,7 @@
 package ispd.motor.carga.task;
 
+import ispd.motor.random.Distribution;
+
 /**
  * Utility class to contain information about computing or communication sizes.
  * They are expressed as an inclusive range, with an average and probability
@@ -8,11 +10,33 @@ package ispd.motor.carga.task;
 public record TaskSize(
         double minimum, double maximum,
         double average, double probability) {
+    private static final double EVEN_PROBABILITY = 0.5;
+
     /**
      * Construct an instance with all values set to 0.
      */
     public TaskSize() {
         this(0, 0, 0, 0);
+    }
+
+    /**
+     * Construct an instance with given {@code minimum} and {@code maximum}
+     * values, and with average and probability to represent a <b>uniform
+     * distribution</b>.
+     *
+     * @param minimum distribution minimum
+     * @param maximum distribution maximum
+     */
+    public TaskSize(final double minimum, final double maximum) {
+        this(
+                minimum, maximum,
+                TaskSize.averageOf(minimum, maximum),
+                TaskSize.EVEN_PROBABILITY
+        );
+    }
+
+    private static double averageOf(final double a, final double b) {
+        return (a + b) / 2;
     }
 
     /**
@@ -44,5 +68,28 @@ public record TaskSize(
                                          final double boundary) {
         final var d = Math.abs(value - boundary) / value;
         return Math.min(1.0, d);
+    }
+
+    /**
+     * Generate a two-stage uniform with parameters from the fields of the
+     * instance, using the given {@link Distribution}.
+     *
+     * @param random {@link Distribution} to generate a random value.
+     * @return value in the interval from [{@link #minimum()},
+     * {@link #maximum()}, with probability following a two-stage uniform
+     * distribution.
+     */
+    public double rollTwoStageUniform(final Distribution random) {
+        return random.twoStageUniform(
+                this.minimum, this.average,
+                this.maximum, this.probability
+        );
+    }
+
+    @Override
+    public String toString() {
+        return "TaskSize(min=%f, max=%f, avg=%f, prob=%f)".formatted(
+                this.minimum, this.maximum, this.average, this.probability
+        );
     }
 }
