@@ -1,5 +1,6 @@
 package ispd.arquivo.xml.utils;
 
+import ispd.motor.carga.task.TaskSize;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -12,6 +13,45 @@ import java.util.stream.Stream;
  */
 public class WrappedElement {
     private final Element element;
+
+    /**
+     * Construct a {@link TaskSize} from this instance, with the values
+     * acquired from {@link #minimum()}, {@link #maximum()} and
+     * {@link #average()}.
+     *
+     * @return {@link TaskSize} with a minimum, maximum, and average values
+     * as the respective tags in this instance, and {@code 0} for  probability.
+     */
+    public TaskSize toTaskSizeNoProbability() {
+        return new TaskSize(this.minimum(), this.maximum(), this.average(), 0);
+    }
+
+    /**
+     * Construct a {@link TaskSize} from this instance, with the values
+     * acquired from {@link #minimum()} and {@link #maximum()}.
+     *
+     * @return {@link TaskSize} with a minimum and maximum values as the
+     * respective tags in this instance, and {@code 0} for both average and
+     * probability.
+     */
+    public TaskSize toTaskSizeRange() {
+        return new TaskSize(this.minimum(), this.maximum(), 0, 0);
+    }
+
+    /**
+     * Construct a {@link TaskSize} from this instance, with the values
+     * acquired from {@link #minimum()}, {@link #maximum()},
+     * {@link #average()} and {@link #probability()}.
+     *
+     * @return {@link TaskSize} with a minimum, maximum, average and
+     * probability values as the respective tags in this instance.
+     */
+    public TaskSize toTaskSize() {
+        return new TaskSize(
+                this.minimum(), this.maximum(),
+                this.average(), this.probability()
+        );
+    }
 
     /**
      * @return id of origination vertex

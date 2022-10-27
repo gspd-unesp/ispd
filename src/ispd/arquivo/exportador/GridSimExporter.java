@@ -1,6 +1,6 @@
 package ispd.arquivo.exportador;
 
-import ispd.arquivo.xml.utils.SizeInfo;
+import ispd.motor.carga.task.TaskSize;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
 import org.w3c.dom.Document;
@@ -345,16 +345,16 @@ import java.util.stream.LongStream;
         final var computation = e.sizes()
                 .filter(WrappedElement::isComputingType)
                 .findFirst()
-                .map(SizeInfo::noProbability)
-                .map(SizeInfo::rangeNormalized)
-                .orElseGet(SizeInfo::new);
+                .map(WrappedElement::toTaskSizeNoProbability)
+                .map(TaskSize::rangeNormalized)
+                .orElseGet(TaskSize::new);
 
         final var communication = e.sizes()
                 .filter(WrappedElement::isCommunicationType)
                 .findFirst()
-                .map(SizeInfo::noProbability)
-                .map(SizeInfo::rangeNormalized)
-                .orElseGet(SizeInfo::new);
+                .map(WrappedElement::toTaskSizeNoProbability)
+                .map(TaskSize::rangeNormalized)
+                .orElseGet(TaskSize::new);
 
         final var msg = MessageFormat.format("""
                                 length = GridSimRandom.real({0},{1},{2},random.nextDouble());

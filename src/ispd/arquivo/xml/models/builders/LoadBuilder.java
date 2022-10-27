@@ -1,6 +1,6 @@
 package ispd.arquivo.xml.models.builders;
 
-import ispd.arquivo.xml.utils.SizeInfo;
+import ispd.motor.carga.task.TaskSize;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
 import ispd.motor.carga.CollectionWorkloadGenerator;
@@ -60,10 +60,10 @@ public class LoadBuilder {
 
     private static RandomWorkloadGenerator randomLoadFromElement(final WrappedElement e) {
         final var computation = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isComputingType, SizeInfo::new);
+                e, WrappedElement::isComputingType, WrappedElement::toTaskSize);
 
         final var communication = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isCommunicationType, SizeInfo::new);
+                e, WrappedElement::isCommunicationType, WrappedElement::toTaskSize);
 
         return new RandomWorkloadGenerator(
                 e.tasks(),
@@ -97,23 +97,23 @@ public class LoadBuilder {
         return null;
     }
 
-    private static SizeInfo getSizeInfoFromElement(
+    private static TaskSize getSizeInfoFromElement(
             final WrappedElement element,
             final Predicate<? super WrappedElement> predicate,
-            final Function<? super WrappedElement, SizeInfo> builder) {
+            final Function<? super WrappedElement, TaskSize> builder) {
         return element.sizes()
                 .filter(predicate)
                 .findFirst()
                 .map(builder)
-                .orElseGet(SizeInfo::new);
+                .orElseGet(TaskSize::new);
     }
 
     private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e) {
         final var computation = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isComputingType, SizeInfo::rangeFrom);
+                e, WrappedElement::isComputingType, WrappedElement::toTaskSizeRange);
 
         final var communication = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isCommunicationType, SizeInfo::rangeFrom);
+                e, WrappedElement::isCommunicationType, WrappedElement::toTaskSizeRange);
 
         return new PerNodeWorkloadGenerator(e.application(),
                 e.owner(), e.masterId(), e.tasks(),
