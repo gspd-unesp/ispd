@@ -9,7 +9,7 @@ import ispd.gui.iconico.Icon;
 import ispd.gui.iconico.Vertex;
 import ispd.motor.carga.PerNodeWorkloadGenerator;
 import ispd.motor.carga.CollectionWorkloadGenerator;
-import ispd.motor.carga.RandomWorkloadGenerator;
+import ispd.motor.carga.GlobalWorkloadGenerator;
 import ispd.motor.carga.TraceFileWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
@@ -603,7 +603,7 @@ public class DesenhoGrade extends DrawingArea {
 
         //configurar carga
         if (this.loadConfiguration != null) {
-            if (this.loadConfiguration instanceof final RandomWorkloadGenerator cr) {
+            if (this.loadConfiguration instanceof final GlobalWorkloadGenerator cr) {
                 xml.setLoadRandom(cr.getNumeroTarefas(), cr.getTimeToArrival(),
                         cr.getMaxComputacao(), cr.getAverageComputacao(),
                         cr.getMinComputacao(), cr.getProbabilityComputacao(),

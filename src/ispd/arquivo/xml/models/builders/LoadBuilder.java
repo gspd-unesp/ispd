@@ -4,7 +4,7 @@ import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
 import ispd.motor.carga.CollectionWorkloadGenerator;
 import ispd.motor.carga.PerNodeWorkloadGenerator;
-import ispd.motor.carga.RandomWorkloadGenerator;
+import ispd.motor.carga.GlobalWorkloadGenerator;
 import ispd.motor.carga.TraceFileWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
@@ -58,7 +58,7 @@ public class LoadBuilder {
                 .map(LoadBuilder::traceLoadFromElement);
     }
 
-    private static RandomWorkloadGenerator randomLoadFromElement(final WrappedElement e) {
+    private static GlobalWorkloadGenerator randomLoadFromElement(final WrappedElement e) {
         final var computation = LoadBuilder.getTaskSizeFromElement(
                 e, WrappedElement::isComputingType,
                 WrappedElement::toTaskSize);
@@ -67,7 +67,7 @@ public class LoadBuilder {
                 e, WrappedElement::isCommunicationType,
                 WrappedElement::toTaskSize);
 
-        return new RandomWorkloadGenerator(
+        return new GlobalWorkloadGenerator(
                 e.tasks(), e.arrivalTime(), computation, communication);
     }
 

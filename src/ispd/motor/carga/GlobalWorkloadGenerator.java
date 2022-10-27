@@ -1,0 +1,81 @@
+package ispd.motor.carga;
+
+import ispd.motor.carga.task.TaskSize;
+import ispd.motor.filas.RedeDeFilas;
+import ispd.motor.filas.Tarefa;
+import ispd.motor.filas.servidores.CS_Processamento;
+
+import java.util.List;
+
+/**
+ * Represents a load generated randomly, from a collection of intervals.
+ */
+public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
+    private final int arrivalTime;
+
+    public GlobalWorkloadGenerator(
+            final int taskCount,
+            final int compMinimum, final int compMaximum,
+            final int compAverage, final double compProbability,
+            final int commMinimum, final int commMaximum,
+            final int commAverage, final double commProbability,
+            final int arrivalTime) {
+        this(taskCount, arrivalTime,
+                new TaskSize(
+                        compMinimum, compMaximum,
+                        compAverage, compProbability),
+                new TaskSize(
+                        commMinimum, commMaximum,
+                        commAverage, commProbability)
+        );
+    }
+
+    public GlobalWorkloadGenerator(
+            final int taskCount, final int arrivalTime,
+            final TaskSize computation, final TaskSize communication) {
+        super(taskCount, computation, communication);
+        this.arrivalTime = arrivalTime;
+    }
+
+    @Override
+    public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
+        return new GlobalSequentialTaskBuilder()
+                .makeTasksEvenlyDistributedBetweenMasters(qn, this.taskCount);
+    }
+
+    @Override
+    public WorkloadGeneratorType getType() {
+        return WorkloadGeneratorType.RANDOM;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%f %f %f %f\n%f %f %f %f\n%d %d %d",
+                this.computation.minimum(), this.computation.average(),
+                this.computation.maximum(), this.computation.probability(),
+                this.communication.minimum(), this.communication.maximum(),
+                this.communication.average(), this.communication.probability(),
+                0, this.arrivalTime, this.taskCount);
+    }
+
+    public Integer getTimeToArrival() {
+        return this.arrivalTime;
+    }
+
+    private class GlobalSequentialTaskBuilder extends RandomicWorkloadGenerator.RandomicSequentialTaskBuilder {
+        @Override
+        public String taskOwner(CS_Processamento master) {
+            return master.getProprietario();
+        }
+
+        @Override
+        public String taskApplication() {
+            return "application1";
+        }
+
+        @Override
+        public double taskCreationTime() {
+            return this.random.nextExponential(GlobalWorkloadGenerator.this.arrivalTime);
+        }
+    }
+}

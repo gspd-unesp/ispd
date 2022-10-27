@@ -14,13 +14,10 @@ import java.util.stream.Collectors;
 /**
  * Represents a workload on a per-node basis.
  */
-public class PerNodeWorkloadGenerator implements WorkloadGenerator {
+public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     private final String application;
     private final String owner;
     private final String schedulerId;
-    private final int taskCount;
-    private final TaskSize computation;
-    private final TaskSize communication;
 
     /**
      * Create a per-node workload generator with the given parameters
@@ -61,12 +58,10 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
             final String application, final String owner,
             final String schedulerId, final int taskCount,
             final TaskSize computation, final TaskSize communication) {
+        super(taskCount, computation, communication);
         this.application = application;
         this.owner = owner;
         this.schedulerId = schedulerId;
-        this.taskCount = taskCount;
-        this.computation = computation;
-        this.communication = communication;
     }
 
     /**
@@ -111,7 +106,7 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
     }
 
     private List<Tarefa> makeTaskListOriginatingAt(final CS_Processamento origin) {
-        return new PerNodeTaskBuilder()
+        return new PerNodeSequentialTaskBuilder()
                 .makeMultipleTasksFor(origin, this.taskCount)
                 .collect(Collectors.toList());
     }
@@ -125,10 +120,6 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
         );
     }
 
-    public int getNumeroTarefas() {
-        return this.taskCount;
-    }
-
     public String getEscalonador() {
         return this.schedulerId;
     }
@@ -137,46 +128,31 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
         return this.application;
     }
 
-    public double getMaxComputacao() {
-        return this.computation.maximum();
-    }
-
-    public double getMaxComunicacao() {
-        return this.communication.maximum();
-    }
-
-    public double getMinComputacao() {
-        return this.computation.minimum();
-    }
-
-    public double getMinComunicacao() {
-        return this.communication.minimum();
-    }
-
     public String getProprietario() {
         return this.owner;
     }
 
-    private class PerNodeTaskBuilder extends TaskBuilder {
+    private class PerNodeSequentialTaskBuilder extends RandomicSequentialTaskBuilder {
         private static final int ON_NO_DELAY = 120;
 
         @Override
-        public Tarefa makeTaskFor(final CS_Processamento master) {
-            return new Tarefa(
-                    this.idGenerator.next(),
-                    PerNodeWorkloadGenerator.this.owner,
-                    PerNodeWorkloadGenerator.this.application,
-                    master,
-                    PerNodeWorkloadGenerator.this.communication.rollTwoStageUniform(this.random),
-                    TaskBuilder.FILE_RECEIVE_TIME,
-                    PerNodeWorkloadGenerator.this.computation.rollTwoStageUniform(this.random),
-                    this.random.nextExponential(5) + this.calculateDelay()
-            );
+        public String taskOwner(CS_Processamento master) {
+            return PerNodeWorkloadGenerator.this.owner;
+        }
+
+        @Override
+        public String taskApplication() {
+            return PerNodeWorkloadGenerator.this.application;
+        }
+
+        @Override
+        public double taskCreationTime() {
+            return this.random.nextExponential(5) + this.calculateDelay();
         }
 
         private int calculateDelay() {
             return "NoDelay".equals(PerNodeWorkloadGenerator.this.owner) ?
-                    PerNodeTaskBuilder.ON_NO_DELAY : 0;
+                    PerNodeSequentialTaskBuilder.ON_NO_DELAY : 0;
         }
     }
 }

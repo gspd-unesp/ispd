@@ -4,7 +4,7 @@ import ispd.arquivo.xml.TraceXML;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.motor.carga.CollectionWorkloadGenerator;
 import ispd.motor.carga.PerNodeWorkloadGenerator;
-import ispd.motor.carga.RandomWorkloadGenerator;
+import ispd.motor.carga.GlobalWorkloadGenerator;
 import ispd.motor.carga.TraceFileWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.WorkloadGeneratorType;
@@ -823,7 +823,7 @@ public class LoadConfigurationDialog extends JDialog {
 
         switch (loadGenerator.getType()) {
             case RANDOM -> {
-                final RandomWorkloadGenerator random = (RandomWorkloadGenerator) loadGenerator;
+                final GlobalWorkloadGenerator random = (GlobalWorkloadGenerator) loadGenerator;
                 this.jSpinnerNumTarefas.setValue(random.getNumeroTarefas());
                 this.jSpinnerMinComputacao.setValue(random.getMinComputacao());
                 this.jSpinnerMaxComputacao.setValue(random.getMaxComputacao());
@@ -1139,7 +1139,7 @@ public class LoadConfigurationDialog extends JDialog {
                         Double.parseDouble(this.jSpinnerProbabilityComunicacao.getValue().toString());
                 final int timeArriv =
                         (Integer) this.jSpinnerTimeOfArrival.getValue();
-                this.loadGenerator = new RandomWorkloadGenerator(numTaref, minComp, maxComp,
+                this.loadGenerator = new GlobalWorkloadGenerator(numTaref, minComp, maxComp,
                         aveComp, probComp, minComun, maxComun, aveComun,
                         probComun, timeArriv);
             } catch (final Exception ex) {

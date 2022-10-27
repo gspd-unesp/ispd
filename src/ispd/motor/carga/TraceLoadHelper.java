@@ -1,11 +1,13 @@
 package ispd.motor.carga;
 
 import ispd.escalonador.Escalonador;
+import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.metricas.MetricasUsuarios;
+import ispd.motor.random.Distribution;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -92,7 +94,7 @@ class TraceLoadHelper {
         }
 
         if ("iSPD".equals(this.traceType)) {
-            return new IspdTaskBuilder(info);
+            return new TraceTaskBuilder(info);
         }
 
         throw new RuntimeException();
@@ -130,92 +132,19 @@ class TraceLoadHelper {
                 .orElse(0.0);
     }
 
-    public abstract static class TraceTaskBuilder extends TaskBuilder {
-        protected final TaskInfo taskInfo;
-
-        protected TraceTaskBuilder(final TaskInfo taskInfo) {
-            this.taskInfo = taskInfo;
-        }
-
-        @Override
-        public Tarefa makeTaskFor(final CS_Processamento master) {
-            return new Tarefa(
-                    this.taskInfo.id(),
-                    this.taskInfo.user(),
-                    "application1",
-                    master,
-                    this.calculateSentFileSize(),
-                    TaskBuilder.FILE_RECEIVE_TIME,
-                    this.calculateProcessingTime(),
-                    this.taskInfo.creationTime()
-            );
-        }
-
-        protected abstract double calculateSentFileSize();
-
-        protected double calculateProcessingTime() {
-            return this.taskInfo.processingTime();
-        }
-    }
-
-    static class TaskInfo {
-        private final String[] fields;
-
-        private TaskInfo(final String s) {
-            this(s.split("\""));
-        }
-
-        private TaskInfo(final String[] fields) {
-            this.fields = fields;
-        }
-
-        public int id() {
-            return Integer.parseInt(this.fields[1]);
-        }
-
-        public String user() {
-            return this.fields[11];
-        }
-
-        public double processingTime() {
-            return this.fieldAsDouble(7);
-        }
-
-        private double fieldAsDouble(final int index) {
-            return Double.parseDouble(this.fields[index]);
-        }
-
-        public double sentFileSize() {
-            return this.fieldAsDouble(9);
-        }
-
-        public double creationTime() {
-            return this.fieldAsDouble(3);
-        }
-
-        private boolean shouldBeCanceled() {
-            return this.status().contains("0") || this.status().contains("5");
-        }
-
-        private String status() {
-            return this.fields[5];
-        }
-    }
-
-    private class IspdTaskBuilder extends TraceTaskBuilder {
-        public IspdTaskBuilder(final TaskInfo taskInfo) {
-            super(taskInfo);
-        }
-
-        @Override
-        protected double calculateSentFileSize() {
-            return this.taskInfo.sentFileSize();
-        }
-    }
-
     private class ExternalModelTaskBuilder extends TraceTaskBuilder {
+        private static final TaskSize SENT_FILE_SIZE = new TaskSize(
+                200, 25000, 5000, 0.5);
+        private final Distribution random;
+
         public ExternalModelTaskBuilder(final TaskInfo taskInfo) {
+            this(taskInfo, new Distribution(System.currentTimeMillis()));
+        }
+
+        private ExternalModelTaskBuilder(
+                final TaskInfo taskInfo, final Distribution random) {
             super(taskInfo);
+            this.random = random;
         }
 
         @Override
@@ -232,7 +161,7 @@ class TraceLoadHelper {
 
         @Override
         protected double calculateSentFileSize() {
-            return this.random.twoStageUniform(200, 5000, 25000, 0.5);
+            return ExternalModelTaskBuilder.SENT_FILE_SIZE.rollTwoStageUniform(this.random);
         }
 
         @Override

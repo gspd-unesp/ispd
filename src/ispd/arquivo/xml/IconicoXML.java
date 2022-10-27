@@ -13,7 +13,7 @@ import ispd.gui.iconico.Vertex;
 import ispd.gui.iconico.grade.VirtualMachine;
 import ispd.motor.carga.CollectionWorkloadGenerator;
 import ispd.motor.carga.TraceFileWorkloadGenerator;
-import ispd.motor.carga.RandomWorkloadGenerator;
+import ispd.motor.carga.GlobalWorkloadGenerator;
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
@@ -159,7 +159,7 @@ public class IconicoXML {
      * @see LoadBuilder
      * @see TraceFileWorkloadGenerator
      * @see CollectionWorkloadGenerator
-     * @see RandomWorkloadGenerator
+     * @see GlobalWorkloadGenerator
      */
     public static WorkloadGenerator newGerarCarga(final Document doc) {
         final var model = LoadBuilder.build(new WrappedDocument(doc));
