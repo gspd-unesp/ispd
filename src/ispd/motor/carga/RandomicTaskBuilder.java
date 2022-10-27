@@ -5,7 +5,7 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.random.Distribution;
 
-abstract class RandomicTaskBuilder extends TaskBuilder {
+public abstract class RandomicTaskBuilder extends TaskBuilder {
     protected final Distribution random;
     private final IdGenerator idGenerator;
     private final TaskSize computation;
