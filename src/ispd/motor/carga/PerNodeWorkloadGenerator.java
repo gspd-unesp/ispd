@@ -41,8 +41,8 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
             final double maxComputation, final double minComputation,
             final double maxCommunication, final double minCommunication) {
         this(application, owner, schedulerId, taskCount,
-                new TaskSize(maxComputation, minComputation),
-                new TaskSize(maxCommunication, minCommunication)
+                new TaskSize(minComputation, maxComputation),
+                new TaskSize(minCommunication, maxCommunication)
         );
     }
 
@@ -85,10 +85,10 @@ public class PerNodeWorkloadGenerator implements WorkloadGenerator {
         temp.add(1, this.owner);
         temp.add(2, this.schedulerId);
         temp.add(3, String.valueOf(this.taskCount));
-        temp.add(4, String.valueOf(this.computation.minimum()));
-        temp.add(5, String.valueOf(this.computation.maximum()));
-        temp.add(6, String.valueOf(this.communication.minimum()));
-        temp.add(7, String.valueOf(this.communication.maximum()));
+        temp.add(4, String.valueOf(this.computation.maximum()));
+        temp.add(5, String.valueOf(this.computation.minimum()));
+        temp.add(6, String.valueOf(this.communication.maximum()));
+        temp.add(7, String.valueOf(this.communication.minimum()));
         return temp;
     }
 
