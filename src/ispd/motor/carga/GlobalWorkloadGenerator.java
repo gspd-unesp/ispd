@@ -3,7 +3,6 @@ package ispd.motor.carga;
 import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.util.List;
 
@@ -39,7 +38,8 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
 
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
-        return new GlobalSequentialTaskBuilder()
+        return new GlobalSequentialTaskBuilder(
+                this.arrivalTime, this.computation, this.communication)
                 .makeTasksEvenlyDistributedBetweenMasters(qn, this.taskCount);
     }
 
@@ -62,20 +62,4 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
         return this.arrivalTime;
     }
 
-    private class GlobalSequentialTaskBuilder extends RandomicWorkloadGenerator.RandomicSequentialTaskBuilder {
-        @Override
-        public String taskOwner(CS_Processamento master) {
-            return master.getProprietario();
-        }
-
-        @Override
-        public String taskApplication() {
-            return "application1";
-        }
-
-        @Override
-        public double taskCreationTime() {
-            return this.random.nextExponential(GlobalWorkloadGenerator.this.arrivalTime);
-        }
-    }
 }

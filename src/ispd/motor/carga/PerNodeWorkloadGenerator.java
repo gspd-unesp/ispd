@@ -106,7 +106,9 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     }
 
     private List<Tarefa> makeTaskListOriginatingAt(final CS_Processamento origin) {
-        return new PerNodeSequentialTaskBuilder()
+        return new PerNodeSequentialTaskBuilder(
+                this.owner, this.application, this.computation,
+                this.communication)
                 .makeMultipleTasksFor(origin, this.taskCount)
                 .collect(Collectors.toList());
     }
@@ -132,27 +134,4 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
         return this.owner;
     }
 
-    private class PerNodeSequentialTaskBuilder extends RandomicSequentialTaskBuilder {
-        private static final int ON_NO_DELAY = 120;
-
-        @Override
-        public String taskOwner(CS_Processamento master) {
-            return PerNodeWorkloadGenerator.this.owner;
-        }
-
-        @Override
-        public String taskApplication() {
-            return PerNodeWorkloadGenerator.this.application;
-        }
-
-        @Override
-        public double taskCreationTime() {
-            return this.random.nextExponential(5) + this.calculateDelay();
-        }
-
-        private int calculateDelay() {
-            return "NoDelay".equals(PerNodeWorkloadGenerator.this.owner) ?
-                    PerNodeSequentialTaskBuilder.ON_NO_DELAY : 0;
-        }
-    }
 }
