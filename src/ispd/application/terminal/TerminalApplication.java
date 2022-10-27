@@ -1,5 +1,19 @@
 package ispd.application.terminal;
 
+import java.awt.Color;
+import java.io.File;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.w3c.dom.Document;
+
 import ispd.application.Application;
 import ispd.arquivo.SalvarResultadosHTML;
 import ispd.arquivo.xml.IconicoXML;
@@ -11,19 +25,6 @@ import ispd.motor.Simulation;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.metricas.Metricas;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.w3c.dom.Document;
-
-import java.awt.Color;
-import java.io.File;
-import java.net.Inet4Address;
-import java.net.UnknownHostException;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * A class for setting up the terminal part of iSPD and run the simulations.
@@ -64,6 +65,7 @@ public class TerminalApplication implements Application {
             @Override
             public void incProgresso(int n) {
             }
+
             @Override
             public void print(String text, Color cor) {
             }
@@ -181,9 +183,7 @@ public class TerminalApplication implements Application {
      * @return A value from the command line or the default port.
      */
     private int setPort(final CommandLine cmd) {
-        return cmd.hasOption("P") ?
-                setValueFromOption(cmd, "P") :
-                DEFAULT_PORT;
+        return cmd.hasOption("P") ? setValueFromOption(cmd, "P") : DEFAULT_PORT;
     }
 
     /**
@@ -231,12 +231,11 @@ public class TerminalApplication implements Application {
      * Get the name of the output folder for the html export from the command line.
      *
      * @param cmd The command line class from Common Cli.
-     * @return The folder coming from the command line argument or an empty optional.
+     * @return The folder coming from the command line argument or an empty
+     *         optional.
      */
     private Optional<File> setOutputFolder(final CommandLine cmd) {
-        return cmd.hasOption("o") ?
-            Optional.of(new File(cmd.getOptionValue("o"))) :
-            Optional.empty();
+        return cmd.hasOption("o") ? Optional.of(new File(cmd.getOptionValue("o"))) : Optional.empty();
     }
 
     /**
@@ -267,13 +266,14 @@ public class TerminalApplication implements Application {
 
         switch (this.mode) {
             case HELP ->
-                    helpFormatter.printHelp("java -jar iSPD.jar", this.options);
+                helpFormatter.printHelp("java -jar iSPD.jar", this.options);
             case VERSION -> System.out.println("""
                     iSPD version 3.1
                       Iconic Simulator of Parallel and Distributed System
                       Copyright 2010-2022, by GSPD from UNESP.
                       Project Info: https://dcce.ibilce.unesp.br/spd
-                      Source Code: https://github.com/gspd/ispd""");
+                      Source Code: https://github.com/gspd/ispd
+                                               """);
             case SIMULATE -> {
                 if (this.inputFile.isPresent()) {
                     var file = this.inputFile.get();
@@ -324,7 +324,7 @@ public class TerminalApplication implements Application {
     /**
      * Print the simulation results
      *
-     * @param metrics The metrics from the simulations
+     * @param metrics       The metrics from the simulations
      * @param totalDuration The total duration of the simulations
      */
     private void printSimulationResults(final Metricas metrics, final double totalDuration) {
@@ -361,7 +361,6 @@ public class TerminalApplication implements Application {
         }
         try {
             final Document model = IconicoXML.ler(this.inputFile.get());
-            System.out.println(model.toString() + this.inputFile.get().getName());
             System.out.println(ConsoleColors.GREEN + "OK" + ConsoleColors.RESET);
 
             this.simulationProgress.validarInicioSimulacao(model);
@@ -396,19 +395,18 @@ public class TerminalApplication implements Application {
      * Select a simulation type based on the <i>parallel</i> field from the class.
      *
      * @param queueNetwork The queueNetwork created from the model of a simulation
-     * @param jobs The job list
+     * @param jobs         The job list
      * @return The chosen simulation
      */
     private Simulation selectSimulation(final RedeDeFilas queueNetwork, final List<Tarefa> jobs) {
-        return this.parallel ?
-                new SimulacaoParalela(this.simulationProgress, queueNetwork, jobs, this.nThreads) :
-                new SimulacaoSequencial(this.simulationProgress, queueNetwork, jobs);
+        return this.parallel ? new SimulacaoParalela(this.simulationProgress, queueNetwork, jobs, this.nThreads)
+                : new SimulacaoSequencial(this.simulationProgress, queueNetwork, jobs);
     }
 
     /**
      * Create a job list from the model and the queue network from it.
      * 
-     * @param model The model from the simulation
+     * @param model        The model from the simulation
      * @param queueNetwork The queue network from the model
      * @return The respective job list from the model
      */
@@ -434,7 +432,6 @@ public class TerminalApplication implements Application {
         return queueNetwork;
     }
 
-
     /**
      * Hosts a server for simulating models coming from clients
      */
@@ -442,11 +439,11 @@ public class TerminalApplication implements Application {
     private void serverSimulation() {
         while (true) {
             try {
-                    final var simServer = new Server(this.serverPort);
-                    final var newModel = simServer.getMetricsFromClient();
-                    final var modelMetrics = runASimulation(newModel);
+                final var simServer = new Server(this.serverPort);
+                final var newModel = simServer.getMetricsFromClient();
+                final var modelMetrics = runASimulation(newModel);
 
-                    simServer.returnMetricsToClient(modelMetrics);
+                simServer.returnMetricsToClient(modelMetrics);
             } catch (UnknownHostException e) {
                 throw new RuntimeException(e);
             }
@@ -485,4 +482,3 @@ public class TerminalApplication implements Application {
         }
     }
 }
-

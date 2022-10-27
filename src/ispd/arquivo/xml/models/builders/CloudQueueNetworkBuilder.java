@@ -4,10 +4,12 @@ import ispd.arquivo.xml.utils.SwitchConnection;
 import ispd.arquivo.xml.utils.UserPowerLimit;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
+import ispd.escalonadorCloud.EscalonadorCloud;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.motor.filas.servidores.implementacao.CS_Maquina;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_Switch;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
@@ -20,13 +22,16 @@ import java.util.Map;
 
 /**
  * Class to build a cloud queue network from a model in a
- * {@link WrappedDocument}. Construct an instance and call the method
- * {@link #build()}
+ * {@link WrappedDocument}. The usage is the same as in
+ * {@link QueueNetworkBuilder}.
  *
  * @see ispd.arquivo.xml.IconicoXML
  * @see QueueNetworkBuilder
  */
 public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
+    /**
+     * Overridden from superclass to support {@link CS_MaquinaCloud}s.
+     */
     private final Map<CentroServico, List<CS_MaquinaCloud>> clusterSlaves =
             new HashMap<>();
     private final List<CS_MaquinaCloud> cloudMachines = new ArrayList<>();
@@ -34,9 +39,22 @@ public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
     private final List<CS_Processamento> virtualMachineMasters =
             new ArrayList<>();
 
-    public CloudQueueNetworkBuilder(final WrappedDocument doc) {
-        super(doc);
+    /**
+     * Parse the required {@link CentroServico}s and {@link CS_VirtualMac}s
+     * from the given {@link WrappedDocument}.
+     *
+     * @param doc the {@link WrappedDocument} to be processed. Must contain a
+     *            valid <b>cloud</b> model.
+     * @return the called instance itself, so the call can be chained into a
+     * {@link #build()} if so desired.
+     * @throws IllegalStateException if this instance was already used to
+     *                               parse a {@link WrappedDocument}.
+     */
+    @Override
+    public QueueNetworkBuilder parseDocument(final WrappedDocument doc) {
+        super.parseDocument(doc);
         doc.virtualMachines().forEach(this::processVirtualMachineElement);
+        return this;
     }
 
     private void processVirtualMachineElement(final WrappedElement e) {
@@ -56,6 +74,13 @@ public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
         this.virtualMachines.add(virtualMachine);
     }
 
+    /**
+     * Process the represented cluster in {@link WrappedElement} very
+     * similarly to the superclass, but adapted to take into account cloud
+     * machines and virtual machines.
+     *
+     * @param e {@link WrappedElement} representing a cluster.
+     */
     @Override
     protected void processClusterElement(final WrappedElement e) {
         if (e.isMaster()) {
@@ -111,6 +136,17 @@ public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
         }
     }
 
+    /**
+     * Build and process the cloud machine represented by the
+     * {@link WrappedElement} {@code e}. Since the machine may or may not be
+     * a master, it can be added to either the collection of
+     * {@link #virtualMachineMasters} or {@link #cloudMachines}.
+     *
+     * @param e {@link WrappedElement} representing a {@link CS_Processamento}.
+     * @return the interpreted {@link CS_Processamento} from the given
+     * {@link WrappedElement}. May either be a {@link CS_VMM} or a
+     * {@link CS_MaquinaCloud}.
+     */
     @Override
     protected CS_Processamento makeAndAddMachine(final WrappedElement e) {
         final CS_Processamento machine;
@@ -126,23 +162,41 @@ public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
         return machine;
     }
 
+    /**
+     * Differences from the overridden method:
+     * <ul>
+     *     <li>Always interprets {@code master} as an instance of
+     *     {@link CS_VMM}</li>
+     *     <li>{@code slave} may be a {@link CS_MaquinaCloud} instead of a
+     *     {@link CS_Maquina}</li>
+     * </ul>
+     *
+     * @param master the <b>master</b> {@link CS_Processamento}.
+     * @param slave  <b>slave</b> {@link CentroServico}.
+     */
     @Override
-    protected void addServiceCenterSlaves(
-            final CentroServico serviceCenter, final CS_Processamento m) {
-        final var master = (CS_VMM) m;
-        if (serviceCenter instanceof CS_Processamento proc) {
-            master.addEscravo(proc);
-            if (serviceCenter instanceof CS_MaquinaCloud machine) {
-                machine.addMestre(master);
+    protected void addSlavesToProcessingCenter(
+            final CS_Processamento master, final CentroServico slave) {
+        final var theMaster = (CS_VMM) master;
+        if (slave instanceof CS_Processamento proc) {
+            theMaster.addEscravo(proc);
+            if (slave instanceof CS_MaquinaCloud machine) {
+                machine.addMestre(theMaster);
             }
-        } else if (serviceCenter instanceof CS_Switch) {
-            for (final var slave : this.clusterSlaves.get(serviceCenter)) {
-                slave.addMestre(master);
-                master.addEscravo(slave);
+        } else if (slave instanceof CS_Switch) {
+            for (final var clusterSlave : this.clusterSlaves.get(slave)) {
+                clusterSlave.addMestre(theMaster);
+                theMaster.addEscravo(clusterSlave);
             }
         }
     }
 
+    /**
+     * Differently from the overridden method, iterates over {@link CS_VMM}s
+     * and updates {@link EscalonadorCloud}s.
+     *
+     * @param helper {@link UserPowerLimit} with the power limit information.
+     */
     @Override
     protected void setSchedulersUserMetrics(final UserPowerLimit helper) {
         this.virtualMachineMasters.stream()
@@ -151,6 +205,12 @@ public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
                 .forEach(helper::setSchedulerUserMetrics);
     }
 
+    /**
+     * Constructs a {@link RedeDeFilasCloud}. <b>It does not take power limit
+     * information into account.</b>
+     *
+     * @return initialized {@link RedeDeFilasCloud}.
+     */
     @Override
     protected RedeDeFilas initQueueNetwork() {
         return new RedeDeFilasCloud(

@@ -259,7 +259,7 @@ public class SimulationDialog extends JDialog implements Runnable {
     private class SomeWindowAdapter extends WindowAdapter {
         @Override
         public void windowClosing(final WindowEvent e) {
-            // TODO: Maybe bug here
+            
             SimulationDialog.this.simThread = null;
             SimulationDialog.this.dispose();
         }

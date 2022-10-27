@@ -70,7 +70,7 @@ public class DesenhoGrade extends DrawingArea {
     private int edgeCount = 0;
     private int vertexCount = 0;
     private int iconCount = 0;
-    private MainWindow mainWindow = null; // TODO: Initialize in constructor?
+    private MainWindow mainWindow = null; 
     private boolean shouldPrintDirectConnections = false;
     private boolean shouldPrintIndirectConnections = false;
     private boolean shouldPrintSchedulableNodes = true;
@@ -448,7 +448,7 @@ public class DesenhoGrade extends DrawingArea {
     }
 
     public String makeDescriptiveModel() {
-        // TODO: Find usages and replace with more descriptive method name
+        
         final StringBuilder saida = new StringBuilder();
         for (final Icon icon : this.vertices) {
             if (icon instanceof final Machine I) {
