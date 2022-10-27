@@ -1,4 +1,4 @@
-package ispd.motor.carga;
+package ispd.motor.carga.task;
 
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -6,7 +6,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 public class TraceTaskBuilder extends TaskBuilder {
     protected final TaskInfo taskInfo;
 
-    protected TraceTaskBuilder(final TaskInfo taskInfo) {
+    public TraceTaskBuilder(final TaskInfo taskInfo) {
         this.taskInfo = taskInfo;
     }
 

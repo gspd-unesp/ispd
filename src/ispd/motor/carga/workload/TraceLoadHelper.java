@@ -1,7 +1,10 @@
-package ispd.motor.carga;
+package ispd.motor.carga.workload;
 
 import ispd.escalonador.Escalonador;
+import ispd.motor.carga.task.TaskBuilder;
+import ispd.motor.carga.task.TaskInfo;
 import ispd.motor.carga.task.TaskSize;
+import ispd.motor.carga.task.TraceTaskBuilder;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;

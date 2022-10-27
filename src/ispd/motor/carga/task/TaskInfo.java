@@ -1,6 +1,6 @@
-package ispd.motor.carga;
+package ispd.motor.carga.task;
 
-class TaskInfo {
+public class TaskInfo {
     private final String[] fields;
 
     public TaskInfo(final String s) {

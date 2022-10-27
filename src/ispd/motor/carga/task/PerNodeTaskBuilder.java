@@ -1,6 +1,5 @@
-package ispd.motor.carga;
+package ispd.motor.carga.task;
 
-import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.servidores.CS_Processamento;
 
 public class PerNodeTaskBuilder extends RandomicTaskBuilder {

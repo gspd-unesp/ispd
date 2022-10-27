@@ -1,5 +1,6 @@
-package ispd.motor.carga;
+package ispd.motor.carga.workload;
 
+import ispd.motor.carga.task.PerNodeTaskBuilder;
 import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;

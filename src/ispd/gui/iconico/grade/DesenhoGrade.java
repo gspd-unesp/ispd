@@ -7,12 +7,12 @@ import ispd.gui.iconico.DrawingArea;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Icon;
 import ispd.gui.iconico.Vertex;
-import ispd.motor.carga.PerNodeWorkloadGenerator;
-import ispd.motor.carga.CollectionWorkloadGenerator;
-import ispd.motor.carga.GlobalWorkloadGenerator;
-import ispd.motor.carga.TraceFileWorkloadGenerator;
-import ispd.motor.carga.WorkloadGenerator;
-import ispd.motor.carga.WorkloadGeneratorType;
+import ispd.motor.carga.workload.PerNodeWorkloadGenerator;
+import ispd.motor.carga.workload.CollectionWorkloadGenerator;
+import ispd.motor.carga.workload.GlobalWorkloadGenerator;
+import ispd.motor.carga.workload.TraceFileWorkloadGenerator;
+import ispd.motor.carga.workload.WorkloadGenerator;
+import ispd.motor.carga.workload.WorkloadGeneratorType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

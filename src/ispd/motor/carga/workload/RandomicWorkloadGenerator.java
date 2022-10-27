@@ -1,4 +1,4 @@
-package ispd.motor.carga;
+package ispd.motor.carga.workload;
 
 import ispd.motor.carga.task.TaskSize;
 
