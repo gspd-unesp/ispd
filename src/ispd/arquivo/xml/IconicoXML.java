@@ -132,7 +132,9 @@ public class IconicoXML {
      * @return Simulable queue network, in accordance to given model
      */
     public static RedeDeFilas newRedeDeFilas(final Document model) {
-        return new QueueNetworkBuilder(new WrappedDocument(model)).build();
+        return new QueueNetworkBuilder()
+                .parseDocument(new WrappedDocument(model))
+                .build();
     }
 
     /**
@@ -143,8 +145,9 @@ public class IconicoXML {
      * @return Simulable cloud queue network, in accordance to given model
      */
     public static RedeDeFilasCloud newRedeDeFilasCloud(final Document model) {
-        return (RedeDeFilasCloud) new CloudQueueNetworkBuilder(
-                new WrappedDocument(model)).build();
+        return (RedeDeFilasCloud) new CloudQueueNetworkBuilder()
+                .parseDocument(new WrappedDocument(model))
+                .build();
     }
 
     /**

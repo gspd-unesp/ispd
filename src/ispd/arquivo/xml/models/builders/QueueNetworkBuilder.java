@@ -4,6 +4,7 @@ import ispd.arquivo.xml.utils.SwitchConnection;
 import ispd.arquivo.xml.utils.UserPowerLimit;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
+import ispd.escalonador.Escalonador;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -19,36 +20,72 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Class to build a queue network from a model in a {@link WrappedDocument}.
- * Construct an instance and call the method {@link #build()}
+ * Usage should be as follows: <pre>{@code
+ * new QueueNetworkBuilder()
+ * .parseDocument(doc)
+ * .build();
+ * }</pre>
+ * See methods {@link #parseDocument(WrappedDocument)} and {@link #build()}
+ * for further details.
  *
  * @see ispd.arquivo.xml.IconicoXML
  */
 public class QueueNetworkBuilder {
+    /**
+     * Map or {@link CentroServico}s parsed from the document, indexed by id.
+     */
     protected final Map<Integer, CentroServico> serviceCenters =
             new HashMap<>();
-    protected final List<CS_Comunicacao> links = new ArrayList<>();
+    /**
+     * Map of {@link CS_Internet}s parsed from the document.
+     */
     protected final List<CS_Internet> internets = new ArrayList<>();
+    /**
+     * Map of {@link CS_Link}s parsed from the document.
+     */
+    protected final List<CS_Comunicacao> links = new ArrayList<>();
+    private final Map<String, Double> powerLimits = new HashMap<>();
+    private final List<CS_Maquina> machines = new ArrayList<>();
+    private final List<CS_Processamento> masters = new ArrayList<>();
     private final Map<CentroServico, List<CS_Maquina>> clusterSlaves =
             new HashMap<>(0);
-    private final List<CS_Processamento> masters = new ArrayList<>();
-    private final List<CS_Maquina> machines = new ArrayList<>();
-    private final Map<String, Double> powerLimits;
+    /**
+     * Whether this instance has already parsed a document successfully.
+     * Each instance should be responsible for parsing <b>only one</b>
+     * document.
+     */
+    private boolean hasParsedADocument = false;
 
-    public QueueNetworkBuilder(final WrappedDocument doc) {
-        this.powerLimits = doc.owners().collect(Collectors.toMap(
-                WrappedElement::id, o -> 0.0,
-                (prev, next) -> next, HashMap::new
-        ));
+    /**
+     * Parse the required {@link CentroServico}s and user power limits from
+     * the given {@link WrappedDocument}.
+     *
+     * @param doc the {@link WrappedDocument} to be processed. Must contain a
+     *            valid model.
+     * @return the called instance itself, so the call can be chained into a
+     * {@link #build()} if so desired.
+     * @throws IllegalStateException if this instance was already used to
+     *                               parse a {@link WrappedDocument}.
+     */
+    public QueueNetworkBuilder parseDocument(final WrappedDocument doc) {
+        if (this.hasParsedADocument) {
+            throw new IllegalStateException(
+                    ".parseDocument(doc) method called twice.");
+        }
 
+        doc.owners().forEach(o -> this.powerLimits.put(o.id(), 0.0));
         doc.machines().forEach(this::processMachineElement);
         doc.clusters().forEach(this::processClusterElement);
         doc.internets().forEach(this::processInternetElement);
         doc.links().forEach(this::processLinkElement);
         doc.masters().forEach(this::addSlavesToMachine);
+
+        this.hasParsedADocument = true;
+
+        return this;
     }
 
     private void processMachineElement(final WrappedElement e) {
@@ -62,6 +99,14 @@ public class QueueNetworkBuilder {
         );
     }
 
+    /**
+     * Process a {@link WrappedElement} that is representing a cluster of
+     * {@link CentroServico}s. The {@link CS_Mestre}, {@link CS_Maquina}s and
+     * {@link CS_Link}s in the cluster are differentiated and all processed
+     * individually.
+     *
+     * @param e {@link WrappedElement} representing a cluster.
+     */
     protected void processClusterElement(final WrappedElement e) {
         if (e.isMaster()) {
             final var cluster = ServiceCenterBuilder.aMasterWithNoLoad(e);
@@ -142,9 +187,20 @@ public class QueueNetworkBuilder {
                 .map(WrappedElement::id)
                 .map(Integer::parseInt)
                 .map(this.serviceCenters::get)
-                .forEach(sc -> this.addServiceCenterSlaves(sc, master));
+                .forEach(sc -> this.addSlavesToProcessingCenter(master, sc));
     }
 
+    /**
+     * Build and process the machine (more specifically, the
+     * {@link CS_Processamento} represented by the {@link WrappedElement}
+     * {@code e}. Since the machine may or may not be a master, it can be
+     * added to either the collection of {@link #masters} or {@link #machines}.
+     *
+     * @param e {@link WrappedElement} representing a {@link CS_Processamento}.
+     * @return the interpreted {@link CS_Processamento} from the given
+     * {@link WrappedElement}. May either be a {@link CS_Mestre} or a
+     * {@link CS_Maquina}.
+     */
     protected CS_Processamento makeAndAddMachine(final WrappedElement e) {
         final CS_Processamento machine;
 
@@ -159,10 +215,17 @@ public class QueueNetworkBuilder {
         return machine;
     }
 
-    protected void increaseUserPower(final String user,
-                                     final double increment) {
-        final var oldValue = this.powerLimits.get(user);
-        this.powerLimits.put(user, oldValue + increment);
+    /**
+     * Increase the power limit of the user with given id by the given amount.
+     *
+     * @param userId    id of the user whose power limit will be increased.
+     * @param increment amount to increment the power limit by. Should be
+     *                  <b>positive</b>.
+     */
+    protected void increaseUserPower(
+            final String userId, final double increment) {
+        final var oldValue = this.powerLimits.get(userId);
+        this.powerLimits.put(userId, oldValue + increment);
     }
 
     private static void connectLinkAndVertices(
@@ -178,30 +241,57 @@ public class QueueNetworkBuilder {
         return (Vertice) this.serviceCenters.get(e);
     }
 
-    protected void addServiceCenterSlaves(
-            final CentroServico serviceCenter, final CS_Processamento m) {
-        final var master = (CS_Mestre) m;
-        if (serviceCenter instanceof CS_Processamento proc) {
-            master.addEscravo(proc);
-            if (serviceCenter instanceof CS_Maquina machine) {
-                machine.addMestre(master);
+    /**
+     * Add {@link CentroServico} {@code slave} to the list of slaves of the
+     * {@link CS_Processamento} {@code master} (which is always interpreted
+     * as an instance of {@link CS_Mestre}. Note that {@code master} <b>is a
+     * master</b>, and {@link CS_Processamento} may either be:
+     * <ul>
+     *      <li>another master</li>
+     *      <li>a non-master machine</li>
+     *      <li>a switch</li>
+     * </ul>
+     * In any case, the method process the element appropriately and updates
+     * the necessary master-slave relations.
+     *
+     * @param master an instance of {@link CS_Mestre}.
+     * @param slave  <b>slave</b> {@link CentroServico}.
+     * @throws ClassCastException if the given {@link CS_Processamento}
+     *                            {@code master} is not an instance of
+     *                            {@link CS_Mestre}.
+     * @apiNote the parameter {@code master} is typed as a
+     * {@link CS_Processamento} to support overrides that deal with other
+     * types of masters. See
+     * {@link CloudQueueNetworkBuilder#addSlavesToProcessingCenter} for an
+     * example.
+     */
+    protected void addSlavesToProcessingCenter(
+            final CS_Processamento master, final CentroServico slave) {
+        final var theMaster = (CS_Mestre) master;
+        if (slave instanceof CS_Processamento proc) {
+            theMaster.addEscravo(proc);
+            if (slave instanceof CS_Maquina machine) {
+                machine.addMestre(theMaster);
             }
-        } else if (serviceCenter instanceof CS_Switch) {
-            for (final var slave : this.clusterSlaves.get(serviceCenter)) {
-                slave.addMestre(master);
-                master.addEscravo(slave);
+        } else if (slave instanceof CS_Switch) {
+            for (final var clusterSlave : this.clusterSlaves.get(slave)) {
+                clusterSlave.addMestre(theMaster);
+                theMaster.addEscravo(clusterSlave);
             }
         }
     }
 
     /**
      * Create a {@link RedeDeFilas} with the collections parsed from the
-     * document.
+     * document. The method {@link #parseDocument(WrappedDocument)} must
+     * already have been called on the instance.
      *
      * @return {@link RedeDeFilas} with the appropriate service centers,
      * links, and user configurations found in the document.
      */
     public RedeDeFilas build() {
+        this.throwIfNoDocumentWasParsed();
+
         final var helper = new UserPowerLimit(this.powerLimits);
         this.setSchedulersUserMetrics(helper);
 
@@ -210,6 +300,20 @@ public class QueueNetworkBuilder {
         return queueNetwork;
     }
 
+    private void throwIfNoDocumentWasParsed() {
+        if (!this.hasParsedADocument) {
+            throw new IllegalStateException(
+                    ".build() method called without a document parsed.");
+        }
+    }
+
+    /**
+     * For all {@link CS_Mestre}s parsed from the document, update its
+     * {@link Escalonador}'s user metrics with the obtained user power limit
+     * information.
+     *
+     * @param helper {@link UserPowerLimit} with the power limit information.
+     */
     protected void setSchedulersUserMetrics(final UserPowerLimit helper) {
         this.masters.stream()
                 .map(CS_Mestre.class::cast)
@@ -217,6 +321,12 @@ public class QueueNetworkBuilder {
                 .forEach(helper::setSchedulerUserMetrics);
     }
 
+    /**
+     * Construct a {@link RedeDeFilas} with the parsed {@link CentroServico}s
+     * and user power limit information.
+     *
+     * @return initialized {@link RedeDeFilas}.
+     */
     protected RedeDeFilas initQueueNetwork() {
         return new RedeDeFilas(
                 this.masters, this.machines,
