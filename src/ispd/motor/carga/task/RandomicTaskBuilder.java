@@ -1,5 +1,6 @@
 package ispd.motor.carga.task;
 
+import ispd.motor.carga.workload.WorkloadGenerator;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.random.Distribution;
@@ -26,7 +27,7 @@ public abstract class RandomicTaskBuilder extends TaskBuilder {
                 this.taskApplication(),
                 master,
                 this.communication.rollTwoStageUniform(this.random),
-                TaskBuilder.FILE_RECEIVE_TIME,
+                WorkloadGenerator.FILE_RECEIVE_TIME,
                 this.computation.rollTwoStageUniform(this.random),
                 this.taskCreationTime()
         );

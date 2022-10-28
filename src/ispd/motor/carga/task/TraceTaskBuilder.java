@@ -1,5 +1,6 @@
 package ispd.motor.carga.task;
 
+import ispd.motor.carga.workload.WorkloadGenerator;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 
@@ -18,7 +19,7 @@ public class TraceTaskBuilder extends TaskBuilder {
                 "application1",
                 master,
                 this.calculateSentFileSize(),
-                TaskBuilder.FILE_RECEIVE_TIME,
+                WorkloadGenerator.FILE_RECEIVE_TIME,
                 this.calculateProcessingTime(),
                 this.taskInfo.creationTime()
         );

@@ -62,5 +62,4 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
     public Integer getTimeToArrival() {
         return this.arrivalTime;
     }
-
 }

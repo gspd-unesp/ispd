@@ -9,6 +9,7 @@ import java.util.List;
  * Represents a workload generation policy.
  */
 public interface WorkloadGenerator {
+    double FILE_RECEIVE_TIME = 0.0009765625;
     /**
      * Create a {@link Tarefa} list as currently configured, to be handled by
      * the {@link RedeDeFilas} given.
