@@ -108,11 +108,11 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     }
 
     private List<Tarefa> makeTaskListOriginatingAt(final CS_Processamento origin) {
-        return this.makeMultipleTasksFor(origin, this.taskCount);
+        return this.makeMultipleTasksFor(origin);
     }
 
-    private List<Tarefa> makeMultipleTasksFor(final CS_Processamento origin, final int taskCount) {
-        return IntStream.range(0, taskCount)
+    private List<Tarefa> makeMultipleTasksFor(final CS_Processamento origin) {
+        return IntStream.range(0, this.taskCount)
                 .mapToObj(i -> this.makeTaskFor(origin))
                 .collect(Collectors.toList());
     }

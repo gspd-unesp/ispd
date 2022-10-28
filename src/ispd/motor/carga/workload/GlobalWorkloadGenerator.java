@@ -41,15 +41,14 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
 
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
-        return this.makeTasksEvenlyDistributedBetweenMasters(qn,
-                this.taskCount);
+        return this.makeTasksEvenlyDistributedBetweenMasters(qn
+        );
     }
 
-    private List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(
-            final RedeDeFilas qn, final int taskCount) {
+    private List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn) {
         final var masters = qn.getMestres();
 
-        return IntStream.range(0, taskCount)
+        return IntStream.range(0, this.taskCount)
                 .map(i -> i % masters.size())
                 .mapToObj(masters::get)
                 .map(this::makeTaskFor)
