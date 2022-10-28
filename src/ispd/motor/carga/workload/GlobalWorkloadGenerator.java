@@ -1,17 +1,19 @@
 package ispd.motor.carga.workload;
 
-import ispd.motor.carga.task.GlobalTaskBuilder;
 import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
+import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Represents a load generated randomly, from a collection of intervals.
  */
 public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
-    private final int arrivalTime;
+    private final int taskCreationTime;
 
     public GlobalWorkloadGenerator(
             final int taskCount,
@@ -19,8 +21,8 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
             final int compAverage, final double compProbability,
             final int commMinimum, final int commMaximum,
             final int commAverage, final double commProbability,
-            final int arrivalTime) {
-        this(taskCount, arrivalTime,
+            final int taskCreationTime) {
+        this(taskCount, taskCreationTime,
                 new TaskSize(
                         compMinimum, compMaximum,
                         compAverage, compProbability),
@@ -31,17 +33,27 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
     }
 
     public GlobalWorkloadGenerator(
-            final int taskCount, final int arrivalTime,
+            final int taskCount, final int taskCreationTime,
             final TaskSize computation, final TaskSize communication) {
         super(taskCount, computation, communication);
-        this.arrivalTime = arrivalTime;
+        this.taskCreationTime = taskCreationTime;
     }
 
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
-        return new GlobalTaskBuilder(
-                this.arrivalTime, this.computation, this.communication)
-                .makeTasksEvenlyDistributedBetweenMasters(qn, this.taskCount);
+        return this.makeTasksEvenlyDistributedBetweenMasters(qn,
+                this.taskCount);
+    }
+
+    private List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(
+            final RedeDeFilas qn, final int taskCount) {
+        final var masters = qn.getMestres();
+
+        return IntStream.range(0, taskCount)
+                .map(i -> i % masters.size())
+                .mapToObj(masters::get)
+                .map(this::makeTaskFor)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -56,10 +68,25 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
                 this.computation.maximum(), this.computation.probability(),
                 this.communication.minimum(), this.communication.maximum(),
                 this.communication.average(), this.communication.probability(),
-                0, this.arrivalTime, this.taskCount);
+                0, this.taskCreationTime, this.taskCount);
     }
 
     public Integer getTimeToArrival() {
-        return this.arrivalTime;
+        return this.taskCreationTime;
+    }
+
+    @Override
+    protected String makeTaskUser(final CS_Processamento master) {
+        return master.getProprietario();
+    }
+
+    @Override
+    protected String makeTaskApplication() {
+        return "application1";
+    }
+
+    @Override
+    protected double makeTaskCreationTime() {
+        return this.random.nextExponential(this.taskCreationTime);
     }
 }

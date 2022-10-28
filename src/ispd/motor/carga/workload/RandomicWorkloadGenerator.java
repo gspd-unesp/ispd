@@ -1,11 +1,15 @@
 package ispd.motor.carga.workload;
 
 import ispd.motor.carga.task.TaskSize;
+import ispd.motor.random.Distribution;
 
-public abstract class RandomicWorkloadGenerator implements WorkloadGenerator {
+public abstract class RandomicWorkloadGenerator extends AbstractWorkloadGenerator {
     protected final int taskCount;
     protected final TaskSize computation;
     protected final TaskSize communication;
+    protected final Distribution random;
+
+    private int nextAvailableId = 0;
 
     protected RandomicWorkloadGenerator(
             final int taskCount,
@@ -13,6 +17,24 @@ public abstract class RandomicWorkloadGenerator implements WorkloadGenerator {
         this.computation = computation;
         this.communication = communication;
         this.taskCount = taskCount;
+        this.random = new Distribution(System.currentTimeMillis());
+    }
+
+    @Override
+    protected int makeTaskId() {
+        final int id = this.nextAvailableId;
+        this.nextAvailableId++;
+        return id;
+    }
+
+    @Override
+    protected double makeTaskCommunicationSize() {
+        return this.communication.rollTwoStageUniform(this.random);
+    }
+
+    @Override
+    protected double makeTaskComputationSize() {
+        return this.computation.rollTwoStageUniform(this.random);
     }
 
     public double getAverageComputacao() {
