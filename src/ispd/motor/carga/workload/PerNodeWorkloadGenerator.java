@@ -1,6 +1,5 @@
 package ispd.motor.carga.workload;
 
-import ispd.motor.carga.task.PerNodeTaskBuilder;
 import ispd.motor.carga.task.TaskSize;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
@@ -11,11 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Represents a workload on a per-node basis.
  */
 public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
+    private static final int ON_NO_DELAY = 120;
     private final String application;
     private final String owner;
     private final String schedulerId;
@@ -107,10 +108,12 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     }
 
     private List<Tarefa> makeTaskListOriginatingAt(final CS_Processamento origin) {
-        return new PerNodeTaskBuilder(
-                this.owner, this.application,
-                this.computation, this.communication
-        ).makeMultipleTasksFor(origin, this.taskCount)
+        return this.makeMultipleTasksFor(origin, this.taskCount);
+    }
+
+    private List<Tarefa> makeMultipleTasksFor(final CS_Processamento origin, final int taskCount) {
+        return IntStream.range(0, taskCount)
+                .mapToObj(i -> this.makeTaskFor(origin))
                 .collect(Collectors.toList());
     }
 
@@ -135,4 +138,23 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
         return this.owner;
     }
 
+    @Override
+    protected String makeTaskUser(final CS_Processamento master) {
+        return this.owner;
+    }
+
+    @Override
+    protected String makeTaskApplication() {
+        return this.application;
+    }
+
+    @Override
+    protected double makeTaskCreationTime() {
+        return this.random.nextExponential(5) + this.calculateDelay();
+    }
+
+    private int calculateDelay() {
+        return "NoDelay".equals(this.owner) ?
+                PerNodeWorkloadGenerator.ON_NO_DELAY : 0;
+    }
 }

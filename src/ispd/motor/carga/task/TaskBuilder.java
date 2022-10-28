@@ -7,7 +7,6 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public abstract class TaskBuilder {
     public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(
@@ -22,10 +21,4 @@ public abstract class TaskBuilder {
     }
 
     public abstract Tarefa makeTaskFor(final CS_Processamento master);
-
-    public Stream<Tarefa> makeMultipleTasksFor(
-            final CS_Processamento master, final int quantity) {
-        return IntStream.range(0, quantity)
-                .mapToObj(i -> this.makeTaskFor(master));
-    }
 }
