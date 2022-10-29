@@ -1,6 +1,6 @@
 package ispd.arquivo.xml.utils;
 
-import ispd.motor.carga.task.TwoStageUniform;
+import ispd.motor.random.TwoStageUniform;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 

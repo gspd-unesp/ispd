@@ -1,6 +1,6 @@
 package ispd.motor.carga.workload;
 
-import ispd.motor.carga.task.TwoStageUniform;
+import ispd.motor.random.TwoStageUniform;
 import ispd.motor.random.Distribution;
 
 public abstract class RandomicWorkloadGenerator extends AbstractWorkloadGenerator {

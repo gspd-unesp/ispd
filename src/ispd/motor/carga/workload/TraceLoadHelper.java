@@ -3,7 +3,7 @@ package ispd.motor.carga.workload;
 import ispd.escalonador.Escalonador;
 import ispd.motor.carga.task.TaskInfo;
 import ispd.motor.carga.task.TraceTaskBuilder;
-import ispd.motor.carga.task.TwoStageUniform;
+import ispd.motor.random.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;

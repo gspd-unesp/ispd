@@ -1,6 +1,6 @@
 package ispd.arquivo.exportador;
 
-import ispd.motor.carga.task.TwoStageUniform;
+import ispd.motor.random.TwoStageUniform;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
 import org.w3c.dom.Document;

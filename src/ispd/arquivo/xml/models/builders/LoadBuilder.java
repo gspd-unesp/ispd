@@ -2,7 +2,7 @@ package ispd.arquivo.xml.models.builders;
 
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.motor.carga.task.TwoStageUniform;
+import ispd.motor.random.TwoStageUniform;
 import ispd.motor.carga.workload.CollectionWorkloadGenerator;
 import ispd.motor.carga.workload.PerNodeWorkloadGenerator;
 import ispd.motor.carga.workload.GlobalWorkloadGenerator;

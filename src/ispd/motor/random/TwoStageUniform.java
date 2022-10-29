@@ -1,6 +1,4 @@
-package ispd.motor.carga.task;
-
-import ispd.motor.random.Distribution;
+package ispd.motor.random;
 
 /**
  * Utility class to contain information about computing or communication sizes.
