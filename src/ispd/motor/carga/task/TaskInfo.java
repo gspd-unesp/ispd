@@ -7,7 +7,7 @@ public class TaskInfo {
         this(s.split("\""));
     }
 
-    public TaskInfo(final String[] fields) {
+    private TaskInfo(final String[] fields) {
         this.fields = fields.clone();
     }
 

@@ -3,30 +3,30 @@ package ispd.motor.carga.workload;
 import ispd.escalonador.Escalonador;
 import ispd.motor.carga.task.TaskInfo;
 import ispd.motor.carga.task.TraceTaskBuilder;
-import ispd.motor.random.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.metricas.MetricasUsuarios;
 import ispd.motor.random.Distribution;
+import ispd.motor.random.TwoStageUniform;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.DoubleStream;
 
 class TraceLoadHelper {
     private static final int HEADER_LINE_COUNT = 5;
     private final List<Tarefa> tasks = new ArrayList<>();
     private final List<String> users = new ArrayList<>();
-    private final List<Double> computationalPowers = new ArrayList<>();
-    private final List<Double> profiles = new ArrayList<>();
     private final int taskCount;
     private final String traceType;
     private final RedeDeFilas queueNetwork;
@@ -49,7 +49,7 @@ class TraceLoadHelper {
         try (final var br = new BufferedReader(
                 new FileReader(filePath, StandardCharsets.UTF_8))) {
             return Optional.of(TraceLoadHelper.getTaskInfoFromFile(br));
-        } catch (final IOException ex) {
+        } catch (final IOException | UncheckedIOException ex) {
             Logger.getLogger(TraceLoadHelper.class.getName())
                     .log(Level.SEVERE, null, ex);
             return Optional.empty();
@@ -103,10 +103,12 @@ class TraceLoadHelper {
     }
 
     private void updateUserMetrics(final MetricasUsuarios metrics) {
+        final int userCount = this.users.size();
+
         metrics.addAllUsuarios(
                 this.users,
-                this.computationalPowers,
-                this.profiles
+                TraceLoadHelper.filledList(0.0, userCount),
+                TraceLoadHelper.filledList(100.0, userCount)
         );
     }
 
@@ -116,8 +118,6 @@ class TraceLoadHelper {
 
     private void addDefaultUser(final String userId) {
         this.users.add(userId);
-        this.profiles.add(100.0);
-        this.computationalPowers.add(0.0);
     }
 
     private boolean isExternalTraceModel() {
@@ -125,6 +125,14 @@ class TraceLoadHelper {
             case "SWF", "GWF" -> true;
             default -> false;
         };
+    }
+
+    private static List<Double> filledList(
+            final double fillValue, final int count) {
+        return DoubleStream.generate(() -> fillValue)
+                .limit(count)
+                .boxed()
+                .toList();
     }
 
     private double averageComputationalPower() {
@@ -135,8 +143,8 @@ class TraceLoadHelper {
     }
 
     private class ExternalModelTaskBuilder extends TraceTaskBuilder {
-        private static final TwoStageUniform SENT_FILE_SIZE = new TwoStageUniform(
-                200, 5000, 25000, 0.5);
+        private static final TwoStageUniform SENT_FILE_SIZE =
+                new TwoStageUniform(200, 5000, 25000, 0.5);
         private final Distribution random;
 
         public ExternalModelTaskBuilder(final TaskInfo taskInfo) {
