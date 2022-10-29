@@ -29,7 +29,7 @@ class TraceLoadHelper {
     }
 
     public List<Tarefa> processTaskInfo(final TraceTaskInfo traceTaskInfo) {
-        this.addUserIfNotPresent(traceTaskInfo);
+        this.addUserIfNotPresent(traceTaskInfo.user());
 
         final var taskList = this.makeTaskBuilderForType(traceTaskInfo)
                 .makeTasksEvenlyDistributedBetweenMasters(
@@ -46,9 +46,9 @@ class TraceLoadHelper {
         return taskList;
     }
 
-    private void addUserIfNotPresent(final TraceTaskInfo info) {
-        if (!this.isUserPresent(info.user())) {
-            this.addDefaultUser(info.user());
+    private void addUserIfNotPresent(final String user) {
+        if (!this.isUserPresent(user)) {
+            this.users.add(user);
         }
     }
 
@@ -73,10 +73,6 @@ class TraceLoadHelper {
 
     private boolean isUserPresent(final String userId) {
         return this.queueNetwork.getUsuarios().contains(userId) || this.users.contains(userId);
-    }
-
-    private void addDefaultUser(final String userId) {
-        this.users.add(userId);
     }
 
     private static List<Double> filledList(final double fill, final int count) {

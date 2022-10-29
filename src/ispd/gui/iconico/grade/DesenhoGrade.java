@@ -621,7 +621,7 @@ public class DesenhoGrade extends DrawingArea {
             } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.TRACE) {
                 final TraceFileWorkloadGenerator trace = (TraceFileWorkloadGenerator) this.loadConfiguration;
                 xml.setLoadTrace(trace.getFile().toString(),
-                        trace.getNumberTasks().toString(),
+                        trace.getNumberTasks(),
                         trace.getTraceType());
             }
         }

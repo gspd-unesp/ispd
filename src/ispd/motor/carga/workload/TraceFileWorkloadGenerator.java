@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class TraceFileWorkloadGenerator implements WorkloadGenerator {
     private static final int HEADER_LINE_COUNT = 5;
@@ -30,28 +30,32 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
 
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
+        final var helper = new TraceLoadHelper(
+                qn, this.traceType, this.taskCount);
+        
+//        final var helper2 = new TraceLoadHelper2()
+
         return this.getTaskInfoFromFile()
-                .map(new TraceLoadHelper(qn, this.traceType, this.taskCount)::processTaskInfo)
+                .findFirst() // FIXME: Gotta process ALL trace tasks
+                .map(helper::processTaskInfo)
                 .orElse(null);
     }
 
-    private Optional<TraceTaskInfo> getTaskInfoFromFile() {
+    private Stream<TraceTaskInfo> getTaskInfoFromFile() {
         try (final var br = new BufferedReader(
                 new FileReader(this.traceFile, StandardCharsets.UTF_8))) {
-            return Optional.of(TraceFileWorkloadGenerator.getTaskInfoFromFile(br));
+            return TraceFileWorkloadGenerator.getTaskInfoFromFile(br);
         } catch (final IOException | UncheckedIOException ex) {
             Logger.getLogger(TraceFileWorkloadGenerator.class.getName())
                     .log(Level.SEVERE, null, ex);
-            return Optional.empty();
+            return Stream.empty();
         }
     }
 
-    private static TraceTaskInfo getTaskInfoFromFile(final BufferedReader br) {
+    private static Stream<TraceTaskInfo> getTaskInfoFromFile(final BufferedReader br) {
         return br.lines()
                 .skip(TraceFileWorkloadGenerator.HEADER_LINE_COUNT)
-                .findFirst()
-                .map(TraceTaskInfo::new)
-                .orElseThrow();
+                .map(TraceTaskInfo::new);
     }
 
     @Override
@@ -72,7 +76,7 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
         return this.traceFile;
     }
 
-    public Integer getNumberTasks() {
+    public int getNumberTasks() {
         return this.taskCount;
     }
 }

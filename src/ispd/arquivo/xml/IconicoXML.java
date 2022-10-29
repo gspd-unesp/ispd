@@ -811,9 +811,9 @@ public class IconicoXML {
      * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
      */
     public void setLoadTrace(
-            final String file, final String tasks, final String format) {
+            final String file, final int tasks, final String format) {
         this.addElementToLoad(this.anElement(
-                "trace", new String[][] {
+                "trace", new Object[][] {
                         { "file_path", file },
                         { "tasks", tasks },
                         { "format", format },
