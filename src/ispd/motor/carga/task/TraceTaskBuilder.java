@@ -10,31 +10,31 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class TraceTaskBuilder {
-    protected final TaskInfo taskInfo;
+    protected final TraceTaskInfo traceTaskInfo;
 
-    public TraceTaskBuilder(final TaskInfo taskInfo) {
-        this.taskInfo = taskInfo;
+    public TraceTaskBuilder(final TraceTaskInfo traceTaskInfo) {
+        this.traceTaskInfo = traceTaskInfo;
     }
 
     public Tarefa makeTaskFor(final CS_Processamento master) {
         return new Tarefa(
-                this.taskInfo.id(),
-                this.taskInfo.user(),
+                this.traceTaskInfo.id(),
+                this.traceTaskInfo.user(),
                 "application1",
                 master,
                 this.calculateSentFileSize(),
                 WorkloadGenerator.FILE_RECEIVE_TIME,
                 this.calculateProcessingTime(),
-                this.taskInfo.creationTime()
+                this.traceTaskInfo.creationTime()
         );
     }
 
     protected double calculateSentFileSize() {
-        return this.taskInfo.sentFileSize();
+        return this.traceTaskInfo.sentFileSize();
     }
 
     protected double calculateProcessingTime() {
-        return this.taskInfo.processingTime();
+        return this.traceTaskInfo.processingTime();
     }
 
     public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(

@@ -1,13 +1,13 @@
 package ispd.motor.carga.task;
 
-public class TaskInfo {
+public class TraceTaskInfo {
     private final String[] fields;
 
-    public TaskInfo(final String s) {
+    public TraceTaskInfo(final String s) {
         this(s.split("\""));
     }
 
-    private TaskInfo(final String[] fields) {
+    private TraceTaskInfo(final String[] fields) {
         this.fields = fields.clone();
     }
 

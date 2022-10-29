@@ -1,7 +1,7 @@
 package ispd.motor.carga.workload;
 
 import ispd.escalonador.Escalonador;
-import ispd.motor.carga.task.TaskInfo;
+import ispd.motor.carga.task.TraceTaskInfo;
 import ispd.motor.carga.task.TraceTaskBuilder;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
@@ -28,10 +28,10 @@ class TraceLoadHelper {
         this.taskCount = taskCount;
     }
 
-    public List<Tarefa> processTaskInfo(final TaskInfo taskInfo) {
-        this.addUserIfNotPresent(taskInfo);
+    public List<Tarefa> processTaskInfo(final TraceTaskInfo traceTaskInfo) {
+        this.addUserIfNotPresent(traceTaskInfo);
 
-        final var taskList = this.makeTaskBuilderForType(taskInfo)
+        final var taskList = this.makeTaskBuilderForType(traceTaskInfo)
                 .makeTasksEvenlyDistributedBetweenMasters(
                         this.queueNetwork, this.taskCount);
 
@@ -46,13 +46,13 @@ class TraceLoadHelper {
         return taskList;
     }
 
-    private void addUserIfNotPresent(final TaskInfo info) {
+    private void addUserIfNotPresent(final TraceTaskInfo info) {
         if (!this.isUserPresent(info.user())) {
             this.addDefaultUser(info.user());
         }
     }
 
-    private TraceTaskBuilder makeTaskBuilderForType(final TaskInfo info) {
+    private TraceTaskBuilder makeTaskBuilderForType(final TraceTaskInfo info) {
         return switch (this.traceType) {
             case "iSPD" -> new TraceTaskBuilder(info);
             case "SWF", "GWF" -> new ExternalTraceTaskBuilder(info);
@@ -98,13 +98,13 @@ class TraceLoadHelper {
                 new TwoStageUniform(200, 5000, 25000, 0.5);
         private final Distribution random;
 
-        public ExternalTraceTaskBuilder(final TaskInfo taskInfo) {
-            this(taskInfo, new Distribution(System.currentTimeMillis()));
+        public ExternalTraceTaskBuilder(final TraceTaskInfo traceTaskInfo) {
+            this(traceTaskInfo, new Distribution(System.currentTimeMillis()));
         }
 
         private ExternalTraceTaskBuilder(
-                final TaskInfo taskInfo, final Distribution random) {
-            super(taskInfo);
+                final TraceTaskInfo traceTaskInfo, final Distribution random) {
+            super(traceTaskInfo);
             this.random = random;
         }
 
@@ -112,7 +112,7 @@ class TraceLoadHelper {
         public Tarefa makeTaskFor(final CS_Processamento master) {
             final var task = super.makeTaskFor(master);
 
-            if (this.taskInfo.shouldBeCanceled()) {
+            if (this.traceTaskInfo.shouldBeCanceled()) {
                 task.setLocalProcessamento(master);
                 task.cancelar(0);
             }

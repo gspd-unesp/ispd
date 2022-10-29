@@ -1,6 +1,6 @@
 package ispd.motor.carga.workload;
 
-import ispd.motor.carga.task.TaskInfo;
+import ispd.motor.carga.task.TraceTaskInfo;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 
@@ -35,7 +35,7 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
                 .orElse(null);
     }
 
-    private Optional<TaskInfo> getTaskInfoFromFile() {
+    private Optional<TraceTaskInfo> getTaskInfoFromFile() {
         try (final var br = new BufferedReader(
                 new FileReader(this.traceFile, StandardCharsets.UTF_8))) {
             return Optional.of(TraceFileWorkloadGenerator.getTaskInfoFromFile(br));
@@ -46,11 +46,11 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
         }
     }
 
-    private static TaskInfo getTaskInfoFromFile(final BufferedReader br) {
+    private static TraceTaskInfo getTaskInfoFromFile(final BufferedReader br) {
         return br.lines()
                 .skip(TraceFileWorkloadGenerator.HEADER_LINE_COUNT)
                 .findFirst()
-                .map(TaskInfo::new)
+                .map(TraceTaskInfo::new)
                 .orElseThrow();
     }
 
