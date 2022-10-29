@@ -1,14 +1,19 @@
 package ispd.motor.carga.workload;
 
+import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Class to host utility methods for {@link WorkloadGenerator}s that create
  * their own tasks. In particular, {@link #makeTaskFor(CS_Processamento)} is
  * a "template" that most generators will follow when creating a task.
  */
-public abstract class AbstractWorkloadGenerator implements WorkloadGenerator {
+public abstract class TaskBuilder {
     /**
      * Create a {@link Tarefa} originating at the given
      * {@link CS_Processamento} instance.
@@ -35,6 +40,16 @@ public abstract class AbstractWorkloadGenerator implements WorkloadGenerator {
      * @return an integral value representing a task id.
      */
     protected abstract int makeTaskId();
+
+    protected List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn, final int taskCount) {
+        final var masters = qn.getMestres();
+
+        return IntStream.range(0, taskCount)
+                .map(i -> i % masters.size())
+                .mapToObj(masters::get)
+                .map(this::makeTaskFor)
+                .collect(Collectors.toList());
+    }
 
     /**
      * Select a suitable user for a new task. Such generation may involve the

@@ -1,13 +1,11 @@
 package ispd.motor.carga.workload;
 
-import ispd.motor.random.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
+import ispd.motor.random.TwoStageUniform;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Represents a load generated randomly, from a collection of intervals.
@@ -34,25 +32,15 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
 
     public GlobalWorkloadGenerator(
             final int taskCount, final int taskCreationTime,
-            final TwoStageUniform computation, final TwoStageUniform communication) {
+            final TwoStageUniform computation,
+            final TwoStageUniform communication) {
         super(taskCount, computation, communication);
         this.taskCreationTime = taskCreationTime;
     }
 
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
-        return this.makeTasksEvenlyDistributedBetweenMasters(qn
-        );
-    }
-
-    private List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn) {
-        final var masters = qn.getMestres();
-
-        return IntStream.range(0, this.taskCount)
-                .map(i -> i % masters.size())
-                .mapToObj(masters::get)
-                .map(this::makeTaskFor)
-                .collect(Collectors.toList());
+        return this.makeTasksEvenlyDistributedBetweenMasters(qn, this.taskCount);
     }
 
     @Override
@@ -64,9 +52,11 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
     public String toString() {
         return String.format("%f %f %f %f\n%f %f %f %f\n%d %d %d",
                 this.computation.minimum(), this.computation.intervalSplit(),
-                this.computation.maximum(), this.computation.firstIntervalProbability(),
+                this.computation.maximum(),
+                this.computation.firstIntervalProbability(),
                 this.communication.minimum(), this.communication.maximum(),
-                this.communication.intervalSplit(), this.communication.firstIntervalProbability(),
+                this.communication.intervalSplit(),
+                this.communication.firstIntervalProbability(),
                 0, this.taskCreationTime, this.taskCount);
     }
 

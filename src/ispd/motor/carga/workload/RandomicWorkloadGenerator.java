@@ -3,7 +3,7 @@ package ispd.motor.carga.workload;
 import ispd.motor.random.TwoStageUniform;
 import ispd.motor.random.Distribution;
 
-public abstract class RandomicWorkloadGenerator extends AbstractWorkloadGenerator {
+public abstract class RandomicWorkloadGenerator extends TaskBuilder implements WorkloadGenerator {
     protected final int taskCount;
     protected final TwoStageUniform computation;
     protected final TwoStageUniform communication;
