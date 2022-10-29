@@ -1,10 +1,9 @@
 package ispd.motor.carga.workload;
 
 import ispd.escalonador.Escalonador;
-import ispd.motor.carga.task.TaskBuilder;
 import ispd.motor.carga.task.TaskInfo;
-import ispd.motor.carga.task.TwoStageUniform;
 import ispd.motor.carga.task.TraceTaskBuilder;
+import ispd.motor.carga.task.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -91,7 +90,7 @@ class TraceLoadHelper {
         }
     }
 
-    private TaskBuilder makeTaskBuilderForType(final TaskInfo info) {
+    private TraceTaskBuilder makeTaskBuilderForType(final TaskInfo info) {
         if (this.isExternalTraceModel()) {
             return new ExternalModelTaskBuilder(info);
         }
