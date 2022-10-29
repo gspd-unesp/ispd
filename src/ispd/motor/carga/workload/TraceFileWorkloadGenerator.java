@@ -1,8 +1,10 @@
 package ispd.motor.carga.workload;
 
+import ispd.escalonador.Escalonador;
 import ispd.motor.carga.task.TraceTaskInfo;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
+import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,9 +12,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 public class TraceFileWorkloadGenerator implements WorkloadGenerator {
@@ -32,19 +37,32 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
         final var helper = new TraceLoadHelper(
                 qn, this.traceType, this.taskCount);
-        
-//        final var helper2 = new TraceLoadHelper2()
 
-        return this.getTaskInfoFromFile()
-                .findFirst() // FIXME: Gotta process ALL trace tasks
+        final var tasks =
+                this.getTraceTasksFromFile().collect(Collectors.toList());
+
+
+        final var helper2 = new TraceLoadHelper2(tasks);
+
+        final var task = this.getTraceTasksFromFile()
+                .findFirst();
+
+        if (task.isPresent()) {
+            TraceFileWorkloadGenerator.updateQueueNetwork(
+                    task.get().user(), qn, new ArrayList<>());
+        }
+
+        return task // FIXME: Gotta process ALL trace tasks
                 .map(helper::processTaskInfo)
                 .orElse(null);
     }
 
-    private Stream<TraceTaskInfo> getTaskInfoFromFile() {
+    private Stream<TraceTaskInfo> getTraceTasksFromFile() {
         try (final var br = new BufferedReader(
                 new FileReader(this.traceFile, StandardCharsets.UTF_8))) {
-            return TraceFileWorkloadGenerator.getTaskInfoFromFile(br);
+            return br.lines()
+                    .skip(TraceFileWorkloadGenerator.HEADER_LINE_COUNT)
+                    .map(TraceTaskInfo::new);
         } catch (final IOException | UncheckedIOException ex) {
             Logger.getLogger(TraceFileWorkloadGenerator.class.getName())
                     .log(Level.SEVERE, null, ex);
@@ -52,10 +70,34 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
         }
     }
 
-    private static Stream<TraceTaskInfo> getTaskInfoFromFile(final BufferedReader br) {
-        return br.lines()
-                .skip(TraceFileWorkloadGenerator.HEADER_LINE_COUNT)
-                .map(TraceTaskInfo::new);
+    static void updateQueueNetwork(
+            final String user, final RedeDeFilas qn, final List<String> users) {
+        if (!(qn.getUsuarios().contains(user) || users.contains(user))) {
+            users.add(user);
+        }
+
+        qn.getMestres().stream()
+                .map(CS_Mestre.class::cast)
+                .map(CS_Mestre::getEscalonador)
+                .map(Escalonador::getMetricaUsuarios)
+                .forEach(metrics -> {
+                    final int count = users.size();
+
+                    metrics.addAllUsuarios(
+                            users,
+                            TraceFileWorkloadGenerator.filledList(0, count),
+                            TraceFileWorkloadGenerator.filledList(100, count)
+                    );
+                });
+
+        qn.getUsuarios().addAll(users);
+    }
+
+    private static List<Double> filledList(final double fill, final int count) {
+        return DoubleStream.generate(() -> fill)
+                .limit(count)
+                .boxed()
+                .toList();
     }
 
     @Override
@@ -78,5 +120,10 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
 
     public int getNumberTasks() {
         return this.taskCount;
+    }
+
+    private class TraceLoadHelper2 {
+        public TraceLoadHelper2(final List<TraceTaskInfo> tasks) {
+        }
     }
 }
