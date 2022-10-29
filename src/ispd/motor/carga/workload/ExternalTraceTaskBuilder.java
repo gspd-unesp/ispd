@@ -2,6 +2,7 @@ package ispd.motor.carga.workload;
 
 import ispd.motor.carga.task.TraceTaskBuilder;
 import ispd.motor.carga.task.TraceTaskInfo;
+import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.random.Distribution;
@@ -16,21 +17,16 @@ public class ExternalTraceTaskBuilder extends TraceTaskBuilder {
     private final double averageComputationPower;
 
     public ExternalTraceTaskBuilder(
-            final List<TraceTaskInfo> traceTasks,
-            final double avgComputationPower) {
-        this(
-                traceTasks, avgComputationPower,
-                new Distribution(System.currentTimeMillis())
-        );
+            final List<TraceTaskInfo> traceTasks, final RedeDeFilas qn) {
+        this(traceTasks, qn, new Distribution(System.currentTimeMillis()));
     }
 
     private ExternalTraceTaskBuilder(
             final List<TraceTaskInfo> traceTasks,
-            final double avgComputationPower,
-            final Distribution random) {
+            final RedeDeFilas qn, final Distribution random) {
         super(traceTasks);
         this.random = random;
-        this.averageComputationPower = avgComputationPower;
+        this.averageComputationPower = qn.averageComputationalPower();
     }
 
     @Override

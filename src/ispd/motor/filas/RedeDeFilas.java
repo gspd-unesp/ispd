@@ -134,6 +134,13 @@ public class RedeDeFilas {
         this.limiteConsumo = powerLimitMap;
     }
 
+    public double averageComputationalPower() {
+        return this.maquinas.stream()
+                .mapToDouble(CS_Processamento::getPoderComputacional)
+                .average()
+                .orElse(0.0);
+    }
+
     public List<CS_Internet> getInternets() {
         return internets;
     }

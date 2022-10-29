@@ -5,7 +5,6 @@ import ispd.motor.carga.task.TraceTaskBuilder;
 import ispd.motor.carga.task.TraceTaskInfo;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 
 import java.io.BufferedReader;
@@ -14,8 +13,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -57,7 +56,7 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
         } catch (final IOException | UncheckedIOException ex) {
             Logger.getLogger(TraceFileWorkloadGenerator.class.getName())
                     .log(Level.SEVERE, null, ex);
-            return new ArrayList();
+            return Collections.emptyList();
         }
     }
 
@@ -76,8 +75,7 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
             final List<TraceTaskInfo> tasks, final RedeDeFilas qn) {
         return switch (this.traceType) {
             case "iSPD" -> new TraceTaskBuilder(tasks);
-            case "SWF", "GWF" -> new ExternalTraceTaskBuilder(tasks,
-                    TraceFileWorkloadGenerator.averageComputationalPower(qn));
+            case "SWF", "GWF" -> new ExternalTraceTaskBuilder(tasks, qn);
             default -> throw new IllegalArgumentException(
                     "Unrecognized trace type '%s'".formatted(this.traceType));
         };
@@ -87,13 +85,6 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
             final RedeDeFilas qn, final List<String> users) {
         TraceFileWorkloadGenerator.updateSchedulerUserMetrics(qn, users);
         qn.getUsuarios().addAll(users);
-    }
-
-    private static double averageComputationalPower(final RedeDeFilas qn) {
-        return qn.getMaquinas().stream()
-                .mapToDouble(CS_Processamento::getPoderComputacional)
-                .average()
-                .orElse(0.0);
     }
 
     private static void updateSchedulerUserMetrics(
