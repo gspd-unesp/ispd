@@ -2,13 +2,13 @@ package ispd.arquivo.xml.models.builders;
 
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
+import ispd.motor.carga.task.TwoStageUniform;
 import ispd.motor.carga.workload.CollectionWorkloadGenerator;
 import ispd.motor.carga.workload.PerNodeWorkloadGenerator;
 import ispd.motor.carga.workload.GlobalWorkloadGenerator;
 import ispd.motor.carga.workload.TraceFileWorkloadGenerator;
 import ispd.motor.carga.workload.WorkloadGenerator;
 import ispd.motor.carga.workload.WorkloadGeneratorType;
-import ispd.motor.carga.task.TaskSize;
 
 import java.io.File;
 import java.util.Optional;
@@ -95,15 +95,15 @@ public class LoadBuilder {
         return null;
     }
 
-    private static TaskSize getTaskSizeFromElement(
+    private static TwoStageUniform getTaskSizeFromElement(
             final WrappedElement element,
             final Predicate<? super WrappedElement> predicate,
-            final Function<? super WrappedElement, TaskSize> builder) {
+            final Function<? super WrappedElement, TwoStageUniform> builder) {
         return element.sizes()
                 .filter(predicate)
                 .findFirst()
                 .map(builder)
-                .orElseGet(TaskSize::new);
+                .orElseGet(TwoStageUniform::new);
     }
 
     private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e) {

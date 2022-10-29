@@ -1,19 +1,19 @@
 package ispd.motor.carga.workload;
 
-import ispd.motor.carga.task.TaskSize;
+import ispd.motor.carga.task.TwoStageUniform;
 import ispd.motor.random.Distribution;
 
 public abstract class RandomicWorkloadGenerator extends AbstractWorkloadGenerator {
     protected final int taskCount;
-    protected final TaskSize computation;
-    protected final TaskSize communication;
+    protected final TwoStageUniform computation;
+    protected final TwoStageUniform communication;
     protected final Distribution random;
 
     private int nextAvailableId = 0;
 
     protected RandomicWorkloadGenerator(
             final int taskCount,
-            final TaskSize computation, final TaskSize communication) {
+            final TwoStageUniform computation, final TwoStageUniform communication) {
         this.computation = computation;
         this.communication = communication;
         this.taskCount = taskCount;
@@ -29,28 +29,28 @@ public abstract class RandomicWorkloadGenerator extends AbstractWorkloadGenerato
 
     @Override
     protected double makeTaskCommunicationSize() {
-        return this.communication.rollTwoStageUniform(this.random);
+        return this.communication.generateValue(this.random);
     }
 
     @Override
     protected double makeTaskComputationSize() {
-        return this.computation.rollTwoStageUniform(this.random);
+        return this.computation.generateValue(this.random);
     }
 
     public double getAverageComputacao() {
-        return this.computation.average();
+        return this.computation.intervalSplit();
     }
 
     public double getAverageComunicacao() {
-        return this.communication.average();
+        return this.communication.intervalSplit();
     }
 
     public double getProbabilityComputacao() {
-        return this.computation.probability();
+        return this.computation.firstIntervalProbability();
     }
 
     public double getProbabilityComunicacao() {
-        return this.communication.probability();
+        return this.communication.firstIntervalProbability();
     }
 
     public double getMaxComputacao() {

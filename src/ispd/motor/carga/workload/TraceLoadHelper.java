@@ -3,7 +3,7 @@ package ispd.motor.carga.workload;
 import ispd.escalonador.Escalonador;
 import ispd.motor.carga.task.TaskBuilder;
 import ispd.motor.carga.task.TaskInfo;
-import ispd.motor.carga.task.TaskSize;
+import ispd.motor.carga.task.TwoStageUniform;
 import ispd.motor.carga.task.TraceTaskBuilder;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
@@ -136,8 +136,8 @@ class TraceLoadHelper {
     }
 
     private class ExternalModelTaskBuilder extends TraceTaskBuilder {
-        private static final TaskSize SENT_FILE_SIZE = new TaskSize(
-                200, 25000, 5000, 0.5);
+        private static final TwoStageUniform SENT_FILE_SIZE = new TwoStageUniform(
+                200, 5000, 25000, 0.5);
         private final Distribution random;
 
         public ExternalModelTaskBuilder(final TaskInfo taskInfo) {
@@ -164,7 +164,7 @@ class TraceLoadHelper {
 
         @Override
         protected double calculateSentFileSize() {
-            return ExternalModelTaskBuilder.SENT_FILE_SIZE.rollTwoStageUniform(this.random);
+            return ExternalModelTaskBuilder.SENT_FILE_SIZE.generateValue(this.random);
         }
 
         @Override

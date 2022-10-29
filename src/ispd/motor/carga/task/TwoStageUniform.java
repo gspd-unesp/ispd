@@ -4,36 +4,38 @@ import ispd.motor.random.Distribution;
 
 /**
  * Utility class to contain information about computing or communication sizes.
- * They are expressed as an inclusive range, with an average and probability
+ * They are expressed as an inclusive range, with an intervalSplit and
+ * firstIntervalProbability
  * (parameters for a two-stage uniform distribution).
  */
-public record TaskSize(
-        double minimum,
-        double maximum,
-        double average,
-        double probability) {
+public record TwoStageUniform(
+        double minimum, double intervalSplit, double maximum,
+        double firstIntervalProbability) {
     private static final double EVEN_PROBABILITY = 0.5;
 
     /**
      * Construct an instance with all values set to 0.
      */
-    public TaskSize() {
+    public TwoStageUniform() {
         this(0, 0, 0, 0);
     }
 
     /**
      * Construct an instance with given {@code minimum} and {@code maximum}
-     * values, and with average and probability to represent a <b>uniform
+     * values, and with intervalSplit and firstIntervalProbability to
+     * represent a
+     * <b>uniform
      * distribution</b>.
      *
      * @param minimum distribution minimum
      * @param maximum distribution maximum
      */
-    public TaskSize(final double minimum, final double maximum) {
+    public TwoStageUniform(final double minimum, final double maximum) {
         this(
-                minimum, maximum,
-                TaskSize.averageOf(minimum, maximum),
-                TaskSize.EVEN_PROBABILITY
+                minimum,
+                TwoStageUniform.averageOf(minimum, maximum),
+                maximum,
+                TwoStageUniform.EVEN_PROBABILITY
         );
     }
 
@@ -42,19 +44,22 @@ public record TaskSize(
     }
 
     /**
-     * Make a 'normalized' instance from this one. Average and probability
+     * Make a 'normalized' instance from this one. {@link #intervalSplit} and
+     * {@link #firstIntervalProbability}
      * information are copied from the called-from instance (which is left
      * unchanged), but the minimum and maximum values are normalized. See
      * {@link #normalizeValue(double, double)}.
      *
      * @return normalized instance
      */
-    public TaskSize rangeNormalized() {
-        return new TaskSize(
-                TaskSize.normalizeValue(this.average(), this.minimum()),
-                TaskSize.normalizeValue(this.average(), this.minimum()),
-                this.average(),
-                this.probability()
+    public TwoStageUniform rangeNormalized() {
+        return new TwoStageUniform(
+                TwoStageUniform.normalizeValue(this.intervalSplit(),
+                        this.minimum()),
+                this.intervalSplit(),
+                TwoStageUniform.normalizeValue(this.intervalSplit(),
+                        this.minimum()),
+                this.firstIntervalProbability()
         );
     }
 
@@ -66,8 +71,8 @@ public record TaskSize(
      * @param boundary boundary for normalization
      * @return normalized value, within [0, 1]
      */
-    private static double normalizeValue(final double value,
-                                         final double boundary) {
+    private static double normalizeValue(
+            final double value, final double boundary) {
         final var d = Math.abs(value - boundary) / value;
         return Math.min(1.0, d);
     }
@@ -81,10 +86,12 @@ public record TaskSize(
      * {@link #maximum()}, with probability following a two-stage uniform
      * distribution.
      */
-    public double rollTwoStageUniform(final Distribution random) {
+    public double generateValue(final Distribution random) {
         return random.twoStageUniform(
-                this.minimum, this.average,
-                this.maximum, this.probability
+                this.minimum,
+                this.intervalSplit,
+                this.maximum,
+                this.firstIntervalProbability
         );
     }
 
@@ -97,8 +104,11 @@ public record TaskSize(
      */
     @Override
     public String toString() {
-        return "TaskSize(min=%f, max=%f, avg=%f, prob=%f)".formatted(
-                this.minimum, this.maximum, this.average, this.probability
+        return "TwoStageUniform(min=%f, med=%f, max=%f, prob=%f)".formatted(
+                this.minimum,
+                this.intervalSplit,
+                this.maximum,
+                this.firstIntervalProbability
         );
     }
 }

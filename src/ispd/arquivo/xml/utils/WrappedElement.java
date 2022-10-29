@@ -1,6 +1,6 @@
 package ispd.arquivo.xml.utils;
 
-import ispd.motor.carga.task.TaskSize;
+import ispd.motor.carga.task.TwoStageUniform;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -15,42 +15,45 @@ public class WrappedElement {
     private final Element element;
 
     /**
-     * Construct a {@link TaskSize} from this instance, with the values
+     * Construct a {@link TwoStageUniform} from this instance, with the values
      * acquired from {@link #minimum()}, {@link #maximum()} and
      * {@link #average()}.
      *
-     * @return {@link TaskSize} with a minimum, maximum, and average values
+     * @return {@link TwoStageUniform} with a minimum, maximum, and average values
      * as the respective tags in this instance, and {@code 0} for  probability.
      */
-    public TaskSize toTaskSizeNoProbability() {
-        return new TaskSize(this.minimum(), this.maximum(), this.average(), 0);
+    public TwoStageUniform toTaskSizeNoProbability() {
+        return new TwoStageUniform(this.minimum(), this.average(), this.maximum(), 0);
     }
 
     /**
-     * Construct a {@link TaskSize} from this instance, with the values
+     * Construct a {@link TwoStageUniform} from this instance, with the values
      * acquired from {@link #minimum()} and {@link #maximum()}.
      *
-     * @return {@link TaskSize} with a minimum and maximum values as the
+     * @return {@link TwoStageUniform} with a minimum and maximum values as the
      * respective tags in this instance, and default values for the fields
-     * {@link TaskSize#average()} and {@link TaskSize#probability()}.
-     * @see TaskSize#TaskSize(double, double)
+     * {@link TwoStageUniform#intervalSplit()} and
+     * {@link TwoStageUniform#firstIntervalProbability()}.
+     * @see TwoStageUniform#TwoStageUniform(double, double)
      */
-    public TaskSize toTaskSizeRange() {
-        return new TaskSize(this.minimum(), this.maximum());
+    public TwoStageUniform toTaskSizeRange() {
+        return new TwoStageUniform(this.minimum(), this.maximum());
     }
 
     /**
-     * Construct a {@link TaskSize} from this instance, with the values
+     * Construct a {@link TwoStageUniform} from this instance, with the values
      * acquired from {@link #minimum()}, {@link #maximum()},
      * {@link #average()} and {@link #probability()}.
      *
-     * @return {@link TaskSize} with a minimum, maximum, average and
+     * @return {@link TwoStageUniform} with a minimum, maximum, average and
      * probability values as the respective tags in this instance.
      */
-    public TaskSize toTaskSize() {
-        return new TaskSize(
-                this.minimum(), this.maximum(),
-                this.average(), this.probability()
+    public TwoStageUniform toTaskSize() {
+        return new TwoStageUniform(
+                this.minimum(),
+                this.average(),
+                this.maximum(),
+                this.probability()
         );
     }
 

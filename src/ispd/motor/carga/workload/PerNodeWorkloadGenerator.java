@@ -1,6 +1,6 @@
 package ispd.motor.carga.workload;
 
-import ispd.motor.carga.task.TaskSize;
+import ispd.motor.carga.task.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -40,8 +40,8 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
             final double maxComputation, final double minComputation,
             final double maxCommunication, final double minCommunication) {
         this(application, owner, schedulerId, taskCount,
-                new TaskSize(minComputation, maxComputation),
-                new TaskSize(minCommunication, maxCommunication)
+                new TwoStageUniform(minComputation, maxComputation),
+                new TwoStageUniform(minCommunication, maxCommunication)
         );
     }
 
@@ -53,13 +53,13 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
      * @param schedulerId   id of the machine responsible for scheduling
      *                      this workload's tasks
      * @param taskCount     total number of tasks
-     * @param computation   {@link TaskSize} about the computation size
-     * @param communication {@link TaskSize} about the communication size
+     * @param computation   {@link TwoStageUniform} about the computation size
+     * @param communication {@link TwoStageUniform} about the communication size
      */
     public PerNodeWorkloadGenerator(
             final String application, final String owner,
             final String schedulerId, final int taskCount,
-            final TaskSize computation, final TaskSize communication) {
+            final TwoStageUniform computation, final TwoStageUniform communication) {
         super(taskCount, computation, communication);
         this.application = application;
         this.owner = owner;

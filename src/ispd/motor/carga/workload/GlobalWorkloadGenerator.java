@@ -1,6 +1,6 @@
 package ispd.motor.carga.workload;
 
-import ispd.motor.carga.task.TaskSize;
+import ispd.motor.carga.task.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -23,18 +23,18 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
             final int commAverage, final double commProbability,
             final int taskCreationTime) {
         this(taskCount, taskCreationTime,
-                new TaskSize(
-                        compMinimum, compMaximum,
-                        compAverage, compProbability),
-                new TaskSize(
-                        commMinimum, commMaximum,
-                        commAverage, commProbability)
+                new TwoStageUniform(
+                        compMinimum, compAverage, compMaximum,
+                        compProbability),
+                new TwoStageUniform(
+                        commMinimum, commAverage, commMaximum,
+                        commProbability)
         );
     }
 
     public GlobalWorkloadGenerator(
             final int taskCount, final int taskCreationTime,
-            final TaskSize computation, final TaskSize communication) {
+            final TwoStageUniform computation, final TwoStageUniform communication) {
         super(taskCount, computation, communication);
         this.taskCreationTime = taskCreationTime;
     }
@@ -63,10 +63,10 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
     @Override
     public String toString() {
         return String.format("%f %f %f %f\n%f %f %f %f\n%d %d %d",
-                this.computation.minimum(), this.computation.average(),
-                this.computation.maximum(), this.computation.probability(),
+                this.computation.minimum(), this.computation.intervalSplit(),
+                this.computation.maximum(), this.computation.firstIntervalProbability(),
                 this.communication.minimum(), this.communication.maximum(),
-                this.communication.average(), this.communication.probability(),
+                this.communication.intervalSplit(), this.communication.firstIntervalProbability(),
                 0, this.taskCreationTime, this.taskCount);
     }
 

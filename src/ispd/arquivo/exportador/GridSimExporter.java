@@ -1,6 +1,6 @@
 package ispd.arquivo.exportador;
 
-import ispd.motor.carga.task.TaskSize;
+import ispd.motor.carga.task.TwoStageUniform;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
 import org.w3c.dom.Document;
@@ -346,15 +346,15 @@ import java.util.stream.LongStream;
                 .filter(WrappedElement::isComputingType)
                 .findFirst()
                 .map(WrappedElement::toTaskSizeNoProbability)
-                .map(TaskSize::rangeNormalized)
-                .orElseGet(TaskSize::new);
+                .map(TwoStageUniform::rangeNormalized)
+                .orElseGet(TwoStageUniform::new);
 
         final var communication = e.sizes()
                 .filter(WrappedElement::isCommunicationType)
                 .findFirst()
                 .map(WrappedElement::toTaskSizeNoProbability)
-                .map(TaskSize::rangeNormalized)
-                .orElseGet(TaskSize::new);
+                .map(TwoStageUniform::rangeNormalized)
+                .orElseGet(TwoStageUniform::new);
 
         final var msg = MessageFormat.format("""
                                 length = GridSimRandom.real({0},{1},{2},random.nextDouble());
@@ -364,10 +364,10 @@ import java.util.stream.LongStream;
 
                                 gridlet{6}.setUserID(0);
                         """,
-                computation.average(),
+                computation.intervalSplit(),
                 computation.minimum(),
                 computation.maximum(),
-                communication.average(),
+                communication.intervalSplit(),
                 communication.minimum(),
                 communication.maximum(),
                 i
