@@ -53,15 +53,12 @@ class TraceLoadHelper {
     }
 
     private TraceTaskBuilder makeTaskBuilderForType(final TaskInfo info) {
-        if (this.isExternalTraceModel()) {
-            return new ExternalModelTaskBuilder(info);
-        }
-
-        if ("iSPD".equals(this.traceType)) {
-            return new TraceTaskBuilder(info);
-        }
-
-        throw new RuntimeException();
+        return switch (this.traceType) {
+            case "iSPD" -> new TraceTaskBuilder(info);
+            case "SWF", "GWF" -> new ExternalTraceTaskBuilder(info);
+            default -> throw new IllegalArgumentException(
+                    "Unrecognized trace type '%s'".formatted(this.traceType));
+        };
     }
 
     private void updateSchedulerUserMetrics(final MetricasUsuarios metrics) {
@@ -82,13 +79,6 @@ class TraceLoadHelper {
         this.users.add(userId);
     }
 
-    private boolean isExternalTraceModel() {
-        return switch (this.traceType) {
-            case "SWF", "GWF" -> true;
-            default -> false;
-        };
-    }
-
     private static List<Double> filledList(final double fill, final int count) {
         return DoubleStream.generate(() -> fill)
                 .limit(count)
@@ -103,16 +93,16 @@ class TraceLoadHelper {
                 .orElse(0.0);
     }
 
-    private class ExternalModelTaskBuilder extends TraceTaskBuilder {
+    private class ExternalTraceTaskBuilder extends TraceTaskBuilder {
         private static final TwoStageUniform SENT_FILE_SIZE =
                 new TwoStageUniform(200, 5000, 25000, 0.5);
         private final Distribution random;
 
-        public ExternalModelTaskBuilder(final TaskInfo taskInfo) {
+        public ExternalTraceTaskBuilder(final TaskInfo taskInfo) {
             this(taskInfo, new Distribution(System.currentTimeMillis()));
         }
 
-        private ExternalModelTaskBuilder(
+        private ExternalTraceTaskBuilder(
                 final TaskInfo taskInfo, final Distribution random) {
             super(taskInfo);
             this.random = random;
@@ -132,7 +122,7 @@ class TraceLoadHelper {
 
         @Override
         protected double calculateSentFileSize() {
-            return ExternalModelTaskBuilder.SENT_FILE_SIZE.generateValue(this.random);
+            return ExternalTraceTaskBuilder.SENT_FILE_SIZE.generateValue(this.random);
         }
 
         @Override
