@@ -7,8 +7,8 @@ import ispd.motor.carga.impl.CollectionWorkloadGenerator;
 import ispd.motor.carga.impl.PerNodeWorkloadGenerator;
 import ispd.motor.carga.impl.GlobalWorkloadGenerator;
 import ispd.motor.carga.impl.TraceFileWorkloadGenerator;
-import ispd.motor.carga.impl.WorkloadGenerator;
-import ispd.motor.carga.impl.WorkloadGeneratorType;
+import ispd.motor.carga.WorkloadGenerator;
+import ispd.motor.carga.WorkloadGeneratorType;
 
 import java.io.File;
 import java.util.Optional;

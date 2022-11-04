@@ -1,5 +1,6 @@
 package ispd.motor.carga.impl;
 
+import ispd.motor.carga.WorkloadGeneratorType;
 import ispd.motor.random.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;

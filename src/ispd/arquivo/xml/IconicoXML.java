@@ -14,7 +14,7 @@ import ispd.gui.iconico.grade.VirtualMachine;
 import ispd.motor.carga.impl.CollectionWorkloadGenerator;
 import ispd.motor.carga.impl.TraceFileWorkloadGenerator;
 import ispd.motor.carga.impl.GlobalWorkloadGenerator;
-import ispd.motor.carga.impl.WorkloadGenerator;
+import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import org.w3c.dom.Document;
