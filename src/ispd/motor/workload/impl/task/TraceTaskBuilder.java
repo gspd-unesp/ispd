@@ -1,4 +1,4 @@
-package ispd.motor.workload.task;
+package ispd.motor.workload.impl.task;
 
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;

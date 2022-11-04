@@ -3,7 +3,7 @@ package ispd.motor.workload.impl;
 import ispd.motor.random.Distribution;
 import ispd.motor.random.TwoStageUniform;
 import ispd.motor.workload.WorkloadGenerator;
-import ispd.motor.workload.task.TaskBuilder;
+import ispd.motor.workload.impl.task.TaskBuilder;
 import ispd.utils.SequentialIntegerSupplier;
 
 import java.util.function.Supplier;

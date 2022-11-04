@@ -1,4 +1,4 @@
-package ispd.motor.workload.task;
+package ispd.motor.workload.impl.task;
 
 public class TraceTaskInfo {
     private final String[] fields;
