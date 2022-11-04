@@ -7,7 +7,9 @@ package ispd.motor.random;
  * (parameters for a two-stage uniform distribution).
  */
 public record TwoStageUniform(
-        double minimum, double intervalSplit, double maximum,
+        double minimum,
+        double intervalSplit,
+        double maximum,
         double firstIntervalProbability) {
     private static final double EVEN_PROBABILITY = 0.5;
 
@@ -31,14 +33,10 @@ public record TwoStageUniform(
     public TwoStageUniform(final double minimum, final double maximum) {
         this(
                 minimum,
-                TwoStageUniform.averageOf(minimum, maximum),
+                (minimum + maximum) / 2,
                 maximum,
                 TwoStageUniform.EVEN_PROBABILITY
         );
-    }
-
-    private static double averageOf(final double a, final double b) {
-        return (a + b) / 2;
     }
 
     /**
@@ -52,11 +50,15 @@ public record TwoStageUniform(
      */
     public TwoStageUniform rangeNormalized() {
         return new TwoStageUniform(
-                TwoStageUniform.normalizeValue(this.intervalSplit(),
-                        this.minimum()),
+                TwoStageUniform.normalizeValue(
+                        this.intervalSplit(),
+                        this.minimum()
+                ),
                 this.intervalSplit(),
-                TwoStageUniform.normalizeValue(this.intervalSplit(),
-                        this.minimum()),
+                TwoStageUniform.normalizeValue(
+                        this.intervalSplit(),
+                        this.minimum()
+                ),
                 this.firstIntervalProbability()
         );
     }
