@@ -62,13 +62,13 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
 
     private static void updateQueueNetworkWithTasks(
             final RedeDeFilas qn, final Collection<TraceTaskInfo> tasks) {
-        TraceFileWorkloadGenerator.updateQueueNetworkWithUsers(qn,
-                tasks.stream()
-                        .map(TraceTaskInfo::user)
-                        .distinct()
-                        .filter(Predicate.not(qn.getUsuarios()::contains))
-                        .toList()
-        );
+        final var userIds = tasks.stream()
+                .map(TraceTaskInfo::user)
+                .distinct()
+                .filter(Predicate.not(qn.getUsuarios()::contains))
+                .toList();
+
+        TraceFileWorkloadGenerator.updateQueueNetworkWithUsers(qn, userIds);
     }
 
     private TraceTaskBuilder makeTaskBuilder(
