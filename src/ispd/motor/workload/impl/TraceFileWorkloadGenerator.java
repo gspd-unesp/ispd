@@ -1,11 +1,11 @@
-package ispd.motor.carga.impl;
+package ispd.motor.workload.impl;
 
 import ispd.escalonador.Escalonador;
-import ispd.motor.carga.WorkloadGenerator;
-import ispd.motor.carga.WorkloadGeneratorType;
-import ispd.motor.carga.task.ExternalTraceTaskBuilder;
-import ispd.motor.carga.task.TraceTaskBuilder;
-import ispd.motor.carga.task.TraceTaskInfo;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.WorkloadGeneratorType;
+import ispd.motor.workload.task.ExternalTraceTaskBuilder;
+import ispd.motor.workload.task.TraceTaskBuilder;
+import ispd.motor.workload.task.TraceTaskInfo;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;

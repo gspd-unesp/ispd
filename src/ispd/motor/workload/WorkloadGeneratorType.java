@@ -1,4 +1,4 @@
-package ispd.motor.carga;
+package ispd.motor.workload;
 
 /**
  * Enumeration of all possible types of {@link WorkloadGenerator}s.

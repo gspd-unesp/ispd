@@ -1,7 +1,7 @@
-package ispd.motor.carga.impl;
+package ispd.motor.workload.impl;
 
-import ispd.motor.carga.WorkloadGenerator;
-import ispd.motor.carga.WorkloadGeneratorType;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.WorkloadGeneratorType;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 

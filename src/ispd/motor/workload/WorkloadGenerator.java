@@ -1,4 +1,4 @@
-package ispd.motor.carga;
+package ispd.motor.workload;
 
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;

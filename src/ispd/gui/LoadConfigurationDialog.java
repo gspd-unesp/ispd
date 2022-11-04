@@ -2,12 +2,12 @@ package ispd.gui;
 
 import ispd.arquivo.xml.TraceXML;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
-import ispd.motor.carga.impl.CollectionWorkloadGenerator;
-import ispd.motor.carga.impl.PerNodeWorkloadGenerator;
-import ispd.motor.carga.impl.GlobalWorkloadGenerator;
-import ispd.motor.carga.impl.TraceFileWorkloadGenerator;
-import ispd.motor.carga.WorkloadGenerator;
-import ispd.motor.carga.WorkloadGeneratorType;
+import ispd.motor.workload.impl.CollectionWorkloadGenerator;
+import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
+import ispd.motor.workload.impl.GlobalWorkloadGenerator;
+import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.WorkloadGeneratorType;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;

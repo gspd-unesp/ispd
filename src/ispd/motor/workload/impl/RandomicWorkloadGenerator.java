@@ -1,7 +1,7 @@
-package ispd.motor.carga.impl;
+package ispd.motor.workload.impl;
 
-import ispd.motor.carga.WorkloadGenerator;
-import ispd.motor.carga.task.TaskBuilder;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.task.TaskBuilder;
 import ispd.motor.random.Distribution;
 import ispd.motor.random.TwoStageUniform;
 
