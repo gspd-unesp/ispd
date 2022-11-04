@@ -2,10 +2,11 @@ package ispd.motor.carga.impl;
 
 import ispd.motor.carga.WorkloadGenerator;
 import ispd.motor.carga.task.TaskBuilder;
-import ispd.motor.random.TwoStageUniform;
 import ispd.motor.random.Distribution;
+import ispd.motor.random.TwoStageUniform;
 
-public abstract class RandomicWorkloadGenerator extends TaskBuilder implements WorkloadGenerator {
+/* package-private */
+abstract class RandomicWorkloadGenerator extends TaskBuilder implements WorkloadGenerator {
     protected final int taskCount;
     protected final TwoStageUniform computation;
     protected final TwoStageUniform communication;
@@ -15,7 +16,8 @@ public abstract class RandomicWorkloadGenerator extends TaskBuilder implements W
 
     protected RandomicWorkloadGenerator(
             final int taskCount,
-            final TwoStageUniform computation, final TwoStageUniform communication) {
+            final TwoStageUniform computation,
+            final TwoStageUniform communication) {
         this.computation = computation;
         this.communication = communication;
         this.taskCount = taskCount;
