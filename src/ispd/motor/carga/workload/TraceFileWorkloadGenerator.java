@@ -1,6 +1,7 @@
 package ispd.motor.carga.workload;
 
 import ispd.escalonador.Escalonador;
+import ispd.motor.carga.task.ExternalTraceTaskBuilder;
 import ispd.motor.carga.task.TraceTaskBuilder;
 import ispd.motor.carga.task.TraceTaskInfo;
 import ispd.motor.filas.RedeDeFilas;

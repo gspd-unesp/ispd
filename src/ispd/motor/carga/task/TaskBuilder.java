@@ -1,5 +1,6 @@
-package ispd.motor.carga.workload;
+package ispd.motor.carga.task;
 
+import ispd.motor.carga.workload.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -41,7 +42,7 @@ public abstract class TaskBuilder {
      */
     protected abstract int makeTaskId();
 
-    protected List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn, final int taskCount) {
+    public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn, final int taskCount) {
         final var masters = qn.getMestres();
 
         return IntStream.range(0, taskCount)

@@ -1,7 +1,5 @@
-package ispd.motor.carga.workload;
+package ispd.motor.carga.task;
 
-import ispd.motor.carga.task.TraceTaskBuilder;
-import ispd.motor.carga.task.TraceTaskInfo;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;

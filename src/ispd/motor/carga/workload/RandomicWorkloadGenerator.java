@@ -1,5 +1,6 @@
 package ispd.motor.carga.workload;
 
+import ispd.motor.carga.task.TaskBuilder;
 import ispd.motor.random.TwoStageUniform;
 import ispd.motor.random.Distribution;
 
