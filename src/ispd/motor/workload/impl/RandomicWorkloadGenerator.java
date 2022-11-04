@@ -4,6 +4,9 @@ import ispd.motor.random.Distribution;
 import ispd.motor.random.TwoStageUniform;
 import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.task.TaskBuilder;
+import ispd.utils.SequentialIntegerSupplier;
+
+import java.util.function.Supplier;
 
 /* package-private */
 abstract class RandomicWorkloadGenerator extends TaskBuilder implements WorkloadGenerator {
@@ -12,23 +15,33 @@ abstract class RandomicWorkloadGenerator extends TaskBuilder implements Workload
     protected final TwoStageUniform communication;
     protected final Distribution random;
 
-    private int nextAvailableId = 0;
+    private final Supplier<Integer> idSupplier;
 
     /* package-private */ RandomicWorkloadGenerator(
             final int taskCount,
             final TwoStageUniform computation,
             final TwoStageUniform communication) {
+        this(
+                taskCount, computation, communication,
+                new SequentialIntegerSupplier()
+        );
+    }
+
+    /* package-private */ RandomicWorkloadGenerator(
+            final int taskCount,
+            final TwoStageUniform computation,
+            final TwoStageUniform communication,
+            final Supplier<Integer> idSupplier) {
         this.computation = computation;
         this.communication = communication;
         this.taskCount = taskCount;
+        this.idSupplier = idSupplier;
         this.random = new Distribution(System.currentTimeMillis());
     }
 
     @Override
     protected int makeTaskId() {
-        final int id = this.nextAvailableId;
-        this.nextAvailableId++;
-        return id;
+        return this.idSupplier.get();
     }
 
     @Override

@@ -9,11 +9,13 @@ import ispd.motor.workload.impl.CollectionWorkloadGenerator;
 import ispd.motor.workload.impl.GlobalWorkloadGenerator;
 import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
 import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
+import ispd.utils.SequentialIntegerSupplier;
 
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Converts XML docs with simulation load information into objects usable in
@@ -72,8 +74,10 @@ public class LoadBuilder {
     }
 
     private static Optional<CollectionWorkloadGenerator> nodeLoadsFromElement(final WrappedElement e) {
+        final var idSupplier = new SequentialIntegerSupplier();
+
         final var nodeLoads = e.nodeLoads()
-                .map(LoadBuilder::nodeLoadFromElement)
+                .map(el -> LoadBuilder.nodeLoadFromElement(el, idSupplier))
                 .map(WorkloadGenerator.class::cast)
                 .toList();
 
@@ -106,7 +110,7 @@ public class LoadBuilder {
                 .orElseGet(TwoStageUniform::new);
     }
 
-    private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e) {
+    private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e, final Supplier<Integer> idSupplier) {
         final var computation = LoadBuilder.getTaskSizeFromElement(
                 e, WrappedElement::isComputingType,
                 WrappedElement::toTaskSizeRange
@@ -120,8 +124,8 @@ public class LoadBuilder {
         return new PerNodeWorkloadGenerator(
                 e.application(), e.owner(),
                 e.masterId(), e.tasks(),
-                computation, communication
+                computation, communication,
+                idSupplier
         );
     }
-
 }

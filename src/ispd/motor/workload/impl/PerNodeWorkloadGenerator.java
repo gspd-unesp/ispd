@@ -10,6 +10,7 @@ import ispd.motor.filas.servidores.CentroServico;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -34,15 +35,18 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
      * @param minComputation   computation minimum
      * @param maxCommunication communication maximum
      * @param minCommunication communication minimum
+     * @param idSupplier
      */
     public PerNodeWorkloadGenerator(
             final String application, final String owner,
             final String schedulerId, final int taskCount,
             final double maxComputation, final double minComputation,
-            final double maxCommunication, final double minCommunication) {
+            final double maxCommunication, final double minCommunication,
+            Supplier<Integer> idSupplier) {
         this(application, owner, schedulerId, taskCount,
                 new TwoStageUniform(minComputation, maxComputation),
-                new TwoStageUniform(minCommunication, maxCommunication)
+                new TwoStageUniform(minCommunication, maxCommunication),
+                idSupplier
         );
     }
 
@@ -56,12 +60,14 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
      * @param taskCount     total number of tasks
      * @param computation   {@link TwoStageUniform} about the computation size
      * @param communication {@link TwoStageUniform} about the communication size
+     * @param idSupplier
      */
     public PerNodeWorkloadGenerator(
             final String application, final String owner,
             final String schedulerId, final int taskCount,
-            final TwoStageUniform computation, final TwoStageUniform communication) {
-        super(taskCount, computation, communication);
+            final TwoStageUniform computation, final TwoStageUniform communication,
+            Supplier<Integer> idSupplier) {
+        super(taskCount, computation, communication, idSupplier);
         this.application = application;
         this.owner = owner;
         this.schedulerId = schedulerId;

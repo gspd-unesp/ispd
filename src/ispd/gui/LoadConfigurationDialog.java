@@ -8,6 +8,7 @@ import ispd.motor.workload.impl.GlobalWorkloadGenerator;
 import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
 import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.WorkloadGeneratorType;
+import ispd.utils.SequentialIntegerSupplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -43,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Vector;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -1129,8 +1131,9 @@ public class LoadConfigurationDialog extends JDialog {
             try {
                 final List<WorkloadGenerator> configuracaoNo =
                         new ArrayList<>(this.tableRow.size());
+                final var idSupplier = new SequentialIntegerSupplier();
                 for (final List item : this.tableRow) {
-                    configuracaoNo.add(LoadConfigurationDialog.loadGeneratorFromTableRow(item));
+                    configuracaoNo.add(LoadConfigurationDialog.loadGeneratorFromTableRow(item, idSupplier));
                 }
                 this.loadGenerator = new CollectionWorkloadGenerator(configuracaoNo,
                         WorkloadGeneratorType.PER_NODE);
@@ -1149,7 +1152,7 @@ public class LoadConfigurationDialog extends JDialog {
         this.setVisible(false);
     }
 
-    private static WorkloadGenerator loadGeneratorFromTableRow(final List row) {
+    private static WorkloadGenerator loadGeneratorFromTableRow(final List row, final Supplier<Integer> idSupplier) {
         return new PerNodeWorkloadGenerator(
                 row.get(0).toString(),
                 row.get(1).toString(),
@@ -1158,7 +1161,8 @@ public class LoadConfigurationDialog extends JDialog {
                 Double.parseDouble(row.get(4).toString()),
                 Double.parseDouble(row.get(5).toString()),
                 Double.parseDouble(row.get(6).toString()),
-                Double.parseDouble(row.get(7).toString())
+                Double.parseDouble(row.get(7).toString()),
+                idSupplier
         );
     }
 
