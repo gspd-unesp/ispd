@@ -16,6 +16,11 @@ import java.util.stream.IntStream;
  */
 public abstract class TaskBuilder {
     /**
+     * Time to receive a task file, in seconds.
+     */
+    private static final double FILE_RECEIVE_TIME = 0.0009765625;
+
+    /**
      * Create a {@link Tarefa} originating at the given
      * {@link CS_Processamento} instance.
      *
@@ -29,18 +34,11 @@ public abstract class TaskBuilder {
                 this.makeTaskApplication(),
                 master,
                 this.makeTaskCommunicationSize(),
-                WorkloadGenerator.FILE_RECEIVE_TIME,
+                TaskBuilder.FILE_RECEIVE_TIME,
                 this.makeTaskComputationSize(),
                 this.makeTaskCreationTime()
         );
     }
-
-    /**
-     * Create a suitable id for a new task.
-     *
-     * @return an integral value representing a task id.
-     */
-    protected abstract int makeTaskId();
 
     public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn, final int taskCount) {
         final var masters = qn.getMestres();
@@ -51,6 +49,13 @@ public abstract class TaskBuilder {
                 .map(this::makeTaskFor)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Create a suitable id for a new task.
+     *
+     * @return an integral value representing a task id.
+     */
+    protected abstract int makeTaskId();
 
     /**
      * Select a suitable user for a new task. Such generation may involve the

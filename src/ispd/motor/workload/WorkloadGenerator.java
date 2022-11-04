@@ -10,11 +10,6 @@ import java.util.List;
  */
 public interface WorkloadGenerator {
     /**
-     * Time to receive a task file.
-     */
-    double FILE_RECEIVE_TIME = 0.0009765625;
-
-    /**
      * Create a {@link Tarefa} list as currently configured, distributed
      * between the masters in the {@link RedeDeFilas} given.
      *
