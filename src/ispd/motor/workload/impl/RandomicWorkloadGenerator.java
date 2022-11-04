@@ -1,9 +1,9 @@
 package ispd.motor.workload.impl;
 
-import ispd.motor.workload.WorkloadGenerator;
-import ispd.motor.workload.task.TaskBuilder;
 import ispd.motor.random.Distribution;
 import ispd.motor.random.TwoStageUniform;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.task.TaskBuilder;
 
 /* package-private */
 abstract class RandomicWorkloadGenerator extends TaskBuilder implements WorkloadGenerator {
@@ -14,7 +14,7 @@ abstract class RandomicWorkloadGenerator extends TaskBuilder implements Workload
 
     private int nextAvailableId = 0;
 
-    protected RandomicWorkloadGenerator(
+    /* package-private */ RandomicWorkloadGenerator(
             final int taskCount,
             final TwoStageUniform computation,
             final TwoStageUniform communication) {

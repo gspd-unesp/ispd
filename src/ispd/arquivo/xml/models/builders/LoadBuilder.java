@@ -3,12 +3,12 @@ package ispd.arquivo.xml.models.builders;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
 import ispd.motor.random.TwoStageUniform;
-import ispd.motor.workload.impl.CollectionWorkloadGenerator;
-import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
-import ispd.motor.workload.impl.GlobalWorkloadGenerator;
-import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
 import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.WorkloadGeneratorType;
+import ispd.motor.workload.impl.CollectionWorkloadGenerator;
+import ispd.motor.workload.impl.GlobalWorkloadGenerator;
+import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
+import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
 
 import java.io.File;
 import java.util.Optional;
@@ -109,16 +109,18 @@ public class LoadBuilder {
     private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e) {
         final var computation = LoadBuilder.getTaskSizeFromElement(
                 e, WrappedElement::isComputingType,
-                WrappedElement::toTaskSizeRange);
+                WrappedElement::toTaskSizeRange
+        );
 
         final var communication = LoadBuilder.getTaskSizeFromElement(
                 e, WrappedElement::isCommunicationType,
-                WrappedElement::toTaskSizeRange);
+                WrappedElement::toTaskSizeRange
+        );
 
         return new PerNodeWorkloadGenerator(
-                e.application(), e.owner(), e.masterId(), e.tasks(),
-                computation,
-                communication
+                e.application(), e.owner(),
+                e.masterId(), e.tasks(),
+                computation, communication
         );
     }
 
