@@ -1,4 +1,4 @@
-package ispd.motor.carga.workload;
+package ispd.motor.carga.impl;
 
 import ispd.motor.random.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;

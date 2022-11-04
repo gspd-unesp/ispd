@@ -1,4 +1,4 @@
-package ispd.motor.carga.workload;
+package ispd.motor.carga.impl;
 
 import ispd.escalonador.Escalonador;
 import ispd.motor.carga.task.ExternalTraceTaskBuilder;

@@ -11,10 +11,10 @@ import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Vertex;
 import ispd.gui.iconico.grade.VirtualMachine;
-import ispd.motor.carga.workload.CollectionWorkloadGenerator;
-import ispd.motor.carga.workload.TraceFileWorkloadGenerator;
-import ispd.motor.carga.workload.GlobalWorkloadGenerator;
-import ispd.motor.carga.workload.WorkloadGenerator;
+import ispd.motor.carga.impl.CollectionWorkloadGenerator;
+import ispd.motor.carga.impl.TraceFileWorkloadGenerator;
+import ispd.motor.carga.impl.GlobalWorkloadGenerator;
+import ispd.motor.carga.impl.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import org.w3c.dom.Document;
@@ -722,7 +722,7 @@ public class IconicoXML {
      *
      * @apiNote This method just be called at most <b>once</b>> per instance,
      * and not mixed with calls to
-     * {@link #setLoadTrace(String, String, String)} or
+     * {@link #setLoadTrace(String, int, String)} or
      * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
      */
     public void setLoadRandom(
@@ -771,7 +771,7 @@ public class IconicoXML {
      *
      * @apiNote This method may be called more than once per instance,
      * however it should be mixed with calls to
-     * {@link #setLoadTrace(String, String, String)} or
+     * {@link #setLoadTrace(String, int, String)} or
      * {@link #setLoadRandom(int, int, double, double, double, double, double, double, double, double)}.
      */
     public void addLoadNo(

@@ -1,6 +1,6 @@
 package ispd.motor.carga.task;
 
-import ispd.motor.carga.workload.WorkloadGenerator;
+import ispd.motor.carga.impl.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
