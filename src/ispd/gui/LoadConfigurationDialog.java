@@ -834,7 +834,7 @@ public class LoadConfigurationDialog extends JDialog {
                 this.jSpinnerMaxComunicacao.setValue(random.getCommunicationMaximum());
                 this.jSpinnerAverageComunicacao.setValue(random.getCommunicationAverage());
                 this.jSpinnerProbabilityComunicacao.setValue(random.getCommunicationProbability());
-                this.jSpinnerTimeOfArrival.setValue(random.getTimeToArrival());
+                this.jSpinnerTimeOfArrival.setValue(random.getTaskCreationTime());
                 this.setTipo(WorkloadGeneratorType.RANDOM);
             }
             case PER_NODE -> {
@@ -848,9 +848,9 @@ public class LoadConfigurationDialog extends JDialog {
             }
             case TRACE -> {
                 final TraceFileWorkloadGenerator trace = (TraceFileWorkloadGenerator) loadGenerator;
-                this.file = trace.getFile();
+                this.file = trace.getTraceFile();
                 this.traceType = trace.getTraceType();
-                this.traceTaskNumber = trace.getNumberTasks();
+                this.traceTaskNumber = trace.getTaskCount();
                 this.jTextFieldCaminhoWMS.setText(this.file.getAbsolutePath());
                 this.jTextNotification.setText("""
                         File %s

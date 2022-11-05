@@ -175,8 +175,6 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
      * The string representation for this workload generator includes is task
      * count, application, owner, scheduler id, and distributions for
      * generating computation and communication sizes.
-     *
-     * @return representation of the configuration for this generator.
      */
     @Override
     public String toString() {

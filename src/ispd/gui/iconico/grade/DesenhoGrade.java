@@ -604,7 +604,7 @@ public class DesenhoGrade extends DrawingArea {
         //configurar carga
         if (this.loadConfiguration != null) {
             if (this.loadConfiguration instanceof final GlobalWorkloadGenerator cr) {
-                xml.setLoadRandom(cr.getTaskCount(), cr.getTimeToArrival(),
+                xml.setLoadRandom(cr.getTaskCount(), cr.getTaskCreationTime(),
                         cr.getComputationMaximum(), cr.getComputationAverage(),
                         cr.getComputationMinimum(), cr.getComputationProbability(),
                         cr.getCommunicationMaximum(), cr.getCommunicationAverage(),
@@ -620,8 +620,8 @@ public class DesenhoGrade extends DrawingArea {
                 }
             } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.TRACE) {
                 final TraceFileWorkloadGenerator trace = (TraceFileWorkloadGenerator) this.loadConfiguration;
-                xml.setLoadTrace(trace.getFile().toString(),
-                        trace.getNumberTasks(),
+                xml.setLoadTrace(trace.getTraceFile().toString(),
+                        trace.getTaskCount(),
                         trace.getTraceType());
             }
         }

@@ -97,8 +97,6 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
      * Generates tasks as configured, and distributes then evenly among the
      * masters in the given {@link RedeDeFilas}.
      *
-     * @param qn {@link RedeDeFilas} that will host the {@link Tarefa}s.
-     * @return generated workload (task list).
      * @see ispd.motor.workload.impl.task.TaskBuilder#makeTasksDistributedAmongMasters(RedeDeFilas, int)
      */
     @Override
@@ -118,8 +116,6 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
      * The string representation for this workload generator includes its
      * task count, task creation time parameter, and distributions for
      * generating computation and communication sizes.
-     *
-     * @return representation of the configuration for this generator.
      */
     @Override
     public String toString() {
@@ -140,7 +136,7 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
     /**
      * @return task creation time configured for this instance.
      */
-    public Integer getTimeToArrival() {
+    public Integer getTaskCreationTime() {
         return this.taskCreationTime;
     }
 

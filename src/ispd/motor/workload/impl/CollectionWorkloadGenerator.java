@@ -46,7 +46,6 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
      * Make a task list from the inner per-node load list, or an <b>empty</b>
      * one if another type of {@link WorkloadGenerator} is in the list.
      *
-     * @param qn Queue network in which the tasks will be used
      * @return {@code List} with all, flattened, tasks in the per-node
      * workloads in {@link #list}, or an empty {@code ArrayList} if
      * the type of workloads in the list is not
@@ -77,8 +76,6 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
      * The string representation for workloads of this class contains the
      * type of the workload generators in the inner list, and a
      * representation for such list.
-     *
-     * @return string representation of the configuration for this instance.
      */
     @Override
     public String toString() {
