@@ -82,12 +82,12 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
     @Override
     public String toString() {
         return """
-                CollectionWorkloadGenerator(
+                CollectionWorkloadGenerator{
                     type='%s',
                     list=[
                 %s
                     ],
-                )""".formatted(
+                }""".formatted(
                 this.type,
                 CollectionWorkloadGenerator.makeStringForList(this.generatorList)
         );

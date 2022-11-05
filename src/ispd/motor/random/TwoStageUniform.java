@@ -123,7 +123,7 @@ public record TwoStageUniform(
      */
     @Override
     public String toString() {
-        return "TwoStageUniform(min=%f, med=%f, max=%f, prob=%f)".formatted(
+        return "TwoStageUniform{min=%f, med=%f, max=%f, prob=%f}".formatted(
                 this.minimum,
                 this.intervalSplit,
                 this.maximum,

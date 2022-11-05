@@ -124,16 +124,16 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
     @Override
     public String toString() {
         return """
-                GlobalWorkloadGenerator(
+                GlobalWorkloadGenerator{
                     taskCount=%d,
                     taskCreationTime=%d,
                     computation=%s,
                     communication=%s,
-                )""".formatted(
+                }""".formatted(
                 this.taskCount,
                 this.taskCreationTime,
-                this.computation,
-                this.communication
+                this.computation.toString(),
+                this.communication.toString()
         );
     }
 
