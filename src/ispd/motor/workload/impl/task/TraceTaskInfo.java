@@ -19,7 +19,7 @@ public class TraceTaskInfo {
         return this.fields[11];
     }
 
-    public double processingTime() {
+    public double computationSize() {
         return this.fieldAsDouble(7);
     }
 
@@ -27,7 +27,7 @@ public class TraceTaskInfo {
         return Double.parseDouble(this.fields[index]);
     }
 
-    public double sentFileSize() {
+    public double communicationSize() {
         return this.fieldAsDouble(9);
     }
 

@@ -31,7 +31,7 @@ public class ExternalTraceTaskBuilder extends TraceTaskBuilder {
     public Tarefa makeTaskFor(final CS_Processamento master) {
         final var task = super.makeTaskFor(master);
 
-        if (this.currTraceTask.shouldBeCanceled()) {
+        if (this.currTaskInfo.shouldBeCanceled()) {
             task.setLocalProcessamento(master);
             task.cancelar(0);
         }
