@@ -604,19 +604,19 @@ public class DesenhoGrade extends DrawingArea {
         //configurar carga
         if (this.loadConfiguration != null) {
             if (this.loadConfiguration instanceof final GlobalWorkloadGenerator cr) {
-                xml.setLoadRandom(cr.getNumeroTarefas(), cr.getTimeToArrival(),
-                        cr.getMaxComputacao(), cr.getAverageComputacao(),
-                        cr.getMinComputacao(), cr.getProbabilityComputacao(),
-                        cr.getMaxComunicacao(), cr.getAverageComunicacao(),
-                        cr.getMinComunicacao(), cr.getProbabilityComunicacao());
+                xml.setLoadRandom(cr.getTaskCount(), cr.getTimeToArrival(),
+                        cr.getComputationMaximum(), cr.getComputationAverage(),
+                        cr.getComputationMinimum(), cr.getComputationProbability(),
+                        cr.getCommunicationMaximum(), cr.getCommunicationAverage(),
+                        cr.getCommunicationMinimum(), cr.getCommunicationProbability());
             } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.PER_NODE) {
                 for (final WorkloadGenerator node :
                         ((CollectionWorkloadGenerator) this.loadConfiguration).getList()) {
                     final PerNodeWorkloadGenerator no = (PerNodeWorkloadGenerator) node;
-                    xml.addLoadNo(no.getAplicacao(), no.getProprietario(),
-                            no.getEscalonador(), no.getNumeroTarefas(),
-                            no.getMaxComputacao(), no.getMinComputacao(),
-                            no.getMaxComunicacao(), no.getMinComunicacao());
+                    xml.addLoadNo(no.getApplication(), no.getOwner(),
+                            no.getSchedulerId(), no.getTaskCount(),
+                            no.getComputationMaximum(), no.getComputationMinimum(),
+                            no.getCommunicationMaximum(), no.getCommunicationMinimum());
                 }
             } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.TRACE) {
                 final TraceFileWorkloadGenerator trace = (TraceFileWorkloadGenerator) this.loadConfiguration;

@@ -18,28 +18,28 @@ import java.util.stream.Collectors;
  */
 public class CollectionWorkloadGenerator implements WorkloadGenerator {
     private final WorkloadGeneratorType type;
-    private final List<WorkloadGenerator> generatorList;
+    private final List<WorkloadGenerator> list;
 
     /**
      * Instantiate a CollectionWorkloadGenerator from a homogeneous {@link
      * List} of other {@link WorkloadGenerator}s.
      *
-     * @param generatorList list of {@link WorkloadGenerator}s
-     * @param type          type of {@link WorkloadGenerator}s hosted in the
-     *                      given list
+     * @param type type of {@link WorkloadGenerator}s hosted in the
+     *             given list
+     * @param list list of {@link WorkloadGenerator}s
      */
     public CollectionWorkloadGenerator(
-            final List<WorkloadGenerator> generatorList,
-            final WorkloadGeneratorType type) {
+            final WorkloadGeneratorType type,
+            final List<WorkloadGenerator> list) {
         this.type = type;
-        this.generatorList = generatorList;
+        this.list = list;
     }
 
     /**
      * @return the inner workload generator list.
      */
     public List<WorkloadGenerator> getList() {
-        return this.generatorList;
+        return this.list;
     }
 
     /**
@@ -48,7 +48,7 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
      *
      * @param qn Queue network in which the tasks will be used
      * @return {@code List} with all, flattened, tasks in the per-node
-     * workloads in {@link #generatorList}, or an empty {@code ArrayList} if
+     * workloads in {@link #list}, or an empty {@code ArrayList} if
      * the type of workloads in the list is not
      * {@link PerNodeWorkloadGenerator}.
      */
@@ -58,19 +58,20 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
             return new ArrayList<>(0);
         }
 
-        return this.generatorList.stream()
+        return this.list.stream()
                 .map(PerNodeWorkloadGenerator.class::cast)
                 .flatMap(load -> load.makeTaskList(qn).stream())
                 .collect(Collectors.toList());
     }
 
     /**
-     * @return the type of workload in the inner list {@link #generatorList}.
+     * @return the type of workload in the inner list {@link #list}.
      */
     @Override
     public WorkloadGeneratorType getType() {
         return this.type;
     }
+
 
     /**
      * The string representation for workloads of this class contains the
@@ -89,7 +90,7 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
                     ],
                 }""".formatted(
                 this.type,
-                CollectionWorkloadGenerator.makeStringForList(this.generatorList)
+                CollectionWorkloadGenerator.makeStringForList(this.list)
         );
     }
 

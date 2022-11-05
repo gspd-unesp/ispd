@@ -85,8 +85,8 @@ public class LoadBuilder {
             return Optional.empty();
         }
 
-        return Optional.of(new CollectionWorkloadGenerator(nodeLoads,
-                WorkloadGeneratorType.PER_NODE));
+        return Optional.of(new CollectionWorkloadGenerator(WorkloadGeneratorType.PER_NODE, nodeLoads
+        ));
     }
 
     private static TraceFileWorkloadGenerator traceLoadFromElement(final WrappedElement e) {

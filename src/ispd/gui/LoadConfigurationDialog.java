@@ -825,15 +825,15 @@ public class LoadConfigurationDialog extends JDialog {
         switch (loadGenerator.getType()) {
             case RANDOM -> {
                 final GlobalWorkloadGenerator random = (GlobalWorkloadGenerator) loadGenerator;
-                this.jSpinnerNumTarefas.setValue(random.getNumeroTarefas());
-                this.jSpinnerMinComputacao.setValue(random.getMinComputacao());
-                this.jSpinnerMaxComputacao.setValue(random.getMaxComputacao());
-                this.jSpinnerAverageComputacao.setValue(random.getAverageComputacao());
-                this.jSpinnerProbabilityComputacao.setValue(random.getProbabilityComputacao());
-                this.jSpinnerMinComunicacao.setValue(random.getMinComunicacao());
-                this.jSpinnerMaxComunicacao.setValue(random.getMaxComunicacao());
-                this.jSpinnerAverageComunicacao.setValue(random.getAverageComunicacao());
-                this.jSpinnerProbabilityComunicacao.setValue(random.getProbabilityComunicacao());
+                this.jSpinnerNumTarefas.setValue(random.getTaskCount());
+                this.jSpinnerMinComputacao.setValue(random.getComputationMinimum());
+                this.jSpinnerMaxComputacao.setValue(random.getComputationMaximum());
+                this.jSpinnerAverageComputacao.setValue(random.getComputationAverage());
+                this.jSpinnerProbabilityComputacao.setValue(random.getComputationProbability());
+                this.jSpinnerMinComunicacao.setValue(random.getCommunicationMinimum());
+                this.jSpinnerMaxComunicacao.setValue(random.getCommunicationMaximum());
+                this.jSpinnerAverageComunicacao.setValue(random.getCommunicationAverage());
+                this.jSpinnerProbabilityComunicacao.setValue(random.getCommunicationProbability());
                 this.jSpinnerTimeOfArrival.setValue(random.getTimeToArrival());
                 this.setTipo(WorkloadGeneratorType.RANDOM);
             }
@@ -1135,8 +1135,8 @@ public class LoadConfigurationDialog extends JDialog {
                 for (final List item : this.tableRow) {
                     configuracaoNo.add(LoadConfigurationDialog.loadGeneratorFromTableRow(item, idSupplier));
                 }
-                this.loadGenerator = new CollectionWorkloadGenerator(configuracaoNo,
-                        WorkloadGeneratorType.PER_NODE);
+                this.loadGenerator = new CollectionWorkloadGenerator(WorkloadGeneratorType.PER_NODE, configuracaoNo
+                );
             } catch (final Exception ex) {
                 Logger.getLogger(LoadConfigurationDialog.class.getName()).log(Level.SEVERE, null, ex);
             }
