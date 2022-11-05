@@ -1,11 +1,12 @@
 package ispd.motor.workload.impl;
 
-import ispd.motor.workload.WorkloadGenerator;
-import ispd.motor.workload.WorkloadGeneratorType;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.WorkloadGeneratorType;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,24 +14,30 @@ import java.util.stream.Collectors;
  * Represents a workload from a homogeneous collection of other workloads.
  * Specifically, when used to host a collection of per-node tasks, the method
  * {@link #makeTaskList(RedeDeFilas)} can be used to collect all per-node
- * tasks into a single, flat list.
+ * tasks into a single new workload.
  */
 public class CollectionWorkloadGenerator implements WorkloadGenerator {
     private final WorkloadGeneratorType type;
     private final List<WorkloadGenerator> generatorList;
 
     /**
-     * Instantiate a CollectionWorkloadGenerator from a homogeneous {@code List} of other
-     * {@link WorkloadGenerator}s.
+     * Instantiate a CollectionWorkloadGenerator from a homogeneous {@link
+     * List} of other {@link WorkloadGenerator}s.
      *
      * @param generatorList list of {@link WorkloadGenerator}s
-     * @param type     type of {@link WorkloadGenerator}s hosted in the given list
+     * @param type          type of {@link WorkloadGenerator}s hosted in the
+     *                      given list
      */
-    public CollectionWorkloadGenerator(final List<WorkloadGenerator> generatorList, final WorkloadGeneratorType type) {
+    public CollectionWorkloadGenerator(
+            final List<WorkloadGenerator> generatorList,
+            final WorkloadGeneratorType type) {
         this.type = type;
         this.generatorList = generatorList;
     }
 
+    /**
+     * @return the inner workload generator list.
+     */
     public List<WorkloadGenerator> getList() {
         return this.generatorList;
     }
@@ -42,7 +49,8 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
      * @param qn Queue network in which the tasks will be used
      * @return {@code List} with all, flattened, tasks in the per-node
      * workloads in {@link #generatorList}, or an empty {@code ArrayList} if
-     * the type of workloads in the list is not {@link PerNodeWorkloadGenerator}.
+     * the type of workloads in the list is not
+     * {@link PerNodeWorkloadGenerator}.
      */
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
@@ -57,21 +65,42 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
     }
 
     /**
-     * @return all string representations of the workloads in the inner list,
-     * concatenated together with {@code newlines}.
-     */
-    @Override
-    public String toString() {
-        return this.generatorList.stream()
-                .map(WorkloadGenerator::toString)
-                .collect(Collectors.joining("\n"));
-    }
-
-    /**
      * @return the type of workload in the inner list {@link #generatorList}.
      */
     @Override
     public WorkloadGeneratorType getType() {
         return this.type;
+    }
+
+    /**
+     * The string representation for workloads of this class contains the
+     * type of the workload generators in the inner list, and a
+     * representation for such list.
+     *
+     * @return string representation of the configuration for this instance.
+     */
+    @Override
+    public String toString() {
+        return """
+                CollectionWorkloadGenerator(
+                    type='%s',
+                    list=[
+                %s
+                    ],
+                )""".formatted(
+                this.type,
+                CollectionWorkloadGenerator.makeStringForList(this.generatorList)
+        );
+    }
+
+    private static String makeStringForList(final Collection<WorkloadGenerator> list) {
+        return list.stream()
+                .map(WorkloadGenerator::toString)
+                .map(CollectionWorkloadGenerator::adaptStringRepresentation)
+                .collect(Collectors.joining());
+    }
+
+    private static String adaptStringRepresentation(final String s) {
+        return String.format("\t\t%s,\n", s);
     }
 }
