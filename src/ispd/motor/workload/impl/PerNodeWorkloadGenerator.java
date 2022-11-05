@@ -1,11 +1,12 @@
 package ispd.motor.workload.impl;
 
-import ispd.motor.workload.WorkloadGeneratorType;
-import ispd.motor.random.TwoStageUniform;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.motor.random.Distribution;
+import ispd.motor.random.TwoStageUniform;
+import ispd.motor.workload.WorkloadGeneratorType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
             final String schedulerId, final int taskCount,
             final double maxComputation, final double minComputation,
             final double maxCommunication, final double minCommunication,
-            Supplier<Integer> idSupplier) {
+            final Supplier<Integer> idSupplier) {
         this(application, owner, schedulerId, taskCount,
                 new TwoStageUniform(minComputation, maxComputation),
                 new TwoStageUniform(minCommunication, maxCommunication),
@@ -65,9 +66,13 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     public PerNodeWorkloadGenerator(
             final String application, final String owner,
             final String schedulerId, final int taskCount,
-            final TwoStageUniform computation, final TwoStageUniform communication,
-            Supplier<Integer> idSupplier) {
-        super(taskCount, computation, communication, idSupplier);
+            final TwoStageUniform computation,
+            final TwoStageUniform communication,
+            final Supplier<Integer> idSupplier) {
+        super(
+                taskCount, computation, communication,
+                idSupplier, new Distribution(System.currentTimeMillis())
+        );
         this.application = application;
         this.owner = owner;
         this.schedulerId = schedulerId;

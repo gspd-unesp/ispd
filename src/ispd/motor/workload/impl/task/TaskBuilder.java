@@ -1,6 +1,5 @@
 package ispd.motor.workload.impl.task;
 
-import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -10,15 +9,38 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Class to host utility methods for {@link WorkloadGenerator}s that create
- * their own tasks. In particular, {@link #makeTaskFor(CS_Processamento)} is
- * a "template" that most generators will follow when creating a task.
+ * <p>Abstract class with the purpose to create a task from some data source.
+ * In particular, by overriding the {@code protected} methods such as
+ * {@link #makeTaskId()}, a subclass can determine how to transform the
+ * information gathered from such data source into a task.</p>
+ * For an example, see {@link TraceTaskBuilder}.
+ *
+ * @see TraceTaskBuilder
  */
 public abstract class TaskBuilder {
     /**
-     * Time to receive a task file, in seconds.
+     * Size of the file returned to the master, in Mbits.
      */
-    private static final double FILE_RECEIVE_TIME = 0.0009765625;
+    private static final double FILE_MASTER_RECEIVE_SIZE = 0.0009765625;
+
+    /**
+     * Make the given {@code taskCount} number of tasks, distributed as fairly
+     * as possible between the masters in the given {@link RedeDeFilas}.
+     *
+     * @param qn        {@link RedeDeFilas} with the masters that will host
+     *                  the tasks.
+     * @param taskCount amount of tasks to be created. <b>Must be positive</b>.
+     * @return collection of created {@link Tarefa}s.
+     */
+    public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn, final int taskCount) {
+        final var masters = qn.getMestres();
+
+        return IntStream.range(0, taskCount)
+                .map(i -> i % masters.size())
+                .mapToObj(masters::get)
+                .map(this::makeTaskFor)
+                .collect(Collectors.toList());
+    }
 
     /**
      * Create a {@link Tarefa} originating at the given
@@ -34,20 +56,10 @@ public abstract class TaskBuilder {
                 this.makeTaskApplication(),
                 master,
                 this.makeTaskCommunicationSize(),
-                TaskBuilder.FILE_RECEIVE_TIME,
+                TaskBuilder.FILE_MASTER_RECEIVE_SIZE,
                 this.makeTaskComputationSize(),
                 this.makeTaskCreationTime()
         );
-    }
-
-    public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn, final int taskCount) {
-        final var masters = qn.getMestres();
-
-        return IntStream.range(0, taskCount)
-                .map(i -> i % masters.size())
-                .mapToObj(masters::get)
-                .map(this::makeTaskFor)
-                .collect(Collectors.toList());
     }
 
     /**
@@ -68,22 +80,25 @@ public abstract class TaskBuilder {
     protected abstract String makeTaskUser(CS_Processamento master);
 
     /**
-     * @return the application which a new task will be associated with.
+     * @return the application which a new task will be associated with; by
+     * default, {@code "application1"}.
      */
-    protected abstract String makeTaskApplication();
+    protected String makeTaskApplication() {
+        return "application1";
+    }
 
     /**
-     * @return the task communication size (in MFlops), usually random.
+     * @return the task communication size (in MBits), usually random.
      */
     protected abstract double makeTaskCommunicationSize();
 
     /**
-     * @return the task computation size (in Mbits), usually random.
+     * @return the task computation size (in MFlops), usually random.
      */
     protected abstract double makeTaskComputationSize();
 
     /**
-     * @return the task creation time, usually random.
+     * @return the task creation time (in seconds), usually random.
      */
     protected abstract double makeTaskCreationTime();
 }

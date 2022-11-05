@@ -6,6 +6,9 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Builds tasks from a {@link List} of {@link TraceTaskInfo}s.
+ */
 public class TraceTaskBuilder extends TaskBuilder {
     protected final List<TraceTaskInfo> traceTasks;
     protected TraceTaskInfo currTraceTask = null;
