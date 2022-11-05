@@ -1,14 +1,15 @@
 package ispd.motor.workload.impl;
 
 import ispd.escalonador.Escalonador;
+import ispd.motor.filas.RedeDeFilas;
+import ispd.motor.filas.Tarefa;
+import ispd.motor.filas.servidores.implementacao.CS_Mestre;
+import ispd.motor.random.Distribution;
 import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.WorkloadGeneratorType;
 import ispd.motor.workload.impl.task.ExternalTraceTaskBuilder;
 import ispd.motor.workload.impl.task.TraceTaskBuilder;
 import ispd.motor.workload.impl.task.TraceTaskInfo;
-import ispd.motor.filas.RedeDeFilas;
-import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,7 +40,7 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
 
     @Override
     public List<Tarefa> makeTaskList(final RedeDeFilas qn) {
-        final var tasks = this.getTraceTasksFromFile();
+        final var tasks = this.getTraceTaskInfoFromFile();
 
         TraceFileWorkloadGenerator.updateQueueNetworkWithTasks(qn, tasks);
 
@@ -49,7 +50,7 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
                 .makeTasksEvenlyDistributedBetweenMasters(qn, this.taskCount);
     }
 
-    private List<TraceTaskInfo> getTraceTasksFromFile() {
+    private List<TraceTaskInfo> getTraceTaskInfoFromFile() {
         try (final var br = new BufferedReader(
                 new FileReader(this.traceFile, StandardCharsets.UTF_8))) {
             return br.lines()
@@ -78,7 +79,10 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
             final List<TraceTaskInfo> tasks, final RedeDeFilas qn) {
         return switch (this.traceType) {
             case "iSPD" -> new TraceTaskBuilder(tasks);
-            case "SWF", "GWF" -> new ExternalTraceTaskBuilder(tasks, qn);
+            case "SWF", "GWF" -> new ExternalTraceTaskBuilder(
+                    tasks,
+                    new Distribution(System.currentTimeMillis()), qn.averageComputationalPower()
+            );
             default -> throw new IllegalArgumentException(
                     "Unrecognized trace type '%s'".formatted(this.traceType));
         };

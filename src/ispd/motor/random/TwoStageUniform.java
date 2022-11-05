@@ -1,16 +1,18 @@
 package ispd.motor.random;
 
+import jdk.jfr.Percentage;
+
 /**
  * Utility class to contain information about computing or communication sizes.
  * They are expressed as an inclusive range, with an intervalSplit and
- * firstIntervalProbability
- * (parameters for a two-stage uniform distribution).
+ * firstIntervalProbability (parameters for a two-stage uniform distribution).
  */
 public record TwoStageUniform(
         double minimum,
         double intervalSplit,
         double maximum,
-        double firstIntervalProbability) {
+        @Percentage double firstIntervalProbability) {
+    @Percentage
     private static final double EVEN_PROBABILITY = 0.5;
 
     /**
@@ -37,6 +39,23 @@ public record TwoStageUniform(
                 maximum,
                 TwoStageUniform.EVEN_PROBABILITY
         );
+    }
+
+    /**
+     * Construct an instance with given {@code minimum}, {@code intervalSplit
+     * } and {@code maximum} values, and with {@code firstIntervalProbability
+     * } set to the default to permit and even probability between the two
+     * intervals.
+     *
+     * @param minimum       distribution minimum
+     * @param intervalSplit distribution split point
+     * @param maximum       distribution maximum
+     */
+    public TwoStageUniform(
+            final double minimum,
+            final double intervalSplit,
+            final double maximum) {
+        this(minimum, intervalSplit, maximum, TwoStageUniform.EVEN_PROBABILITY);
     }
 
     /**

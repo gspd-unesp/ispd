@@ -7,10 +7,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * <p>Builds tasks from a {@link List} of {@link TraceTaskInfo}s.</p>
- * <p>The given {@link TraceTaskInfo}s are converted into tasks, one by one,
- * and distributed between the masters given as argument to
- * {@link #makeTaskFor(CS_Processamento)}, in the invoked call order.</p>
+ * Builds tasks from a {@link List} of {@link TraceTaskInfo}s.<br>
+ * The given {@link TraceTaskInfo}s are converted into tasks, one by one, and
+ * distributed between the masters given as argument to
+ * {@link #makeTaskFor(CS_Processamento)}, in the invoked call order.<br>
  */
 public class TraceTaskBuilder extends TaskBuilder {
     private final List<TraceTaskInfo> traceTaskInfos;
