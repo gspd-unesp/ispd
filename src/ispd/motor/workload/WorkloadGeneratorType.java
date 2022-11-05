@@ -11,11 +11,11 @@ public enum WorkloadGeneratorType {
     PER_NODE,
     /**
      * Generator of tasks with randomly generated sizes, and distributed evenly
-     * for all master nodes in the system.
+     * among all master nodes in the system.
      */
     RANDOM,
     /**
-     * Generator of tasks from a trace file, and distributed evenly for all
+     * Generator of tasks from a trace file, and distributed evenly among all
      * master nodes in the system.
      */
     TRACE,
