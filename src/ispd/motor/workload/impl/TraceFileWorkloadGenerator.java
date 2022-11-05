@@ -46,8 +46,7 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
 
         final var taskBuilder = this.makeTaskBuilder(tasks, qn);
 
-        return taskBuilder
-                .makeTasksEvenlyDistributedBetweenMasters(qn, this.taskCount);
+        return taskBuilder.makeTasksDistributedAmongMasters(qn, this.taskCount);
     }
 
     private List<TraceTaskInfo> getTraceTaskInfoFromFile() {
@@ -81,7 +80,8 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
             case "iSPD" -> new TraceTaskBuilder(tasks);
             case "SWF", "GWF" -> new ExternalTraceTaskBuilder(
                     tasks,
-                    new Distribution(System.currentTimeMillis()), qn.averageComputationalPower()
+                    new Distribution(System.currentTimeMillis()),
+                    qn.averageComputationalPower()
             );
             default -> throw new IllegalArgumentException(
                     "Unrecognized trace type '%s'".formatted(this.traceType));

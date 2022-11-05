@@ -25,14 +25,27 @@ public abstract class TaskBuilder {
 
     /**
      * Make the given {@code taskCount} number of tasks, distributed as fairly
-     * as possible between the masters in the given {@link RedeDeFilas}.
+     * as possible among the masters in the given {@link RedeDeFilas}.<br>
+     * The distribution functions as follows:
+     * <ul>
+     *     <li>If there are {@code k * n} tasks to distribute and {@code n}
+     *     masters, each master receives {@code k} tasks, as expected.
+     *     However, each master <b>does not receive the <i>first</i></b>
+     *     {@code k} tasks, but every {@code k}th one. (The distribution is
+     *     non-sequential).</li>
+     *     <li>If there are {@code k * n + m} tasks to distribute and {@code
+     *     n} masters, the first {@code m} masters receive {@code k + 1}
+     *     tasks, while the remaining {@code n - m} masters receive {@code k}
+     *     . Again, each master receives a task every {@code k}th task
+     *     processed.</li>
+     * </ul>
      *
      * @param qn        {@link RedeDeFilas} with the masters that will host
      *                  the tasks.
      * @param taskCount amount of tasks to be created. <b>Must be positive</b>.
      * @return collection of created {@link Tarefa}s.
      */
-    public List<Tarefa> makeTasksEvenlyDistributedBetweenMasters(final RedeDeFilas qn, final int taskCount) {
+    public List<Tarefa> makeTasksDistributedAmongMasters(final RedeDeFilas qn, final int taskCount) {
         final var masters = qn.getMestres();
 
         return IntStream.range(0, taskCount)
