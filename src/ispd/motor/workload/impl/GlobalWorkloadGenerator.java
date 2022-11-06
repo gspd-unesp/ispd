@@ -54,10 +54,10 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
      */
     public GlobalWorkloadGenerator(
             final int taskCount,
-            final int compMin, final int compMax,
-            final int compAvg, final double compProb,
-            final int commMin, final int commMax,
-            final int commAvg, final double commProb,
+            final double compMin, final double compMax,
+            final double compAvg, final double compProb,
+            final double commMin, final double commMax,
+            final double commAvg, final double commProb,
             final int taskCreationTime) {
         this(
                 taskCount, taskCreationTime,
@@ -110,6 +110,34 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
     @Override
     public WorkloadGeneratorType getType() {
         return WorkloadGeneratorType.RANDOM;
+    }
+
+    /**
+     * The iconic model format for this workload generator consists of:
+     * <ul>
+     *     <li>The configuration for computation and communication
+     *     (respectively) distributions for task size. Their values (except for
+     *     {@link TwoStageUniform#firstIntervalProbability()} <b>are
+     *     formatted as integral values</b>. Furthermore, the order the
+     *     values are outputted is <b>inconsistent between them</b></li>
+     *     <li>An extra {@code 0}</li>
+     *     <li>The {@link #taskCreationTime}</li>
+     *     <li>The {@link #taskCount}</li>
+     * </ul>
+     * @see TwoStageUniform
+     */
+    @Override
+    public String formatForIconicModel() {
+        return String.format("%d %d %d %f\n%d %d %d %f\n%d %d %d",
+                (int) this.computation.minimum(),
+                (int) this.computation.intervalSplit(),
+                (int) this.computation.maximum(),
+                this.computation.firstIntervalProbability(),
+                (int) this.communication.minimum(),
+                (int) this.communication.maximum(),
+                (int) this.communication.intervalSplit(),
+                this.communication.firstIntervalProbability(),
+                0, this.taskCreationTime, this.taskCount);
     }
 
     /**

@@ -85,7 +85,8 @@ public class TraceXML {
                     <!DOCTYPE system SYSTEM " iSPDcarga.dtd">
                     <system>
                     <trace>
-                    <format kind="%s" />%s
+                    <format kind="%s" />
+                    %s
                     </trace>
                     </system>""".formatted(this.type, this.joinTasksTags(in)));
 
@@ -144,8 +145,8 @@ public class TraceXML {
                         .split(" ");
 
         return """
-
-                <task id="%s" arr="%s" sts="%s" cpsz ="%s" cmsz="-1" usr="user%s" />"""
+                <task id="%s" arr="%s" sts="%s" cpsz ="%s" cmsz="-1" usr="user%s" />
+                """
                 .formatted(fields[0],
                         fields[1],
                         fields[10], fields[3], fields[11]);
@@ -177,8 +178,8 @@ public class TraceXML {
         }
 
         return """
-
-                <task id="%s" arr="%d" sts="%s" cpsz ="%s" cmsz="%s" usr="%s" />"""
+                <task id="%s" arr="%d" sts="%s" cpsz ="%s" cmsz="%s" usr="%s" />
+                """
                 .formatted(fields[0],
                         Integer.parseInt(fields[1]) - firstTaskArrival,
                         fields[10], fields[3], fields[20], fields[11]);

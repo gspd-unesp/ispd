@@ -24,7 +24,7 @@ import java.util.stream.IntStream;
  *     uniforms.</li>
  *     <li>This class generates task creation times from an exponential
  *     distribution with {@code beta = 5}, which may be adapted if the task's
- *     owner has id {@link #USER_NO_DELAY}. See
+ *     owner has id {@value #USER_NO_DELAY}. See
  *     {@link #makeTaskCreationTime()} for details.</li>
  * </ul>
  *
@@ -172,6 +172,28 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     }
 
     /**
+     * The iconic model format for this workload generator consists of:
+     * <ul>
+     *     <li>The scheduler (node) id</li>
+     *     <li>The {@link #taskCount}</li>
+     *     <li>The configuration for computation and communication
+     *     (respectively) distributions for task size. <b><i>Only</i> the
+     *     interval minimums and maximums</b> are outputted, since during
+     *     generation the distribution acts as a single stage uniform one.
+     * </ul>
+     *
+     * @see TwoStageUniform
+     */
+    @Override
+    public String formatForIconicModel() {
+        return String.format("%s %d %f %f %f %f",
+                this.schedulerId, this.taskCount,
+                this.computation.maximum(), this.computation.minimum(),
+                this.communication.maximum(), this.communication.minimum()
+        );
+    }
+
+    /**
      * The string representation for this workload generator includes is task
      * count, application, owner, scheduler id, and distributions for
      * generating computation and communication sizes.
@@ -242,8 +264,9 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     }
 
     /**
-     * @return no extra delay (in seconds) for most users, but an extra
-     * {@link #ON_NO_DELAY} if the task owner's id is {@link #USER_NO_DELAY}.
+     * @return no extra delay for most users, but an extra
+     * {@value #ON_NO_DELAY} seconds if the task owner's id is
+     * {@value #USER_NO_DELAY}.
      */
     private int calculateExtraDelay() {
         return PerNodeWorkloadGenerator.USER_NO_DELAY.equals(this.owner) ?

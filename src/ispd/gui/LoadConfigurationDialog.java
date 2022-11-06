@@ -2,12 +2,12 @@ package ispd.gui;
 
 import ispd.arquivo.xml.TraceXML;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
-import ispd.motor.workload.impl.CollectionWorkloadGenerator;
-import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
-import ispd.motor.workload.impl.GlobalWorkloadGenerator;
-import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
 import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.WorkloadGeneratorType;
+import ispd.motor.workload.impl.CollectionWorkloadGenerator;
+import ispd.motor.workload.impl.GlobalWorkloadGenerator;
+import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
+import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
 import ispd.utils.SequentialIntegerSupplier;
 
 import javax.swing.BorderFactory;
@@ -27,6 +27,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
+import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileView;
 import javax.swing.table.DefaultTableModel;
@@ -52,6 +53,12 @@ import static ispd.gui.utils.ButtonBuilder.aButton;
 import static ispd.gui.utils.ButtonBuilder.basicButton;
 
 public class LoadConfigurationDialog extends JDialog {
+    private static final Supplier<SpinnerModel> UNSIGNED_MODEL =
+            () -> new SpinnerNumberModel(0, 0, null, 1);
+    private static final Supplier<SpinnerModel> PROBABILITY_MODEL =
+            () -> new SpinnerNumberModel(0.0d, 0.0d, 1.0d, 0.1d);
+    private static final Supplier<SpinnerModel> POSITIVE_REAL_MODEL =
+            () -> new SpinnerNumberModel(0.0d, 0.0d, null, 0.1d);
     private static final ActionListener DO_NOTHING = evt -> {
     };
     private static final Dimension PREFERRED_BUTTON_SIZE =
@@ -212,12 +219,9 @@ public class LoadConfigurationDialog extends JDialog {
                 this.translate("Number of tasks"));
 
 
-        this.jSpinnerNumTarefas.setModel(new SpinnerNumberModel(0
-                , 0,
-                null, 1));
+        this.jSpinnerNumTarefas.setModel(LoadConfigurationDialog.UNSIGNED_MODEL.get());
 
-        this.jSpinnerMinComputacao.setModel(new SpinnerNumberModel(0,
-                0, null, 1));
+        this.jSpinnerMinComputacao.setModel(LoadConfigurationDialog.POSITIVE_REAL_MODEL.get());
 
         final var computationalSize = new JLabel(
                 this.translate("Computational size"));
@@ -228,33 +232,27 @@ public class LoadConfigurationDialog extends JDialog {
         final var arrivalTime = new JLabel(
                 this.translate("Time of arrival"));
 
-        this.jSpinnerMinComunicacao.setModel(new SpinnerNumberModel(0,
-                0, null, 1));
-        this.jSpinnerTimeOfArrival.setModel(new SpinnerNumberModel(0,
-                0, null, 1));
+        this.jSpinnerMinComunicacao.setModel(LoadConfigurationDialog.POSITIVE_REAL_MODEL.get());
+        this.jSpinnerTimeOfArrival.setModel(LoadConfigurationDialog.UNSIGNED_MODEL.get());
 
         final var minimumLabel = new JLabel(this.translate("Minimum"));
         final var averageLabel = new JLabel(this.translate("Average"));
 
-        this.jSpinnerAverageComputacao.setModel(new SpinnerNumberModel(0, 0,
-                null, 1));
+        this.jSpinnerAverageComputacao.setModel(LoadConfigurationDialog.POSITIVE_REAL_MODEL.get());
 
-        this.jSpinnerAverageComunicacao.setModel(new SpinnerNumberModel(0, 0,
-                null, 1));
+        this.jSpinnerAverageComunicacao.setModel(LoadConfigurationDialog.POSITIVE_REAL_MODEL.get());
 
         final var maximumLabel = new JLabel(this.translate("Maximum"));
 
-        this.jSpinnerMaxComputacao.setModel(new SpinnerNumberModel(0,
-                0, null, 1));
+        this.jSpinnerMaxComputacao.setModel(LoadConfigurationDialog.POSITIVE_REAL_MODEL.get());
 
-        this.jSpinnerMaxComunicacao.setModel(new SpinnerNumberModel(0,
-                0, null, 1));
+        this.jSpinnerMaxComunicacao.setModel(LoadConfigurationDialog.POSITIVE_REAL_MODEL.get());
 
         final var probability = new JLabel(this.translate("Probability"));
 
-        this.jSpinnerProbabilityComputacao.setModel(new SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+        this.jSpinnerProbabilityComputacao.setModel(LoadConfigurationDialog.PROBABILITY_MODEL.get());
 
-        this.jSpinnerProbabilityComunicacao.setModel(new SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+        this.jSpinnerProbabilityComunicacao.setModel(LoadConfigurationDialog.PROBABILITY_MODEL.get());
 
         final var mFlops = new JLabel(this.translate("MFLOPS"));
 
@@ -395,8 +393,7 @@ public class LoadConfigurationDialog extends JDialog {
                                                             " tasks"));
 
 
-        this.jSpinnerNumTarefasNo.setModel(new SpinnerNumberModel(0, 0
-                , null, 1));
+        this.jSpinnerNumTarefasNo.setModel(LoadConfigurationDialog.UNSIGNED_MODEL.get());
 
         final var computational = new JLabel(this.translate("Computational"));
 
@@ -824,7 +821,7 @@ public class LoadConfigurationDialog extends JDialog {
 
         switch (loadGenerator.getType()) {
             case RANDOM -> {
-                final GlobalWorkloadGenerator random = (GlobalWorkloadGenerator) loadGenerator;
+                final var random = (GlobalWorkloadGenerator) loadGenerator;
                 this.jSpinnerNumTarefas.setValue(random.getTaskCount());
                 this.jSpinnerMinComputacao.setValue(random.getComputationMinimum());
                 this.jSpinnerMaxComputacao.setValue(random.getComputationMaximum());
@@ -838,16 +835,18 @@ public class LoadConfigurationDialog extends JDialog {
                 this.setTipo(WorkloadGeneratorType.RANDOM);
             }
             case PER_NODE -> {
-                final CollectionWorkloadGenerator nodes = (CollectionWorkloadGenerator) loadGenerator;
+                final var nodes = (CollectionWorkloadGenerator) loadGenerator;
                 for (final WorkloadGenerator item : nodes.getList()) {
-                    final PerNodeWorkloadGenerator node = (PerNodeWorkloadGenerator) item;
+                    final PerNodeWorkloadGenerator node =
+                            (PerNodeWorkloadGenerator) item;
                     this.tableRow.add(node.toVector());
                 }
                 this.indexTable = this.tableRow.size();
                 this.setTipo(WorkloadGeneratorType.PER_NODE);
             }
             case TRACE -> {
-                final TraceFileWorkloadGenerator trace = (TraceFileWorkloadGenerator) loadGenerator;
+                final TraceFileWorkloadGenerator trace =
+                        (TraceFileWorkloadGenerator) loadGenerator;
                 this.file = trace.getTraceFile();
                 this.traceType = trace.getTraceType();
                 this.traceTaskNumber = trace.getTaskCount();
@@ -1101,29 +1100,29 @@ public class LoadConfigurationDialog extends JDialog {
     private void onOkClick(final ActionEvent evt) {
         if (this.jRadioButtonRandom.isSelected()) {
             try {
-                final int numTaref =
-                        (Integer) this.jSpinnerNumTarefas.getValue();
-                final int minComp =
-                        (Integer) this.jSpinnerMinComputacao.getValue();
-                final int maxComp =
-                        (Integer) this.jSpinnerMaxComputacao.getValue();
-                final int aveComp =
-                        (Integer) this.jSpinnerAverageComputacao.getValue();
+                final var minComp =
+                        (Double) this.jSpinnerMinComputacao.getValue();
+                final var maxComp =
+                        (Double) this.jSpinnerMaxComputacao.getValue();
+                final var aveComp =
+                        (Double) this.jSpinnerAverageComputacao.getValue();
                 final double probComp =
                         Double.parseDouble(this.jSpinnerProbabilityComputacao.getValue().toString());
-                final int minComun =
-                        (Integer) this.jSpinnerMinComunicacao.getValue();
-                final int maxComun =
-                        (Integer) this.jSpinnerMaxComunicacao.getValue();
-                final int aveComun =
-                        (Integer) this.jSpinnerAverageComunicacao.getValue();
+                final var minComun =
+                        (Double) this.jSpinnerMinComunicacao.getValue();
+                final var maxComun =
+                        (Double) this.jSpinnerMaxComunicacao.getValue();
+                final var aveComun =
+                        (Double) this.jSpinnerAverageComunicacao.getValue();
                 final double probComun =
                         Double.parseDouble(this.jSpinnerProbabilityComunicacao.getValue().toString());
-                final int timeArriv =
+                final var timeArriv =
                         (Integer) this.jSpinnerTimeOfArrival.getValue();
-                this.loadGenerator = new GlobalWorkloadGenerator(numTaref, minComp, maxComp,
-                        aveComp, probComp, minComun, maxComun, aveComun,
-                        probComun, timeArriv);
+                this.loadGenerator = new GlobalWorkloadGenerator(
+                        (int) this.jSpinnerNumTarefas.getValue(),
+                        minComp, maxComp, aveComp, probComp,
+                        minComun, maxComun, aveComun, probComun,
+                        timeArriv);
             } catch (final Exception ex) {
                 Logger.getLogger(LoadConfigurationDialog.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1135,14 +1134,16 @@ public class LoadConfigurationDialog extends JDialog {
                 for (final List item : this.tableRow) {
                     configuracaoNo.add(LoadConfigurationDialog.loadGeneratorFromTableRow(item, idSupplier));
                 }
-                this.loadGenerator = new CollectionWorkloadGenerator(WorkloadGeneratorType.PER_NODE, configuracaoNo
-                );
+                this.loadGenerator =
+                        new CollectionWorkloadGenerator(WorkloadGeneratorType.PER_NODE, configuracaoNo
+                        );
             } catch (final Exception ex) {
                 Logger.getLogger(LoadConfigurationDialog.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (this.jRadioButtonTraces.isSelected()) {
             //configura a carga apartir do arquivo aberto..
-            this.loadGenerator = new TraceFileWorkloadGenerator(this.file, this.traceTaskNumber,
+            this.loadGenerator = new TraceFileWorkloadGenerator(this.file,
+                    this.traceTaskNumber,
                     this.traceType);
         }
         this.setVisible(false);
@@ -1152,7 +1153,8 @@ public class LoadConfigurationDialog extends JDialog {
         this.setVisible(false);
     }
 
-    private static WorkloadGenerator loadGeneratorFromTableRow(final List row, final Supplier<Integer> idSupplier) {
+    private static WorkloadGenerator loadGeneratorFromTableRow(final List row
+            , final Supplier<Integer> idSupplier) {
         return new PerNodeWorkloadGenerator(
                 row.get(0).toString(),
                 row.get(1).toString(),

@@ -33,7 +33,19 @@ public interface WorkloadGenerator {
     @Override
     String toString();
 
-    private void throwToString() {
-        throw new UnsupportedOperationException(".toString used for serialization");
-    }
+    /**
+     * Outputs the current workload generator configuration, formatted
+     * appropriately for inclusion in an iconic model file. For a more
+     * <i>human-readable</i> representation, use {@link #toString()}.<br>
+     * Odd formatting choices can be attributed to backwards compatibility
+     * with how the
+     * {@link ispd.arquivo.interpretador.internal.iconic.InterpretadorIconico
+     * iconic model interpreter} parses workload configurations from files.
+     *
+     * @return iconic-model fitting string representation of how the
+     * generator is currently configured.
+     * @see ispd.arquivo.interpretador.internal.iconic.InterpretadorIconico
+     * Iconic model interpreter
+     */
+    String formatForIconicModel();
 }

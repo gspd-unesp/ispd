@@ -498,11 +498,11 @@ public class DesenhoGrade extends DrawingArea {
         if (this.loadConfiguration != null) {
             switch (this.loadConfiguration.getType()) {
                 case RANDOM ->
-                        saida.append(" RANDOM\n").append(this.loadConfiguration.toString()).append("\n");
+                        saida.append(" RANDOM\n").append(this.loadConfiguration.formatForIconicModel()).append("\n");
                 case PER_NODE ->
-                        saida.append(" MAQUINA\n").append(this.loadConfiguration.toString()).append("\n");
+                        saida.append(" MAQUINA\n").append(this.loadConfiguration.formatForIconicModel()).append("\n");
                 case TRACE ->
-                        saida.append(" TRACE\n").append(this.loadConfiguration.toString()).append("\n");
+                        saida.append(" TRACE\n").append(this.loadConfiguration.formatForIconicModel()).append("\n");
             }
         }
         return saida.toString();

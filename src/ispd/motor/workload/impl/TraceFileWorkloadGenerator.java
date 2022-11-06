@@ -197,6 +197,15 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
     }
 
     /**
+     * The iconic model format for this workload generator consists only of
+     * the absolute path of the {@link #traceFile} used.
+     */
+    @Override
+    public String formatForIconicModel() {
+        return this.traceFile.getAbsolutePath();
+    }
+
+    /**
      * The string representation for this workload generator includes its
      * task count, type of the trace file used and its path.
      */

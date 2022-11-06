@@ -2,6 +2,7 @@ package ispd.motor.workload.impl;
 
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
+import ispd.motor.random.TwoStageUniform;
 import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.WorkloadGeneratorType;
 
@@ -71,6 +72,17 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
         return this.type;
     }
 
+    /**
+     * The iconic model format for this workload generator consists of the
+     * format for all the models on its {@link #list}, concatenated together
+     * by newlines.
+     */
+    @Override
+    public String formatForIconicModel() {
+        return this.list.stream()
+                .map(WorkloadGenerator::formatForIconicModel)
+                .collect(Collectors.joining("\n"));
+    }
 
     /**
      * The string representation for workloads of this class contains the
