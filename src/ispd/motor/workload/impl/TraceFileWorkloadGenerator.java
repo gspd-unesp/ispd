@@ -206,7 +206,8 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
                 TraceFileWorkloadGenerator{
                     taskCount=%d,
                     type='%s',
-                    path=%s""".formatted(
+                    path=%s,
+                }""".formatted(
                 this.taskCount,
                 this.traceType,
                 this.traceFile.getAbsolutePath()

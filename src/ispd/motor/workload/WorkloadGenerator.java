@@ -32,4 +32,8 @@ public interface WorkloadGenerator {
      */
     @Override
     String toString();
+
+    private void throwToString() {
+        throw new UnsupportedOperationException(".toString used for serialization");
+    }
 }

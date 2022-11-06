@@ -4,6 +4,7 @@ import ispd.motor.filas.Tarefa;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.regex.Pattern;
  * Class responsible for converting traces into XML files.
  */
 public class TraceXML {
-    private static final char FILE_PATH_DELIMITER = '\\';
+    private static final char FILE_PATH_DELIMITER = File.separatorChar;
     private static final char FILE_EXT_DELIMITER = '.';
     private static final Pattern TABS = Pattern.compile("\t");
     private static final Pattern WHITE_SPACE = Pattern.compile("\\s\\s++");
