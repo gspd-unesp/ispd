@@ -453,7 +453,7 @@ public class CentrosDeServico {
     }
 
     public NoFila peekFilaComun() {
-        System.out.printf("getType() = %d \n", getTipo());
+        System.out.printf("getTipo() = %d \n", getTipo());
         System.out.printf("getIdCS() = %d \n", getIdCS());
         if (getTipo() == 1)   //Se for um cluster, pegar a tarefa na fila de
 			// comunicacao (id 1)
