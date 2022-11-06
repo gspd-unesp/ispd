@@ -63,11 +63,11 @@ public class LoadBuilder {
     private static GlobalWorkloadGenerator randomLoadFromElement(final WrappedElement e) {
         final var computation = LoadBuilder.getTaskSizeFromElement(
                 e, WrappedElement::isComputingType,
-                WrappedElement::toTaskSize);
+                WrappedElement::toTwoStageUniform);
 
         final var communication = LoadBuilder.getTaskSizeFromElement(
                 e, WrappedElement::isCommunicationType,
-                WrappedElement::toTaskSize);
+                WrappedElement::toTwoStageUniform);
 
         return new GlobalWorkloadGenerator(
                 e.tasks(), e.arrivalTime(), computation, communication);
@@ -113,12 +113,12 @@ public class LoadBuilder {
     private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e, final Supplier<Integer> idSupplier) {
         final var computation = LoadBuilder.getTaskSizeFromElement(
                 e, WrappedElement::isComputingType,
-                WrappedElement::toTaskSizeRange
+                WrappedElement::toUniformDistribution
         );
 
         final var communication = LoadBuilder.getTaskSizeFromElement(
                 e, WrappedElement::isCommunicationType,
-                WrappedElement::toTaskSizeRange
+                WrappedElement::toUniformDistribution
         );
 
         return new PerNodeWorkloadGenerator(

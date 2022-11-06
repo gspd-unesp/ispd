@@ -17,26 +17,33 @@ public class WrappedElement {
     /**
      * Construct a {@link TwoStageUniform} from this instance, with the values
      * acquired from {@link #minimum()}, {@link #maximum()} and
-     * {@link #average()}.
+     * {@link #average()}; {@link TwoStageUniform#firstIntervalProbability()
+     * probability} is set to {@code 0}.
      *
-     * @return {@link TwoStageUniform} with a minimum, maximum, and average values
-     * as the respective tags in this instance, and {@code 0} for  probability.
+     * @return {@link TwoStageUniform} with a minimum, maximum, and average
+     * values as the respective tags in this instance, and {@code 0} for
+     * probability.
+     * @see ispd.arquivo.exportador.Exportador
      */
-    public TwoStageUniform toTaskSizeNoProbability() {
-        return new TwoStageUniform(this.minimum(), this.average(), this.maximum(), 0);
+    public TwoStageUniform toTwoStageImplicitProb() {
+        return new TwoStageUniform(
+                this.minimum(),
+                this.average(),
+                this.maximum(),
+                0
+        );
     }
 
     /**
-     * Construct a {@link TwoStageUniform} from this instance, with the values
-     * acquired from {@link #minimum()} and {@link #maximum()}.
+     * Construct a {@link TwoStageUniform} from this instance (to act as a
+     * single stage uniform distribution), with the values acquired from
+     * {@link #minimum()} and {@link #maximum()}.
      *
      * @return {@link TwoStageUniform} with a minimum and maximum values as the
-     * respective tags in this instance, and default values for the fields
-     * {@link TwoStageUniform#intervalSplit()} and
-     * {@link TwoStageUniform#firstIntervalProbability()}.
+     * respective tags in this element.
      * @see TwoStageUniform#TwoStageUniform(double, double)
      */
-    public TwoStageUniform toTaskSizeRange() {
+    public TwoStageUniform toUniformDistribution() {
         return new TwoStageUniform(this.minimum(), this.maximum());
     }
 
@@ -46,9 +53,9 @@ public class WrappedElement {
      * {@link #average()} and {@link #probability()}.
      *
      * @return {@link TwoStageUniform} with a minimum, maximum, average and
-     * probability values as the respective tags in this instance.
+     * probability values as the respective tags in this element.
      */
-    public TwoStageUniform toTaskSize() {
+    public TwoStageUniform toTwoStageUniform() {
         return new TwoStageUniform(
                 this.minimum(),
                 this.average(),
@@ -147,6 +154,11 @@ public class WrappedElement {
                 .map(WrappedElement::new);
     }
 
+    /**
+     * Construct an instance to wrap the given {@link Element}.
+     *
+     * @param element {@link Element} to be wrapped
+     */
     public WrappedElement(final Element element) {
         this.element = element;
     }

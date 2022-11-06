@@ -1,8 +1,8 @@
 package ispd.arquivo.exportador;
 
-import ispd.motor.random.TwoStageUniform;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
+import ispd.motor.random.TwoStageUniform;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-  
+
 /**
  * Utility class to convert an iSPD file to GridSim java file.
  * Construct it and call method {@link #export()}.
@@ -345,14 +345,14 @@ import java.util.stream.LongStream;
         final var computation = e.sizes()
                 .filter(WrappedElement::isComputingType)
                 .findFirst()
-                .map(WrappedElement::toTaskSizeNoProbability)
+                .map(WrappedElement::toTwoStageImplicitProb)
                 .map(TwoStageUniform::rangeNormalized)
                 .orElseGet(TwoStageUniform::new);
 
         final var communication = e.sizes()
                 .filter(WrappedElement::isCommunicationType)
                 .findFirst()
-                .map(WrappedElement::toTaskSizeNoProbability)
+                .map(WrappedElement::toTwoStageImplicitProb)
                 .map(TwoStageUniform::rangeNormalized)
                 .orElseGet(TwoStageUniform::new);
 
