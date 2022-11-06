@@ -1132,7 +1132,7 @@ public class LoadConfigurationDialog extends JDialog {
                         new ArrayList<>(this.tableRow.size());
                 final var idSupplier = new SequentialIntegerSupplier();
                 for (final List item : this.tableRow) {
-                    configuracaoNo.add(LoadConfigurationDialog.loadGeneratorFromTableRow(item, idSupplier));
+                    configuracaoNo.add(PerNodeWorkloadGenerator.fromTableRow(item, idSupplier));
                 }
                 this.loadGenerator =
                         new CollectionWorkloadGenerator(WorkloadGeneratorType.PER_NODE, configuracaoNo
@@ -1151,21 +1151,6 @@ public class LoadConfigurationDialog extends JDialog {
 
     private void onCancelClick(final ActionEvent evt) {
         this.setVisible(false);
-    }
-
-    private static WorkloadGenerator loadGeneratorFromTableRow(final List row
-            , final Supplier<Integer> idSupplier) {
-        return new PerNodeWorkloadGenerator(
-                row.get(0).toString(),
-                row.get(1).toString(),
-                row.get(2).toString(),
-                Integer.parseInt(row.get(3).toString()),
-                Double.parseDouble(row.get(4).toString()),
-                Double.parseDouble(row.get(5).toString()),
-                Double.parseDouble(row.get(6).toString()),
-                Double.parseDouble(row.get(7).toString()),
-                idSupplier
-        );
     }
 
     WorkloadGenerator getCargasConfiguracao() {

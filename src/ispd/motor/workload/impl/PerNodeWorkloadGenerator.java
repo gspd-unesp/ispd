@@ -42,35 +42,6 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     /**
      * Create a per-node workload generator with the given parameters.
      *
-     * @param application      workload's originating application
-     * @param owner            id (name) of the user who owns the workload
-     * @param schedulerId      id of the machine which the workload will be
-     *                         directed to
-     * @param taskCount        total number of tasks
-     * @param maxComputation   computation distribution maximum
-     * @param minComputation   computation distribution minimum
-     * @param maxCommunication communication distribution maximum
-     * @param minCommunication communication distribution minimum
-     * @param idSupplier       supplier of ids for the generated tasks. Must
-     *                         supply at least {@code taskCount} ids
-     */
-    public PerNodeWorkloadGenerator(
-            final String application, final String owner,
-            final String schedulerId, final int taskCount,
-            final double maxComputation, final double minComputation,
-            final double maxCommunication, final double minCommunication,
-            final Supplier<Integer> idSupplier) {
-        this(
-                application, owner, schedulerId, taskCount,
-                new TwoStageUniform(minComputation, maxComputation),
-                new TwoStageUniform(minCommunication, maxCommunication),
-                idSupplier
-        );
-    }
-
-    /**
-     * Create a per-node workload generator with the given parameters.
-     *
      * @param application   workload's originating application
      * @param owner         id (name) of the user who owns the workload
      * @param schedulerId   id of the machine which the workload will be
@@ -97,6 +68,52 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
     }
 
     /**
+     * Construct an instance from a {@link List} of attributes.<br>
+     * The order of the attributes in the list must be consistent between
+     * this method, and its {@link PerNodeWorkloadGenerator#toVector()
+     * toVector} method.
+     *
+     * @param row        {@link List} of attributes to construct a generator.
+     * @param idSupplier supplier of ids for the generated tasks.
+     * @return an instance created from the given {@link List} of attributes.
+     */
+    public static PerNodeWorkloadGenerator fromTableRow(
+            final List row, final Supplier<Integer> idSupplier) {
+        class ListWrapper {
+            private final List list;
+
+            private ListWrapper(final List list) {
+                this.list = list;
+            }
+
+            private int getAsInt(final int i) {
+                return Integer.parseInt(this.get(i));
+            }
+
+            private String get(final int i) {
+                return this.list.get(i).toString();
+            }
+
+            private double getAsDouble(final int i) {
+                return Double.parseDouble(this.get(i));
+            }
+        }
+
+        final var list = new ListWrapper(row);
+
+        return new PerNodeWorkloadGenerator(
+                list.get(0),
+                list.get(1),
+                list.get(2),
+                list.getAsInt(3),
+                // Careful with how the object is converted to vector.
+                new TwoStageUniform(list.getAsDouble(5), list.getAsDouble(4)),
+                new TwoStageUniform(list.getAsDouble(7), list.getAsDouble(6)),
+                idSupplier
+        );
+    }
+
+    /**
      * Build a {@link Vector} with data from this instance, in the following
      * order:
      * <ol>
@@ -109,6 +126,11 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
      *     <li>{@link #communication}'s interval maximum</li>
      *     <li>{@link #communication}'s interval minimum</li>
      * </ol>
+     * The order of attributes must be kept consistent between this method,
+     * the method
+     * {@link PerNodeWorkloadGenerator#fromTableRow(List, Supplier)}, and how
+     * the {@link ispd.gui.LoadConfigurationDialog load configuration window}
+     * represents instances of this class in a table.
      *
      * @return {@link Vector} with this instance's data.
      * @see TwoStageUniform
