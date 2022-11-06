@@ -4,8 +4,11 @@ import jdk.jfr.Percentage;
 
 /**
  * Utility class to contain information about computing or communication sizes.
- * They are expressed as an inclusive range, with an intervalSplit and
- * firstIntervalProbability (parameters for a two-stage uniform distribution).
+ * They are expressed as an inclusive range, with an {@link #intervalSplit
+ * interval split} and {@link #firstIntervalProbability probability for the
+ * first interval} (parameters for a two-stage uniform distribution).
+ *
+ * @see Distribution#twoStageUniform(double, double, double, double)
  */
 public record TwoStageUniform(
         double minimum,
@@ -24,10 +27,9 @@ public record TwoStageUniform(
 
     /**
      * Construct an instance with given {@code minimum} and {@code maximum}
-     * values, and with intervalSplit and firstIntervalProbability to
-     * represent a
-     * <b>uniform
-     * distribution</b>.
+     * values, and with {@link #intervalSplit split} and
+     * {@link #firstIntervalProbability probability} set to represent a
+     * <b>uniform distribution</b>.
      *
      * @param minimum distribution minimum
      * @param maximum distribution maximum
