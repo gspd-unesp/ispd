@@ -142,29 +142,34 @@ public class UserConfigurationDialog extends JDialog {
 
     private void onAddClick(final ActionEvent evt) {
 
-        final String add = JOptionPane.showInputDialog(
-                this,
-                this.translate("Enter the name"),
-                this.translate("Add"),
-                JOptionPane.QUESTION_MESSAGE
-        );
+        try{
 
-        // TODO: Parse result and error.
-        final String sResult =JOptionPane.showInputDialog(this,
-                        "Enter user power comsumption limit");
+            final String add = JOptionPane.showInputDialog(
+                    this,
+                    this.translate("Enter the name"),
+                    this.translate("Add"),
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            final String sResult =JOptionPane.showInputDialog(this,
+                            "Enter user power comsumption limit");
 
 
-        if (!add.isEmpty() && !this.userSet.contains(add)  && !sResult.isEmpty() && !this.userSet.contains(sResult) ){
-            final Double result = Double.parseDouble(sResult);
-            this.userSet.add(add);
-            final Vector user = new Vector<String>();
-            user.add(add);
-            user.add(result);
-            this.users.add(user);
-            this.jScrollPane1.setViewportView(this.table);
-        }else{
-            JOptionPane.showMessageDialog(null, "Insert values corectly");
+            if (!add.isEmpty() && !this.userSet.contains(add)  && !sResult.isEmpty() && !this.userSet.contains(sResult) ){
+                final Double result = Double.parseDouble(sResult);
+                this.userSet.add(add);
+                final Vector user = new Vector<String>();
+                user.add(add);
+                user.add(result);
+                this.users.add(user);
+                this.jScrollPane1.setViewportView(this.table);
+            }else{
+                JOptionPane.showMessageDialog(null, "Insert values correctly");
 
+            }
+    }catch (Exception e) {
+            JOptionPane.showMessageDialog(null,
+                    "Action canceled. User not added", "User not added", JOptionPane.INFORMATION_MESSAGE);
         }
 
     }
