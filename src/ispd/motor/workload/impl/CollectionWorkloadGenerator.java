@@ -2,7 +2,6 @@ package ispd.motor.workload.impl;
 
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
-import ispd.motor.random.TwoStageUniform;
 import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.WorkloadGeneratorType;
 
@@ -44,12 +43,13 @@ public class CollectionWorkloadGenerator implements WorkloadGenerator {
     }
 
     /**
-     * Make a task list from the inner per-node load list, or an <b>empty</b>
-     * one if another type of {@link WorkloadGenerator} is in the list.
+     * Make a task list from the inner list of
+     * {@link WorkloadGeneratorType#PER_NODE} workloads, or an <b>empty</b>
+     * {@link ArrayList} if the list is of another type of
+     * {@link WorkloadGenerator}.
      *
-     * @return {@code List} with all, flattened, tasks in the per-node
-     * workloads in {@link #list}, or an empty {@code ArrayList} if
-     * the type of workloads in the list is not
+     * @return {@link List} with all tasks in the workloads in {@link #list},
+     * or an empty {@code ArrayList} if the type of workloads in the list is not
      * {@link PerNodeWorkloadGenerator}.
      */
     @Override
