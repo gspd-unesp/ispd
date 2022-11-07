@@ -8,7 +8,7 @@ import ispd.motor.workload.impl.CollectionWorkloadGenerator;
 import ispd.motor.workload.impl.GlobalWorkloadGenerator;
 import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
 import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
-import ispd.utils.SequentialIntegerSupplier;
+import ispd.utils.SequentialIntSupplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -1132,7 +1132,7 @@ public class LoadConfigurationDialog extends JDialog {
             try {
                 final List<WorkloadGenerator> configuracaoNo =
                         new ArrayList<>(this.tableRow.size());
-                final var idSupplier = new SequentialIntegerSupplier();
+                final var idSupplier = new SequentialIntSupplier();
                 for (final List item : this.tableRow) {
                     configuracaoNo.add(PerNodeWorkloadGenerator.fromTableRow(item, idSupplier));
                 }

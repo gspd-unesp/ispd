@@ -11,7 +11,7 @@ import ispd.motor.workload.WorkloadGeneratorType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
-import java.util.function.Supplier;
+import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -57,7 +57,7 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
             final String schedulerId, final int taskCount,
             final TwoStageUniform computation,
             final TwoStageUniform communication,
-            final Supplier<Integer> idSupplier) {
+            final IntSupplier idSupplier) {
         super(
                 taskCount, computation, communication,
                 idSupplier, new Distribution(System.currentTimeMillis())
@@ -78,7 +78,7 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
      * @return an instance created from the given {@link List} of attributes.
      */
     public static PerNodeWorkloadGenerator fromTableRow(
-            final List row, final Supplier<Integer> idSupplier) {
+            final List row, final IntSupplier idSupplier) {
         class ListWrapper {
             private final List list;
 
@@ -128,7 +128,7 @@ public class PerNodeWorkloadGenerator extends RandomicWorkloadGenerator {
      * </ol>
      * The order of attributes must be kept consistent between this method,
      * the method
-     * {@link PerNodeWorkloadGenerator#fromTableRow(List, Supplier)}, and how
+     * {@link PerNodeWorkloadGenerator#fromTableRow(List, IntSupplier)}, and how
      * the {@link ispd.gui.LoadConfigurationDialog load configuration window}
      * represents instances of this class in a table.
      *

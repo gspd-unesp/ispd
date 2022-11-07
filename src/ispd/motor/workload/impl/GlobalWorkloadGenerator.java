@@ -6,7 +6,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.random.Distribution;
 import ispd.motor.random.TwoStageUniform;
 import ispd.motor.workload.WorkloadGeneratorType;
-import ispd.utils.SequentialIntegerSupplier;
+import ispd.utils.SequentialIntSupplier;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ import java.util.List;
  * </ul>
  *
  * @see RandomicWorkloadGenerator
- * @see SequentialIntegerSupplier
+ * @see SequentialIntSupplier
  * @see Distribution#nextExponential(double)
  */
 public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
@@ -87,7 +87,7 @@ public class GlobalWorkloadGenerator extends RandomicWorkloadGenerator {
             final TwoStageUniform communication) {
         super(
                 taskCount, computation, communication,
-                new SequentialIntegerSupplier(),
+                new SequentialIntSupplier(),
                 new Distribution(System.currentTimeMillis())
         );
         this.taskCreationTime = taskCreationTime;

@@ -6,6 +6,7 @@ import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.impl.task.TaskBuilder;
 import jdk.jfr.Unsigned;
 
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -38,7 +39,7 @@ abstract class RandomicWorkloadGenerator extends TaskBuilder implements Workload
     /**
      * Object, or even Function, to be invoked to generate a new task id.
      */
-    private final Supplier<Integer> idSupplier;
+    private final IntSupplier idSupplier;
 
     /**
      * Initialize the class' fields with the given parameters.
@@ -56,7 +57,7 @@ abstract class RandomicWorkloadGenerator extends TaskBuilder implements Workload
             final int taskCount,
             final TwoStageUniform computation,
             final TwoStageUniform communication,
-            final Supplier<Integer> idSupplier,
+            final IntSupplier idSupplier,
             final Distribution random) {
         this.computation = computation;
         this.communication = communication;
@@ -71,7 +72,7 @@ abstract class RandomicWorkloadGenerator extends TaskBuilder implements Workload
      */
     @Override
     protected int makeTaskId() {
-        return this.idSupplier.get();
+        return this.idSupplier.getAsInt();
     }
 
     /**

@@ -8,11 +8,11 @@ import ispd.motor.workload.impl.CollectionWorkloadGenerator;
 import ispd.motor.workload.impl.GlobalWorkloadGenerator;
 import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
 import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
-import ispd.utils.SequentialIntegerSupplier;
+import ispd.utils.SequentialIntSupplier;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.function.IntSupplier;
 
 /**
  * Converts XML docs with simulation workload configuration into
@@ -78,7 +78,7 @@ public class LoadBuilder {
     }
 
     private static Optional<CollectionWorkloadGenerator> nodeLoadsFromElement(final WrappedElement e) {
-        final var idSupplier = new SequentialIntegerSupplier();
+        final var idSupplier = new SequentialIntSupplier();
 
         final var nodeLoads = e.nodeLoads()
                 .map(el -> LoadBuilder.nodeLoadFromElement(el, idSupplier))
@@ -105,7 +105,8 @@ public class LoadBuilder {
         return null;
     }
 
-    private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e, final Supplier<Integer> idSupplier) {
+    private static PerNodeWorkloadGenerator nodeLoadFromElement(
+            final WrappedElement e, final IntSupplier idSupplier) {
         final var computation =
                 e.makeTwoStageFromInnerSizes(
                         WrappedElement::isComputingType,
