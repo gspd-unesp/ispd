@@ -736,7 +736,7 @@ public class LoadConfigurationDialog extends JDialog {
         this.jFileExternalTrace.setFileFilter(this.traceFileFilter);
 
         this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        this.setTitle(this.translate("Random Workloads"));
+        this.setTitle("Model of tasks");
         this.setMinimumSize(new Dimension(550, 450));
         this.setResizable(false);
 
