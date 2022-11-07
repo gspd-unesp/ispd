@@ -1100,29 +1100,31 @@ public class LoadConfigurationDialog extends JDialog {
     private void onOkClick(final ActionEvent evt) {
         if (this.jRadioButtonRandom.isSelected()) {
             try {
+                final var taskCount = (int) this.jSpinnerNumTarefas.getValue();
                 final var minComp =
-                        (Double) this.jSpinnerMinComputacao.getValue();
+                        (double) this.jSpinnerMinComputacao.getValue();
                 final var maxComp =
-                        (Double) this.jSpinnerMaxComputacao.getValue();
+                        (double) this.jSpinnerMaxComputacao.getValue();
                 final var aveComp =
-                        (Double) this.jSpinnerAverageComputacao.getValue();
+                        (double) this.jSpinnerAverageComputacao.getValue();
                 final double probComp =
-                        Double.parseDouble(this.jSpinnerProbabilityComputacao.getValue().toString());
+                        (double) this.jSpinnerProbabilityComputacao.getValue();
                 final var minComun =
-                        (Double) this.jSpinnerMinComunicacao.getValue();
+                        (double) this.jSpinnerMinComunicacao.getValue();
                 final var maxComun =
-                        (Double) this.jSpinnerMaxComunicacao.getValue();
+                        (double) this.jSpinnerMaxComunicacao.getValue();
                 final var aveComun =
-                        (Double) this.jSpinnerAverageComunicacao.getValue();
+                        (double) this.jSpinnerAverageComunicacao.getValue();
                 final double probComun =
-                        Double.parseDouble(this.jSpinnerProbabilityComunicacao.getValue().toString());
+                        (double) this.jSpinnerProbabilityComunicacao.getValue();
                 final var timeArriv =
-                        (Integer) this.jSpinnerTimeOfArrival.getValue();
+                        (int) this.jSpinnerTimeOfArrival.getValue();
                 this.loadGenerator = new GlobalWorkloadGenerator(
-                        (int) this.jSpinnerNumTarefas.getValue(),
+                        taskCount,
                         minComp, maxComp, aveComp, probComp,
                         minComun, maxComun, aveComun, probComun,
-                        timeArriv);
+                        timeArriv
+                );
             } catch (final Exception ex) {
                 Logger.getLogger(LoadConfigurationDialog.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1134,9 +1136,10 @@ public class LoadConfigurationDialog extends JDialog {
                 for (final List item : this.tableRow) {
                     configuracaoNo.add(PerNodeWorkloadGenerator.fromTableRow(item, idSupplier));
                 }
-                this.loadGenerator =
-                        new CollectionWorkloadGenerator(WorkloadGeneratorType.PER_NODE, configuracaoNo
-                        );
+                this.loadGenerator = new CollectionWorkloadGenerator(
+                        WorkloadGeneratorType.PER_NODE,
+                        configuracaoNo
+                );
             } catch (final Exception ex) {
                 Logger.getLogger(LoadConfigurationDialog.class.getName()).log(Level.SEVERE, null, ex);
             }
