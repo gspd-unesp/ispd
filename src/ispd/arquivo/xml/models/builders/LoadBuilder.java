@@ -2,7 +2,6 @@ package ispd.arquivo.xml.models.builders;
 
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.motor.random.TwoStageUniform;
 import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.workload.WorkloadGeneratorType;
 import ispd.motor.workload.impl.CollectionWorkloadGenerator;
@@ -13,22 +12,23 @@ import ispd.utils.SequentialIntegerSupplier;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * Converts XML docs with simulation load information into objects usable in
- * the simulation motor.
+ * Converts XML docs with simulation workload configuration into
+ * {@link WorkloadGenerator} objects, usable in the simulation motor.
  */
 public class LoadBuilder {
 
     /**
-     * Attempts to convert xml document given as param to a simulation load.
+     * Attempts to find and convert workload configuration info from the given
+     * {@link WrappedDocument xml document}, instancing a
+     * {@link WorkloadGenerator}.
      *
-     * @param doc {@link WrappedDocument}, possibly with load information
-     * @return {@link Optional} containing parsed load, if there was a valid
-     * one in the document. Otherwise, an empty Optional.
+     * @param doc {@link WrappedDocument}, possibly with workload configuration
+     * @return {@link Optional} containing parsed {@link WorkloadGenerator},
+     * if there was valid configuration for one in the document. Otherwise,
+     * an empty {@link Optional}.
      * @see ispd.arquivo.xml.IconicoXML
      * @see WorkloadGenerator
      */
@@ -61,16 +61,20 @@ public class LoadBuilder {
     }
 
     private static GlobalWorkloadGenerator randomLoadFromElement(final WrappedElement e) {
-        final var computation = LoadBuilder.getTaskSizeFromElement(
-                e, WrappedElement::isComputingType,
-                WrappedElement::toTwoStageUniform);
+        final var computation = e.makeTwoStageFromInnerSizes(
+                WrappedElement::isComputingType,
+                WrappedElement::toTwoStageUniform
+        );
 
-        final var communication = LoadBuilder.getTaskSizeFromElement(
-                e, WrappedElement::isCommunicationType,
-                WrappedElement::toTwoStageUniform);
+        final var communication = e.makeTwoStageFromInnerSizes(
+                WrappedElement::isCommunicationType,
+                WrappedElement::toTwoStageUniform
+        );
 
         return new GlobalWorkloadGenerator(
-                e.tasks(), e.arrivalTime(), computation, communication);
+                e.tasks(), e.arrivalTime(),
+                computation, communication
+        );
     }
 
     private static Optional<CollectionWorkloadGenerator> nodeLoadsFromElement(final WrappedElement e) {
@@ -85,7 +89,9 @@ public class LoadBuilder {
             return Optional.empty();
         }
 
-        return Optional.of(new CollectionWorkloadGenerator(WorkloadGeneratorType.PER_NODE, nodeLoads
+        return Optional.of(new CollectionWorkloadGenerator(
+                WorkloadGeneratorType.PER_NODE,
+                nodeLoads
         ));
     }
 
@@ -99,27 +105,18 @@ public class LoadBuilder {
         return null;
     }
 
-    private static TwoStageUniform getTaskSizeFromElement(
-            final WrappedElement element,
-            final Predicate<? super WrappedElement> predicate,
-            final Function<? super WrappedElement, TwoStageUniform> builder) {
-        return element.sizes()
-                .filter(predicate)
-                .findFirst()
-                .map(builder)
-                .orElseGet(TwoStageUniform::new);
-    }
-
     private static PerNodeWorkloadGenerator nodeLoadFromElement(final WrappedElement e, final Supplier<Integer> idSupplier) {
-        final var computation = LoadBuilder.getTaskSizeFromElement(
-                e, WrappedElement::isComputingType,
-                WrappedElement::toUniformDistribution
-        );
+        final var computation =
+                e.makeTwoStageFromInnerSizes(
+                        WrappedElement::isComputingType,
+                        WrappedElement::toUniformDistribution
+                );
 
-        final var communication = LoadBuilder.getTaskSizeFromElement(
-                e, WrappedElement::isCommunicationType,
-                WrappedElement::toUniformDistribution
-        );
+        final var communication =
+                e.makeTwoStageFromInnerSizes(
+                        WrappedElement::isCommunicationType,
+                        WrappedElement::toUniformDistribution
+                );
 
         return new PerNodeWorkloadGenerator(
                 e.application(), e.owner(),

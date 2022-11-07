@@ -4,6 +4,8 @@ import ispd.motor.random.TwoStageUniform;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -13,6 +15,71 @@ import java.util.stream.Stream;
  */
 public class WrappedElement {
     private final Element element;
+
+    /**
+     * Create a {@link TwoStageUniform} from this instance's {@link #sizes()}
+     * inner elements. The filtering predicate is to determine what kind of
+     * size is to be mapped, and the mapping function is to convert the first
+     * valid element found into a {@link TwoStageUniform}.
+     *
+     * @param filteringPredicate filter to select what type of inner element
+     *                           must be converted; for instance,
+     *                           {@link #isComputingType()}
+     * @param mappingFunction    function to construct an instance of
+     *                           {@link TwoStageUniform} from the first valid
+     *                           inner element found; for
+     *                           instance, {@link #toTwoStageUniform()}
+     * @return constructed {@link TwoStageUniform} from the first valid inner
+     * element in this instance's {@link #sizes()} inner elements.
+     */
+    public TwoStageUniform makeTwoStageFromInnerSizes(
+            final Predicate<? super WrappedElement> filteringPredicate,
+            final Function<? super WrappedElement, TwoStageUniform> mappingFunction) {
+        return this.sizes()
+                .filter(filteringPredicate)
+                .findFirst()
+                .map(mappingFunction)
+                .orElseGet(TwoStageUniform::new);
+    }
+
+    /**
+     * @return {@link Stream} of all inner elements with tag name "size"
+     */
+    public Stream<WrappedElement> sizes() {
+        return this.elementsWithTag("size");
+    }
+
+    private Stream<WrappedElement> elementsWithTag(final String tag) {
+        return WrappedElement.nodeListToWrappedElementStream(
+                this.getElementsByTagName(tag)
+        );
+    }
+
+    /**
+     * @param nl {@link NodeList} to be converted.
+     * @return convert given {@link NodeList} into a {@link Stream} of {@code
+     * WrappedElement}s
+     */
+    /* package-private */
+    static Stream<WrappedElement> nodeListToWrappedElementStream(final NodeList nl) {
+        return IntStream.range(0, nl.getLength())
+                .mapToObj(nl::item)
+                .map(Element.class::cast)
+                .map(WrappedElement::new);
+    }
+
+    private NodeList getElementsByTagName(final String s) {
+        return this.element.getElementsByTagName(s);
+    }
+
+    /**
+     * Construct an instance to wrap the given {@link Element}.
+     *
+     * @param element {@link Element} to be wrapped
+     */
+    public WrappedElement(final Element element) {
+        this.element = element;
+    }
 
     /**
      * Construct a {@link TwoStageUniform} from this instance, with the values
@@ -97,10 +164,6 @@ public class WrappedElement {
         return new WrappedElement((Element) this.getElementsByTagName(tagName).item(0));
     }
 
-    private NodeList getElementsByTagName(final String s) {
-        return this.element.getElementsByTagName(s);
-    }
-
     /**
      * @return id of destination vertex
      */
@@ -134,33 +197,6 @@ public class WrappedElement {
      */
     public Stream<WrappedElement> slaves() {
         return this.elementsWithTag("slave");
-    }
-
-    private Stream<WrappedElement> elementsWithTag(final String tag) {
-        return WrappedElement.nodeListToWrappedElementStream(
-                this.getElementsByTagName(tag)
-        );
-    }
-
-    /**
-     * @return convert given {@link NodeList} into a {@link Stream} of {@code
-     * WrappedElement}s
-     */
-    /* package-private */
-    static Stream<WrappedElement> nodeListToWrappedElementStream(final NodeList nl) {
-        return IntStream.range(0, nl.getLength())
-                .mapToObj(nl::item)
-                .map(Element.class::cast)
-                .map(WrappedElement::new);
-    }
-
-    /**
-     * Construct an instance to wrap the given {@link Element}.
-     *
-     * @param element {@link Element} to be wrapped
-     */
-    public WrappedElement(final Element element) {
-        this.element = element;
     }
 
     /**
@@ -426,13 +462,6 @@ public class WrappedElement {
      */
     public int arrivalTime() {
         return this.getInt("time_arrival");
-    }
-
-    /**
-     * @return {@link Stream} of all inner elements with tag name "size"
-     */
-    public Stream<WrappedElement> sizes() {
-        return this.elementsWithTag("size");
     }
 
     /**

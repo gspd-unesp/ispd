@@ -90,10 +90,13 @@ public record TwoStageUniform(
      *
      * @param value    value to be normalized
      * @param boundary boundary for normalization
-     * @return normalized value, within [0, 1]
+     * @return normalized value, within [0, 1]; if value is {@code 0}, {@code
+     * 0} is returned.
      */
     private static double normalizeValue(
             final double value, final double boundary) {
+        if (value == 0.0)
+            return 0.0;
         final var d = Math.abs(value - boundary) / value;
         return Math.min(1.0, d);
     }

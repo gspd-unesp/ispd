@@ -2,7 +2,6 @@ package ispd.arquivo.exportador;
 
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.motor.random.TwoStageUniform;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -342,19 +341,15 @@ import java.util.stream.LongStream;
     }
 
     private void processElementSizes(final long i, final WrappedElement e) {
-        final var computation = e.sizes()
-                .filter(WrappedElement::isComputingType)
-                .findFirst()
-                .map(WrappedElement::toTwoStageImplicitProb)
-                .map(TwoStageUniform::rangeNormalized)
-                .orElseGet(TwoStageUniform::new);
+        final var computation = e.makeTwoStageFromInnerSizes(
+                WrappedElement::isComputingType,
+                WrappedElement::toTwoStageImplicitProb
+        ).rangeNormalized();
 
-        final var communication = e.sizes()
-                .filter(WrappedElement::isCommunicationType)
-                .findFirst()
-                .map(WrappedElement::toTwoStageImplicitProb)
-                .map(TwoStageUniform::rangeNormalized)
-                .orElseGet(TwoStageUniform::new);
+        final var communication = e.makeTwoStageFromInnerSizes(
+                WrappedElement::isCommunicationType,
+                WrappedElement::toTwoStageImplicitProb
+        ).rangeNormalized();
 
         final var msg = MessageFormat.format("""
                                 length = GridSimRandom.real({0},{1},{2},random.nextDouble());
