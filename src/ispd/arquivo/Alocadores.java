@@ -1,6 +1,6 @@
 package ispd.arquivo;
 
-import ispd.alocacaoVM.ManipularArquivosAlloc;
+import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
 
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
@@ -136,7 +136,7 @@ public class Alocadores implements ManipularArquivosAlloc {
     public static String getAlocadorJava(final String policyName) {
         return """
                 package ispd.externo;
-                import ispd.alocacaoVM.Alocacao;
+                import ispd.policy.alocacaoVM.Alocacao;
                 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
                 import ispd.motor.filas.servidores.CS_Processamento;
                 import ispd.motor.filas.servidores.CentroServico;

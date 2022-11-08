@@ -1,6 +1,6 @@
 package ispd.gui.configuracao;
 
-import ispd.alocacaoVM.ManipularArquivosAlloc;
+import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
 import ispd.escalonador.ManipularArquivos;
 import ispd.escalonadorCloud.ManipularArquivosCloud;
 import ispd.gui.PickModelTypeDialog;

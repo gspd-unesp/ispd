@@ -1,6 +1,6 @@
 package ispd.gui;
 
-import ispd.alocacaoVM.ManipularArquivosAlloc;
+import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.escalonador.ManipularArquivos;
 import ispd.escalonadorCloud.ManipularArquivosCloud;

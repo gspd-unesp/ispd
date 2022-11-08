@@ -5,9 +5,23 @@
 
 package ispd.motor;
 
-import ispd.alocacaoVM.VMM;
+import ispd.escalonadorCloud.EscalonadorCloud;
 import ispd.escalonadorCloud.MestreCloud;
 import ispd.gui.PickSimulationFaultsDialog;
+import ispd.motor.falhas.FIBadDesign;
+import ispd.motor.falhas.FIDenialService;
+import ispd.motor.falhas.FIEarly;
+import ispd.motor.falhas.FIFullHD;
+import ispd.motor.falhas.FIHardware;
+import ispd.motor.falhas.FIIncompatibility;
+import ispd.motor.falhas.FIInterdependencie;
+import ispd.motor.falhas.FILate;
+import ispd.motor.falhas.FIOverload;
+import ispd.motor.falhas.FIPermanent;
+import ispd.motor.falhas.FISoftware;
+import ispd.motor.falhas.FITransient;
+import ispd.motor.falhas.FIValue;
+import ispd.motor.falhas.FState;
 import ispd.motor.filas.Client;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.RedeDeFilasCloud;
@@ -18,17 +32,14 @@ import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import ispd.motor.falhas.*;
+import ispd.motor.metricas.MetricasGlobais;
+import ispd.policy.alocacaoVM.VMM;
+
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-
-import ispd.escalonadorCloud.EscalonadorCloud;
-import ispd.motor.falhas.FIHardware;
-import ispd.motor.metricas.MetricasGlobais;
-
-import java.util.LinkedList;
 
 /**
  *

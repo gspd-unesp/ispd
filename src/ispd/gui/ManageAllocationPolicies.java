@@ -1,6 +1,6 @@
 package ispd.gui;
 
-import ispd.alocacaoVM.ManipularArquivosAlloc;
+import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
 import ispd.arquivo.Alocadores;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;

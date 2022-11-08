@@ -4,9 +4,9 @@
  */
 package ispd.motor.filas.servidores.implementacao;
 
-import ispd.alocacaoVM.Alocacao;
-import ispd.alocacaoVM.CarregarAlloc;
-import ispd.alocacaoVM.VMM;
+import ispd.policy.alocacaoVM.Alocacao;
+import ispd.policy.alocacaoVM.CarregarAlloc;
+import ispd.policy.alocacaoVM.VMM;
 import ispd.escalonadorCloud.CarregarCloud;
 import ispd.escalonadorCloud.EscalonadorCloud;
 import ispd.escalonadorCloud.MestreCloud;

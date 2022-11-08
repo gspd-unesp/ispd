@@ -1,4 +1,4 @@
-package ispd.alocacaoVM;
+package ispd.policy.alocacaoVM;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

@@ -1,6 +1,6 @@
 package ispd.gui.iconico.grade;
 
-import ispd.alocacaoVM.VMM;
+import ispd.policy.alocacaoVM.VMM;
 
 import java.awt.Image;
 import java.util.ArrayList;

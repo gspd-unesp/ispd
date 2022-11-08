@@ -39,7 +39,7 @@
  */
 package ispd.motor.filas.servidores;
 
-import ispd.alocacaoVM.VMM;
+import ispd.policy.alocacaoVM.VMM;
 import ispd.motor.filas.servidores.implementacao.CS_Link;
 import ispd.motor.filas.servidores.implementacao.CS_Switch;
 import ispd.motor.filas.servidores.implementacao.CS_Internet;
