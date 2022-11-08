@@ -6,7 +6,8 @@ public class GridRoundRobin implements GridSchedulingPolicy {
     @Override
     public void setMaster(final GridMaster master) {
         this.master = master;
-        this.master.scheduleTask(5);
-        this.master.connectTo(this.master);
+        this.master.executePolicy(); // From Master
+        this.master.scheduleTask(5); // From SchedulingMaster
+        this.master.connectTo(this.master); // From GridMaster
     }
 }
