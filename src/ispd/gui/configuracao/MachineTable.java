@@ -1,6 +1,6 @@
 package ispd.gui.configuracao;
 
-import ispd.arquivo.Escalonadores;
+import ispd.policy.managers.Escalonadores;
 import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 

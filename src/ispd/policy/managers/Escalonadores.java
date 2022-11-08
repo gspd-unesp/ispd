@@ -1,6 +1,7 @@
-package ispd.arquivo;
+package ispd.policy.managers;
 
-import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
+import ispd.policy.escalonador.Carregar;
+import ispd.policy.escalonador.ManipularArquivos;
 
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
@@ -28,47 +29,50 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * Manages storing, retrieving and compiling allocation policies
+ * Manages storing, retrieving and compiling scheduling policies
  */
-public class Alocadores implements ManipularArquivosAlloc {
+public class Escalonadores implements ManipularArquivos {
 
     private static final String NO_POLICY = "---";
+
     /**
-     * Allocation policies available by default
+     * Scheduling policies available by default
      */
-    public static final String[] ALOCACAO = { Alocadores.NO_POLICY,
-            "RoundRobin", "FirstFit", "FirstFitDecreasing", "Volume" };
-    private static final String DIRECTORY_PATH = "ispd/externo/cloudAlloc";
-    private static final File DIRECTORY = new File(Alocadores.DIRECTORY_PATH);
+    public static final String[] ESCALONADORES = { Escalonadores.NO_POLICY,
+            "RoundRobin", "Workqueue", "WQR",
+            "DynamicFPLTF", "HOSEP", "OSEP", "EHOSEP" };
+    private static final String DIRECTORY_PATH = "ispd/externo";
+    private static final File DIRECTORY =
+            new File(Carregar.DIRETORIO_ISPD, Escalonadores.DIRECTORY_PATH);
     private final ArrayList<String> policies = new ArrayList<>(0);
     private final List<String> addedPolicies = new ArrayList<>(0);
     private final List<String> removedPolicies = new ArrayList<>(0);
 
-    public Alocadores() {
-        if (Alocadores.DIRECTORY.exists()) {
-            this.findDotClassAllocators();
+    public Escalonadores() {
+        if (Escalonadores.DIRECTORY.exists()) {
+            this.findDotClassSchedulers();
         } else {
 
             try {
-                Alocadores.createDirectory(Alocadores.DIRECTORY);
+                Escalonadores.createDirectory(Escalonadores.DIRECTORY);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
 
             if (Objects.requireNonNull(this.getClass().getResource(
-                    "Alocadores.class")).toString().startsWith("jar:")) {
-                Alocadores.executeFromJar();
+                    "Escalonadores.class")).toString().startsWith("jar:")) {
+                Escalonadores.executeFromJar();
             }
         }
     }
 
-    private void findDotClassAllocators() {
+    private void findDotClassSchedulers() {
         final FilenameFilter filter = (b, name) -> name.endsWith(".class");
         final var dotClassFiles =
-                Objects.requireNonNull(Alocadores.DIRECTORY.list(filter));
+                Objects.requireNonNull(Escalonadores.DIRECTORY.list(filter));
 
         Arrays.stream(dotClassFiles)
-                .map(Alocadores::removeDotClassSuffix)
+                .map(Escalonadores::removeDotClassSuffix)
                 .forEach(this.policies::add);
     }
 
@@ -79,14 +83,14 @@ public class Alocadores implements ManipularArquivosAlloc {
     }
 
     private static void executeFromJar() {
-        final var jar = new File(
+        final File jar = new File(
                 System.getProperty("java.class.path"));
 
         try {
-            Alocadores.extractDirFromJar("alocacaoVM", jar);
-            Alocadores.extractDirFromJar("motor", jar);
+            Escalonadores.extractDirFromJar("escalonador", jar);
+            Escalonadores.extractDirFromJar("motor", jar);
         } catch (final IOException ex) {
-            Logger.getLogger(Alocadores.class.getName())
+            Logger.getLogger(Escalonadores.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
     }
@@ -96,7 +100,7 @@ public class Alocadores implements ManipularArquivosAlloc {
     }
 
     /**
-     * Extracts given dir from jar file given by file.
+     * Extracts given dir from jar file given by file
      *
      * @param dir  Directory name to be extracted
      * @param file Jar file from which to extract the directory
@@ -105,7 +109,7 @@ public class Alocadores implements ManipularArquivosAlloc {
         try (final var jar = new JarFile(file)) {
             for (final var entry : new JarEntryIterable(jar)) {
                 if (entry.getName().contains(dir)) {
-                    Alocadores.processZipEntry(entry, jar);
+                    Escalonadores.processZipEntry(entry, jar);
                 }
             }
         }
@@ -116,12 +120,12 @@ public class Alocadores implements ManipularArquivosAlloc {
         final var file = new File(entry.getName());
 
         if (entry.isDirectory() && !file.exists()) {
-            Alocadores.createDirectory(file);
+            Escalonadores.createDirectory(file);
             return;
         }
 
         if (!file.getParentFile().exists()) {
-            Alocadores.createDirectory(file.getParentFile());
+            Escalonadores.createDirectory(file.getParentFile());
         }
 
         try (final var is = zip.getInputStream(entry);
@@ -131,20 +135,19 @@ public class Alocadores implements ManipularArquivosAlloc {
     }
 
     /**
-     * @return Basic template for writing an allocation policy's source code
+     * @return Basic template for writing a scheduling policy's source code
      */
-    public static String getAlocadorJava(final String policyName) {
+    public static String getEscalonadorJava(final String policyName) {
         return """
                 package ispd.externo;
-                import ispd.policy.alocacaoVM.Alocacao;
-                import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
+                import ispd.policy.escalonador.Escalonador;
+                import ispd.motor.filas.Tarefa;
                 import ispd.motor.filas.servidores.CS_Processamento;
                 import ispd.motor.filas.servidores.CentroServico;
-                import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
-                import ispd.motor.filas.servidores.implementacao.CS_VMM;
+                import java.util.ArrayList;
                 import java.util.List;
 
-                public abstract class %s extends Alocacao{
+                public class %s extends Escalonador{
 
                     @Override
                     public void iniciar() {
@@ -152,7 +155,7 @@ public class Alocadores implements ManipularArquivosAlloc {
                     }
 
                     @Override
-                    public CS_VirtualMac escalonarVM() {
+                    public Tarefa escalonarTarefa() {
                         throw new UnsupportedOperationException("Not supported yet.");
                     }
 
@@ -170,18 +173,14 @@ public class Alocadores implements ManipularArquivosAlloc {
                     public void escalonar() {
                         throw new UnsupportedOperationException("Not supported yet.");
                     }
-                    @Override
-                    public void migrarVM() {
-                        throw new UnsupportedOperationException("Not supported yet.");
-                    }
 
                 }""".formatted(policyName);
     }
 
     /**
-     * Lists all available allocation policies.
+     * Lists all available scheduling policies.
      *
-     * @return {@code ArrayList} with all allocation policies' names
+     * @return {@code ArrayList} with all scheduling policies' names.
      */
     @Override
     public ArrayList<String> listar() {
@@ -189,12 +188,12 @@ public class Alocadores implements ManipularArquivosAlloc {
     }
 
     /**
-     * @return Directory in which allocation policies sources are compiled
+     * @return Directory in which scheduling policies sources are compiled
      * classes are saved
      */
     @Override
     public File getDiretorio() {
-        return Alocadores.DIRECTORY;
+        return Escalonadores.DIRECTORY;
     }
 
     /**
@@ -208,39 +207,39 @@ public class Alocadores implements ManipularArquivosAlloc {
     @Override
     public boolean escrever(final String nome, final String codigo) {
         try (final var fw = new FileWriter(
-                new File(Alocadores.DIRECTORY, nome + ".java"),
+                new File(Escalonadores.DIRECTORY, nome + ".java"),
                 StandardCharsets.UTF_8
         )) {
             fw.write(codigo);
             return true;
         } catch (final IOException ex) {
-            Logger.getLogger(Alocadores.class.getName())
+            Logger.getLogger(Escalonadores.class.getName())
                     .log(Level.SEVERE, null, ex);
             return false;
         }
     }
 
     /**
-     * Attempts to compile the source file of the policy with given name,
-     * returning the contents of stderr, if any, otherwise {@code null}.
+     * Attemps to compile the source file of the policy with given name,
+     * returning the contents of {@code stderr}, if any, otherwise {@code null}
      *
      * @param nome Name of the allocation policy to be compiled
      * @return A string with errors, if any, otherwise {@code null}
      */
     @Override
     public String compilar(final String nome) {
-        final var target = new File(Alocadores.DIRECTORY, nome + ".java");
-        final var err = Alocadores.compile(target);
+        final var target = new File(Escalonadores.DIRECTORY, nome + ".java");
+        final var err = Escalonadores.compile(target);
 
         try {
             Thread.sleep(1000);
         } catch (final InterruptedException ex) {
-            Logger.getLogger(Alocadores.class.getName())
+            Logger.getLogger(Escalonadores.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
 
         // Check if compilation worked, looking for a .class file
-        if (new File(Alocadores.DIRECTORY, nome + ".class").exists()) {
+        if (new File(Escalonadores.DIRECTORY, nome + ".class").exists()) {
             this.addPolicy(nome);
         }
 
@@ -256,9 +255,9 @@ public class Alocadores implements ManipularArquivosAlloc {
             return err.toString();
         } else {
             try {
-                return Alocadores.compileManually(target);
+                return Escalonadores.compileManually(target);
             } catch (final IOException ex) {
-                Logger.getLogger(Alocadores.class.getName())
+                Logger.getLogger(Escalonadores.class.getName())
                         .log(Level.SEVERE, null, ex);
                 return "Não foi possível compilar";
             }
@@ -288,22 +287,23 @@ public class Alocadores implements ManipularArquivosAlloc {
     }
 
     /**
-     * Reads the source file from the policy {@code alocador} and returns a
-     * string with the file contents.
+     * Reads the source file from the policy {@code escalonador} and returns
+     * a string with the file contents.
      *
-     * @param alocador Name of the policy which source file will be read
+     * @param escalonador Name of the policy which source file will be read
      * @return String contents of the file
      */
     @Override
-    public String ler(final String alocador) {
+    public String ler(final String escalonador) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(Alocadores.DIRECTORY, alocador + ".java"),
+                        new File(Escalonadores.DIRECTORY, escalonador +
+                                                          ".java"),
                         StandardCharsets.UTF_8)
         )) {
             return br.lines().collect(Collectors.joining("\n"));
         } catch (final IOException ex) {
-            Logger.getLogger(Alocadores.class.getName())
+            Logger.getLogger(Escalonadores.class.getName())
                     .log(Level.SEVERE, null, ex);
             return null;
         }
@@ -311,24 +311,24 @@ public class Alocadores implements ManipularArquivosAlloc {
 
     /**
      * Attempts to remove .java and .class files with the name in {@code
-     * alocador} and, if successful, removes the policy from the inner list.
+     * escalonador} and, if successful, remove the policy from the inner list.
      *
-     * @param alocador Name of the policy which files will be removed
+     * @param escalonador Name of the policy which files will be removed
      * @return {@code true} if removal is successful
      */
     @Override
-    public boolean remover(final String alocador) {
+    public boolean remover(final String escalonador) {
         final var classFile = new File(
-                Alocadores.DIRECTORY, alocador + ".class");
+                Escalonadores.DIRECTORY, escalonador + ".class");
 
         final File javaFile = new File(
-                Alocadores.DIRECTORY, alocador + ".java");
+                Escalonadores.DIRECTORY, escalonador + ".java");
 
         boolean deleted = false;
 
         if (classFile.exists()) {
             if (classFile.delete()) {
-                this.removePolicy(alocador);
+                this.removePolicy(escalonador);
                 deleted = true;
             }
         }
@@ -355,19 +355,22 @@ public class Alocadores implements ManipularArquivosAlloc {
     }
 
     /**
-     * Adds allocation policy coded in file {@code arquivo} to the configured
-     * directory, compiles it, and adds it to the list of allocation policies.
+     * Adds scheduling policy coded in file {@code arquivo} to the configured
+     * directory, compiles it, and adds it to the inner list of scheduling
+     * policies.
      *
      * @param arquivo Java source file containing the allocation policy
      * @return {@code true} if import occurred successfully and {@code false}
      * otherwise
      */
     @Override
-    public boolean importarAlocadoresJava(final File arquivo) {
-        final var target = new File(Alocadores.DIRECTORY, arquivo.getName());
-        Alocadores.copyFile(target, arquivo);
+    public boolean importarEscalonadorJava(final File arquivo) {
+        
 
-        final var err = Alocadores.compile(target);
+        final var target = new File(Escalonadores.DIRECTORY, arquivo.getName());
+        Escalonadores.copyFile(target, arquivo);
+
+        final var err = Escalonadores.compile(target);
 
         if (!err.isEmpty()) {
             return false;
@@ -376,7 +379,7 @@ public class Alocadores implements ManipularArquivosAlloc {
         final var nome = arquivo.getName()
                 .substring(0, arquivo.getName().length() - ".java".length());
 
-        if (!new File(Alocadores.DIRECTORY, nome + ".class").exists()) {
+        if (!new File(Escalonadores.DIRECTORY, nome + ".class").exists()) {
             return false;
         }
 
@@ -398,7 +401,7 @@ public class Alocadores implements ManipularArquivosAlloc {
              final var destFs = new FileOutputStream(dest)) {
             srcFs.transferTo(destFs);
         } catch (final IOException ex) {
-            Logger.getLogger(Alocadores.class.getName())
+            Logger.getLogger(Escalonadores.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
     }
@@ -412,7 +415,7 @@ public class Alocadores implements ManipularArquivosAlloc {
     }
 
     /**
-     * @return remove policies
+     * @return removed policies
      */
     @Override
     public List listarRemovidos() {

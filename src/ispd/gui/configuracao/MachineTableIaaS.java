@@ -1,7 +1,7 @@
 package ispd.gui.configuracao;
 
-import ispd.arquivo.Alocadores;
-import ispd.arquivo.EscalonadoresCloud;
+import ispd.policy.managers.Alocadores;
+import ispd.policy.managers.EscalonadoresCloud;
 import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 

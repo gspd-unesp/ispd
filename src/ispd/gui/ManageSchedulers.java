@@ -1,6 +1,6 @@
 package ispd.gui;
 
-import ispd.arquivo.Escalonadores;
+import ispd.policy.managers.Escalonadores;
 import ispd.policy.escalonador.ManipularArquivos;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;

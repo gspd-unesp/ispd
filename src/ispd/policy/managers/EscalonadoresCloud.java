@@ -1,4 +1,4 @@
-package ispd.arquivo;
+package ispd.policy.managers;
 
 import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
 
