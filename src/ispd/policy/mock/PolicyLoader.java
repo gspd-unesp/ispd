@@ -1,5 +1,5 @@
 package ispd.policy.mock;
 
-public interface PolicyLoader<M extends Master> {
-    Policy<M> load(final String policyName);
+public interface PolicyLoader <P extends Policy<?>> {
+    P load(final String policyName);
 }

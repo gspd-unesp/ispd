@@ -1,5 +1,5 @@
 package ispd.policy.mock;
 
-public interface Policy<T extends Master> {
+public interface Policy <T extends Master> {
     void setMaster(final T master);
 }
