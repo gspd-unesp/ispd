@@ -1,18 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package ispd.escalonadorCloud;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author denison_usuario
- */
-public interface ManipularArquivosCloud
-{
+public interface ManipularArquivosCloud {
     ArrayList<String> listar();
 
     File getDiretorio();
@@ -26,8 +18,8 @@ public interface ManipularArquivosCloud
     boolean remover(String escalonador);
 
     boolean importarEscalonadorJava(File arquivo);
-    
+
     List listarAdicionados();
-    
+
     List listarRemovidos();
 }
