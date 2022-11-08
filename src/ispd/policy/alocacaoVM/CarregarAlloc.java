@@ -31,9 +31,8 @@ public class CarregarAlloc {
             final var cls = CarregarAlloc.loader.loadClass(clsName);
             return (Alocacao) cls.getConstructor().newInstance();
         } catch (final IllegalArgumentException | NoSuchMethodException |
-                       InvocationTargetException | SecurityException |
-                       InstantiationException | IllegalAccessException |
-                       ClassNotFoundException ex) {
+                       InvocationTargetException | InstantiationException |
+                       IllegalAccessException | ClassNotFoundException ex) {
             Logger.getLogger(CarregarAlloc.class.getName())
                     .log(Level.SEVERE, null, ex);
             return null;
@@ -52,11 +51,10 @@ public class CarregarAlloc {
         }
 
         try {
-            final var ref = new CarregarAlloc();
-            final URL[] aux = new URL[1];
-            aux[0] = dir.toURI().toURL();
             CarregarAlloc.loader = URLClassLoader.newInstance(
-                    aux, ref.getClass().getClassLoader());
+                    new URL[] { dir.toURI().toURL(), },
+                    CarregarAlloc.class.getClassLoader()
+            );
         } catch (final MalformedURLException ex) {
             Logger.getLogger(CarregarAlloc.class.getName())
                     .log(Level.SEVERE, null, ex);
