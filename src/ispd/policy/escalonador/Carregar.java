@@ -26,15 +26,15 @@ public class Carregar {
      * instancia de um objeto com este nome ou null caso não encontre ou ocorra
      * um erro.
      *
-     * @param nome
+     * @param name
      * @return Nova instancia do objeto Escalonador
      */
-    public static Escalonador getNewEscalonador(final String nome) {
+    public static Escalonador getNewEscalonador(final String name) {
         try {
-            final var clsName = Carregar.CLASS_PATH + nome;
+            final var clsName = Carregar.CLASS_PATH + name;
             final var cls = Carregar.loader.loadClass(clsName);
             return (Escalonador) cls.getConstructor().newInstance();
-        } catch (final IllegalArgumentException | NoSuchMethodException |
+        } catch (final NoSuchMethodException |
                        InvocationTargetException | InstantiationException |
                        IllegalAccessException | ClassNotFoundException ex) {
             Logger.getLogger(Carregar.class.getName())

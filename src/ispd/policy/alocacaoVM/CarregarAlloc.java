@@ -20,17 +20,17 @@ public class CarregarAlloc {
      * Receives the name of a scheduling and returns an instance of an object
      * of such name, or null on error.
      *
-     * @param nome Name of the scheduling algorithm desired.
+     * @param name Name of the scheduling algorithm desired.
      * @return New instance of a Scheduler object.
      */
-    public static Alocacao getNewAlocadorVM(final String nome) {
+    public static Alocacao getNewAlocadorVM(final String name) {
         CarregarAlloc.makeLoaderSingleton();
 
         try {
-            final var clsName = CarregarAlloc.CLASS_PATH + nome;
+            final var clsName = CarregarAlloc.CLASS_PATH + name;
             final var cls = CarregarAlloc.loader.loadClass(clsName);
             return (Alocacao) cls.getConstructor().newInstance();
-        } catch (final IllegalArgumentException | NoSuchMethodException |
+        } catch (final NoSuchMethodException |
                        InvocationTargetException | InstantiationException |
                        IllegalAccessException | ClassNotFoundException ex) {
             Logger.getLogger(CarregarAlloc.class.getName())
