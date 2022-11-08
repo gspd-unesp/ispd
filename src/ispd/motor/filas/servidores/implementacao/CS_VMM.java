@@ -373,7 +373,6 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     }
 
     alocadorVM.setCaminhoMaquinas(caminhoEscravo);
-    escalonador.setMaqFisicas(escravos);
     escalonador.setCaminhoMaquinas(caminhoEscravo);
   }
 
