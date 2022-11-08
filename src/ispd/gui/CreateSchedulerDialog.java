@@ -3,7 +3,7 @@ package ispd.gui;
 import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.policy.escalonador.ManipularArquivos;
-import ispd.escalonadorCloud.ManipularArquivosCloud;
+import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
 import ispd.gui.utils.ButtonBuilder;
 import ispd.utils.ValidaValores;
 

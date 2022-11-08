@@ -1,7 +1,7 @@
 package ispd.gui;
 
 import ispd.arquivo.EscalonadoresCloud;
-import ispd.escalonadorCloud.ManipularArquivosCloud;
+import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.utils.ValidaValores;

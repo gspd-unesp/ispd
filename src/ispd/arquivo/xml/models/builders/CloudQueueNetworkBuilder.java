@@ -4,7 +4,7 @@ import ispd.arquivo.xml.utils.SwitchConnection;
 import ispd.arquivo.xml.utils.UserPowerLimit;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.escalonadorCloud.EscalonadorCloud;
+import ispd.policy.escalonadorCloud.EscalonadorCloud;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.servidores.CS_Processamento;

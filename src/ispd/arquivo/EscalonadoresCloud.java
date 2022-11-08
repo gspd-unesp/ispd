@@ -1,6 +1,6 @@
 package ispd.arquivo;
 
-import ispd.escalonadorCloud.ManipularArquivosCloud;
+import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
 
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
@@ -135,7 +135,7 @@ public class EscalonadoresCloud implements ManipularArquivosCloud {
     public static String getEscalonadorJava(final String escalonador) {
         return """
                 package ispd.externo;
-                import ispd.escalonadorCloud.EscalonadorCloud;
+                import ispd.policy.escalonadorCloud.EscalonadorCloud;
                 import ispd.motor.filas.Tarefa;
                 import ispd.motor.filas.servidores.CS_Processamento;
                 import ispd.motor.filas.servidores.CentroServico;

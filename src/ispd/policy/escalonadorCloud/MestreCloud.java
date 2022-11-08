@@ -1,4 +1,4 @@
-package ispd.escalonadorCloud;
+package ispd.policy.escalonadorCloud;
 
 import ispd.motor.Simulation;
 import ispd.motor.filas.Tarefa;

@@ -5,8 +5,8 @@
 
 package ispd.motor;
 
-import ispd.escalonadorCloud.EscalonadorCloud;
-import ispd.escalonadorCloud.MestreCloud;
+import ispd.policy.escalonadorCloud.EscalonadorCloud;
+import ispd.policy.escalonadorCloud.MestreCloud;
 import ispd.gui.PickSimulationFaultsDialog;
 import ispd.motor.falhas.FIBadDesign;
 import ispd.motor.falhas.FIDenialService;

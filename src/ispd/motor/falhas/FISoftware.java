@@ -5,7 +5,7 @@
  */
 package ispd.motor.falhas;
 
-import ispd.escalonadorCloud.EscalonadorCloud;
+import ispd.policy.escalonadorCloud.EscalonadorCloud;
 import ispd.gui.PickSimulationFaultsDialog;
 import ispd.motor.FutureEvent;
 import ispd.motor.ProgressoSimulacao;
