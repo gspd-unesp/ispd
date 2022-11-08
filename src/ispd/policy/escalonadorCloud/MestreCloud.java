@@ -21,7 +21,6 @@ public interface MestreCloud {
 
     void atualizar(CS_Processamento escravo);
 
-    //Get e Set
     void liberarEscalonador();
 
     // TODO: Again, Interpretador
