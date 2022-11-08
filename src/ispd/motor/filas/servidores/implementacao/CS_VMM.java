@@ -247,12 +247,6 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
-  public void processarTarefa(Tarefa tarefa) {
-    throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose Tools
-                                                                   // | Templates.
-  }
-
-  @Override
   public void executarEscalonamento() {
     System.out.println(this.getId() + " solicitando escalonamento");
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.ESCALONAR, this, null);
@@ -377,20 +371,8 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
-  public int getTipoEscalonamento() {
-    return tipoEscalonamento;
-  }
-
-  @Override
   public void setTipoEscalonamento(int tipo) {
     tipoEscalonamento = tipo;
-  }
-
-  @Override
-  public Tarefa criarCopia(Tarefa get) {
-    Tarefa tarefa = new Tarefa(get);
-    simulacao.addJob(tarefa);
-    return tarefa;
   }
 
   @Override
