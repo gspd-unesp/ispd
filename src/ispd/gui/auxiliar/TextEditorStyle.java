@@ -66,9 +66,9 @@ public class TextEditorStyle extends DefaultStyledDocument implements CaretListe
             "mestre", "caminhoEscravo", "adicionarTarefa(tarefa)",
             "getTempoAtualizar()", "resultadoAtualizar(mensagem)",
             "addTarefaConcluida(tarefa)", "enviarTarefa(Tarefa tarefa)",
-            "processarTarefa(Tarefa tarefa)", "executarEscalonamento()",
+            "executarEscalonamento()",
             "enviarMensagem(tarefa, escravo, tipo)",
-            "atualizar(CS_Processamento escravo)", "criarCopia(Tarefa get)",
+            "atualizar(CS_Processamento escravo)",
             "Mensagens.CANCELAR", "Mensagens.PARAR", "Mensagens.DEVOLVER",
             "Mensagens.DEVOLVER_COM_PREEMPCAO", "Mensagens.ATUALIZAR"
     };
