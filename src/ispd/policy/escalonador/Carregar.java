@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class Carregar {
     public static final File DIRETORIO_ISPD = Carregar.loadIspdDirectory();
-    private static final String CLASS_PATH = "ispd.externo.";
+    private static final String CLASS_PATH = "ispd.policy.externo.";
     private static final URLClassLoader loader = Carregar.makeLoaderSingleton();
 
     /**

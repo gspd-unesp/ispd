@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class CarregarAlloc {
     private static final String DIR = ".";
-    private static final String CLASS_PATH = "ispd.externo.cloudAlloc.";
+    private static final String CLASS_PATH = "ispd.policy.externo.cloudAlloc.";
     private static URLClassLoader loader = null;
 
     /**

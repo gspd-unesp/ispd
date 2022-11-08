@@ -1,4 +1,4 @@
-package ispd.externo;
+package ispd.policy.externo;
 
 import ispd.policy.escalonador.Escalonador;
 import ispd.motor.filas.Tarefa;

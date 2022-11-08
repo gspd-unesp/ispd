@@ -35,7 +35,7 @@ public class EscalonadoresCloud implements ManipularArquivosCloud {
     private static final String NO_POLICY = "---";
     public static final String[] ESCALONADORES = { EscalonadoresCloud.NO_POLICY,
             "RoundRobin" };
-    private static final String DIRECTORY_PATH = "ispd.externo.cloudSchedulers";
+    private static final String DIRECTORY_PATH = "ispd.policy.externo.cloudSchedulers";
     private static final File DIRECTORY =
             new File(EscalonadoresCloud.DIRECTORY_PATH);
     private final ArrayList<String> policies = new ArrayList<>(0);
@@ -134,7 +134,7 @@ public class EscalonadoresCloud implements ManipularArquivosCloud {
      */
     public static String getEscalonadorJava(final String escalonador) {
         return """
-                package ispd.externo;
+                package ispd.policy.externo;
                 import ispd.policy.escalonadorCloud.EscalonadorCloud;
                 import ispd.motor.filas.Tarefa;
                 import ispd.motor.filas.servidores.CS_Processamento;

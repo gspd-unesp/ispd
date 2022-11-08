@@ -139,7 +139,7 @@ public class Escalonadores implements ManipularArquivos {
      */
     public static String getEscalonadorJava(final String policyName) {
         return """
-                package ispd.externo;
+                package ispd.policy.externo;
                 import ispd.policy.escalonador.Escalonador;
                 import ispd.motor.filas.Tarefa;
                 import ispd.motor.filas.servidores.CS_Processamento;

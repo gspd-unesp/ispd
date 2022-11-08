@@ -1,4 +1,4 @@
-package ispd.externo.cloudSchedulers;
+package ispd.policy.externo.cloudSchedulers;
 
 import ispd.policy.escalonadorCloud.EscalonadorCloud;
 import ispd.motor.filas.Tarefa;

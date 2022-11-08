@@ -135,7 +135,7 @@ public class Alocadores implements ManipularArquivosAlloc {
      */
     public static String getAlocadorJava(final String policyName) {
         return """
-                package ispd.externo;
+                package ispd.policy.externo;
                 import ispd.policy.alocacaoVM.Alocacao;
                 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
                 import ispd.motor.filas.servidores.CS_Processamento;
