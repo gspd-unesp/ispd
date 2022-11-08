@@ -1,6 +1,6 @@
 package ispd.arquivo.xml.utils;
 
-import ispd.escalonador.Escalonador;
+import ispd.policy.escalonador.Escalonador;
 import ispd.escalonadorCloud.EscalonadorCloud;
 import ispd.motor.metricas.MetricasUsuarios;
 

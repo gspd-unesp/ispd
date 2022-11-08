@@ -38,7 +38,7 @@
  */
 package ispd.motor;
 
-import ispd.escalonador.Mestre;
+import ispd.policy.escalonador.Mestre;
 import ispd.motor.filas.Client;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;

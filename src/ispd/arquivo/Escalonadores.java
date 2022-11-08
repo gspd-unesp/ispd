@@ -1,7 +1,7 @@
 package ispd.arquivo;
 
-import ispd.escalonador.Carregar;
-import ispd.escalonador.ManipularArquivos;
+import ispd.policy.escalonador.Carregar;
+import ispd.policy.escalonador.ManipularArquivos;
 
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
@@ -140,7 +140,7 @@ public class Escalonadores implements ManipularArquivos {
     public static String getEscalonadorJava(final String policyName) {
         return """
                 package ispd.externo;
-                import ispd.escalonador.Escalonador;
+                import ispd.policy.escalonador.Escalonador;
                 import ispd.motor.filas.Tarefa;
                 import ispd.motor.filas.servidores.CS_Processamento;
                 import ispd.motor.filas.servidores.CentroServico;

@@ -1,6 +1,6 @@
 package ispd.externo;
 
-import ispd.escalonador.Escalonador;
+import ispd.policy.escalonador.Escalonador;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;

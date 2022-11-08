@@ -39,9 +39,9 @@
  */
 package ispd.motor.filas.servidores.implementacao;
 
-import ispd.escalonador.Carregar;
-import ispd.escalonador.Escalonador;
-import ispd.escalonador.Mestre;
+import ispd.policy.escalonador.Carregar;
+import ispd.policy.escalonador.Escalonador;
+import ispd.policy.escalonador.Mestre;
 import ispd.motor.FutureEvent;
 import ispd.motor.Mensagens;
 import ispd.motor.Simulation;

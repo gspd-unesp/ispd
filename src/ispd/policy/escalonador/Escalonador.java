@@ -1,4 +1,4 @@
-package ispd.escalonador;
+package ispd.policy.escalonador;
 
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
