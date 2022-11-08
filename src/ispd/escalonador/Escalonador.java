@@ -1,42 +1,3 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * Escalonador.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.escalonador;
 
 import ispd.motor.filas.Mensagem;
@@ -44,23 +5,28 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.metricas.MetricasUsuarios;
+
 import java.util.List;
 
 /**
  * Classe abstrata ue implementa os escalonadores.
- * 
+ * <p>
  * lista de atributos:
- * 
- *  protected List<CS_Processamento> escravos : Lista de escravos para quem o escalonador dele distribuir tarefas
- *  protected List<List> filaEscravo : Lista que contem informações sobre cada escravo, utilizado em políticas dinâmicas.
- *  protected List<Tarefa> tarefas : Lista de tarefas para serem distribuídas entre os escravos
- *  protected MetricasUsuarios metricaUsuarios : Objeto que calcula métricas sobre o escalonamento para os usuários
- *  protected Mestre mestre : 
- 
- * @author Diogo Tavares
+ * <p>
+ * protected {@code List<CS_Processamento>} escravos : Lista de escravos para
+ * quem o
+ * escalonador dele distribuir tarefas
+ * protected {@code List<List>} filaEscravo : Lista que contem informações
+ * sobre cada
+ * escravo, utilizado em políticas dinâmicas.
+ * protected {@code List<Tarefa>} tarefas : Lista de tarefas para serem
+ * distribuídas
+ * entre os escravos
+ * protected MetricasUsuarios metricaUsuarios : Objeto que calcula métricas
+ * sobre o escalonamento para os usuários
+ * protected Mestre mestre :
  */
 public abstract class Escalonador {
-    //Atributos
     protected List<CS_Processamento> escravos;
     protected List<List> filaEscravo;
     protected List<Tarefa> tarefas;
@@ -70,8 +36,6 @@ public abstract class Escalonador {
      * Armazena os caminhos possiveis para alcançar cada escravo
      */
     protected List<List> caminhoEscravo;
-
-    //Métodos
 
     public abstract void iniciar();
 
@@ -83,8 +47,8 @@ public abstract class Escalonador {
 
     public abstract void escalonar();
 
-    public void adicionarTarefa(Tarefa tarefa){
-        if(tarefa.getOrigem().equals(mestre)){
+    public void adicionarTarefa(final Tarefa tarefa) {
+        if (tarefa.getOrigem().equals(this.mestre)) {
             this.metricaUsuarios.incTarefasSubmetidas(tarefa);
         }
         this.tarefas.add(tarefa);
@@ -93,54 +57,53 @@ public abstract class Escalonador {
     //Get e Set
 
     public List<CS_Processamento> getEscravos() {
-        return escravos;
+        return this.escravos;
     }
 
-    public void setCaminhoEscravo(List<List> caminhoEscravo) {
+    public void setCaminhoEscravo(final List<List> caminhoEscravo) {
         this.caminhoEscravo = caminhoEscravo;
     }
 
-    public void addEscravo(CS_Processamento maquina) {
+    public void addEscravo(final CS_Processamento maquina) {
         this.escravos.add(maquina);
     }
-    
-    public void addTarefaConcluida(Tarefa tarefa) {
-        if(tarefa.getOrigem().equals(mestre)){
+
+    public void addTarefaConcluida(final Tarefa tarefa) {
+        if (tarefa.getOrigem().equals(this.mestre)) {
             this.metricaUsuarios.incTarefasConcluidas(tarefa);
         }
     }
-    
+
     public List<Tarefa> getFilaTarefas() {
         return this.tarefas;
     }
 
     public MetricasUsuarios getMetricaUsuarios() {
-        return metricaUsuarios;
+        return this.metricaUsuarios;
     }
 
-    public void setMetricaUsuarios(MetricasUsuarios metricaUsuarios) {
+    public void setMetricaUsuarios(final MetricasUsuarios metricaUsuarios) {
         this.metricaUsuarios = metricaUsuarios;
     }
 
-    public void setMestre(Mestre mestre) {
+    public void setMestre(final Mestre mestre) {
         this.mestre = mestre;
     }
 
-    public List<List> getCaminhoEscravo() {
-        return caminhoEscravo;
-    }
-    
     /**
-     * Indica o intervalo de tempo utilizado pelo escalonador para realizar atualização dos dados dos escravos
-     * Retornar null para escalonadores estáticos, nos dinâmicos o método deve ser reescrito
+     * Indica o intervalo de tempo utilizado pelo escalonador para realizar
+     * atualização dos dados dos escravos
+     * Retornar null para escalonadores estáticos, nos dinâmicos o method
+     * deve ser reescrito
+     *
      * @return Intervalo em segundos para atualização
      */
-    public Double getTempoAtualizar(){
+    public Double getTempoAtualizar() {
         return null;
     }
 
-    public void resultadoAtualizar(Mensagem mensagem) {
-        int index = escravos.indexOf(mensagem.getOrigem());
-        filaEscravo.set(index, mensagem.getFilaEscravo());
+    public void resultadoAtualizar(final Mensagem mensagem) {
+        final int index = this.escravos.indexOf(mensagem.getOrigem());
+        this.filaEscravo.set(index, mensagem.getFilaEscravo());
     }
 }
