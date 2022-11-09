@@ -13,11 +13,11 @@ public interface PolicyManager {
 
     String compilar(String nome);
 
-    String ler(String alocador);
+    String ler(String policy);
 
-    boolean remover(String alocador);
+    boolean remover(String policy);
 
-    boolean importarAlocadoresJava(File arquivo);
+    boolean importJavaPolicy(File arquivo);
 
     List listarAdicionados();
 

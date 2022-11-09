@@ -1,7 +1,7 @@
 package ispd.gui;
 
+import ispd.policy.PolicyManager;
 import ispd.policy.managers.Escalonadores;
-import ispd.policy.escalonador.ManipularArquivos;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.utils.ValidaValores;
@@ -46,7 +46,7 @@ import java.util.ResourceBundle;
 
 public class ManageSchedulers extends JFrame {
     private final UndoableEdit undo = new UndoManager();
-    private final ManipularArquivos escalonadores;
+    private final PolicyManager escalonadores;
     private final ResourceBundle palavras;
     private JFileChooser jFileChooser1;
     private JList jListEscalonadores;
@@ -619,7 +619,7 @@ public class ManageSchedulers extends JFrame {
             if (escolha == JFileChooser.APPROVE_OPTION) {
                 final File arquivo = this.jFileChooser1.getSelectedFile();
                 if (arquivo != null) {
-                    if (this.escalonadores.importarEscalonadorJava(arquivo)) {
+                    if (this.escalonadores.importJavaPolicy(arquivo)) {
                         this.atualizarEscalonadores(this.escalonadores.listar());
                         final String nome = arquivo.getName().substring(0,
                                 arquivo.getName().length() - 5);
@@ -698,7 +698,7 @@ public class ManageSchedulers extends JFrame {
         this.modificado = false;
     }
 
-    public ManipularArquivos getEscalonadores() {
+    public PolicyManager getEscalonadores() {
         return this.escalonadores;
     }
 

@@ -592,7 +592,7 @@ class ManageAllocationPolicies extends JFrame {
             if (escolha == JFileChooser.APPROVE_OPTION) {
                 final File arquivo = this.fileChooser.getSelectedFile();
                 if (arquivo != null) {
-                    if (this.allocators.importarAlocadoresJava(arquivo)) {
+                    if (this.allocators.importJavaPolicy(arquivo)) {
                         this.atualizarAlocadores(this.allocators.listar());
                         final String nome = arquivo.getName().substring(0,
                                 arquivo.getName().length() - 5);

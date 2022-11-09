@@ -1,7 +1,7 @@
 package ispd.policy.managers;
 
+import ispd.policy.PolicyManager;
 import ispd.policy.escalonador.Carregar;
-import ispd.policy.escalonador.ManipularArquivos;
 
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
@@ -31,7 +31,7 @@ import java.util.zip.ZipFile;
 /**
  * Manages storing, retrieving and compiling scheduling policies
  */
-public class Escalonadores implements ManipularArquivos {
+public class Escalonadores implements PolicyManager {
 
     private static final String NO_POLICY = "---";
 
@@ -290,14 +290,14 @@ public class Escalonadores implements ManipularArquivos {
      * Reads the source file from the policy {@code escalonador} and returns
      * a string with the file contents.
      *
-     * @param escalonador Name of the policy which source file will be read
+     * @param policy Name of the policy which source file will be read
      * @return String contents of the file
      */
     @Override
-    public String ler(final String escalonador) {
+    public String ler(final String policy) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(Escalonadores.DIRECTORY, escalonador +
+                        new File(Escalonadores.DIRECTORY, policy +
                                                           ".java"),
                         StandardCharsets.UTF_8)
         )) {
@@ -313,22 +313,22 @@ public class Escalonadores implements ManipularArquivos {
      * Attempts to remove .java and .class files with the name in {@code
      * escalonador} and, if successful, remove the policy from the inner list.
      *
-     * @param escalonador Name of the policy which files will be removed
+     * @param policy Name of the policy which files will be removed
      * @return {@code true} if removal is successful
      */
     @Override
-    public boolean remover(final String escalonador) {
+    public boolean remover(final String policy) {
         final var classFile = new File(
-                Escalonadores.DIRECTORY, escalonador + ".class");
+                Escalonadores.DIRECTORY, policy + ".class");
 
         final File javaFile = new File(
-                Escalonadores.DIRECTORY, escalonador + ".java");
+                Escalonadores.DIRECTORY, policy + ".java");
 
         boolean deleted = false;
 
         if (classFile.exists()) {
             if (classFile.delete()) {
-                this.removePolicy(escalonador);
+                this.removePolicy(policy);
                 deleted = true;
             }
         }
@@ -364,7 +364,7 @@ public class Escalonadores implements ManipularArquivos {
      * otherwise
      */
     @Override
-    public boolean importarEscalonadorJava(final File arquivo) {
+    public boolean importJavaPolicy(final File arquivo) {
         
 
         final var target = new File(Escalonadores.DIRECTORY, arquivo.getName());

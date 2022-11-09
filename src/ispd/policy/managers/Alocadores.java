@@ -291,14 +291,14 @@ public class Alocadores implements PolicyManager {
      * Reads the source file from the policy {@code alocador} and returns a
      * string with the file contents.
      *
-     * @param alocador Name of the policy which source file will be read
+     * @param policy Name of the policy which source file will be read
      * @return String contents of the file
      */
     @Override
-    public String ler(final String alocador) {
+    public String ler(final String policy) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(Alocadores.DIRECTORY, alocador + ".java"),
+                        new File(Alocadores.DIRECTORY, policy + ".java"),
                         StandardCharsets.UTF_8)
         )) {
             return br.lines().collect(Collectors.joining("\n"));
@@ -313,22 +313,22 @@ public class Alocadores implements PolicyManager {
      * Attempts to remove .java and .class files with the name in {@code
      * alocador} and, if successful, removes the policy from the inner list.
      *
-     * @param alocador Name of the policy which files will be removed
+     * @param policy Name of the policy which files will be removed
      * @return {@code true} if removal is successful
      */
     @Override
-    public boolean remover(final String alocador) {
+    public boolean remover(final String policy) {
         final var classFile = new File(
-                Alocadores.DIRECTORY, alocador + ".class");
+                Alocadores.DIRECTORY, policy + ".class");
 
         final File javaFile = new File(
-                Alocadores.DIRECTORY, alocador + ".java");
+                Alocadores.DIRECTORY, policy + ".java");
 
         boolean deleted = false;
 
         if (classFile.exists()) {
             if (classFile.delete()) {
-                this.removePolicy(alocador);
+                this.removePolicy(policy);
                 deleted = true;
             }
         }
@@ -363,7 +363,7 @@ public class Alocadores implements PolicyManager {
      * otherwise
      */
     @Override
-    public boolean importarAlocadoresJava(final File arquivo) {
+    public boolean importJavaPolicy(final File arquivo) {
         final var target = new File(Alocadores.DIRECTORY, arquivo.getName());
         Alocadores.copyFile(target, arquivo);
 

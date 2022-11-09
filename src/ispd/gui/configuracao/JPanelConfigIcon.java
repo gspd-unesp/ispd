@@ -1,7 +1,6 @@
 package ispd.gui.configuracao;
 
 import ispd.policy.PolicyManager;
-import ispd.policy.escalonador.ManipularArquivos;
 import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
 import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.grade.Cluster;
@@ -48,7 +47,7 @@ public class JPanelConfigIcon extends JPanel {
     private final VariedRowTable linkTable = this.createTableWith(
             LinkVariedRowTable::new,
             LinkTable::new);
-    private ManipularArquivos schedulers = null;
+    private PolicyManager schedulers = null;
     private ManipularArquivosCloud cloudSchedulers = null;
     private PolicyManager allocators = null;
 
@@ -108,7 +107,7 @@ public class JPanelConfigIcon extends JPanel {
         return t;
     }
 
-    public void setEscalonadores(final ManipularArquivos schedulers) {
+    public void setEscalonadores(final PolicyManager schedulers) {
         this.schedulers = schedulers;
         schedulers.listar().forEach(sch -> {
             this.getTabelaMaquina().getEscalonadores().addItem(sch);
