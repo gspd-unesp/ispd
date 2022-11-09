@@ -28,7 +28,7 @@ import java.util.zip.ZipFile;
 /**
  * Manages storing, retrieving and compiling cloud scheduling policies
  */
-public class EscalonadoresCloud implements PolicyManager {
+public class EscalonadoresCloud extends GenericPolicyManager {
     public static final String[] ESCALONADORES = {
             PolicyManager.NO_POLICY, "RoundRobin" };
     private static final String DIRECTORY_PATH =

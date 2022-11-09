@@ -29,7 +29,7 @@ import java.util.zip.ZipFile;
 /**
  * Manages storing, retrieving and compiling scheduling policies
  */
-public class Escalonadores implements PolicyManager {
+public class Escalonadores extends GenericPolicyManager {
     /**
      * Scheduling policies available by default
      */

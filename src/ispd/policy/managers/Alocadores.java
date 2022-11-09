@@ -28,7 +28,7 @@ import java.util.zip.ZipFile;
 /**
  * Manages storing, retrieving and compiling allocation policies
  */
-public class Alocadores implements PolicyManager {
+public class Alocadores extends GenericPolicyManager {
     /**
      * Allocation policies available by default
      */
@@ -414,5 +414,4 @@ public class Alocadores implements PolicyManager {
     public List listarRemovidos() {
         return this.removedPolicies;
     }
-
 }
