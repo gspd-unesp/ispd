@@ -265,18 +265,6 @@ public class Escalonadores extends GenericPolicyManager {
     }
 
     /**
-     * Add policy to the inner list of policies
-     */
-    private void addPolicy(final String policyName) {
-        if (this.policies.contains(policyName)) {
-            return;
-        }
-
-        this.policies.add(policyName);
-        this.addedPolicies.add(policyName);
-    }
-
-    /**
      * Reads the source file from the policy {@code escalonador} and returns
      * a string with the file contents.
      *
@@ -330,18 +318,6 @@ public class Escalonadores extends GenericPolicyManager {
         }
 
         return deleted;
-    }
-
-    /**
-     * Remove policy of given name from the inner list of policies
-     */
-    private void removePolicy(final String policyName) {
-        if (!this.policies.contains(policyName)) {
-            return;
-        }
-
-        this.policies.remove(policyName);
-        this.removedPolicies.add(policyName);
     }
 
     /**

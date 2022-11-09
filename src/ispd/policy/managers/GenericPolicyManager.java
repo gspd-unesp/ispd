@@ -32,6 +32,16 @@ abstract class GenericPolicyManager implements PolicyManager {
     }
 
     /**
+     * Lists all available allocation policies.
+     *
+     * @return {@code ArrayList} with all allocation policies' names
+     */
+    @Override
+    public ArrayList<String> listar() {
+        return this.policies;
+    }
+
+    /**
      * @return added policies
      */
     @Override
@@ -45,5 +55,29 @@ abstract class GenericPolicyManager implements PolicyManager {
     @Override
     public List listarRemovidos() {
         return this.removedPolicies;
+    }
+
+    /**
+     * Add policy to the inner list of policies
+     */
+    protected void addPolicy(final String policyName) {
+        if (this.policies.contains(policyName)) {
+            return;
+        }
+
+        this.policies.add(policyName);
+        this.addedPolicies.add(policyName);
+    }
+
+    /**
+     * Remove policy of given name from the inner list of policies
+     */
+    protected void removePolicy(final String policyName) {
+        if (!this.policies.contains(policyName)) {
+            return;
+        }
+
+        this.policies.remove(policyName);
+        this.removedPolicies.add(policyName);
     }
 }

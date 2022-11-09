@@ -13,7 +13,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.jar.JarFile;
@@ -170,16 +169,6 @@ public class Alocadores extends GenericPolicyManager {
     }
 
     /**
-     * Lists all available allocation policies.
-     *
-     * @return {@code ArrayList} with all allocation policies' names
-     */
-    @Override
-    public ArrayList<String> listar() {
-        return this.policies;
-    }
-
-    /**
      * @return Directory in which allocation policies sources are compiled
      * classes are saved
      */
@@ -267,18 +256,6 @@ public class Alocadores extends GenericPolicyManager {
     }
 
     /**
-     * Add policy to the inner list of policies
-     */
-    private void addPolicy(final String policyName) {
-        if (this.policies.contains(policyName)) {
-            return;
-        }
-
-        this.policies.add(policyName);
-        this.addedPolicies.add(policyName);
-    }
-
-    /**
      * Reads the source file from the policy {@code alocador} and returns a
      * string with the file contents.
      *
@@ -331,18 +308,6 @@ public class Alocadores extends GenericPolicyManager {
         }
 
         return deleted;
-    }
-
-    /**
-     * Remove policy of given name from the inner list of policies
-     */
-    private void removePolicy(final String policyName) {
-        if (!this.policies.contains(policyName)) {
-            return;
-        }
-
-        this.policies.remove(policyName);
-        this.removedPolicies.add(policyName);
     }
 
     /**
