@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+// TODO: Document
 /* package-private */
 abstract class GenericPolicyManager implements PolicyManager {
     protected final ArrayList<String> policies = new ArrayList<>(0);
@@ -28,6 +29,16 @@ abstract class GenericPolicyManager implements PolicyManager {
         } catch (final IOException ex) {
             Logger.getLogger(GenericPolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
+        }
+    }
+
+    protected static String removeDotClassSuffix(final String s) {
+        return s.substring(0, s.length() - ".class".length());
+    }
+
+    protected static void createDirectory(final File dir) throws IOException {
+        if (!dir.mkdirs()) {
+            throw new IOException("Failed to create directory " + dir);
         }
     }
 

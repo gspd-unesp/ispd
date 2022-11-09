@@ -40,7 +40,7 @@ public class EscalonadoresCloud extends GenericPolicyManager {
         } else {
 
             try {
-                EscalonadoresCloud.createDirectory(EscalonadoresCloud.DIRECTORY);
+                GenericPolicyManager.createDirectory(EscalonadoresCloud.DIRECTORY);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
@@ -58,18 +58,8 @@ public class EscalonadoresCloud extends GenericPolicyManager {
                 Objects.requireNonNull(EscalonadoresCloud.DIRECTORY.list(filter));
 
         Arrays.stream(dotClassFiles)
-                .map(EscalonadoresCloud::removeDotClassSuffix)
+                .map(GenericPolicyManager::removeDotClassSuffix)
                 .forEach(this.policies::add);
-    }
-
-    private static String removeDotClassSuffix(final String s) {
-        return s.substring(0, s.length() - ".class".length());
-    }
-
-    private static void createDirectory(final File dir) throws IOException {
-        if (!dir.mkdirs()) {
-            throw new IOException("Failed to create directory " + dir);
-        }
     }
 
     private static void executeFromJar() {
@@ -106,12 +96,12 @@ public class EscalonadoresCloud extends GenericPolicyManager {
         final var file = new File(entry.getName());
 
         if (entry.isDirectory() && !file.exists()) {
-            EscalonadoresCloud.createDirectory(file);
+            GenericPolicyManager.createDirectory(file);
             return;
         }
 
         if (!file.getParentFile().exists()) {
-            EscalonadoresCloud.createDirectory(file.getParentFile());
+            GenericPolicyManager.createDirectory(file.getParentFile());
         }
 
         try (final var is = zip.getInputStream(entry);
