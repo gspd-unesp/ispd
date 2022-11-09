@@ -72,13 +72,15 @@ abstract class FromFilePolicyManager implements PolicyManager {
      * @param dir  Directory name to be extracted
      * @param file Jar file from which to extract the directory
      */
-    private static void extractDirFromJar(final String dir,
-                                          final File file) throws IOException {
+    private static void extractDirFromJar(
+            final String dir, final File file) throws IOException {
         try (final var jar = new JarFile(file)) {
-            for (final var entry : new JarEntryIterable(jar)) {
-                if (entry.getName().contains(dir)) {
-                    FromFilePolicyManager.processZipEntry(entry, jar);
-                }
+            final var entries = jar.stream()
+                    .filter(e -> e.getName().contains(dir))
+                    .toList();
+
+            for (final var entry : entries) {
+                FromFilePolicyManager.processZipEntry(entry, jar);
             }
         }
     }
