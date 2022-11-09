@@ -53,12 +53,6 @@ abstract class FromFilePolicyManager implements PolicyManager {
         }
     }
 
-    /**
-     * Extracts given dir from jar file given by file.
-     *
-     * @param dir  Directory name to be extracted
-     * @param file Jar file from which to extract the directory
-     */
     private static void extractDirFromJar(
             final String dir, final File file) throws IOException {
         try (final var jar = new JarFile(file)) {
@@ -165,7 +159,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
         return err.isEmpty() ? null : err;
     }
 
-    protected static String compile(final File target) {
+    private static String compile(final File target) {
         final var compiler = ToolProvider.getSystemJavaCompiler();
 
         if (compiler != null) {
@@ -184,7 +178,8 @@ abstract class FromFilePolicyManager implements PolicyManager {
     }
 
     private static String compileManually(final File target) throws IOException {
-        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
+        final var proc = Runtime.getRuntime()
+                .exec("javac " + target.getPath());
 
         try (final var err = new BufferedReader(new InputStreamReader(
                 proc.getErrorStream(), StandardCharsets.UTF_8))
@@ -193,10 +188,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
         }
     }
 
-    /**
-     * Add policy to the inner list of policies
-     */
-    protected void addPolicy(final String policyName) {
+    private void addPolicy(final String policyName) {
         if (this.policies.contains(policyName)) {
             return;
         }
@@ -260,10 +252,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
         return deleted;
     }
 
-    /**
-     * Remove policy of given name from the inner list of policies
-     */
-    protected void removePolicy(final String policyName) {
+    private void removePolicy(final String policyName) {
         if (!this.policies.contains(policyName)) {
             return;
         }
@@ -303,7 +292,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
         return true;
     }
 
-    protected static void copyFile(final File dest, final File src) {
+    private static void copyFile(final File dest, final File src) {
         if (dest.getPath().equals(src.getPath())) {
             return;
         }
@@ -343,7 +332,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
                 .forEach(this.policies::add);
     }
 
-    protected static String removeDotClassSuffix(final String s) {
+    private static String removeDotClassSuffix(final String s) {
         return s.substring(0, s.length() - ".class".length());
     }
 }
