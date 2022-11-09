@@ -24,36 +24,47 @@ public class Escalonadores extends FromFilePolicyManager {
     /**
      * Scheduling policies available by default
      */
-    public static final String[] ESCALONADORES = { PolicyManager.NO_POLICY,
-            "RoundRobin", "Workqueue", "WQR",
-            "DynamicFPLTF", "HOSEP", "OSEP", "EHOSEP" };
-    private static final String DIRECTORY_PATH = "ispd/externo";
-    private static final File DIRECTORY =
-            new File(Carregar.DIRETORIO_ISPD, Escalonadores.DIRECTORY_PATH);
-    private static final String PKG_NAME = "escalonador";
+    public static final String[] ESCALONADORES = {
+            PolicyManager.NO_POLICY,
+            "RoundRobin",
+            "Workqueue",
+            "WQR",
+            "DynamicFPLTF",
+            "HOSEP",
+            "OSEP",
+            "EHOSEP",
+    };
+    private static final String GRID_PKG_NAME = "escalonador";
+    private static final String GRID_DIR_PATH = "ispd/externo";
+    private static final File GRID_DIRECTORY =
+            new File(Carregar.DIRETORIO_ISPD, Escalonadores.GRID_DIR_PATH);
 
     public Escalonadores() {
-        if (Escalonadores.DIRECTORY.exists()) {
+        if (this.theDirectory().exists()) {
             this.findDotClassSchedulers();
         } else {
 
             try {
-                FromFilePolicyManager.createDirectory(Escalonadores.DIRECTORY);
+                FromFilePolicyManager.createDirectory(this.theDirectory());
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
 
             if (Objects.requireNonNull(this.getClass().getResource(
                     "Escalonadores.class")).toString().startsWith("jar:")) {
-                FromFilePolicyManager.executeFromJar(Escalonadores.PKG_NAME);
+                FromFilePolicyManager.executeFromJar(Escalonadores.GRID_PKG_NAME);
             }
         }
+    }
+
+    protected File theDirectory() {
+        return Escalonadores.GRID_DIRECTORY;
     }
 
     private void findDotClassSchedulers() {
         final FilenameFilter filter = (b, name) -> name.endsWith(".class");
         final var dotClassFiles =
-                Objects.requireNonNull(Escalonadores.DIRECTORY.list(filter));
+                Objects.requireNonNull(this.theDirectory().list(filter));
 
         Arrays.stream(dotClassFiles)
                 .map(FromFilePolicyManager::removeDotClassSuffix)
@@ -119,7 +130,7 @@ public class Escalonadores extends FromFilePolicyManager {
      */
     @Override
     public File getDiretorio() {
-        return Escalonadores.DIRECTORY;
+        return this.theDirectory();
     }
 
     /**
@@ -133,7 +144,7 @@ public class Escalonadores extends FromFilePolicyManager {
     @Override
     public boolean escrever(final String nome, final String codigo) {
         try (final var fw = new FileWriter(
-                new File(Escalonadores.DIRECTORY, nome + ".java"),
+                new File(this.theDirectory(), nome + ".java"),
                 StandardCharsets.UTF_8
         )) {
             fw.write(codigo);
@@ -154,7 +165,8 @@ public class Escalonadores extends FromFilePolicyManager {
      */
     @Override
     public String compilar(final String nome) {
-        final var target = new File(Escalonadores.DIRECTORY, nome + ".java");
+        final var target = new File(this.theDirectory(), nome +
+                                                         ".java");
         final var err = FromFilePolicyManager.compile(target);
 
         try {
@@ -165,7 +177,7 @@ public class Escalonadores extends FromFilePolicyManager {
         }
 
         // Check if compilation worked, looking for a .class file
-        if (new File(Escalonadores.DIRECTORY, nome + ".class").exists()) {
+        if (new File(this.theDirectory(), nome + ".class").exists()) {
             this.addPolicy(nome);
         }
 
@@ -183,8 +195,8 @@ public class Escalonadores extends FromFilePolicyManager {
     public String ler(final String policy) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(Escalonadores.DIRECTORY, policy +
-                                                          ".java"),
+                        new File(this.theDirectory(), policy +
+                                                      ".java"),
                         StandardCharsets.UTF_8)
         )) {
             return br.lines().collect(Collectors.joining("\n"));
@@ -205,10 +217,10 @@ public class Escalonadores extends FromFilePolicyManager {
     @Override
     public boolean remover(final String policy) {
         final var classFile = new File(
-                Escalonadores.DIRECTORY, policy + ".class");
+                this.theDirectory(), policy + ".class");
 
         final File javaFile = new File(
-                Escalonadores.DIRECTORY, policy + ".java");
+                this.theDirectory(), policy + ".java");
 
         boolean deleted = false;
 
@@ -239,7 +251,7 @@ public class Escalonadores extends FromFilePolicyManager {
      */
     @Override
     public boolean importJavaPolicy(final File arquivo) {
-        final var target = new File(Escalonadores.DIRECTORY, arquivo.getName());
+        final var target = new File(this.theDirectory(), arquivo.getName());
         FromFilePolicyManager.copyFile(target, arquivo);
 
         final var err = FromFilePolicyManager.compile(target);
@@ -251,7 +263,7 @@ public class Escalonadores extends FromFilePolicyManager {
         final var nome = arquivo.getName()
                 .substring(0, arquivo.getName().length() - ".java".length());
 
-        if (!new File(Escalonadores.DIRECTORY, nome + ".class").exists()) {
+        if (!new File(this.theDirectory(), nome + ".class").exists()) {
             return false;
         }
 

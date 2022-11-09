@@ -27,12 +27,11 @@ public class Alocadores extends FromFilePolicyManager {
             "RoundRobin",
             "FirstFit",
             "FirstFitDecreasing",
-            "Volume"
+            "Volume",
     };
     private static final String VM_PKG_NAME = "alocacaoVM";
-    private static final String VM_DIRECTORY_PATH = "ispd/externo/cloudAlloc";
-    private static final File VM_ALLOCATION_DIRECTORY =
-            new File(Alocadores.VM_DIRECTORY_PATH);
+    private static final String VM_DIR_PATH = "ispd/externo/cloudAlloc";
+    private static final File VM_DIRECTORY = new File(Alocadores.VM_DIR_PATH);
 
     public Alocadores() {
         if (this.theDirectory().exists()) {
@@ -52,8 +51,8 @@ public class Alocadores extends FromFilePolicyManager {
         }
     }
 
-    public File theDirectory() {
-        return Alocadores.VM_ALLOCATION_DIRECTORY;
+    protected File theDirectory() {
+        return Alocadores.VM_DIRECTORY;
     }
 
     private void findDotClassAllocators() {
