@@ -1,6 +1,6 @@
 package ispd.policy.managers;
 
-import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
+import ispd.policy.PolicyManager;
 
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
@@ -30,7 +30,7 @@ import java.util.zip.ZipFile;
 /**
  * Manages storing, retrieving and compiling cloud scheduling policies
  */
-public class EscalonadoresCloud implements ManipularArquivosCloud {
+public class EscalonadoresCloud implements PolicyManager {
 
     private static final String NO_POLICY = "---";
     public static final String[] ESCALONADORES = { EscalonadoresCloud.NO_POLICY,
@@ -359,7 +359,7 @@ public class EscalonadoresCloud implements ManipularArquivosCloud {
      * otherwise
      */
     @Override
-    public boolean importarEscalonadorJava(final File arquivo) {
+    public boolean importJavaPolicy(final File arquivo) {
         final var target = new File(EscalonadoresCloud.DIRECTORY,
                 arquivo.getName());
         EscalonadoresCloud.copyFile(target, arquivo);

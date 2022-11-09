@@ -2,7 +2,6 @@ package ispd.gui;
 
 import ispd.policy.PolicyManager;
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
-import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
 import ispd.gui.utils.ButtonBuilder;
 import ispd.utils.ValidaValores;
 
@@ -87,7 +86,7 @@ public class CreateSchedulerDialog extends JDialog {
     private int tParentAccount = 0;
     private int rParentAccount = 0;
     private PolicyManager schedulerFiles = null;
-    private ManipularArquivosCloud cloudSchedulerFiles = null;
+    private PolicyManager cloudSchedulerFiles = null;
     private PolicyManager allocFiles = null;
     private InterpretadorGerador parse = null;
     private int modelType = 0;
@@ -2452,7 +2451,7 @@ public class CreateSchedulerDialog extends JDialog {
 
     }
 
-    void setEscalonadoresCloud(final ManipularArquivosCloud escalonadores) {
+    void setEscalonadoresCloud(final PolicyManager escalonadores) {
         this.cloudSchedulerFiles = escalonadores;
         this.modelType = CreateSchedulerDialog.IAAS;
 
