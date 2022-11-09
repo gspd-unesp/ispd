@@ -438,7 +438,7 @@ public class ManageSchedulers extends JFrame {
                     final CreateSchedulerDialog ge =
                             new CreateSchedulerDialog(this,
                             true,
-                            this.escalonadores.getDiretorio().getAbsolutePath(), this.palavras);
+                            this.escalonadores.directory().getAbsolutePath(), this.palavras);
                     ge.setLocationRelativeTo(this);
                     ge.setVisible(true);
                     if (ge.getParse() != null) {
@@ -587,7 +587,7 @@ public class ManageSchedulers extends JFrame {
             chooserLayout.getLayoutComponent(BorderLayout.NORTH).setVisible(false);
             //aqui está o X da questão ;D
             this.jFileChooser1.getComponent(0).setVisible(false);
-            this.jFileChooser1.setCurrentDirectory(this.escalonadores.getDiretorio());
+            this.jFileChooser1.setCurrentDirectory(this.escalonadores.directory());
             escolha = this.jFileChooser1.showOpenDialog(this);
             if (escolha == JFileChooser.APPROVE_OPTION) {
                 final File arquivo = this.jFileChooser1.getSelectedFile();

@@ -3,52 +3,26 @@ package ispd.policy.managers;
 import ispd.policy.PolicyManager;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
 
 /**
  * Manages storing, retrieving and compiling cloud scheduling policies
  */
-public class EscalonadoresCloud extends FromFilePolicyManager {
+public class EscalonadoresCloud extends FilePolicyManager {
     public static final String[] ESCALONADORES = {
             PolicyManager.NO_POLICY,
             "RoundRobin"
     };
-    private static final String CLOUD_PKG_NAME = "escalonadorCloud";
     private static final String CLOUD_DIR_PATH =
             "ispd.policy.externo.cloudSchedulers";
     private static final File CLOUD_DIRECTORY =
             new File(EscalonadoresCloud.CLOUD_DIR_PATH);
-
-    public EscalonadoresCloud() {
-        if (this.getDiretorio().exists()) {
-            this.findDotClassPolicies();
-        } else {
-
-            try {
-                FromFilePolicyManager.createDirectory(this.getDiretorio());
-            } catch (final IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            if (Objects.requireNonNull(this.getClass().getResource(
-                    "EscalonadoresCloud.class")).toString().startsWith("jar:")) {
-                FromFilePolicyManager.executeFromJar(EscalonadoresCloud.CLOUD_PKG_NAME);
-            }
-        }
-    }
-
-    @Override
-    public File getDiretorio() {
-        return EscalonadoresCloud.CLOUD_DIRECTORY;
-    }
 
     /**
      * @return Basic template for writing a cloud scheduling policy's source
      * code
      */
     public static String getEscalonadorJava(final String escalonador) {
-        return FromFilePolicyManager.formatTemplate(
+        return FilePolicyManager.formatTemplate(
                 EscalonadoresCloud.getTemplate(),
                 escalonador
         );
@@ -93,5 +67,20 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
                     }
                 }
                 """;
+    }
+
+    @Override
+    public File directory() {
+        return EscalonadoresCloud.CLOUD_DIRECTORY;
+    }
+
+    @Override
+    protected String className() {
+        return "EscalonadoresCloud.class";
+    }
+
+    @Override
+    protected String packageName() {
+        return "escalonadorCloud";
     }
 }

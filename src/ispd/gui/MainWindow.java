@@ -1290,7 +1290,7 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void generateSchedulerGrid() {
         this.generateScheduler(
-                this.jFrameManager.getEscalonadores().getDiretorio().getAbsolutePath(),
+                this.jFrameManager.getEscalonadores().directory().getAbsolutePath(),
                 (ge) -> ge.setEscalonadores(this.jFrameManager.getEscalonadores()),
                 this.jFrameManager::atualizarEscalonadores
         );
@@ -1298,7 +1298,7 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void generateSchedulerCloud() {
         this.generateScheduler(
-                this.jFrameCloudManager.getEscalonadores().getDiretorio().getAbsolutePath(),
+                this.jFrameCloudManager.getEscalonadores().directory().getAbsolutePath(),
                 (ge) -> ge.setEscalonadoresCloud(this.jFrameCloudManager.getEscalonadores()),
                 this.jFrameCloudManager::atualizarEscalonadores
         );
@@ -1306,7 +1306,7 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void generateSchedulerAlloc() {
         this.generateScheduler(
-                this.jFrameAllocManager.getAlocadores().getDiretorio().getAbsolutePath(),
+                this.jFrameAllocManager.getAlocadores().directory().getAbsolutePath(),
                 (ge) -> ge.setAlocadores(this.jFrameAllocManager.getAlocadores()),
                 this.jFrameAllocManager::atualizarAlocadores
         );

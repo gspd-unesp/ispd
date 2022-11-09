@@ -4,13 +4,11 @@ import ispd.policy.PolicyManager;
 import ispd.policy.escalonador.Carregar;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
 
 /**
  * Manages storing, retrieving and compiling scheduling policies
  */
-public class Escalonadores extends FromFilePolicyManager {
+public class Escalonadores extends FilePolicyManager {
     /**
      * Scheduling policies available by default
      */
@@ -24,39 +22,15 @@ public class Escalonadores extends FromFilePolicyManager {
             "OSEP",
             "EHOSEP",
     };
-    private static final String GRID_PKG_NAME = "escalonador";
     private static final String GRID_DIR_PATH = "ispd/externo";
     private static final File GRID_DIRECTORY =
             new File(Carregar.DIRETORIO_ISPD, Escalonadores.GRID_DIR_PATH);
-
-    public Escalonadores() {
-        if (this.getDiretorio().exists()) {
-            this.findDotClassPolicies();
-        } else {
-
-            try {
-                FromFilePolicyManager.createDirectory(this.getDiretorio());
-            } catch (final IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            if (Objects.requireNonNull(this.getClass().getResource(
-                    "Escalonadores.class")).toString().startsWith("jar:")) {
-                FromFilePolicyManager.executeFromJar(Escalonadores.GRID_PKG_NAME);
-            }
-        }
-    }
-
-    @Override
-    public File getDiretorio() {
-        return Escalonadores.GRID_DIRECTORY;
-    }
 
     /**
      * @return Basic template for writing a scheduling policy's source code
      */
     public static String getEscalonadorJava(final String policyName) {
-        return FromFilePolicyManager.formatTemplate(
+        return FilePolicyManager.formatTemplate(
                 Escalonadores.getTemplate(),
                 policyName
         );
@@ -101,5 +75,20 @@ public class Escalonadores extends FromFilePolicyManager {
                     }
                 }
                 """;
+    }
+
+    @Override
+    public File directory() {
+        return Escalonadores.GRID_DIRECTORY;
+    }
+
+    @Override
+    protected String className() {
+        return "Escalonadores.class";
+    }
+
+    @Override
+    protected String packageName() {
+        return "escalonador";
     }
 }

@@ -27,28 +27,47 @@ import java.util.zip.ZipFile;
 
 // TODO: Document
 /* package-private */
-abstract class FromFilePolicyManager implements PolicyManager {
+abstract class FilePolicyManager implements PolicyManager {
     private static final String POLICY_NAME_REPL = "__POLICY_NAME__";
     private static final String MOTOR_PKG_NAME = "motor";
     private final ArrayList<String> policies = new ArrayList<>();
     private final List<String> addedPolicies = new ArrayList<>();
     private final List<String> removedPolicies = new ArrayList<>();
 
-//    private FromFilePolicyManager(
-//            final Class<? extends FromFilePolicyManager>  cls,
-//            final String path) {
-//        throw new UnsupportedOperationException("Not ready yet");
-//    }
+    protected FilePolicyManager() {
+        this.initialize();
+    }
 
-    protected static void executeFromJar(final String path) {
-        final var jar = new File(
-                System.getProperty("java.class.path"));
+    private void initialize() {
+        if (this.directory().exists()) {
+            this.findDotClassPolicies();
+            return;
+        }
+
         try {
-            FromFilePolicyManager.extractDirFromJar(path, jar);
-            FromFilePolicyManager.extractDirFromJar(
-                    FromFilePolicyManager.MOTOR_PKG_NAME, jar);
+            FilePolicyManager.createDirectory(this.directory());
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        final var executable = this.getClass()
+                .getResource(this.className());
+
+        Objects.requireNonNull(executable);
+
+        if (executable.toString().startsWith("jar:")) {
+            FilePolicyManager.executeFromJar(this.packageName());
+        }
+    }
+
+    private static void executeFromJar(final String path) {
+        final var jar = new File(System.getProperty("java.class.path"));
+        try {
+            FilePolicyManager.extractDirFromJar(path, jar);
+            FilePolicyManager.extractDirFromJar(
+                    FilePolicyManager.MOTOR_PKG_NAME, jar);
         } catch (final IOException ex) {
-            Logger.getLogger(FromFilePolicyManager.class.getName())
+            Logger.getLogger(FilePolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
     }
@@ -61,7 +80,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
                     .toList();
 
             for (final var entry : entries) {
-                FromFilePolicyManager.processZipEntry(entry, jar);
+                FilePolicyManager.processZipEntry(entry, jar);
             }
         }
     }
@@ -71,12 +90,12 @@ abstract class FromFilePolicyManager implements PolicyManager {
         final var file = new File(entry.getName());
 
         if (entry.isDirectory() && !file.exists()) {
-            FromFilePolicyManager.createDirectory(file);
+            FilePolicyManager.createDirectory(file);
             return;
         }
 
         if (!file.getParentFile().exists()) {
-            FromFilePolicyManager.createDirectory(file.getParentFile());
+            FilePolicyManager.createDirectory(file.getParentFile());
         }
 
         try (final var is = zip.getInputStream(entry);
@@ -85,16 +104,34 @@ abstract class FromFilePolicyManager implements PolicyManager {
         }
     }
 
-    protected static void createDirectory(final File dir) throws IOException {
+    private static void createDirectory(final File dir) throws IOException {
         if (!dir.mkdirs()) {
             throw new IOException("Failed to create directory " + dir);
         }
     }
 
+    private void findDotClassPolicies() {
+        final FilenameFilter filter = (b, name) -> name.endsWith(".class");
+        final var dotClassFiles =
+                Objects.requireNonNull(this.directory().list(filter));
+
+        Arrays.stream(dotClassFiles)
+                .map(FilePolicyManager::removeDotClassSuffix)
+                .forEach(this.policies::add);
+    }
+
+    private static String removeDotClassSuffix(final String s) {
+        return s.substring(0, s.length() - ".class".length());
+    }
+
+    protected abstract String className();
+
+    protected abstract String packageName();
+
     protected static String formatTemplate(
             final String template, final String policyName) {
         return template.replace(
-                FromFilePolicyManager.POLICY_NAME_REPL,
+                FilePolicyManager.POLICY_NAME_REPL,
                 policyName
         );
     }
@@ -120,13 +157,13 @@ abstract class FromFilePolicyManager implements PolicyManager {
     @Override
     public boolean escrever(final String nome, final String codigo) {
         try (final var fw = new FileWriter(
-                new File(this.getDiretorio(), nome + ".java"),
+                new File(this.directory(), nome + ".java"),
                 StandardCharsets.UTF_8
         )) {
             fw.write(codigo);
             return true;
         } catch (final IOException ex) {
-            Logger.getLogger(FromFilePolicyManager.class.getName())
+            Logger.getLogger(FilePolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
             return false;
         }
@@ -141,18 +178,18 @@ abstract class FromFilePolicyManager implements PolicyManager {
      */
     @Override
     public String compilar(final String nome) {
-        final var target = new File(this.getDiretorio(), nome + ".java");
-        final var err = FromFilePolicyManager.compile(target);
+        final var target = new File(this.directory(), nome + ".java");
+        final var err = FilePolicyManager.compile(target);
 
         try {
             Thread.sleep(1000);
         } catch (final InterruptedException ex) {
-            Logger.getLogger(FromFilePolicyManager.class.getName())
+            Logger.getLogger(FilePolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
 
         // Check if compilation worked, looking for a .class file
-        if (new File(this.getDiretorio(), nome + ".class").exists()) {
+        if (new File(this.directory(), nome + ".class").exists()) {
             this.addPolicy(nome);
         }
 
@@ -168,9 +205,9 @@ abstract class FromFilePolicyManager implements PolicyManager {
             return err.toString();
         } else {
             try {
-                return FromFilePolicyManager.compileManually(target);
+                return FilePolicyManager.compileManually(target);
             } catch (final IOException ex) {
-                Logger.getLogger(FromFilePolicyManager.class.getName())
+                Logger.getLogger(FilePolicyManager.class.getName())
                         .log(Level.SEVERE, null, ex);
                 return "Não foi possível compilar";
             }
@@ -208,12 +245,12 @@ abstract class FromFilePolicyManager implements PolicyManager {
     public String ler(final String policy) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(this.getDiretorio(), policy + ".java"),
+                        new File(this.directory(), policy + ".java"),
                         StandardCharsets.UTF_8)
         )) {
             return br.lines().collect(Collectors.joining("\n"));
         } catch (final IOException ex) {
-            Logger.getLogger(FromFilePolicyManager.class.getName())
+            Logger.getLogger(FilePolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
             return null;
         }
@@ -229,10 +266,10 @@ abstract class FromFilePolicyManager implements PolicyManager {
     @Override
     public boolean remover(final String policy) {
         final var classFile = new File(
-                this.getDiretorio(), policy + ".class");
+                this.directory(), policy + ".class");
 
         final File javaFile = new File(
-                this.getDiretorio(), policy + ".java");
+                this.directory(), policy + ".java");
 
         boolean deleted = false;
 
@@ -271,10 +308,10 @@ abstract class FromFilePolicyManager implements PolicyManager {
      */
     @Override
     public boolean importJavaPolicy(final File arquivo) {
-        final var target = new File(this.getDiretorio(), arquivo.getName());
-        FromFilePolicyManager.copyFile(target, arquivo);
+        final var target = new File(this.directory(), arquivo.getName());
+        FilePolicyManager.copyFile(target, arquivo);
 
-        final var err = FromFilePolicyManager.compile(target);
+        final var err = FilePolicyManager.compile(target);
 
         if (!err.isEmpty()) {
             return false;
@@ -283,7 +320,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
         final var nome = arquivo.getName()
                 .substring(0, arquivo.getName().length() - ".java".length());
 
-        if (!new File(this.getDiretorio(), nome + ".class").exists()) {
+        if (!new File(this.directory(), nome + ".class").exists()) {
             return false;
         }
 
@@ -301,7 +338,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
              final var destFs = new FileOutputStream(dest)) {
             srcFs.transferTo(destFs);
         } catch (final IOException ex) {
-            Logger.getLogger(FromFilePolicyManager.class.getName())
+            Logger.getLogger(FilePolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
     }
@@ -320,19 +357,5 @@ abstract class FromFilePolicyManager implements PolicyManager {
     @Override
     public List listarRemovidos() {
         return this.removedPolicies;
-    }
-
-    protected void findDotClassPolicies() {
-        final FilenameFilter filter = (b, name) -> name.endsWith(".class");
-        final var dotClassFiles =
-                Objects.requireNonNull(this.getDiretorio().list(filter));
-
-        Arrays.stream(dotClassFiles)
-                .map(FromFilePolicyManager::removeDotClassSuffix)
-                .forEach(this.policies::add);
-    }
-
-    private static String removeDotClassSuffix(final String s) {
-        return s.substring(0, s.length() - ".class".length());
     }
 }

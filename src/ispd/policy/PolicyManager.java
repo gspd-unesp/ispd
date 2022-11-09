@@ -9,7 +9,7 @@ public interface PolicyManager {
 
     ArrayList<String> listar();
 
-    File getDiretorio();
+    File directory();
 
     boolean escrever(String nome, String codigo);
 

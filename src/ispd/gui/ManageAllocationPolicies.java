@@ -407,7 +407,7 @@ class ManageAllocationPolicies extends JFrame {
                         final CreateSchedulerDialog ge = new CreateSchedulerDialog(this
                                 , true
                                 ,
-                                this.allocators.getDiretorio().getAbsolutePath()
+                                this.allocators.directory().getAbsolutePath()
                                 , this.words);
                         ge.setLocationRelativeTo(this);
                         ge.setVisible(true);
@@ -560,7 +560,7 @@ class ManageAllocationPolicies extends JFrame {
             chooserLayout.getLayoutComponent(BorderLayout.NORTH).setVisible(false);
             //aqui está o X da questão ;D
             this.fileChooser.getComponent(0).setVisible(false);
-            this.fileChooser.setCurrentDirectory(this.allocators.getDiretorio());
+            this.fileChooser.setCurrentDirectory(this.allocators.directory());
             int choice2 = this.fileChooser.showOpenDialog(this);
             if (choice2 == JFileChooser.APPROVE_OPTION) {
                 final File arquivo = this.fileChooser.getSelectedFile();

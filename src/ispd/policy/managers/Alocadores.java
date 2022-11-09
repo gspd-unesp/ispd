@@ -3,13 +3,11 @@ package ispd.policy.managers;
 import ispd.policy.PolicyManager;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
 
 /**
  * Manages storing, retrieving and compiling allocation policies
  */
-public class Alocadores extends FromFilePolicyManager {
+public class Alocadores extends FilePolicyManager {
     /**
      * Allocation policies available by default
      */
@@ -20,38 +18,14 @@ public class Alocadores extends FromFilePolicyManager {
             "FirstFitDecreasing",
             "Volume",
     };
-    private static final String VM_PKG_NAME = "alocacaoVM";
     private static final String VM_DIR_PATH = "ispd/externo/cloudAlloc";
     private static final File VM_DIRECTORY = new File(Alocadores.VM_DIR_PATH);
-
-    public Alocadores() {
-        if (this.getDiretorio().exists()) {
-            this.findDotClassPolicies();
-        } else {
-
-            try {
-                FromFilePolicyManager.createDirectory(this.getDiretorio());
-            } catch (final IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            if (Objects.requireNonNull(this.getClass().getResource(
-                    "Alocadores.class")).toString().startsWith("jar:")) {
-                FromFilePolicyManager.executeFromJar(Alocadores.VM_PKG_NAME);
-            }
-        }
-    }
-
-    @Override
-    public File getDiretorio() {
-        return Alocadores.VM_DIRECTORY;
-    }
 
     /**
      * @return Basic template for writing an allocation policy's source code
      */
     public static String getAlocadorJava(final String policyName) {
-        return FromFilePolicyManager.formatTemplate(
+        return FilePolicyManager.formatTemplate(
                 Alocadores.getTemplate(),
                 policyName
         );
@@ -97,5 +71,20 @@ public class Alocadores extends FromFilePolicyManager {
                     }
                 }
                 """;
+    }
+
+    @Override
+    protected String className() {
+        return "Alocadores.class";
+    }
+
+    @Override
+    protected String packageName() {
+        return "alocacaoVM";
+    }
+
+    @Override
+    public File directory() {
+        return Alocadores.VM_DIRECTORY;
     }
 }
