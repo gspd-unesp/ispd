@@ -16,10 +16,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +33,8 @@ public class EscalonadoresCloud implements PolicyManager {
     private static final String NO_POLICY = "---";
     public static final String[] ESCALONADORES = { EscalonadoresCloud.NO_POLICY,
             "RoundRobin" };
-    private static final String DIRECTORY_PATH = "ispd.policy.externo.cloudSchedulers";
+    private static final String DIRECTORY_PATH = "ispd.policy.externo" +
+                                                 ".cloudSchedulers";
     private static final File DIRECTORY =
             new File(EscalonadoresCloud.DIRECTORY_PATH);
     private final ArrayList<String> policies = new ArrayList<>(0);
@@ -70,6 +69,10 @@ public class EscalonadoresCloud implements PolicyManager {
                 .forEach(this.policies::add);
     }
 
+    private static String removeDotClassSuffix(final String s) {
+        return s.substring(0, s.length() - ".class".length());
+    }
+
     private static void createDirectory(final File dir) throws IOException {
         if (!dir.mkdirs()) {
             throw new IOException("Failed to create directory " + dir);
@@ -87,10 +90,6 @@ public class EscalonadoresCloud implements PolicyManager {
             Logger.getLogger(EscalonadoresCloud.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
-    }
-
-    private static String removeDotClassSuffix(final String s) {
-        return s.substring(0, s.length() - ".class".length());
     }
 
     /**
@@ -260,6 +259,16 @@ public class EscalonadoresCloud implements PolicyManager {
         }
     }
 
+    private static String compileManually(final File target) throws IOException {
+        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
+
+        try (final var err = new BufferedReader(new InputStreamReader(
+                proc.getErrorStream(), StandardCharsets.UTF_8))
+        ) {
+            return err.lines().collect(Collectors.joining("\n"));
+        }
+    }
+
     /**
      * Add policy to the inner list of policies
      */
@@ -270,16 +279,6 @@ public class EscalonadoresCloud implements PolicyManager {
 
         this.policies.add(policyName);
         this.addedPolicies.add(policyName);
-    }
-
-    private static String compileManually(final File target) throws IOException {
-        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
-
-        try (final var err = new BufferedReader(new InputStreamReader(
-                proc.getErrorStream(), StandardCharsets.UTF_8))
-        ) {
-            return err.lines().collect(Collectors.joining("\n"));
-        }
     }
 
     /**
@@ -414,12 +413,5 @@ public class EscalonadoresCloud implements PolicyManager {
     @Override
     public List listarRemovidos() {
         return this.removedPolicies;
-    }
-
-    private record JarEntryIterable(JarFile jar) implements Iterable<JarEntry> {
-        @Override
-        public Iterator<JarEntry> iterator() {
-            return this.jar.entries().asIterator();
-        }
     }
 }

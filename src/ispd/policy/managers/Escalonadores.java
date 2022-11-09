@@ -17,10 +17,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,6 +74,10 @@ public class Escalonadores implements PolicyManager {
                 .forEach(this.policies::add);
     }
 
+    private static String removeDotClassSuffix(final String s) {
+        return s.substring(0, s.length() - ".class".length());
+    }
+
     private static void createDirectory(final File dir) throws IOException {
         if (!dir.mkdirs()) {
             throw new IOException("Failed to create directory " + dir);
@@ -93,10 +95,6 @@ public class Escalonadores implements PolicyManager {
             Logger.getLogger(Escalonadores.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
-    }
-
-    private static String removeDotClassSuffix(final String s) {
-        return s.substring(0, s.length() - ".class".length());
     }
 
     /**
@@ -264,6 +262,16 @@ public class Escalonadores implements PolicyManager {
         }
     }
 
+    private static String compileManually(final File target) throws IOException {
+        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
+
+        try (final var err = new BufferedReader(new InputStreamReader(
+                proc.getErrorStream(), StandardCharsets.UTF_8))
+        ) {
+            return err.lines().collect(Collectors.joining("\n"));
+        }
+    }
+
     /**
      * Add policy to the inner list of policies
      */
@@ -274,16 +282,6 @@ public class Escalonadores implements PolicyManager {
 
         this.policies.add(policyName);
         this.addedPolicies.add(policyName);
-    }
-
-    private static String compileManually(final File target) throws IOException {
-        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
-
-        try (final var err = new BufferedReader(new InputStreamReader(
-                proc.getErrorStream(), StandardCharsets.UTF_8))
-        ) {
-            return err.lines().collect(Collectors.joining("\n"));
-        }
     }
 
     /**
@@ -365,8 +363,6 @@ public class Escalonadores implements PolicyManager {
      */
     @Override
     public boolean importJavaPolicy(final File arquivo) {
-        
-
         final var target = new File(Escalonadores.DIRECTORY, arquivo.getName());
         Escalonadores.copyFile(target, arquivo);
 
@@ -420,12 +416,5 @@ public class Escalonadores implements PolicyManager {
     @Override
     public List listarRemovidos() {
         return this.removedPolicies;
-    }
-
-    private record JarEntryIterable(JarFile jar) implements Iterable<JarEntry> {
-        @Override
-        public Iterator<JarEntry> iterator() {
-            return this.jar.entries().asIterator();
-        }
     }
 }
