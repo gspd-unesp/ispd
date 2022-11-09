@@ -16,7 +16,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
@@ -38,9 +37,6 @@ public class Escalonadores extends GenericPolicyManager {
     private static final String DIRECTORY_PATH = "ispd/externo";
     private static final File DIRECTORY =
             new File(Carregar.DIRETORIO_ISPD, Escalonadores.DIRECTORY_PATH);
-    private final ArrayList<String> policies = new ArrayList<>(0);
-    private final List<String> addedPolicies = new ArrayList<>(0);
-    private final List<String> removedPolicies = new ArrayList<>(0);
 
     public Escalonadores() {
         if (Escalonadores.DIRECTORY.exists()) {
@@ -378,21 +374,5 @@ public class Escalonadores extends GenericPolicyManager {
         this.addPolicy(nome);
 
         return true;
-    }
-
-    /**
-     * @return added policies
-     */
-    @Override
-    public List listarAdicionados() {
-        return this.addedPolicies;
-    }
-
-    /**
-     * @return removed policies
-     */
-    @Override
-    public List listarRemovidos() {
-        return this.removedPolicies;
     }
 }
