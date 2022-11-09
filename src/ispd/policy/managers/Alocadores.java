@@ -6,7 +6,6 @@ import javax.tools.ToolProvider;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -15,12 +14,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * Manages storing, retrieving and compiling allocation policies
@@ -67,46 +63,11 @@ public class Alocadores extends GenericPolicyManager {
                 System.getProperty("java.class.path"));
 
         try {
-            Alocadores.extractDirFromJar("alocacaoVM", jar);
-            Alocadores.extractDirFromJar("motor", jar);
+            GenericPolicyManager.extractDirFromJar("alocacaoVM", jar);
+            GenericPolicyManager.extractDirFromJar("motor", jar);
         } catch (final IOException ex) {
             Logger.getLogger(Alocadores.class.getName())
                     .log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * Extracts given dir from jar file given by file.
-     *
-     * @param dir  Directory name to be extracted
-     * @param file Jar file from which to extract the directory
-     */
-    private static void extractDirFromJar(final String dir, final File file) throws IOException {
-        try (final var jar = new JarFile(file)) {
-            for (final var entry : new JarEntryIterable(jar)) {
-                if (entry.getName().contains(dir)) {
-                    Alocadores.processZipEntry(entry, jar);
-                }
-            }
-        }
-    }
-
-    private static void processZipEntry(
-            final ZipEntry entry, final ZipFile zip) throws IOException {
-        final var file = new File(entry.getName());
-
-        if (entry.isDirectory() && !file.exists()) {
-            GenericPolicyManager.createDirectory(file);
-            return;
-        }
-
-        if (!file.getParentFile().exists()) {
-            GenericPolicyManager.createDirectory(file.getParentFile());
-        }
-
-        try (final var is = zip.getInputStream(entry);
-             final var os = new FileOutputStream(file)) {
-            is.transferTo(os);
         }
     }
 

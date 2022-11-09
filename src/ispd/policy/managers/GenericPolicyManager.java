@@ -8,8 +8,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 // TODO: Document
 /* package-private */
@@ -34,6 +37,42 @@ abstract class GenericPolicyManager implements PolicyManager {
 
     protected static String removeDotClassSuffix(final String s) {
         return s.substring(0, s.length() - ".class".length());
+    }
+
+    /**
+     * Extracts given dir from jar file given by file.
+     *
+     * @param dir  Directory name to be extracted
+     * @param file Jar file from which to extract the directory
+     */
+    protected static void extractDirFromJar(final String dir,
+                                            final File file) throws IOException {
+        try (final var jar = new JarFile(file)) {
+            for (final var entry : new JarEntryIterable(jar)) {
+                if (entry.getName().contains(dir)) {
+                    GenericPolicyManager.processZipEntry(entry, jar);
+                }
+            }
+        }
+    }
+
+    private static void processZipEntry(
+            final ZipEntry entry, final ZipFile zip) throws IOException {
+        final var file = new File(entry.getName());
+
+        if (entry.isDirectory() && !file.exists()) {
+            GenericPolicyManager.createDirectory(file);
+            return;
+        }
+
+        if (!file.getParentFile().exists()) {
+            GenericPolicyManager.createDirectory(file.getParentFile());
+        }
+
+        try (final var is = zip.getInputStream(entry);
+             final var os = new FileOutputStream(file)) {
+            is.transferTo(os);
+        }
     }
 
     protected static void createDirectory(final File dir) throws IOException {
