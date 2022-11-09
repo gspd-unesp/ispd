@@ -1,6 +1,6 @@
 package ispd.gui;
 
-import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
+import ispd.policy.PolicyManager;
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.policy.escalonador.ManipularArquivos;
 import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
@@ -89,7 +89,7 @@ public class CreateSchedulerDialog extends JDialog {
     private int rParentAccount = 0;
     private ManipularArquivos schedulerFiles = null;
     private ManipularArquivosCloud cloudSchedulerFiles = null;
-    private ManipularArquivosAlloc allocFiles = null;
+    private PolicyManager allocFiles = null;
     private InterpretadorGerador parse = null;
     private int modelType = 0;
     private JButton buttonFinish;
@@ -2459,7 +2459,7 @@ public class CreateSchedulerDialog extends JDialog {
 
     }
 
-    void setAlocadores(final ManipularArquivosAlloc alocadores) {
+    void setAlocadores(final PolicyManager alocadores) {
         this.allocFiles = alocadores;
         this.modelType = CreateSchedulerDialog.ALLOC;
 

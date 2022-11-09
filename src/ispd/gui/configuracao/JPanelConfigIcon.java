@@ -1,6 +1,6 @@
 package ispd.gui.configuracao;
 
-import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
+import ispd.policy.PolicyManager;
 import ispd.policy.escalonador.ManipularArquivos;
 import ispd.policy.escalonadorCloud.ManipularArquivosCloud;
 import ispd.gui.PickModelTypeDialog;
@@ -50,7 +50,7 @@ public class JPanelConfigIcon extends JPanel {
             LinkTable::new);
     private ManipularArquivos schedulers = null;
     private ManipularArquivosCloud cloudSchedulers = null;
-    private ManipularArquivosAlloc allocators = null;
+    private PolicyManager allocators = null;
 
     public JPanelConfigIcon() {
         this.setLayout();
@@ -140,7 +140,7 @@ public class JPanelConfigIcon extends JPanel {
         return (ClusterTableIaaS) this.iassClusterTable.getModel();
     }
 
-    public void setAlocadores(final ManipularArquivosAlloc allocators) {
+    public void setAlocadores(final PolicyManager allocators) {
         this.allocators = allocators;
         allocators.listar().forEach(alloc -> {
             this.getTabelaMaquinaIaaS().getAlocadores().addItem(alloc);

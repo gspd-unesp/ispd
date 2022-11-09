@@ -1,6 +1,6 @@
 package ispd.gui;
 
-import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
+import ispd.policy.PolicyManager;
 import ispd.policy.managers.Alocadores;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
@@ -46,7 +46,7 @@ import java.util.ResourceBundle;
 
 class ManageAllocationPolicies extends JFrame {
     private final UndoableEdit undo = new UndoManager();
-    private final ManipularArquivosAlloc allocators;
+    private final PolicyManager allocators;
     private final ResourceBundle words =
             ResourceBundle.getBundle("ispd.idioma.Idioma", Locale.getDefault());
     private JFileChooser fileChooser;
@@ -671,7 +671,7 @@ class ManageAllocationPolicies extends JFrame {
         this.wasCurrentFileModified = false;
     }
 
-    public ManipularArquivosAlloc getAlocadores() {
+    public PolicyManager getAlocadores() {
         return this.allocators;
     }
 
