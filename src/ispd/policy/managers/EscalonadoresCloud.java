@@ -21,12 +21,12 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
             new File(EscalonadoresCloud.CLOUD_DIR_PATH);
 
     public EscalonadoresCloud() {
-        if (this.theDirectory().exists()) {
+        if (this.getDiretorio().exists()) {
             this.findDotClassPolicies();
         } else {
 
             try {
-                FromFilePolicyManager.createDirectory(this.theDirectory());
+                FromFilePolicyManager.createDirectory(this.getDiretorio());
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
@@ -39,7 +39,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
     }
 
     @Override
-    protected File theDirectory() {
+    public File getDiretorio() {
         return EscalonadoresCloud.CLOUD_DIRECTORY;
     }
 

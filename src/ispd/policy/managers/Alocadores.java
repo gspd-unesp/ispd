@@ -25,12 +25,12 @@ public class Alocadores extends FromFilePolicyManager {
     private static final File VM_DIRECTORY = new File(Alocadores.VM_DIR_PATH);
 
     public Alocadores() {
-        if (this.theDirectory().exists()) {
+        if (this.getDiretorio().exists()) {
             this.findDotClassPolicies();
         } else {
 
             try {
-                FromFilePolicyManager.createDirectory(this.theDirectory());
+                FromFilePolicyManager.createDirectory(this.getDiretorio());
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
@@ -43,7 +43,7 @@ public class Alocadores extends FromFilePolicyManager {
     }
 
     @Override
-    protected File theDirectory() {
+    public File getDiretorio() {
         return Alocadores.VM_DIRECTORY;
     }
 

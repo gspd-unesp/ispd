@@ -116,15 +116,6 @@ abstract class FromFilePolicyManager implements PolicyManager {
     }
 
     /**
-     * @return Directory in which allocation policies sources are compiled
-     * classes are saved
-     */
-    @Override
-    public File getDiretorio() {
-        return this.theDirectory();
-    }
-
-    /**
      * Writes the contents of {@code codigo} into the source file of the
      * policy given by {@code nome}.
      *
@@ -135,7 +126,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
     @Override
     public boolean escrever(final String nome, final String codigo) {
         try (final var fw = new FileWriter(
-                new File(this.theDirectory(), nome + ".java"),
+                new File(this.getDiretorio(), nome + ".java"),
                 StandardCharsets.UTF_8
         )) {
             fw.write(codigo);
@@ -156,7 +147,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
      */
     @Override
     public String compilar(final String nome) {
-        final var target = new File(this.theDirectory(), nome + ".java");
+        final var target = new File(this.getDiretorio(), nome + ".java");
         final var err = FromFilePolicyManager.compile(target);
 
         try {
@@ -167,7 +158,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
         }
 
         // Check if compilation worked, looking for a .class file
-        if (new File(this.theDirectory(), nome + ".class").exists()) {
+        if (new File(this.getDiretorio(), nome + ".class").exists()) {
             this.addPolicy(nome);
         }
 
@@ -225,7 +216,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
     public String ler(final String policy) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(this.theDirectory(), policy + ".java"),
+                        new File(this.getDiretorio(), policy + ".java"),
                         StandardCharsets.UTF_8)
         )) {
             return br.lines().collect(Collectors.joining("\n"));
@@ -246,10 +237,10 @@ abstract class FromFilePolicyManager implements PolicyManager {
     @Override
     public boolean remover(final String policy) {
         final var classFile = new File(
-                this.theDirectory(), policy + ".class");
+                this.getDiretorio(), policy + ".class");
 
         final File javaFile = new File(
-                this.theDirectory(), policy + ".java");
+                this.getDiretorio(), policy + ".java");
 
         boolean deleted = false;
 
@@ -291,7 +282,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
      */
     @Override
     public boolean importJavaPolicy(final File arquivo) {
-        final var target = new File(this.theDirectory(), arquivo.getName());
+        final var target = new File(this.getDiretorio(), arquivo.getName());
         FromFilePolicyManager.copyFile(target, arquivo);
 
         final var err = FromFilePolicyManager.compile(target);
@@ -303,7 +294,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
         final var nome = arquivo.getName()
                 .substring(0, arquivo.getName().length() - ".java".length());
 
-        if (!new File(this.theDirectory(), nome + ".class").exists()) {
+        if (!new File(this.getDiretorio(), nome + ".class").exists()) {
             return false;
         }
 
@@ -342,12 +333,10 @@ abstract class FromFilePolicyManager implements PolicyManager {
         return this.removedPolicies;
     }
 
-    protected abstract File theDirectory();
-
     protected void findDotClassPolicies() {
         final FilenameFilter filter = (b, name) -> name.endsWith(".class");
         final var dotClassFiles =
-                Objects.requireNonNull(this.theDirectory().list(filter));
+                Objects.requireNonNull(this.getDiretorio().list(filter));
 
         Arrays.stream(dotClassFiles)
                 .map(FromFilePolicyManager::removeDotClassSuffix)

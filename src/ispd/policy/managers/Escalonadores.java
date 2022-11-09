@@ -30,12 +30,12 @@ public class Escalonadores extends FromFilePolicyManager {
             new File(Carregar.DIRETORIO_ISPD, Escalonadores.GRID_DIR_PATH);
 
     public Escalonadores() {
-        if (this.theDirectory().exists()) {
+        if (this.getDiretorio().exists()) {
             this.findDotClassPolicies();
         } else {
 
             try {
-                FromFilePolicyManager.createDirectory(this.theDirectory());
+                FromFilePolicyManager.createDirectory(this.getDiretorio());
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
@@ -48,7 +48,7 @@ public class Escalonadores extends FromFilePolicyManager {
     }
 
     @Override
-    protected File theDirectory() {
+    public File getDiretorio() {
         return Escalonadores.GRID_DIRECTORY;
     }
 
