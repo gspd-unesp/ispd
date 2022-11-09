@@ -1,5 +1,7 @@
 package ispd.policy.managers;
 
+import ispd.policy.PolicyManager;
+
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -28,7 +30,7 @@ import java.util.zip.ZipFile;
 /**
  * Manages storing, retrieving and compiling allocation policies
  */
-public class Alocadores implements ispd.policy.PolicyManager {
+public class Alocadores implements PolicyManager {
 
     private static final String NO_POLICY = "---";
     /**
@@ -70,6 +72,10 @@ public class Alocadores implements ispd.policy.PolicyManager {
                 .forEach(this.policies::add);
     }
 
+    private static String removeDotClassSuffix(final String s) {
+        return s.substring(0, s.length() - ".class".length());
+    }
+
     private static void createDirectory(final File dir) throws IOException {
         if (!dir.mkdirs()) {
             throw new IOException("Failed to create directory " + dir);
@@ -87,10 +93,6 @@ public class Alocadores implements ispd.policy.PolicyManager {
             Logger.getLogger(Alocadores.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
-    }
-
-    private static String removeDotClassSuffix(final String s) {
-        return s.substring(0, s.length() - ".class".length());
     }
 
     /**
@@ -263,6 +265,16 @@ public class Alocadores implements ispd.policy.PolicyManager {
         }
     }
 
+    private static String compileManually(final File target) throws IOException {
+        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
+
+        try (final var err = new BufferedReader(new InputStreamReader(
+                proc.getErrorStream(), StandardCharsets.UTF_8))
+        ) {
+            return err.lines().collect(Collectors.joining("\n"));
+        }
+    }
+
     /**
      * Add policy to the inner list of policies
      */
@@ -273,16 +285,6 @@ public class Alocadores implements ispd.policy.PolicyManager {
 
         this.policies.add(policyName);
         this.addedPolicies.add(policyName);
-    }
-
-    private static String compileManually(final File target) throws IOException {
-        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
-
-        try (final var err = new BufferedReader(new InputStreamReader(
-                proc.getErrorStream(), StandardCharsets.UTF_8))
-        ) {
-            return err.lines().collect(Collectors.joining("\n"));
-        }
     }
 
     /**
