@@ -29,12 +29,10 @@ import java.util.zip.ZipFile;
  * Manages storing, retrieving and compiling allocation policies
  */
 public class Alocadores implements PolicyManager {
-
-    private static final String NO_POLICY = "---";
     /**
      * Allocation policies available by default
      */
-    public static final String[] ALOCACAO = { Alocadores.NO_POLICY,
+    public static final String[] ALOCACAO = { PolicyManager.NO_POLICY,
             "RoundRobin", "FirstFit", "FirstFitDecreasing", "Volume" };
     private static final String DIRECTORY_PATH = "ispd/externo/cloudAlloc";
     private static final File DIRECTORY = new File(Alocadores.DIRECTORY_PATH);

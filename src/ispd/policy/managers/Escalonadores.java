@@ -30,13 +30,10 @@ import java.util.zip.ZipFile;
  * Manages storing, retrieving and compiling scheduling policies
  */
 public class Escalonadores implements PolicyManager {
-
-    private static final String NO_POLICY = "---";
-
     /**
      * Scheduling policies available by default
      */
-    public static final String[] ESCALONADORES = { Escalonadores.NO_POLICY,
+    public static final String[] ESCALONADORES = { PolicyManager.NO_POLICY,
             "RoundRobin", "Workqueue", "WQR",
             "DynamicFPLTF", "HOSEP", "OSEP", "EHOSEP" };
     private static final String DIRECTORY_PATH = "ispd/externo";

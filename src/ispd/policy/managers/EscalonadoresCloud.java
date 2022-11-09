@@ -29,12 +29,10 @@ import java.util.zip.ZipFile;
  * Manages storing, retrieving and compiling cloud scheduling policies
  */
 public class EscalonadoresCloud implements PolicyManager {
-
-    private static final String NO_POLICY = "---";
-    public static final String[] ESCALONADORES = { EscalonadoresCloud.NO_POLICY,
-            "RoundRobin" };
-    private static final String DIRECTORY_PATH = "ispd.policy.externo" +
-                                                 ".cloudSchedulers";
+    public static final String[] ESCALONADORES = {
+            PolicyManager.NO_POLICY, "RoundRobin" };
+    private static final String DIRECTORY_PATH =
+            "ispd.policy.externo.cloudSchedulers";
     private static final File DIRECTORY =
             new File(EscalonadoresCloud.DIRECTORY_PATH);
     private final ArrayList<String> policies = new ArrayList<>(0);

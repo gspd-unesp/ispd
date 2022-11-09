@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface PolicyManager {
+    String NO_POLICY = "---";
+
     ArrayList<String> listar();
 
     File getDiretorio();
