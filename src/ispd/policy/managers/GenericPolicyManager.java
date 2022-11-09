@@ -2,15 +2,21 @@ package ispd.policy.managers;
 
 import ispd.policy.PolicyManager;
 
+import javax.tools.ToolProvider;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -93,6 +99,34 @@ abstract class GenericPolicyManager implements PolicyManager {
     protected static void createDirectory(final File dir) throws IOException {
         if (!dir.mkdirs()) {
             throw new IOException("Failed to create directory " + dir);
+        }
+    }
+
+    protected static String compile(final File target) {
+        final var compiler = ToolProvider.getSystemJavaCompiler();
+
+        if (compiler != null) {
+            final var err = new ByteArrayOutputStream();
+            compiler.run(null, null, err, target.getPath());
+            return err.toString();
+        } else {
+            try {
+                return GenericPolicyManager.compileManually(target);
+            } catch (final IOException ex) {
+                Logger.getLogger(GenericPolicyManager.class.getName())
+                        .log(Level.SEVERE, null, ex);
+                return "Não foi possível compilar";
+            }
+        }
+    }
+
+    protected static String compileManually(final File target) throws IOException {
+        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
+
+        try (final var err = new BufferedReader(new InputStreamReader(
+                proc.getErrorStream(), StandardCharsets.UTF_8))
+        ) {
+            return err.lines().collect(Collectors.joining("\n"));
         }
     }
 

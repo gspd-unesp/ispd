@@ -2,15 +2,12 @@ package ispd.policy.managers;
 
 import ispd.policy.PolicyManager;
 
-import javax.tools.ToolProvider;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -156,7 +153,7 @@ public class EscalonadoresCloud extends GenericPolicyManager {
     public String compilar(final String nome) {
         final var target = new File(EscalonadoresCloud.DIRECTORY, nome +
                                                                   ".java");
-        final var err = EscalonadoresCloud.compile(target);
+        final var err = GenericPolicyManager.compile(target);
 
         try {
             Thread.sleep(1000);
@@ -171,34 +168,6 @@ public class EscalonadoresCloud extends GenericPolicyManager {
         }
 
         return err.isEmpty() ? null : err;
-    }
-
-    private static String compile(final File target) {
-        final var compiler = ToolProvider.getSystemJavaCompiler();
-
-        if (compiler != null) {
-            final var err = new ByteArrayOutputStream();
-            compiler.run(null, null, err, target.getPath());
-            return err.toString();
-        } else {
-            try {
-                return EscalonadoresCloud.compileManually(target);
-            } catch (final IOException ex) {
-                Logger.getLogger(EscalonadoresCloud.class.getName())
-                        .log(Level.SEVERE, null, ex);
-                return "Não foi possível compilar";
-            }
-        }
-    }
-
-    private static String compileManually(final File target) throws IOException {
-        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
-
-        try (final var err = new BufferedReader(new InputStreamReader(
-                proc.getErrorStream(), StandardCharsets.UTF_8))
-        ) {
-            return err.lines().collect(Collectors.joining("\n"));
-        }
     }
 
     /**
@@ -271,7 +240,7 @@ public class EscalonadoresCloud extends GenericPolicyManager {
                 EscalonadoresCloud.DIRECTORY, arquivo.getName());
         GenericPolicyManager.copyFile(target, arquivo);
 
-        final var err = EscalonadoresCloud.compile(target);
+        final var err = GenericPolicyManager.compile(target);
 
         if (!err.isEmpty()) {
             return false;
