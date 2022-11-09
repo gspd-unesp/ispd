@@ -1,7 +1,5 @@
 package ispd.policy.managers;
 
-import ispd.policy.alocacaoVM.ManipularArquivosAlloc;
-
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -30,7 +28,7 @@ import java.util.zip.ZipFile;
 /**
  * Manages storing, retrieving and compiling allocation policies
  */
-public class Alocadores implements ManipularArquivosAlloc {
+public class Alocadores implements ispd.policy.PolicyManager {
 
     private static final String NO_POLICY = "---";
     /**
