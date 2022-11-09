@@ -30,9 +30,9 @@ import java.util.zip.ZipFile;
 abstract class FromFilePolicyManager implements PolicyManager {
     private static final String POLICY_NAME_REPL = "__POLICY_NAME__";
     private static final String MOTOR_PKG_NAME = "motor";
-    protected final ArrayList<String> policies = new ArrayList<>(0);
-    private final List<String> addedPolicies = new ArrayList<>(0);
-    private final List<String> removedPolicies = new ArrayList<>(0);
+    private final ArrayList<String> policies = new ArrayList<>();
+    private final List<String> addedPolicies = new ArrayList<>();
+    private final List<String> removedPolicies = new ArrayList<>();
 
 //    private FromFilePolicyManager(
 //            final Class<? extends FromFilePolicyManager>  cls,
@@ -344,7 +344,7 @@ abstract class FromFilePolicyManager implements PolicyManager {
 
     protected abstract File theDirectory();
 
-    public void findDotClassAllocators() {
+    protected void findDotClassPolicies() {
         final FilenameFilter filter = (b, name) -> name.endsWith(".class");
         final var dotClassFiles =
                 Objects.requireNonNull(this.theDirectory().list(filter));

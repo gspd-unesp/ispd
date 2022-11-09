@@ -22,7 +22,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
 
     public EscalonadoresCloud() {
         if (this.theDirectory().exists()) {
-            this.findDotClassAllocators();
+            this.findDotClassPolicies();
         } else {
 
             try {
@@ -55,6 +55,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
     }
 
     private static String getTemplate() {
+        //language=JAVA
         return """
                 package ispd.policy.externo;
                                 

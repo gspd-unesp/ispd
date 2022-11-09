@@ -26,7 +26,7 @@ public class Alocadores extends FromFilePolicyManager {
 
     public Alocadores() {
         if (this.theDirectory().exists()) {
-            this.findDotClassAllocators();
+            this.findDotClassPolicies();
         } else {
 
             try {
@@ -58,6 +58,7 @@ public class Alocadores extends FromFilePolicyManager {
     }
 
     private static String getTemplate() {
+        //language=JAVA
         return """
                 package ispd.policy.externo;
                                 
@@ -94,6 +95,7 @@ public class Alocadores extends FromFilePolicyManager {
                     public void escalonar() {
                         throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
-                }""";
+                }
+                """;
     }
 }
