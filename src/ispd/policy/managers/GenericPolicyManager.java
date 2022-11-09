@@ -17,6 +17,7 @@ import java.util.zip.ZipFile;
 // TODO: Document
 /* package-private */
 abstract class GenericPolicyManager implements PolicyManager {
+    public static final String MOTOR_PKG_NAME = "motor";
     protected final ArrayList<String> policies = new ArrayList<>(0);
     protected final List<String> addedPolicies = new ArrayList<>(0);
     protected final List<String> removedPolicies = new ArrayList<>(0);
@@ -37,6 +38,20 @@ abstract class GenericPolicyManager implements PolicyManager {
 
     protected static String removeDotClassSuffix(final String s) {
         return s.substring(0, s.length() - ".class".length());
+    }
+
+    protected static void executeFromJar(final String path) {
+        final var jar = new File(
+                System.getProperty("java.class.path"));
+
+        try {
+            GenericPolicyManager.extractDirFromJar(path, jar);
+            GenericPolicyManager.extractDirFromJar(
+                    GenericPolicyManager.MOTOR_PKG_NAME, jar);
+        } catch (final IOException ex) {
+            Logger.getLogger(GenericPolicyManager.class.getName())
+                    .log(Level.SEVERE, null, ex);
+        }
     }
 
     /**

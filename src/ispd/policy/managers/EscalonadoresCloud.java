@@ -29,6 +29,7 @@ public class EscalonadoresCloud extends GenericPolicyManager {
             "ispd.policy.externo.cloudSchedulers";
     private static final File DIRECTORY =
             new File(EscalonadoresCloud.DIRECTORY_PATH);
+    private static final String PKG_NAME = "escalonadorCloud";
 
     public EscalonadoresCloud() {
         if (EscalonadoresCloud.DIRECTORY.exists()) {
@@ -43,7 +44,7 @@ public class EscalonadoresCloud extends GenericPolicyManager {
 
             if (Objects.requireNonNull(this.getClass().getResource(
                     "EscalonadoresCloud.class")).toString().startsWith("jar:")) {
-                EscalonadoresCloud.executeFromJar();
+                GenericPolicyManager.executeFromJar(EscalonadoresCloud.PKG_NAME);
             }
         }
     }
@@ -56,19 +57,6 @@ public class EscalonadoresCloud extends GenericPolicyManager {
         Arrays.stream(dotClassFiles)
                 .map(GenericPolicyManager::removeDotClassSuffix)
                 .forEach(this.policies::add);
-    }
-
-    private static void executeFromJar() {
-        final var jar = new File(
-                System.getProperty("java.class.path"));
-
-        try {
-            GenericPolicyManager.extractDirFromJar("escalonadorCloud", jar);
-            GenericPolicyManager.extractDirFromJar("motor", jar);
-        } catch (final IOException ex) {
-            Logger.getLogger(EscalonadoresCloud.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
     }
 
     /**

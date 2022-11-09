@@ -27,6 +27,7 @@ public class Alocadores extends GenericPolicyManager {
      */
     public static final String[] ALOCACAO = { PolicyManager.NO_POLICY,
             "RoundRobin", "FirstFit", "FirstFitDecreasing", "Volume" };
+    private static final String PKG_NAME = "alocacaoVM";
     private static final String DIRECTORY_PATH = "ispd/externo/cloudAlloc";
     private static final File DIRECTORY = new File(Alocadores.DIRECTORY_PATH);
 
@@ -43,7 +44,7 @@ public class Alocadores extends GenericPolicyManager {
 
             if (Objects.requireNonNull(this.getClass().getResource(
                     "Alocadores.class")).toString().startsWith("jar:")) {
-                Alocadores.executeFromJar();
+                GenericPolicyManager.executeFromJar(Alocadores.PKG_NAME);
             }
         }
     }
@@ -56,19 +57,6 @@ public class Alocadores extends GenericPolicyManager {
         Arrays.stream(dotClassFiles)
                 .map(GenericPolicyManager::removeDotClassSuffix)
                 .forEach(this.policies::add);
-    }
-
-    private static void executeFromJar() {
-        final var jar = new File(
-                System.getProperty("java.class.path"));
-
-        try {
-            GenericPolicyManager.extractDirFromJar("alocacaoVM", jar);
-            GenericPolicyManager.extractDirFromJar("motor", jar);
-        } catch (final IOException ex) {
-            Logger.getLogger(Alocadores.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
     }
 
     /**

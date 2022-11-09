@@ -33,6 +33,7 @@ public class Escalonadores extends GenericPolicyManager {
     private static final String DIRECTORY_PATH = "ispd/externo";
     private static final File DIRECTORY =
             new File(Carregar.DIRETORIO_ISPD, Escalonadores.DIRECTORY_PATH);
+    private static final String PKG_NAME = "escalonador";
 
     public Escalonadores() {
         if (Escalonadores.DIRECTORY.exists()) {
@@ -47,7 +48,7 @@ public class Escalonadores extends GenericPolicyManager {
 
             if (Objects.requireNonNull(this.getClass().getResource(
                     "Escalonadores.class")).toString().startsWith("jar:")) {
-                Escalonadores.executeFromJar();
+                GenericPolicyManager.executeFromJar(Escalonadores.PKG_NAME);
             }
         }
     }
@@ -60,19 +61,6 @@ public class Escalonadores extends GenericPolicyManager {
         Arrays.stream(dotClassFiles)
                 .map(GenericPolicyManager::removeDotClassSuffix)
                 .forEach(this.policies::add);
-    }
-
-    private static void executeFromJar() {
-        final File jar = new File(
-                System.getProperty("java.class.path"));
-
-        try {
-            GenericPolicyManager.extractDirFromJar("escalonador", jar);
-            GenericPolicyManager.extractDirFromJar("motor", jar);
-        } catch (final IOException ex) {
-            Logger.getLogger(Escalonadores.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
     }
 
     /**
