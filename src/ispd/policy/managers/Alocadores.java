@@ -29,6 +29,7 @@ public class Alocadores extends FromFilePolicyManager {
             "FirstFitDecreasing",
             "Volume",
     };
+    public static final String POLICY_NAME_REPL = "__POLICY_NAME__";
     private static final String VM_PKG_NAME = "alocacaoVM";
     private static final String VM_DIR_PATH = "ispd/externo/cloudAlloc";
     private static final File VM_DIRECTORY = new File(Alocadores.VM_DIR_PATH);
@@ -69,48 +70,60 @@ public class Alocadores extends FromFilePolicyManager {
      * @return Basic template for writing an allocation policy's source code
      */
     public static String getAlocadorJava(final String policyName) {
+        return Alocadores.formatTemplate(
+                Alocadores.getTemplate(),
+                policyName
+        );
+    }
+
+    private static String formatTemplate(
+            final String template, final String policyName) {
+        return template.replace(
+                Alocadores.POLICY_NAME_REPL,
+                policyName
+        );
+    }
+
+    private static String getTemplate() {
         return """
                 package ispd.policy.externo;
+                                
                 import ispd.policy.alocacaoVM.Alocacao;
-                import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-                import ispd.motor.filas.servidores.CS_Processamento;
                 import ispd.motor.filas.servidores.CentroServico;
-                import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
+                import ispd.motor.filas.servidores.CS_Processamento;
                 import ispd.motor.filas.servidores.implementacao.CS_VMM;
+                import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
+                import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
+                                
                 import java.util.List;
-
-                public abstract class %s extends Alocacao{
-
+                                
+                public class __POLICY_NAME__ extends Alocacao {
+                                
                     @Override
                     public void iniciar() {
-                        throw new UnsupportedOperationException("Not supported yet.");
+                        throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
-
+                                
                     @Override
                     public CS_VirtualMac escalonarVM() {
-                        throw new UnsupportedOperationException("Not supported yet.");
+                        throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
-
+                                
                     @Override
                     public CS_Processamento escalonarRecurso() {
-                        throw new UnsupportedOperationException("Not supported yet.");
+                        throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
-
+                                
                     @Override
-                    public List<CentroServico> escalonarRota(CentroServico destino) {
-                        throw new UnsupportedOperationException("Not supported yet.");
+                    public List<CentroServico> escalonarRota(final CentroServico destino) {
+                        throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
-
+                                
                     @Override
                     public void escalonar() {
-                        throw new UnsupportedOperationException("Not supported yet.");
+                        throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
-                    @Override
-                    public void migrarVM() {
-                        throw new UnsupportedOperationException("Not supported yet.");
-                    }
-
-                }""".formatted(policyName);
+                }""";
     }
 
     /**
