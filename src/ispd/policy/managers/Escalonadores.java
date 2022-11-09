@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * Manages storing, retrieving and compiling scheduling policies
  */
-public class Escalonadores extends GenericPolicyManager {
+public class Escalonadores extends FromFilePolicyManager {
     /**
      * Scheduling policies available by default
      */
@@ -38,14 +38,14 @@ public class Escalonadores extends GenericPolicyManager {
         } else {
 
             try {
-                GenericPolicyManager.createDirectory(Escalonadores.DIRECTORY);
+                FromFilePolicyManager.createDirectory(Escalonadores.DIRECTORY);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
 
             if (Objects.requireNonNull(this.getClass().getResource(
                     "Escalonadores.class")).toString().startsWith("jar:")) {
-                GenericPolicyManager.executeFromJar(Escalonadores.PKG_NAME);
+                FromFilePolicyManager.executeFromJar(Escalonadores.PKG_NAME);
             }
         }
     }
@@ -56,7 +56,7 @@ public class Escalonadores extends GenericPolicyManager {
                 Objects.requireNonNull(Escalonadores.DIRECTORY.list(filter));
 
         Arrays.stream(dotClassFiles)
-                .map(GenericPolicyManager::removeDotClassSuffix)
+                .map(FromFilePolicyManager::removeDotClassSuffix)
                 .forEach(this.policies::add);
     }
 
@@ -155,7 +155,7 @@ public class Escalonadores extends GenericPolicyManager {
     @Override
     public String compilar(final String nome) {
         final var target = new File(Escalonadores.DIRECTORY, nome + ".java");
-        final var err = GenericPolicyManager.compile(target);
+        final var err = FromFilePolicyManager.compile(target);
 
         try {
             Thread.sleep(1000);
@@ -240,9 +240,9 @@ public class Escalonadores extends GenericPolicyManager {
     @Override
     public boolean importJavaPolicy(final File arquivo) {
         final var target = new File(Escalonadores.DIRECTORY, arquivo.getName());
-        GenericPolicyManager.copyFile(target, arquivo);
+        FromFilePolicyManager.copyFile(target, arquivo);
 
-        final var err = GenericPolicyManager.compile(target);
+        final var err = FromFilePolicyManager.compile(target);
 
         if (!err.isEmpty()) {
             return false;

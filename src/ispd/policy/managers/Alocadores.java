@@ -18,41 +18,51 @@ import java.util.stream.Collectors;
 /**
  * Manages storing, retrieving and compiling allocation policies
  */
-public class Alocadores extends GenericPolicyManager {
+public class Alocadores extends FromFilePolicyManager {
     /**
      * Allocation policies available by default
      */
-    public static final String[] ALOCACAO = { PolicyManager.NO_POLICY,
-            "RoundRobin", "FirstFit", "FirstFitDecreasing", "Volume" };
-    private static final String PKG_NAME = "alocacaoVM";
-    private static final String DIRECTORY_PATH = "ispd/externo/cloudAlloc";
-    private static final File DIRECTORY = new File(Alocadores.DIRECTORY_PATH);
+    public static final String[] ALOCACAO = {
+            PolicyManager.NO_POLICY,
+            "RoundRobin",
+            "FirstFit",
+            "FirstFitDecreasing",
+            "Volume"
+    };
+    private static final String VM_PKG_NAME = "alocacaoVM";
+    private static final String VM_DIRECTORY_PATH = "ispd/externo/cloudAlloc";
+    private static final File VM_ALLOCATION_DIRECTORY =
+            new File(Alocadores.VM_DIRECTORY_PATH);
 
     public Alocadores() {
-        if (Alocadores.DIRECTORY.exists()) {
+        if (this.theDirectory().exists()) {
             this.findDotClassAllocators();
         } else {
 
             try {
-                GenericPolicyManager.createDirectory(Alocadores.DIRECTORY);
+                FromFilePolicyManager.createDirectory(this.theDirectory());
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
 
             if (Objects.requireNonNull(this.getClass().getResource(
                     "Alocadores.class")).toString().startsWith("jar:")) {
-                GenericPolicyManager.executeFromJar(Alocadores.PKG_NAME);
+                FromFilePolicyManager.executeFromJar(Alocadores.VM_PKG_NAME);
             }
         }
+    }
+
+    public File theDirectory() {
+        return Alocadores.VM_ALLOCATION_DIRECTORY;
     }
 
     private void findDotClassAllocators() {
         final FilenameFilter filter = (b, name) -> name.endsWith(".class");
         final var dotClassFiles =
-                Objects.requireNonNull(Alocadores.DIRECTORY.list(filter));
+                Objects.requireNonNull(this.theDirectory().list(filter));
 
         Arrays.stream(dotClassFiles)
-                .map(GenericPolicyManager::removeDotClassSuffix)
+                .map(FromFilePolicyManager::removeDotClassSuffix)
                 .forEach(this.policies::add);
     }
 
@@ -110,7 +120,7 @@ public class Alocadores extends GenericPolicyManager {
      */
     @Override
     public File getDiretorio() {
-        return Alocadores.DIRECTORY;
+        return this.theDirectory();
     }
 
     /**
@@ -124,7 +134,7 @@ public class Alocadores extends GenericPolicyManager {
     @Override
     public boolean escrever(final String nome, final String codigo) {
         try (final var fw = new FileWriter(
-                new File(Alocadores.DIRECTORY, nome + ".java"),
+                new File(this.theDirectory(), nome + ".java"),
                 StandardCharsets.UTF_8
         )) {
             fw.write(codigo);
@@ -145,8 +155,8 @@ public class Alocadores extends GenericPolicyManager {
      */
     @Override
     public String compilar(final String nome) {
-        final var target = new File(Alocadores.DIRECTORY, nome + ".java");
-        final var err = GenericPolicyManager.compile(target);
+        final var target = new File(this.theDirectory(), nome + ".java");
+        final var err = FromFilePolicyManager.compile(target);
 
         try {
             Thread.sleep(1000);
@@ -156,7 +166,7 @@ public class Alocadores extends GenericPolicyManager {
         }
 
         // Check if compilation worked, looking for a .class file
-        if (new File(Alocadores.DIRECTORY, nome + ".class").exists()) {
+        if (new File(this.theDirectory(), nome + ".class").exists()) {
             this.addPolicy(nome);
         }
 
@@ -174,7 +184,7 @@ public class Alocadores extends GenericPolicyManager {
     public String ler(final String policy) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(Alocadores.DIRECTORY, policy + ".java"),
+                        new File(this.theDirectory(), policy + ".java"),
                         StandardCharsets.UTF_8)
         )) {
             return br.lines().collect(Collectors.joining("\n"));
@@ -195,10 +205,10 @@ public class Alocadores extends GenericPolicyManager {
     @Override
     public boolean remover(final String policy) {
         final var classFile = new File(
-                Alocadores.DIRECTORY, policy + ".class");
+                this.theDirectory(), policy + ".class");
 
         final File javaFile = new File(
-                Alocadores.DIRECTORY, policy + ".java");
+                this.theDirectory(), policy + ".java");
 
         boolean deleted = false;
 
@@ -228,10 +238,10 @@ public class Alocadores extends GenericPolicyManager {
      */
     @Override
     public boolean importJavaPolicy(final File arquivo) {
-        final var target = new File(Alocadores.DIRECTORY, arquivo.getName());
-        GenericPolicyManager.copyFile(target, arquivo);
+        final var target = new File(this.theDirectory(), arquivo.getName());
+        FromFilePolicyManager.copyFile(target, arquivo);
 
-        final var err = GenericPolicyManager.compile(target);
+        final var err = FromFilePolicyManager.compile(target);
 
         if (!err.isEmpty()) {
             return false;
@@ -240,7 +250,7 @@ public class Alocadores extends GenericPolicyManager {
         final var nome = arquivo.getName()
                 .substring(0, arquivo.getName().length() - ".java".length());
 
-        if (!new File(Alocadores.DIRECTORY, nome + ".class").exists()) {
+        if (!new File(this.theDirectory(), nome + ".class").exists()) {
             return false;
         }
 

@@ -22,11 +22,17 @@ import java.util.zip.ZipFile;
 
 // TODO: Document
 /* package-private */
-abstract class GenericPolicyManager implements PolicyManager {
-    public static final String MOTOR_PKG_NAME = "motor";
+abstract class FromFilePolicyManager implements PolicyManager {
+    private static final String MOTOR_PKG_NAME = "motor";
     protected final ArrayList<String> policies = new ArrayList<>(0);
-    protected final List<String> addedPolicies = new ArrayList<>(0);
-    protected final List<String> removedPolicies = new ArrayList<>(0);
+    private final List<String> addedPolicies = new ArrayList<>(0);
+    private final List<String> removedPolicies = new ArrayList<>(0);
+
+//    private FromFilePolicyManager(
+//            final Class<? extends FromFilePolicyManager>  cls,
+//            final String path) {
+//        throw new UnsupportedOperationException("Not ready yet");
+//    }
 
     protected static void copyFile(final File dest, final File src) {
         if (dest.getPath().equals(src.getPath())) {
@@ -37,7 +43,7 @@ abstract class GenericPolicyManager implements PolicyManager {
              final var destFs = new FileOutputStream(dest)) {
             srcFs.transferTo(destFs);
         } catch (final IOException ex) {
-            Logger.getLogger(GenericPolicyManager.class.getName())
+            Logger.getLogger(FromFilePolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
     }
@@ -51,11 +57,11 @@ abstract class GenericPolicyManager implements PolicyManager {
                 System.getProperty("java.class.path"));
 
         try {
-            GenericPolicyManager.extractDirFromJar(path, jar);
-            GenericPolicyManager.extractDirFromJar(
-                    GenericPolicyManager.MOTOR_PKG_NAME, jar);
+            FromFilePolicyManager.extractDirFromJar(path, jar);
+            FromFilePolicyManager.extractDirFromJar(
+                    FromFilePolicyManager.MOTOR_PKG_NAME, jar);
         } catch (final IOException ex) {
-            Logger.getLogger(GenericPolicyManager.class.getName())
+            Logger.getLogger(FromFilePolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
     }
@@ -66,12 +72,12 @@ abstract class GenericPolicyManager implements PolicyManager {
      * @param dir  Directory name to be extracted
      * @param file Jar file from which to extract the directory
      */
-    protected static void extractDirFromJar(final String dir,
-                                            final File file) throws IOException {
+    private static void extractDirFromJar(final String dir,
+                                          final File file) throws IOException {
         try (final var jar = new JarFile(file)) {
             for (final var entry : new JarEntryIterable(jar)) {
                 if (entry.getName().contains(dir)) {
-                    GenericPolicyManager.processZipEntry(entry, jar);
+                    FromFilePolicyManager.processZipEntry(entry, jar);
                 }
             }
         }
@@ -82,12 +88,12 @@ abstract class GenericPolicyManager implements PolicyManager {
         final var file = new File(entry.getName());
 
         if (entry.isDirectory() && !file.exists()) {
-            GenericPolicyManager.createDirectory(file);
+            FromFilePolicyManager.createDirectory(file);
             return;
         }
 
         if (!file.getParentFile().exists()) {
-            GenericPolicyManager.createDirectory(file.getParentFile());
+            FromFilePolicyManager.createDirectory(file.getParentFile());
         }
 
         try (final var is = zip.getInputStream(entry);
@@ -111,16 +117,16 @@ abstract class GenericPolicyManager implements PolicyManager {
             return err.toString();
         } else {
             try {
-                return GenericPolicyManager.compileManually(target);
+                return FromFilePolicyManager.compileManually(target);
             } catch (final IOException ex) {
-                Logger.getLogger(GenericPolicyManager.class.getName())
+                Logger.getLogger(FromFilePolicyManager.class.getName())
                         .log(Level.SEVERE, null, ex);
                 return "Não foi possível compilar";
             }
         }
     }
 
-    protected static String compileManually(final File target) throws IOException {
+    private static String compileManually(final File target) throws IOException {
         final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
 
         try (final var err = new BufferedReader(new InputStreamReader(

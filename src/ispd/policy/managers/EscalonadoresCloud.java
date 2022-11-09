@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Manages storing, retrieving and compiling cloud scheduling policies
  */
-public class EscalonadoresCloud extends GenericPolicyManager {
+public class EscalonadoresCloud extends FromFilePolicyManager {
     public static final String[] ESCALONADORES = {
             PolicyManager.NO_POLICY, "RoundRobin" };
     private static final String DIRECTORY_PATH =
@@ -34,14 +34,14 @@ public class EscalonadoresCloud extends GenericPolicyManager {
         } else {
 
             try {
-                GenericPolicyManager.createDirectory(EscalonadoresCloud.DIRECTORY);
+                FromFilePolicyManager.createDirectory(EscalonadoresCloud.DIRECTORY);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
 
             if (Objects.requireNonNull(this.getClass().getResource(
                     "EscalonadoresCloud.class")).toString().startsWith("jar:")) {
-                GenericPolicyManager.executeFromJar(EscalonadoresCloud.PKG_NAME);
+                FromFilePolicyManager.executeFromJar(EscalonadoresCloud.PKG_NAME);
             }
         }
     }
@@ -52,7 +52,7 @@ public class EscalonadoresCloud extends GenericPolicyManager {
                 Objects.requireNonNull(EscalonadoresCloud.DIRECTORY.list(filter));
 
         Arrays.stream(dotClassFiles)
-                .map(GenericPolicyManager::removeDotClassSuffix)
+                .map(FromFilePolicyManager::removeDotClassSuffix)
                 .forEach(this.policies::add);
     }
 
@@ -153,7 +153,7 @@ public class EscalonadoresCloud extends GenericPolicyManager {
     public String compilar(final String nome) {
         final var target = new File(EscalonadoresCloud.DIRECTORY, nome +
                                                                   ".java");
-        final var err = GenericPolicyManager.compile(target);
+        final var err = FromFilePolicyManager.compile(target);
 
         try {
             Thread.sleep(1000);
@@ -238,9 +238,9 @@ public class EscalonadoresCloud extends GenericPolicyManager {
     public boolean importJavaPolicy(final File arquivo) {
         final var target = new File(
                 EscalonadoresCloud.DIRECTORY, arquivo.getName());
-        GenericPolicyManager.copyFile(target, arquivo);
+        FromFilePolicyManager.copyFile(target, arquivo);
 
-        final var err = GenericPolicyManager.compile(target);
+        final var err = FromFilePolicyManager.compile(target);
 
         if (!err.isEmpty()) {
             return false;
