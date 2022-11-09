@@ -21,35 +21,41 @@ import java.util.stream.Collectors;
  */
 public class EscalonadoresCloud extends FromFilePolicyManager {
     public static final String[] ESCALONADORES = {
-            PolicyManager.NO_POLICY, "RoundRobin" };
-    private static final String DIRECTORY_PATH =
+            PolicyManager.NO_POLICY,
+            "RoundRobin"
+    };
+    private static final String CLOUD_PKG_NAME = "escalonadorCloud";
+    private static final String CLOUD_DIR_PATH =
             "ispd.policy.externo.cloudSchedulers";
-    private static final File DIRECTORY =
-            new File(EscalonadoresCloud.DIRECTORY_PATH);
-    private static final String PKG_NAME = "escalonadorCloud";
+    private static final File CLOUD_DIRECTORY =
+            new File(EscalonadoresCloud.CLOUD_DIR_PATH);
 
     public EscalonadoresCloud() {
-        if (EscalonadoresCloud.DIRECTORY.exists()) {
+        if (this.theDirectory().exists()) {
             this.findDotClassAllocators();
         } else {
 
             try {
-                FromFilePolicyManager.createDirectory(EscalonadoresCloud.DIRECTORY);
+                FromFilePolicyManager.createDirectory(this.theDirectory());
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
 
             if (Objects.requireNonNull(this.getClass().getResource(
                     "EscalonadoresCloud.class")).toString().startsWith("jar:")) {
-                FromFilePolicyManager.executeFromJar(EscalonadoresCloud.PKG_NAME);
+                FromFilePolicyManager.executeFromJar(EscalonadoresCloud.CLOUD_PKG_NAME);
             }
         }
+    }
+
+    protected File theDirectory() {
+        return EscalonadoresCloud.CLOUD_DIRECTORY;
     }
 
     private void findDotClassAllocators() {
         final FilenameFilter filter = (b, name) -> name.endsWith(".class");
         final var dotClassFiles =
-                Objects.requireNonNull(EscalonadoresCloud.DIRECTORY.list(filter));
+                Objects.requireNonNull(this.theDirectory().list(filter));
 
         Arrays.stream(dotClassFiles)
                 .map(FromFilePolicyManager::removeDotClassSuffix)
@@ -116,7 +122,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
      */
     @Override
     public File getDiretorio() {
-        return EscalonadoresCloud.DIRECTORY;
+        return this.theDirectory();
     }
 
     /**
@@ -130,7 +136,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
     @Override
     public boolean escrever(final String nome, final String codigo) {
         try (final var fw = new FileWriter(
-                new File(EscalonadoresCloud.DIRECTORY, nome + ".java"),
+                new File(this.theDirectory(), nome + ".java"),
                 StandardCharsets.UTF_8
         )) {
             fw.write(codigo);
@@ -151,8 +157,8 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
      */
     @Override
     public String compilar(final String nome) {
-        final var target = new File(EscalonadoresCloud.DIRECTORY, nome +
-                                                                  ".java");
+        final var target = new File(this.theDirectory(), nome +
+                                                         ".java");
         final var err = FromFilePolicyManager.compile(target);
 
         try {
@@ -163,7 +169,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
         }
 
         // Check if compilation worked, looking for a .class file
-        if (new File(EscalonadoresCloud.DIRECTORY, nome + ".class").exists()) {
+        if (new File(this.theDirectory(), nome + ".class").exists()) {
             this.addPolicy(nome);
         }
 
@@ -181,7 +187,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
     public String ler(final String escalonador) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(EscalonadoresCloud.DIRECTORY,
+                        new File(this.theDirectory(),
                                 escalonador + ".java"),
                         StandardCharsets.UTF_8)
         )) {
@@ -203,10 +209,10 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
     @Override
     public boolean remover(final String escalonador) {
         final var classFile = new File(
-                EscalonadoresCloud.DIRECTORY, escalonador + ".class");
+                this.theDirectory(), escalonador + ".class");
 
         final File javaFile = new File(
-                EscalonadoresCloud.DIRECTORY, escalonador + ".java");
+                this.theDirectory(), escalonador + ".java");
 
         boolean deleted = false;
 
@@ -237,7 +243,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
     @Override
     public boolean importJavaPolicy(final File arquivo) {
         final var target = new File(
-                EscalonadoresCloud.DIRECTORY, arquivo.getName());
+                this.theDirectory(), arquivo.getName());
         FromFilePolicyManager.copyFile(target, arquivo);
 
         final var err = FromFilePolicyManager.compile(target);
@@ -249,7 +255,7 @@ public class EscalonadoresCloud extends FromFilePolicyManager {
         final var nome = arquivo.getName()
                 .substring(0, arquivo.getName().length() - ".java".length());
 
-        if (!new File(EscalonadoresCloud.DIRECTORY, nome + ".class").exists()) {
+        if (!new File(this.theDirectory(), nome + ".class").exists()) {
             return false;
         }
 
