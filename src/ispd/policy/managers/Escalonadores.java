@@ -7,7 +7,6 @@ import javax.tools.ToolProvider;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -361,7 +360,7 @@ public class Escalonadores extends GenericPolicyManager {
     @Override
     public boolean importJavaPolicy(final File arquivo) {
         final var target = new File(Escalonadores.DIRECTORY, arquivo.getName());
-        Escalonadores.copyFile(target, arquivo);
+        GenericPolicyManager.copyFile(target, arquivo);
 
         final var err = Escalonadores.compile(target);
 
@@ -379,24 +378,6 @@ public class Escalonadores extends GenericPolicyManager {
         this.addPolicy(nome);
 
         return true;
-    }
-
-    /**
-     * Copy contents of file from {@code dest} to {@code src}, if their paths
-     * are not equal
-     */
-    private static void copyFile(final File dest, final File src) {
-        if (dest.getPath().equals(src.getPath())) {
-            return;
-        }
-
-        try (final var srcFs = new FileInputStream(src);
-             final var destFs = new FileOutputStream(dest)) {
-            srcFs.transferTo(destFs);
-        } catch (final IOException ex) {
-            Logger.getLogger(Escalonadores.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
     }
 
     /**
