@@ -1,35 +1,38 @@
 package ispd.arquivo.xml.models.builders;
 
-import ispd.arquivo.xml.utils.SizeInfo;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.motor.carga.CargaForNode;
-import ispd.motor.carga.CargaList;
-import ispd.motor.carga.CargaRandom;
-import ispd.motor.carga.CargaTrace;
-import ispd.motor.carga.GerarCarga;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.WorkloadGeneratorType;
+import ispd.motor.workload.impl.CollectionWorkloadGenerator;
+import ispd.motor.workload.impl.GlobalWorkloadGenerator;
+import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
+import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
+import ispd.utils.SequentialIntSupplier;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.IntSupplier;
 
 /**
- * Converts XML docs with simulation load information into objects usable in
- * the simulation motor.
+ * Converts XML docs with simulation workload configuration into
+ * {@link WorkloadGenerator} objects, usable in the simulation motor.
  */
 public class LoadBuilder {
 
     /**
-     * Attempts to convert xml document given as param to a simulation load.
+     * Attempts to find and convert workload configuration info from the given
+     * {@link WrappedDocument xml document}, instancing a
+     * {@link WorkloadGenerator}.
      *
-     * @param doc {@link WrappedDocument}, possibly with load information
-     * @return {@link Optional} containing parsed load, if there was a valid
-     * one in the document. Otherwise, an empty Optional.
+     * @param doc {@link WrappedDocument}, possibly with workload configuration
+     * @return {@link Optional} containing parsed {@link WorkloadGenerator},
+     * if there was valid configuration for one in the document. Otherwise,
+     * an empty {@link Optional}.
      * @see ispd.arquivo.xml.IconicoXML
-     * @see GerarCarga
+     * @see WorkloadGenerator
      */
-    public static Optional<? extends GerarCarga> build(final WrappedDocument doc) {
+    public static Optional<? extends WorkloadGenerator> build(final WrappedDocument doc) {
         final var load = doc.loads().findFirst();
 
         if (load.isEmpty()) {
@@ -57,68 +60,70 @@ public class LoadBuilder {
                 .map(LoadBuilder::traceLoadFromElement);
     }
 
-    private static CargaRandom randomLoadFromElement(final WrappedElement e) {
-        final var computation = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isComputingType, SizeInfo::new);
+    private static GlobalWorkloadGenerator randomLoadFromElement(final WrappedElement e) {
+        final var computation = e.makeTwoStageFromInnerSizes(
+                WrappedElement::isComputingType,
+                WrappedElement::toTwoStageUniform
+        );
 
-        final var communication = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isCommunicationType, SizeInfo::new);
+        final var communication = e.makeTwoStageFromInnerSizes(
+                WrappedElement::isCommunicationType,
+                WrappedElement::toTwoStageUniform
+        );
 
-        return new CargaRandom(
-                e.tasks(),
-                (int) computation.minimum(), (int) computation.maximum(),
-                (int) computation.average(), computation.probability(),
-                (int) communication.minimum(), (int) communication.maximum(),
-                (int) communication.average(), communication.probability(),
-                e.arrivalTime()
+        return new GlobalWorkloadGenerator(
+                e.tasks(), e.arrivalTime(),
+                computation, communication
         );
     }
 
-    private static Optional<CargaList> nodeLoadsFromElement(final WrappedElement e) {
+    private static Optional<CollectionWorkloadGenerator> nodeLoadsFromElement(final WrappedElement e) {
+        final var idSupplier = new SequentialIntSupplier();
+
         final var nodeLoads = e.nodeLoads()
-                .map(LoadBuilder::nodeLoadFromElement)
+                .map(el -> LoadBuilder.nodeLoadFromElement(el, idSupplier))
+                .map(WorkloadGenerator.class::cast)
                 .toList();
 
         if (nodeLoads.isEmpty()) {
             return Optional.empty();
         }
 
-        return Optional.of(new CargaList(nodeLoads, GerarCarga.FORNODE));
+        return Optional.of(new CollectionWorkloadGenerator(
+                WorkloadGeneratorType.PER_NODE,
+                nodeLoads
+        ));
     }
 
-    private static CargaTrace traceLoadFromElement(final WrappedElement e) {
+    private static TraceFileWorkloadGenerator traceLoadFromElement(final WrappedElement e) {
         final var file = new File(e.filePath());
 
         if (file.exists()) {
-            return new CargaTrace(file, e.tasks(), e.format());
+            return new TraceFileWorkloadGenerator(file, e.tasks(), e.format());
         }
 
         return null;
     }
 
-    private static SizeInfo getSizeInfoFromElement(
-            final WrappedElement element,
-            final Predicate<? super WrappedElement> predicate,
-            final Function<? super WrappedElement, SizeInfo> builder) {
-        return element.sizes()
-                .filter(predicate)
-                .findFirst()
-                .map(builder)
-                .orElseGet(SizeInfo::new);
-    }
+    private static PerNodeWorkloadGenerator nodeLoadFromElement(
+            final WrappedElement e, final IntSupplier idSupplier) {
+        final var computation =
+                e.makeTwoStageFromInnerSizes(
+                        WrappedElement::isComputingType,
+                        WrappedElement::toUniformDistribution
+                );
 
-    private static CargaForNode nodeLoadFromElement(final WrappedElement e) {
-        final var computation = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isComputingType, SizeInfo::rangeFrom);
+        final var communication =
+                e.makeTwoStageFromInnerSizes(
+                        WrappedElement::isCommunicationType,
+                        WrappedElement::toUniformDistribution
+                );
 
-        final var communication = LoadBuilder.getSizeInfoFromElement(
-                e, WrappedElement::isCommunicationType, SizeInfo::rangeFrom);
-
-        return new CargaForNode(e.application(),
-                e.owner(), e.masterId(), e.tasks(),
-                computation.maximum(), computation.minimum(),
-                communication.maximum(), communication.minimum()
+        return new PerNodeWorkloadGenerator(
+                e.application(), e.owner(),
+                e.masterId(), e.tasks(),
+                computation, communication,
+                idSupplier
         );
     }
-
 }

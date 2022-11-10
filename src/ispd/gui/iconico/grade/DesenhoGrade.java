@@ -7,11 +7,12 @@ import ispd.gui.iconico.DrawingArea;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Icon;
 import ispd.gui.iconico.Vertex;
-import ispd.motor.carga.CargaForNode;
-import ispd.motor.carga.CargaList;
-import ispd.motor.carga.CargaRandom;
-import ispd.motor.carga.CargaTrace;
-import ispd.motor.carga.GerarCarga;
+import ispd.motor.workload.impl.PerNodeWorkloadGenerator;
+import ispd.motor.workload.impl.CollectionWorkloadGenerator;
+import ispd.motor.workload.impl.GlobalWorkloadGenerator;
+import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.WorkloadGeneratorType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -65,7 +66,7 @@ public class DesenhoGrade extends DrawingArea {
     private int modelType = PickModelTypeDialog.GRID;
     private HashSet<String> users;
     private HashMap<String, Double> profiles;
-    private GerarCarga loadConfiguration = null;
+    private WorkloadGenerator loadConfiguration = null;
     private int edgeCount = 0;
     private int vertexCount = 0;
     private int iconCount = 0;
@@ -162,11 +163,11 @@ public class DesenhoGrade extends DrawingArea {
         this.users = users;
     }
 
-    public GerarCarga getLoadConfiguration() {
+    public WorkloadGenerator getLoadConfiguration() {
         return this.loadConfiguration;
     }
 
-    public void setLoadConfiguration(final GerarCarga loadConfiguration) {
+    public void setLoadConfiguration(final WorkloadGenerator loadConfiguration) {
         this.loadConfiguration = loadConfiguration;
     }
 
@@ -495,13 +496,13 @@ public class DesenhoGrade extends DrawingArea {
         }
         saida.append("CARGA");
         if (this.loadConfiguration != null) {
-            switch (this.loadConfiguration.getTipo()) {
-                case GerarCarga.RANDOM ->
-                        saida.append(" RANDOM\n").append(this.loadConfiguration.toString()).append("\n");
-                case GerarCarga.FORNODE ->
-                        saida.append(" MAQUINA\n").append(this.loadConfiguration.toString()).append("\n");
-                case GerarCarga.TRACE ->
-                        saida.append(" TRACE\n").append(this.loadConfiguration.toString()).append("\n");
+            switch (this.loadConfiguration.getType()) {
+                case RANDOM ->
+                        saida.append(" RANDOM\n").append(this.loadConfiguration.formatForIconicModel()).append("\n");
+                case PER_NODE ->
+                        saida.append(" MAQUINA\n").append(this.loadConfiguration.formatForIconicModel()).append("\n");
+                case TRACE ->
+                        saida.append(" TRACE\n").append(this.loadConfiguration.formatForIconicModel()).append("\n");
             }
         }
         return saida.toString();
@@ -602,25 +603,25 @@ public class DesenhoGrade extends DrawingArea {
 
         //configurar carga
         if (this.loadConfiguration != null) {
-            if (this.loadConfiguration instanceof final CargaRandom cr) {
-                xml.setLoadRandom(cr.getNumeroTarefas(), cr.getTimeToArrival(),
-                        cr.getMaxComputacao(), cr.getAverageComputacao(),
-                        cr.getMinComputacao(), cr.getProbabilityComputacao(),
-                        cr.getMaxComunicacao(), cr.getAverageComunicacao(),
-                        cr.getMinComunicacao(), cr.getProbabilityComunicacao());
-            } else if (this.loadConfiguration.getTipo() == GerarCarga.FORNODE) {
-                for (final GerarCarga node :
-                        ((CargaList) this.loadConfiguration).getList()) {
-                    final CargaForNode no = (CargaForNode) node;
-                    xml.addLoadNo(no.getAplicacao(), no.getProprietario(),
-                            no.getEscalonador(), no.getNumeroTarefas(),
-                            no.getMaxComputacao(), no.getMinComputacao(),
-                            no.getMaxComunicacao(), no.getMinComunicacao());
+            if (this.loadConfiguration instanceof final GlobalWorkloadGenerator cr) {
+                xml.setLoadRandom(cr.getTaskCount(), cr.getTaskCreationTime(),
+                        cr.getComputationMaximum(), cr.getComputationAverage(),
+                        cr.getComputationMinimum(), cr.getComputationProbability(),
+                        cr.getCommunicationMaximum(), cr.getCommunicationAverage(),
+                        cr.getCommunicationMinimum(), cr.getCommunicationProbability());
+            } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.PER_NODE) {
+                for (final WorkloadGenerator node :
+                        ((CollectionWorkloadGenerator) this.loadConfiguration).getList()) {
+                    final PerNodeWorkloadGenerator no = (PerNodeWorkloadGenerator) node;
+                    xml.addLoadNo(no.getApplication(), no.getOwner(),
+                            no.getSchedulerId(), no.getTaskCount(),
+                            no.getComputationMaximum(), no.getComputationMinimum(),
+                            no.getCommunicationMaximum(), no.getCommunicationMinimum());
                 }
-            } else if (this.loadConfiguration.getTipo() == GerarCarga.TRACE) {
-                final CargaTrace trace = (CargaTrace) this.loadConfiguration;
-                xml.setLoadTrace(trace.getFile().toString(),
-                        trace.getNumberTasks().toString(),
+            } else if (this.loadConfiguration.getType() == WorkloadGeneratorType.TRACE) {
+                final TraceFileWorkloadGenerator trace = (TraceFileWorkloadGenerator) this.loadConfiguration;
+                xml.setLoadTrace(trace.getTraceFile().toString(),
+                        trace.getTaskCount(),
                         trace.getTraceType());
             }
         }
