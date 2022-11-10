@@ -69,7 +69,7 @@ class ManageAllocationPolicies extends JFrame {
         this.addWindowListener(new SomeWindowAdapter());
 
         this.configureTextEditor(this.textPane, this.scrollPane);
-        this.fecharEdicao();
+        this.closeEditing();
         this.configureTextPaneDoc();
         this.updatePolicyList();
     }
@@ -540,65 +540,79 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onDelete(final ActionEvent evt) {
-
-        if (!this.policyList.isSelectionEmpty()) {
-            final String aux =
-                    this.policyList.getSelectedValue();
-            final int escolha = JOptionPane.showConfirmDialog(this, "Are you " +
-                                                                    "sure " +
-                                                                    "want " +
-                                                                    "delete " +
-                                                                    "this " +
-                                                                    "scheduler" +
-                                                                    ": \n" + aux,
-                    null, JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE);
-            if (escolha == JOptionPane.YES_OPTION) {
-                if (!this.policyManager.remover(aux)) {
-                    JOptionPane.showMessageDialog(this,
-                            "Failed to remove " + aux);
-                } else if (this.openFileName != null) {
-                    if (this.openFileName.equals(aux)) {
-                        this.fecharEdicao();
-                    }
-                    this.updatePolicyList();
-                } else {
-                    this.updatePolicyList();
-                }
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "A scheduler should be " +
-                                                "selected");
+        if (this.policyList.isSelectionEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "A scheduler should be selected"
+            );
+            return;
         }
+
+        final var selected = this.policyList.getSelectedValue();
+
+        final int choice = JOptionPane.showConfirmDialog(
+                this,
+                """
+                        Are you sure want delete this scheduler:\s
+                        %s""".formatted(selected),
+                null,
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (choice != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        if (!this.policyManager.remover(selected)) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Failed to remove %s".formatted(selected)
+            );
+            return;
+        }
+
+        if (selected.equals(this.openFileName)) {
+            this.closeEditing();
+        }
+
+        this.updatePolicyList();
     }
 
     private void onCompile(final ActionEvent evt) {
-
-        if (this.openFileName != null) {
-            if (this.wasCurrentFileModified) {
-                this.saveModifications();
-            }
-            final String erros =
-                    this.policyManager.compilar(this.openFileName);
-            if (erros != null) {
-                JOptionPane.showMessageDialog(this, erros, "Erros encontrados"
-                        , JOptionPane.ERROR_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Alocador" + this.openFileName + "\nCompilador com " +
-                        "sucesso");
-            }
-            this.updatePolicyList();
+        if (this.openFileName == null) {
+            return;
         }
+
+        if (this.wasCurrentFileModified) {
+            this.saveModifications();
+        }
+
+        final var errors = this.policyManager.compilar(this.openFileName);
+
+        if (errors == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Alocador%s\nCompilador com sucesso".formatted(this.openFileName)
+            );
+        } else {
+            JOptionPane.showMessageDialog(
+                    this,
+                    errors,
+                    "Erros encontrados",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+
+        this.updatePolicyList();
     }
 
     private void onOpen(final ActionEvent evt) {
-        int escolha = JOptionPane.YES_OPTION;
-        if (this.wasCurrentFileModified) {
-            escolha = this.onCloseCurrentModel();
-        }
+        final var choice = this.wasCurrentFileModified
+                ? this.onCloseCurrentModel()
+                : JOptionPane.YES_OPTION;
 
-        if (escolha == JOptionPane.CANCEL_OPTION || escolha == JOptionPane.CLOSED_OPTION) {
+        if (choice == JOptionPane.CANCEL_OPTION || choice == JOptionPane.CLOSED_OPTION) {
             return;
         }
 
@@ -608,8 +622,9 @@ class ManageAllocationPolicies extends JFrame {
         this.fileChooser.getComponent(0).setVisible(false);
         this.fileChooser.setCurrentDirectory(this.policyManager.directory());
 
-        final int choice2 = this.fileChooser.showOpenDialog(this);
-        if (choice2 != JFileChooser.APPROVE_OPTION) {
+        final int fileChoice = this.fileChooser.showOpenDialog(this);
+
+        if (fileChoice != JFileChooser.APPROVE_OPTION) {
             return;
         }
 
@@ -696,7 +711,7 @@ class ManageAllocationPolicies extends JFrame {
         );
     }
 
-    private void fecharEdicao() {
+    private void closeEditing() {
         this.setNoFileTitle();
         this.openFileName = null;
 
