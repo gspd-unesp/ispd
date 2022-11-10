@@ -25,6 +25,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
@@ -97,8 +98,9 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onUndoEvent(final UndoableEditEvent evt) {
-        if (!"style change".equals(evt.getEdit().getPresentationName())) {
-            this.undo.addEdit(evt.getEdit());
+        final var edit = evt.getEdit();
+        if (!"style change".equals(edit.getPresentationName())) {
+            this.undo.addEdit(edit);
         }
     }
 
@@ -194,68 +196,79 @@ class ManageAllocationPolicies extends JFrame {
 
         final var layout = new GroupLayout(this.getContentPane());
         this.getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addComponent(policyListPanel
-                                                        ,
-                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(textEditorPanel
-                                                        ,
-                                                        GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addContainerGap(904,
-                                                        Short.MAX_VALUE)
-                                                .addComponent(caretPosLabel))
-                                        .addComponent(toolBar,
-                                                GroupLayout.DEFAULT_SIZE, 904
-                                                , Short.MAX_VALUE))
-                                .addContainerGap())
-        );
 
-        layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addComponent(toolBar,
-                                        GroupLayout.PREFERRED_SIZE,
-                                        GroupLayout.DEFAULT_SIZE,
-                                        GroupLayout.PREFERRED_SIZE)
-                                .addGap(2, 2, 2)
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(caretPosLabel,
-                                                GroupLayout.Alignment.TRAILING)
+        layout.setHorizontalGroup(layout
+                .createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layout
+                        .createSequentialGroup()
+                        .addGroup(layout
+                                .createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addGroup(layout
+                                        .createSequentialGroup()
                                         .addComponent(policyListPanel,
+                                                GroupLayout.PREFERRED_SIZE,
                                                 GroupLayout.DEFAULT_SIZE,
-                                                GroupLayout.DEFAULT_SIZE,
-                                                Short.MAX_VALUE)
+                                                GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(textEditorPanel,
-                                                GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addContainerGap())
-        );
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE))
+                                .addGroup(GroupLayout.Alignment.TRAILING, layout
+                                        .createSequentialGroup()
+                                        .addContainerGap(904, Short.MAX_VALUE)
+                                        .addComponent(caretPosLabel))
+                                .addComponent(toolBar, GroupLayout.DEFAULT_SIZE,
+                                        904, Short.MAX_VALUE))
+                        .addContainerGap()));
+
+        layout.setVerticalGroup(layout
+                .createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layout
+                        .createSequentialGroup()
+                        .addComponent(toolBar,
+                                GroupLayout.PREFERRED_SIZE,
+                                GroupLayout.DEFAULT_SIZE,
+                                GroupLayout.PREFERRED_SIZE)
+                        .addGap(2, 2, 2)
+                        .addGroup(layout
+                                .createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addComponent(caretPosLabel,
+                                        GroupLayout.Alignment.TRAILING)
+                                .addComponent(policyListPanel,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE)
+                                .addComponent(textEditorPanel,
+                                        GroupLayout.Alignment.TRAILING,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE))
+                        .addContainerGap()));
     }
 
     private JPanel makeTextEditorPanel() {
         final var textEditorPanel = new JPanel();
         final var layout = new GroupLayout(textEditorPanel);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(this.scrollPane,
-                                        GroupLayout.DEFAULT_SIZE,
-                                        734, Short.MAX_VALUE)
-                                .addContainerGap())
+
+        layout.setHorizontalGroup(layout
+                .createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(this.scrollPane,
+                                GroupLayout.DEFAULT_SIZE, 734, Short.MAX_VALUE)
+                        .addContainerGap()));
+
+        layout.setVerticalGroup(layout
+                .createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(this.scrollPane)
+                        .addContainerGap())
         );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(this.scrollPane)
-                                .addContainerGap())
-        );
+
         textEditorPanel.setLayout(layout);
         return textEditorPanel;
     }
@@ -264,27 +277,28 @@ class ManageAllocationPolicies extends JFrame {
         final var policyListScrollPane = new JScrollPane(this.policyList);
 
         final var policyListPanel = new JPanel();
-        final var policyListPanelLayout = new GroupLayout(policyListPanel);
-        policyListPanelLayout.setHorizontalGroup(
-                policyListPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(policyListPanelLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(policyListScrollPane,
-                                        GroupLayout.DEFAULT_SIZE,
-                                        120, Short.MAX_VALUE)
-                                .addContainerGap())
+        final var layout = new GroupLayout(policyListPanel);
+
+        layout.setHorizontalGroup(layout
+                .createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(policyListScrollPane,
+                                GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+                        .addContainerGap()));
+
+        layout.setVerticalGroup(layout
+                .createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(GroupLayout.Alignment.TRAILING, layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(policyListScrollPane,
+                                GroupLayout.DEFAULT_SIZE, 506, Short.MAX_VALUE)
+                        .addContainerGap())
         );
-        policyListPanelLayout.setVerticalGroup(
-                policyListPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(GroupLayout.Alignment.TRAILING,
-                                policyListPanelLayout.createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(policyListScrollPane,
-                                                GroupLayout.DEFAULT_SIZE,
-                                                506, Short.MAX_VALUE)
-                                        .addContainerGap())
-        );
-        policyListPanel.setLayout(policyListPanelLayout);
+
+        policyListPanel.setLayout(layout);
         return policyListPanel;
     }
 
@@ -301,7 +315,6 @@ class ManageAllocationPolicies extends JFrame {
     private JMenu makeMenu(final String name, final Component... items) {
         final var menu = new JMenu();
         menu.setText(this.translate(name));
-//        menu.addActionListener(this::onSave);
 
         for (final var item : items) {
             menu.add(item);
