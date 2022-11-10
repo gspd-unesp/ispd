@@ -60,7 +60,7 @@ public class ButtonBuilder {
     }
 
     public ButtonBuilder withSize(final Dimension theSize) {
-        // TODO: Find out if these three together are equivalent to setSize()
+        
         this.button.setMaximumSize(theSize);
         this.button.setMinimumSize(theSize);
         this.button.setPreferredSize(theSize);

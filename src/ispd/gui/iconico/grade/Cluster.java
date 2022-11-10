@@ -164,6 +164,9 @@ public class Cluster extends VertexGridItem {
         cluster.bandwidth = this.bandwidth;
         cluster.latency = this.latency;
         cluster.slaveCount = this.slaveCount;
+        cluster.coreCount = this.coreCount;
+        cluster.ram = this.ram;
+        cluster.hardDisk = this.hardDisk;
         cluster.checkConfiguration();
         return cluster;
     }

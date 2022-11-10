@@ -17,7 +17,6 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -1006,11 +1005,6 @@ public class LoadConfigurationDialog extends JDialog {
     }
 
     private void makeLayoutAndPack(final Component panel) {
-        final var addUser =
-                aButton(this.translate("Add user"), this::onAddUserClick)
-                        .withPreferredSize(LoadConfigurationDialog.PREFERRED_BUTTON_SIZE)
-                        .build();
-
         final var ok =
                 aButton(this.translate("OK"), this::onOkClick)
                         .withPreferredSize(LoadConfigurationDialog.PREFERRED_BUTTON_SIZE)
@@ -1030,14 +1024,11 @@ public class LoadConfigurationDialog extends JDialog {
                                 .addContainerGap()
                                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                         .addGroup(layout.createSequentialGroup()
-                                                .addGap(37, 37, 37)
+                                                .addGap(150, 150, 150)
                                                 .addComponent(cancel
                                                         ,
                                                         GroupLayout.PREFERRED_SIZE, 120, GroupLayout.PREFERRED_SIZE)
                                                 .addGap(28, 28, 28)
-                                                .addComponent(addUser,
-                                                        GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE)
-                                                .addGap(32, 32, 32)
                                                 .addComponent(ok,
                                                         GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE))
                                         .addComponent(this.jScrollPaneSelecionado,
@@ -1067,8 +1058,6 @@ public class LoadConfigurationDialog extends JDialog {
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                                 .addComponent(cancel,
-                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(addUser,
                                                         GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                                 .addComponent(ok,
                                                         GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
@@ -1103,15 +1092,6 @@ public class LoadConfigurationDialog extends JDialog {
                 this.jRadioButtonRandom.setSelected(false);
                 this.jScrollPaneSelecionado.setViewportView(this.jPanelTrace);
             }
-        }
-    }
-
-    private void onAddUserClick(final ActionEvent evt) {
-        final String newUser = JOptionPane.showInputDialog(this,
-                this.translate("Enter the name"), this.translate("Add user"),
-                JOptionPane.QUESTION_MESSAGE);
-        if (newUser != null && !newUser.isEmpty() && !this.users.contains(newUser)) {
-            this.users.add(newUser);
         }
     }
 

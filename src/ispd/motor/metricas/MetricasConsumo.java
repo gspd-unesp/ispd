@@ -6,7 +6,6 @@
 package ispd.motor.metricas;
 
 import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.CS_Processamento;
 import java.util.ArrayList;
 import java.util.List;
 

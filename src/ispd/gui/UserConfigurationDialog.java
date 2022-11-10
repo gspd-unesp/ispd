@@ -214,7 +214,7 @@ public class UserConfigurationDialog extends JDialog {
     }
 
     HashMap<String, Double> getLimite() {
-        // TODO: Check and throw
+        
         final HashMap<String, Double> ret = new HashMap<>(0);
         for (final List userList : this.users) {
             ret.put(userList.get(0).toString(),

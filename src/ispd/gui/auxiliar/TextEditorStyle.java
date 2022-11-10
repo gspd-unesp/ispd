@@ -73,7 +73,7 @@ public class TextEditorStyle extends DefaultStyledDocument implements CaretListe
             "Mensagens.DEVOLVER_COM_PREEMPCAO", "Mensagens.ATUALIZAR"
     };
     private final Element rootElement = this.getDefaultRootElement();
-    private final String[] keywords = { // TODO: make loop
+    private final String[] keywords = { 
             "\\bfor\\b",
             "\\bif\\b",
             "\\belse\\b",
@@ -250,7 +250,7 @@ public class TextEditorStyle extends DefaultStyledDocument implements CaretListe
         final var textBefore = this.getText(0, offset);
         int depth = 0;
 
-        // TODO: { total - } total
+        
 
         for (int i = 0; i < textBefore.length(); i++) {
             if (textBefore.charAt(i) == TextEditorStyle.OPEN_BRACKET) {

@@ -266,7 +266,7 @@ class VmConfiguration extends JDialog {
 
         if (vmList == null) {
             this.virtualMachines = new HashSet<>(0);
-            return; // TODO: Was this refactor correct?
+            return; 
         }
 
         this.virtualMachines = vmList;

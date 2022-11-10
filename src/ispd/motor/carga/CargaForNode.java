@@ -89,7 +89,7 @@ public class CargaForNode extends GerarCarga {
         final String[] values = s.split(" ");
         final String scheduler = values[0];
         final int taskCount = Integer.parseInt(values[1]);
-        // TODO: flip max, min order
+        
         final double maxComputation = Double.parseDouble(values[2]);
         final double minComputation = Double.parseDouble(values[3]);
         final double maxCommunication = Double.parseDouble(values[4]);
