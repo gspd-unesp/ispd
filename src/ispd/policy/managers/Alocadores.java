@@ -21,18 +21,18 @@ public class Alocadores extends FilePolicyManager {
     private static final String VM_DIR_PATH = "ispd/externo/cloudAlloc";
     private static final File VM_DIRECTORY = new File(Alocadores.VM_DIR_PATH);
 
-    // TODO: Make instance method.
-    /**
-     * @return Basic template for writing an allocation policy's source code
-     */
-    public static String getAlocadorJava(final String policyName) {
-        return FilePolicyManager.formatTemplate(
-                Alocadores.getTemplate(),
-                policyName
-        );
+    @Override
+    protected String className() {
+        return "Alocadores.class";
     }
 
-    private static String getTemplate() {
+    @Override
+    protected String packageName() {
+        return "alocacaoVM";
+    }
+
+    @Override
+    protected String getTemplate() {
         //language=JAVA
         return """
                 package ispd.policy.externo;
@@ -72,16 +72,6 @@ public class Alocadores extends FilePolicyManager {
                     }
                 }
                 """;
-    }
-
-    @Override
-    protected String className() {
-        return "Alocadores.class";
-    }
-
-    @Override
-    protected String packageName() {
-        return "alocacaoVM";
     }
 
     @Override

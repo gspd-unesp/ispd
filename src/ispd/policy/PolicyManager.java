@@ -9,6 +9,11 @@ public interface PolicyManager {
 
     ArrayList<String> listar();
 
+    /**
+     * @return Basic template for writing an allocation policy's source code
+     */
+    String getPolicyTemplate(String policyName);
+
     File directory();
 
     boolean escrever(String nome, String codigo);

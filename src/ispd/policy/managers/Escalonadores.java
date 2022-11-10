@@ -26,17 +26,22 @@ public class Escalonadores extends FilePolicyManager {
     private static final File GRID_DIRECTORY =
             new File(Carregar.DIRETORIO_ISPD, Escalonadores.GRID_DIR_PATH);
 
-    /**
-     * @return Basic template for writing a scheduling policy's source code
-     */
-    public static String getEscalonadorJava(final String policyName) {
-        return FilePolicyManager.formatTemplate(
-                Escalonadores.getTemplate(),
-                policyName
-        );
+    @Override
+    public File directory() {
+        return Escalonadores.GRID_DIRECTORY;
     }
 
-    private static String getTemplate() {
+    @Override
+    protected String className() {
+        return "Escalonadores.class";
+    }
+
+    @Override
+    protected String packageName() {
+        return "escalonador";
+    }
+
+    protected String getTemplate() {
         //language=JAVA
         return """
                 package ispd.policy.externo;
@@ -75,20 +80,5 @@ public class Escalonadores extends FilePolicyManager {
                     }
                 }
                 """;
-    }
-
-    @Override
-    public File directory() {
-        return Escalonadores.GRID_DIRECTORY;
-    }
-
-    @Override
-    protected String className() {
-        return "Escalonadores.class";
-    }
-
-    @Override
-    protected String packageName() {
-        return "escalonador";
     }
 }

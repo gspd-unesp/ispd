@@ -1,9 +1,9 @@
 package ispd.gui;
 
-import ispd.policy.PolicyManager;
-import ispd.policy.managers.Escalonadores;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;
+import ispd.policy.PolicyManager;
+import ispd.policy.managers.Escalonadores;
 import ispd.utils.ValidaValores;
 
 import javax.swing.GroupLayout;
@@ -430,15 +430,15 @@ public class ManageSchedulers extends JFrame {
                     if (nomeOk) {
                         //Carregar classe para esditar java
                         this.abrirEdicao(result1,
-                                Escalonadores.getEscalonadorJava(result1));
+                                this.escalonadores.getPolicyTemplate(result1));
                         this.modificar();
                     }
                 } else if (result.equals(ops[1])) {
                     //Carregar classe para construir escalonador automaticamente
                     final CreateSchedulerDialog ge =
                             new CreateSchedulerDialog(this,
-                            true,
-                            this.escalonadores.directory().getAbsolutePath(), this.palavras);
+                                    true,
+                                    this.escalonadores.directory().getAbsolutePath(), this.palavras);
                     ge.setLocationRelativeTo(this);
                     ge.setVisible(true);
                     if (ge.getParse() != null) {

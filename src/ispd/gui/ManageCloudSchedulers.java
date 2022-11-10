@@ -1,9 +1,9 @@
 package ispd.gui;
 
+import ispd.gui.auxiliar.MultipleExtensionFileFilter;
+import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.policy.PolicyManager;
 import ispd.policy.managers.EscalonadoresCloud;
-import ispd.gui.auxiliar.TextEditorStyle;
-import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.utils.ValidaValores;
 
 import javax.swing.AbstractButton;
@@ -406,14 +406,16 @@ public class ManageCloudSchedulers extends JFrame {
                     if (nomeOk) {
                         //Carregar classe para esditar java
                         this.abrirEdicao(result1,
-                                EscalonadoresCloud.getEscalonadorJava(result1));
+                                this.escalonadores.getPolicyTemplate(result1));
                         this.modificar();
                     }
                 } else if (result.equals(ops[1])) {
                     //Carregar classe para construir escalonador automaticamente
-                    final CreateSchedulerDialog ge = new CreateSchedulerDialog(this,
-                            true,
-                            this.escalonadores.directory().getAbsolutePath(), this.palavras);
+                    final CreateSchedulerDialog ge =
+                            new CreateSchedulerDialog(this,
+                                    true,
+                                    this.escalonadores.directory().getAbsolutePath(),
+                                    this.palavras);
                     ge.setLocationRelativeTo(this);
                     ge.setVisible(true);
                     if (ge.getParse() != null) {

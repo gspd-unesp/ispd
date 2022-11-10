@@ -1,9 +1,9 @@
 package ispd.gui;
 
+import ispd.gui.auxiliar.MultipleExtensionFileFilter;
+import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.policy.PolicyManager;
 import ispd.policy.managers.Alocadores;
-import ispd.gui.auxiliar.TextEditorStyle;
-import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.utils.ValidaValores;
 
 import javax.swing.BorderFactory;
@@ -344,20 +344,25 @@ class ManageAllocationPolicies extends JFrame {
                                                         Short.MAX_VALUE)
                                                 .addComponent(jLabelCaretPos))
                                         .addComponent(jToolBar1,
-                                                GroupLayout.DEFAULT_SIZE, 904, Short.MAX_VALUE))
+                                                GroupLayout.DEFAULT_SIZE, 904
+                                                , Short.MAX_VALUE))
                                 .addContainerGap())
         );
         layout.setVerticalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addComponent(jToolBar1,
-                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                        GroupLayout.PREFERRED_SIZE,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        GroupLayout.PREFERRED_SIZE)
                                 .addGap(2, 2, 2)
                                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                         .addComponent(jLabelCaretPos,
                                                 GroupLayout.Alignment.TRAILING)
                                         .addComponent(jPanelAlocadores,
-                                                GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                GroupLayout.DEFAULT_SIZE,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                Short.MAX_VALUE)
                                         .addComponent(jPanelEditorTexto,
                                                 GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addContainerGap())
@@ -399,16 +404,17 @@ class ManageAllocationPolicies extends JFrame {
                     if (nomeOk) {
                         //Carregar classe para esditar java
                         this.abrirEdicao(result1,
-                                Alocadores.getAlocadorJava(result1));
+                                this.allocators.getPolicyTemplate(result1));
                         this.modificar();
                     } else if (result.equals(ops[1])) {
                         //Carregar classe para construir alocador
                         // automaticamente
-                        final CreateSchedulerDialog ge = new CreateSchedulerDialog(this
-                                , true
-                                ,
-                                this.allocators.directory().getAbsolutePath()
-                                , this.words);
+                        final CreateSchedulerDialog ge =
+                                new CreateSchedulerDialog(this
+                                        , true
+                                        ,
+                                        this.allocators.directory().getAbsolutePath()
+                                        , this.words);
                         ge.setLocationRelativeTo(this);
                         ge.setVisible(true);
                         if (ge.getParse() != null) {

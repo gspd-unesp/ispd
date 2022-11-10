@@ -128,14 +128,6 @@ abstract class FilePolicyManager implements PolicyManager {
 
     protected abstract String packageName();
 
-    protected static String formatTemplate(
-            final String template, final String policyName) {
-        return template.replace(
-                FilePolicyManager.POLICY_NAME_REPL,
-                policyName
-        );
-    }
-
     /**
      * Lists all available allocation policies.
      *
@@ -145,6 +137,27 @@ abstract class FilePolicyManager implements PolicyManager {
     public ArrayList<String> listar() {
         return this.policies;
     }
+
+    /**
+     * @return Basic template for writing a policy's source code
+     */
+    @Override
+    public String getPolicyTemplate(final String policyName) {
+        return FilePolicyManager.formatTemplate(
+                this.getTemplate(),
+                policyName
+        );
+    }
+
+    protected static String formatTemplate(
+            final String template, final String policyName) {
+        return template.replace(
+                FilePolicyManager.POLICY_NAME_REPL,
+                policyName
+        );
+    }
+
+    protected abstract String getTemplate();
 
     /**
      * Writes the contents of {@code codigo} into the source file of the

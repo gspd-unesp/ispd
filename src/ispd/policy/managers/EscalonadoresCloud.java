@@ -17,18 +17,22 @@ public class EscalonadoresCloud extends FilePolicyManager {
     private static final File CLOUD_DIRECTORY =
             new File(EscalonadoresCloud.CLOUD_DIR_PATH);
 
-    /**
-     * @return Basic template for writing a cloud scheduling policy's source
-     * code
-     */
-    public static String getEscalonadorJava(final String escalonador) {
-        return FilePolicyManager.formatTemplate(
-                EscalonadoresCloud.getTemplate(),
-                escalonador
-        );
+    @Override
+    public File directory() {
+        return EscalonadoresCloud.CLOUD_DIRECTORY;
     }
 
-    private static String getTemplate() {
+    @Override
+    protected String className() {
+        return "EscalonadoresCloud.class";
+    }
+
+    @Override
+    protected String packageName() {
+        return "escalonadorCloud";
+    }
+
+    protected String getTemplate() {
         //language=JAVA
         return """
                 package ispd.policy.externo;
@@ -67,20 +71,5 @@ public class EscalonadoresCloud extends FilePolicyManager {
                     }
                 }
                 """;
-    }
-
-    @Override
-    public File directory() {
-        return EscalonadoresCloud.CLOUD_DIRECTORY;
-    }
-
-    @Override
-    protected String className() {
-        return "EscalonadoresCloud.class";
-    }
-
-    @Override
-    protected String packageName() {
-        return "escalonadorCloud";
     }
 }
