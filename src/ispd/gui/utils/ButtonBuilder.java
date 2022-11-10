@@ -20,7 +20,7 @@ public class ButtonBuilder {
         this.button.addActionListener(onClick);
     }
 
-    private ButtonBuilder(final Icon icon, final ActionListener onClick){
+    private ButtonBuilder(final Icon icon, final ActionListener onClick) {
         this.button = new JButton(icon);
         this.button.addActionListener(onClick);
     }
@@ -60,7 +60,7 @@ public class ButtonBuilder {
     }
 
     public ButtonBuilder withSize(final Dimension theSize) {
-        
+
         this.button.setMaximumSize(theSize);
         this.button.setMinimumSize(theSize);
         this.button.setPreferredSize(theSize);
@@ -85,6 +85,11 @@ public class ButtonBuilder {
 
     public ButtonBuilder withActionCommand(final String theText) {
         this.button.setActionCommand(theText);
+        return this;
+    }
+
+    public ButtonBuilder withAccessibleDescription(final String theDescription) {
+        this.button.getAccessibleContext().setAccessibleDescription(theDescription);
         return this;
     }
 }

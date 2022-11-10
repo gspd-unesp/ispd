@@ -2,6 +2,7 @@ package ispd.gui;
 
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;
+import ispd.gui.utils.ButtonBuilder;
 import ispd.policy.PolicyManager;
 import ispd.policy.managers.Alocadores;
 import ispd.utils.ValidaValores;
@@ -25,7 +26,7 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
@@ -33,8 +34,12 @@ import javax.swing.text.BadLocationException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -58,12 +63,12 @@ class ManageAllocationPolicies extends JFrame {
 
     ManageAllocationPolicies() {
         this.initComponents();
+        this.addWindowListener(new SomeWindowAdapter());
 
         this.configureTextEditor();
         this.fecharEdicao();
         this.configureDoc();
         this.updatePolicyList();
-        this.addWindowListener(new SomeWindowAdapter());
     }
 
     private static boolean isDoubleClick(final MouseEvent evt) {
@@ -76,10 +81,10 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void configureTextEditor() {
-        final var javaStyle = new TextEditorStyle();
-        javaStyle.configurarTextComponent(this.jTextPane1);
-        this.jScrollPane2.setRowHeaderView(javaStyle.getLinhas());
-        this.jScrollPane2.setColumnHeaderView(javaStyle.getCursor());
+        final var editor = new TextEditorStyle();
+        editor.configurarTextComponent(this.jTextPane1);
+        this.jScrollPane2.setRowHeaderView(editor.getLinhas());
+        this.jScrollPane2.setColumnHeaderView(editor.getCursor());
     }
 
     private void configureDoc() {
@@ -95,99 +100,36 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void initComponents() {
-        final JPopupMenu jPopupMenuTexto = new JPopupMenu();
-        final JMenuItem jMenuItemCut1 = new JMenuItem();
-        final JMenuItem jMenuItemCopy1 = new JMenuItem();
-        final JMenuItem jMenuItemPaste1 = new JMenuItem();
-        this.fileChooser = new JFileChooser();
-        final JToolBar jToolBar1 = new JToolBar();
-        final JButton jButtonNovo = new JButton();
-        final JButton jButtonSalvar = new JButton();
-        final JButton jButtonCompilar = new JButton();
+        this.setTitle(this.translate("Manage Schedulers"));
+        this.setAlwaysOnTop(true);
+        this.setFocusable(false);
+        this.setIconImage(Toolkit.getDefaultToolkit()
+                .getImage(this.getResource("imagens/Logo_iSPD_25.png"))
+        );
+
         final JPanel jPanelAlocadores = new JPanel();
         final JScrollPane jScrollPane3 = new JScrollPane();
-        this.policyList = new JList();
         final JPanel jPanelEditorTexto = new JPanel();
         this.jScrollPane2 = new JScrollPane();
         this.jTextPane1 = new JTextPane();
         final JLabel jLabelCaretPos = new JLabel();
-        final JMenuBar jMenuBar1 = new JMenuBar();
-        final JMenu jMenuArquivo = new JMenu();
-        final JMenuItem jMenuItemNovo = new JMenuItem();
-        final JMenuItem jMenuItemAbrir = new JMenuItem();
-        final JMenuItem jMenuItemSalvar = new JMenuItem();
-        final JMenuItem jMenuItemImportar = new JMenuItem();
-        final JMenu jMenuEditar = new JMenu();
-        final JMenuItem jMenuItemDesfazer = new JMenuItem();
-        final JMenuItem jMenuItemRefazer = new JMenuItem();
-        final JPopupMenu.Separator jSeparator1 = new JPopupMenu.Separator();
-        final JMenuItem jMenuItemCut = new JMenuItem();
-        final JMenuItem jMenuItemCopy = new JMenuItem();
-        final JMenuItem jMenuItemPaste = new JMenuItem();
-        final JPopupMenu.Separator jSeparator2 = new JPopupMenu.Separator();
-        final JMenuItem jMenuItemDelete = new JMenuItem();
 
-        jMenuItemCut1.setText(this.translate("Cut"));
-        jMenuItemCut1.addActionListener(this::jMenuItemCutActionPerformed);
-        jPopupMenuTexto.add(jMenuItemCut1);
-
-        jMenuItemCopy1.setText(this.translate("Copy"));
-        jMenuItemCopy1.addActionListener(this::jMenuItemCopyActionPerformed);
-        jPopupMenuTexto.add(jMenuItemCopy1);
-
-        jMenuItemPaste1.setText(this.translate("Paste"));
-        jMenuItemPaste1.addActionListener(this::jMenuItemPasteActionPerformed);
-        jPopupMenuTexto.add(jMenuItemPaste1);
-
+        this.fileChooser = new JFileChooser();
         this.fileChooser.setAcceptAllFileFilterUsed(false);
         this.fileChooser.setFileFilter(new MultipleExtensionFileFilter(this.translate(
                 "Java Source Files (. java)"), ".java", true));
 
-        this.setTitle(this.translate("Manage Schedulers"));
-        this.setAlwaysOnTop(true);
-        this.setFocusable(false);
-        this.setIconImage(Toolkit.getDefaultToolkit().getImage(this.getResource(
-                "imagens/Logo_iSPD_25.png")));
 
-        jToolBar1.setRollover(true);
-
-        jButtonNovo.setIcon(new ImageIcon(this.getResource(
-                "/ispd/gui/imagens/insert-object.png")));
-
-        jButtonNovo.setToolTipText(this.translate("Creates a new scheduler"));
-        jButtonNovo.setFocusable(false);
-        jButtonNovo.setHorizontalTextPosition(SwingConstants.CENTER);
-        jButtonNovo.setVerticalTextPosition(SwingConstants.BOTTOM);
-        jButtonNovo.addActionListener(this::onNew);
-        jToolBar1.add(jButtonNovo);
-        jButtonNovo.getAccessibleContext().setAccessibleDescription(this.translate("Creates a new scheduler"));
-
-        jButtonSalvar.setIcon(new ImageIcon(this.getResource(
-                "/ispd/gui/imagens/document-save.png")));
-        jButtonSalvar.setToolTipText(this.translate("Save the open file"));
-        jButtonSalvar.setFocusable(false);
-        jButtonSalvar.setHorizontalTextPosition(SwingConstants.CENTER);
-        jButtonSalvar.setVerticalTextPosition(SwingConstants.BOTTOM);
-        jButtonSalvar.addActionListener(this::jButtonSalvarActionPerformed);
-        jToolBar1.add(jButtonSalvar);
-
-        jButtonCompilar.setIcon(new ImageIcon(this.getResource(
-                "/ispd/gui/imagens/system-run.png")));
-        jButtonCompilar.setToolTipText(this.translate("Compile"));
-        jButtonCompilar.setFocusable(false);
-        jButtonCompilar.setHorizontalTextPosition(SwingConstants.CENTER);
-        jButtonCompilar.setVerticalTextPosition(SwingConstants.BOTTOM);
-        jButtonCompilar.addActionListener(this::jButtonCompilarActionPerformed);
-        jToolBar1.add(jButtonCompilar);
-
+        this.policyList = new JList<>();
         this.policyList.setBorder(BorderFactory.createTitledBorder(null,
                 this.translate("Scheduler"),
-                javax.swing.border.TitledBorder.CENTER,
-                javax.swing.border.TitledBorder.DEFAULT_POSITION));
+                TitledBorder.CENTER,
+                TitledBorder.DEFAULT_POSITION));
         this.policyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.policyList.addMouseListener(new SomeMouseAdapter());
 
         jScrollPane3.setViewportView(this.policyList);
+
         this.jScrollPane2.setViewportView(this.jTextPane1);
 
 
@@ -233,105 +175,59 @@ class ManageAllocationPolicies extends JFrame {
                                 .addContainerGap())
         );
 
-        jMenuArquivo.setText(this.translate("File"));
-        jMenuArquivo.addActionListener(this::jButtonSalvarActionPerformed);
+        this.setJMenuBar(this.makeMenuBar(
+                this.makeMenu("File",
+                        this.makeMenuItem("New",
+                                "/ispd/gui/imagens/insert-object_1.png",
+                                this::onNew, KeyEvent.VK_N,
+                                "Creates a new scheduler"
+                        ),
+                        this.makeMenuItem("Open",
+                                "/ispd/gui/imagens/document-open.png",
+                                this::onOpen, KeyEvent.VK_O,
+                                "Opens an existing scheduler"
+                        ),
+                        this.makeMenuItem("Save",
+                                "/ispd/gui/imagens/document-save_1.png",
+                                this::onSave, KeyEvent.VK_S,
+                                "Save the open file"
+                        ),
+                        this.makeMenuItem("Import",
+                                "/ispd/gui/imagens/document-import.png",
+                                this::onImport, KeyEvent.VK_I
+                        )
+                ),
+                this.makeMenu("Edit",
+                        this.makeMenuItem("Undo",
+                                "/ispd/gui/imagens/edit-undo.png",
+                                this::onUndo, KeyEvent.VK_Z
+                        ),
+                        this.makeMenuItem("Redo",
+                                "/ispd/gui/imagens/edit-redo.png",
+                                this::onRedo, KeyEvent.VK_Y
+                        ),
+                        new JPopupMenu.Separator(),
+                        this.makeMenuItem("Cut",
+                                "/ispd/gui/imagens/edit-cut.png",
+                                this::onCut, KeyEvent.VK_X
+                        ),
+                        this.makeMenuItem("Copy",
+                                "/ispd/gui/imagens/edit-copy.png",
+                                this::onCopy, KeyEvent.VK_C
+                        ),
+                        this.makeMenuItem("Paste",
+                                "/ispd/gui/imagens/edit-paste.png",
+                                this::onPaste, KeyEvent.VK_P
+                        ),
+                        new JPopupMenu.Separator(),
+                        this.makeMenuItem("Delete",
+                                "/ispd/gui/imagens/edit-delete.png",
+                                this::onDelete
+                        )
+                )
+        ));
 
-        jMenuItemNovo.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
-        final String name = "/ispd/gui/imagens/insert-object_1.png";
-        jMenuItemNovo.setIcon(new ImageIcon(this.getResource(name)));
-        jMenuItemNovo.setText(this.translate("New"));
-        jMenuItemNovo.setToolTipText(this.translate("Creates a " +
-                                                    "new " +
-                                                    "scheduler"));
-        jMenuItemNovo.addActionListener(this::onNew);
-        jMenuArquivo.add(jMenuItemNovo);
-
-        jMenuItemAbrir.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemAbrir.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/document-open.png")));
-        jMenuItemAbrir.setText(this.translate("Open"));
-        jMenuItemAbrir.setToolTipText(this.translate("Opens an " +
-                                                     "existing " +
-                                                     "scheduler")); //
-
-        jMenuItemAbrir.addActionListener(this::jMenuItemAbrirActionPerformed);
-        jMenuArquivo.add(jMenuItemAbrir);
-
-        jMenuItemSalvar.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemSalvar.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/document-save_1.png")));
-        jMenuItemSalvar.setText(this.translate("Save"));
-        jMenuItemSalvar.setToolTipText(this.translate("Save the" +
-                                                      " open " +
-                                                      "file"));
-        jMenuItemSalvar.addActionListener(this::jButtonSalvarActionPerformed);
-        jMenuArquivo.add(jMenuItemSalvar);
-
-        jMenuItemImportar.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemImportar.setIcon(new ImageIcon(this.getResource(
-                "/ispd/gui/imagens/document-import.png")));
-        jMenuItemImportar.setText(this.translate("Import"));
-        jMenuItemImportar.addActionListener(this::jMenuItemImportarActionPerformed);
-        jMenuArquivo.add(jMenuItemImportar);
-
-        jMenuBar1.add(jMenuArquivo);
-
-        jMenuEditar.setText(this.translate("Edit"));
-
-        jMenuItemDesfazer.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemDesfazer.setIcon(new ImageIcon(this.getResource(
-                "/ispd/gui/imagens/edit-undo.png")));
-        jMenuItemDesfazer.setText(this.translate("Undo"));
-        jMenuItemDesfazer.addActionListener(this::jMenuItemDesfazerActionPerformed);
-        jMenuEditar.add(jMenuItemDesfazer);
-
-        jMenuItemRefazer.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Y, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemRefazer.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/edit-redo.png")));
-        jMenuItemRefazer.setText(this.translate("Redo"));
-        jMenuItemRefazer.addActionListener(this::jMenuItemRefazerActionPerformed);
-        jMenuEditar.add(jMenuItemRefazer);
-        jMenuEditar.add(jSeparator1);
-
-        jMenuItemCut.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemCut.setIcon(new ImageIcon(this.getResource(
-                "/ispd/gui" +
-                "/imagens/edit-cut.png")));
-        final String cut = "Cut";
-        jMenuItemCut.setText(this.translate(cut));
-        jMenuItemCut.addActionListener(this::jMenuItemCutActionPerformed);
-        jMenuEditar.add(jMenuItemCut);
-
-        jMenuItemCopy.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemCopy.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/edit-copy.png")));
-        jMenuItemCopy.setText(this.translate("Copy"));
-        jMenuItemCopy.addActionListener(this::jMenuItemCopyActionPerformed);
-        jMenuEditar.add(jMenuItemCopy);
-
-        jMenuItemPaste.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemPaste.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/edit-paste.png")));
-        jMenuItemPaste.setText(this.translate("Paste"));
-        jMenuItemPaste.addActionListener(this::jMenuItemPasteActionPerformed);
-        jMenuEditar.add(jMenuItemPaste);
-        jMenuEditar.add(jSeparator2);
-
-        jMenuItemDelete.setIcon(new ImageIcon(this.getResource(
-                "/ispd" +
-                "/gui/imagens/edit-delete.png")));
-        jMenuItemDelete.setText(this.translate("Delete"));
-        jMenuItemDelete.addActionListener(this::jMenuItemDeleteActionPerformed);
-        jMenuEditar.add(jMenuItemDelete);
-
-        jMenuBar1.add(jMenuEditar);
-
-        this.setJMenuBar(jMenuBar1);
+        final var toolBar = this.makeToolBar();
 
         final var layout = new GroupLayout(this.getContentPane());
         this.getContentPane().setLayout(layout);
@@ -347,7 +243,7 @@ class ManageAllocationPolicies extends JFrame {
                                                 .addContainerGap(904,
                                                         Short.MAX_VALUE)
                                                 .addComponent(jLabelCaretPos))
-                                        .addComponent(jToolBar1,
+                                        .addComponent(toolBar,
                                                 GroupLayout.DEFAULT_SIZE, 904
                                                 , Short.MAX_VALUE))
                                 .addContainerGap())
@@ -355,7 +251,7 @@ class ManageAllocationPolicies extends JFrame {
         layout.setVerticalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                                .addComponent(jToolBar1,
+                                .addComponent(toolBar,
                                         GroupLayout.PREFERRED_SIZE,
                                         GroupLayout.DEFAULT_SIZE,
                                         GroupLayout.PREFERRED_SIZE)
@@ -373,6 +269,96 @@ class ManageAllocationPolicies extends JFrame {
         );
 
         this.pack();
+    }
+
+    private JMenuBar makeMenuBar(final JMenu... menus) {
+        final JMenuBar menuBar = new JMenuBar();
+
+        for (final var menu : menus) {
+            menuBar.add(menu);
+        }
+
+        return menuBar;
+    }
+
+    private JMenu makeMenu(final String name, final Component... items) {
+        final var menu = new JMenu();
+        menu.setText(this.translate(name));
+//        menu.addActionListener(this::onSave);
+
+        for (final var item : items) {
+            menu.add(item);
+        }
+
+        return menu;
+    }
+
+    private JMenuItem makeMenuItem(
+            final String itemName, final String imagePath,
+            final ActionListener action, final int acceleratorKey,
+            final String toolTip) {
+        final var item = this.makeMenuItem(
+                itemName, imagePath,
+                action, acceleratorKey
+        );
+        item.setToolTipText(this.translate(toolTip));
+        return item;
+    }
+
+    private JMenuItem makeMenuItem(
+            final String itemName, final String imagePath,
+            final ActionListener action, final int acceleratorKey) {
+        final var item = this.makeMenuItem(itemName, imagePath, action);
+        item.setAccelerator(KeyStroke.getKeyStroke(
+                acceleratorKey,
+                InputEvent.CTRL_DOWN_MASK
+        ));
+        return item;
+    }
+
+    private JMenuItem makeMenuItem(
+            final String itemName, final String imagePath,
+            final ActionListener action) {
+        final var item = new JMenuItem();
+        item.setIcon(new ImageIcon(this.getResource(imagePath)));
+        item.setText(this.translate(itemName));
+        item.addActionListener(action);
+        return item;
+    }
+
+    private JToolBar makeToolBar() {
+        final var tb = new JToolBar();
+        tb.setRollover(true);
+
+        tb.add(this.makeButton(
+                "/ispd/gui/imagens/insert-object.png",
+                "Creates a new scheduler", this::onNew));
+
+        tb.add(this.makeButton(
+                "/ispd/gui/imagens/document-save.png",
+                "Save the open file", this::onSave
+        ));
+
+        tb.add(this.makeButton(
+                "/ispd/gui/imagens/system-run.png",
+                "Compile", this::onCompile
+        ));
+
+        return tb;
+    }
+
+    private JButton makeButton(
+            final String iconPath, final String helpText,
+            final ActionListener action) {
+        final var translated = this.translate(helpText);
+        return ButtonBuilder.aButton(new ImageIcon(this.getResource(
+                        iconPath
+                )), action)
+                .withToolTip(translated)
+//                .withAccessibleDescription(translated)
+                .withCenterBottomTextPosition()
+                .nonFocusable()
+                .build();
     }
 
     private String translate(final String cut) {
@@ -480,22 +466,22 @@ class ManageAllocationPolicies extends JFrame {
         return ge;
     }
 
-    private void jMenuItemCutActionPerformed(final ActionEvent evt) {
+    private void onCut(final ActionEvent evt) {
 
         this.jTextPane1.cut();
     }
 
-    private void jMenuItemCopyActionPerformed(final ActionEvent evt) {
+    private void onCopy(final ActionEvent evt) {
 
         this.jTextPane1.copy();
     }
 
-    private void jMenuItemPasteActionPerformed(final ActionEvent evt) {
+    private void onPaste(final ActionEvent evt) {
 
         this.jTextPane1.paste();
     }
 
-    private void jMenuItemDesfazerActionPerformed(final ActionEvent evt) {
+    private void onUndo(final ActionEvent evt) {
 
         try {
             this.undo.undo();
@@ -503,7 +489,7 @@ class ManageAllocationPolicies extends JFrame {
         }
     }
 
-    private void jMenuItemRefazerActionPerformed(final ActionEvent evt) {
+    private void onRedo(final ActionEvent evt) {
 
         try {
             this.undo.redo();
@@ -534,13 +520,13 @@ class ManageAllocationPolicies extends JFrame {
         this.abrirEdicao(result, fileContents);
     }
 
-    private void jButtonSalvarActionPerformed(final ActionEvent evt) {
+    private void onSave(final ActionEvent evt) {
         if (this.openFileName != null && this.wasCurrentFileModified) {
             this.saveModifications();
         }
     }
 
-    private void jMenuItemDeleteActionPerformed(final ActionEvent evt) {
+    private void onDelete(final ActionEvent evt) {
 
         if (!this.policyList.isSelectionEmpty()) {
             final String aux =
@@ -573,7 +559,7 @@ class ManageAllocationPolicies extends JFrame {
         }
     }
 
-    private void jButtonCompilarActionPerformed(final ActionEvent evt) {
+    private void onCompile(final ActionEvent evt) {
 
         if (this.openFileName != null) {
             if (this.wasCurrentFileModified) {
@@ -593,7 +579,7 @@ class ManageAllocationPolicies extends JFrame {
         }
     }
 
-    private void jMenuItemAbrirActionPerformed(final ActionEvent evt) {
+    private void onOpen(final ActionEvent evt) {
         int escolha = JOptionPane.YES_OPTION;
         if (this.wasCurrentFileModified) {
             escolha = this.onCloseCurrentModel();
@@ -625,7 +611,7 @@ class ManageAllocationPolicies extends JFrame {
         this.abrirEdicao(name, code);
     }
 
-    private void jMenuItemImportarActionPerformed(final ActionEvent evt) {
+    private void onImport(final ActionEvent evt) {
         int escolha = JOptionPane.YES_OPTION;
         if (this.wasCurrentFileModified) {
             escolha = this.onCloseCurrentModel();
@@ -754,19 +740,19 @@ class ManageAllocationPolicies extends JFrame {
     private class SomeDocumentListener implements DocumentListener {
         @Override
         public void insertUpdate(final DocumentEvent e) {
-            this.setAsModified();
+            this.setAsPendingChanges();
         }
 
         @Override
         public void removeUpdate(final DocumentEvent e) {
-            this.setAsModified();
+            this.setAsPendingChanges();
         }
 
         @Override
         public void changedUpdate(final DocumentEvent e) {
         }
 
-        private void setAsModified() {
+        private void setAsPendingChanges() {
             if (ManageAllocationPolicies.this.wasCurrentFileModified) {
                 return;
             }
