@@ -1308,7 +1308,7 @@ public class MainWindow extends JFrame implements KeyListener {
         this.generateScheduler(
                 this.jFrameAllocManager.getAlocadores().directory().getAbsolutePath(),
                 (ge) -> ge.setAlocadores(this.jFrameAllocManager.getAlocadores()),
-                this.jFrameAllocManager::atualizarAlocadores
+                this.jFrameAllocManager::updatePolicyList
         );
     }
 
