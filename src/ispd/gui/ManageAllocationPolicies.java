@@ -31,6 +31,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.text.BadLocationException;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.BorderLayout;
@@ -56,8 +58,8 @@ class ManageAllocationPolicies extends JFrame {
             ResourceBundle.getBundle("ispd.idioma.Idioma", Locale.getDefault());
     private JFileChooser fileChooser;
     private JList<String> policyList;
-    private JScrollPane jScrollPane2;
-    private JTextPane jTextPane1;
+    private JScrollPane scrollPane;
+    private JTextPane textPane;
     private boolean wasCurrentFileModified;
     private String openFileName;
 
@@ -65,9 +67,9 @@ class ManageAllocationPolicies extends JFrame {
         this.initComponents();
         this.addWindowListener(new SomeWindowAdapter());
 
-        this.configureTextEditor();
+        this.configureTextEditor(this.textPane, this.scrollPane);
         this.fecharEdicao();
-        this.configureDoc();
+        this.configureTextPaneDoc();
         this.updatePolicyList();
     }
 
@@ -80,15 +82,16 @@ class ManageAllocationPolicies extends JFrame {
         return fullName.substring(0, fullName.length() - ".java".length());
     }
 
-    private void configureTextEditor() {
+    private void configureTextEditor(
+            final JTextPane textPane, final JScrollPane scrollPane) {
         final var editor = new TextEditorStyle();
-        editor.configurarTextComponent(this.jTextPane1);
-        this.jScrollPane2.setRowHeaderView(editor.getLinhas());
-        this.jScrollPane2.setColumnHeaderView(editor.getCursor());
+        editor.configurarTextComponent(textPane);
+        scrollPane.setRowHeaderView(editor.getLinhas());
+        scrollPane.setColumnHeaderView(editor.getCursor());
     }
 
-    private void configureDoc() {
-        final var doc = this.jTextPane1.getDocument();
+    private void configureTextPaneDoc() {
+        final var doc = this.textPane.getDocument();
         doc.addUndoableEditListener(this::onUndoEvent);
         doc.addDocumentListener(new SomeDocumentListener());
     }
@@ -100,81 +103,36 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void initComponents() {
-        this.setTitle(this.translate("Manage Schedulers"));
+        this.setNoFileTitle();
         this.setAlwaysOnTop(true);
         this.setFocusable(false);
         this.setIconImage(Toolkit.getDefaultToolkit()
                 .getImage(this.getResource("imagens/Logo_iSPD_25.png"))
         );
 
-        final JPanel jPanelAlocadores = new JPanel();
-        final JScrollPane jScrollPane3 = new JScrollPane();
-        final JPanel jPanelEditorTexto = new JPanel();
-        this.jScrollPane2 = new JScrollPane();
-        this.jTextPane1 = new JTextPane();
-        final JLabel jLabelCaretPos = new JLabel();
+        this.textPane = new JTextPane();
+        this.scrollPane = new JScrollPane(this.textPane);
 
         this.fileChooser = new JFileChooser();
         this.fileChooser.setAcceptAllFileFilterUsed(false);
         this.fileChooser.setFileFilter(new MultipleExtensionFileFilter(this.translate(
                 "Java Source Files (. java)"), ".java", true));
 
-
         this.policyList = new JList<>();
         this.policyList.setBorder(BorderFactory.createTitledBorder(null,
                 this.translate("Scheduler"),
                 TitledBorder.CENTER,
-                TitledBorder.DEFAULT_POSITION));
+                TitledBorder.DEFAULT_POSITION
+        ));
         this.policyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.policyList.addMouseListener(new SomeMouseAdapter());
 
-        jScrollPane3.setViewportView(this.policyList);
+        this.initMenuBar();
+        this.makeLayout();
+        this.pack();
+    }
 
-        this.jScrollPane2.setViewportView(this.jTextPane1);
-
-
-        final var jPanelAlocadoresLayout = new GroupLayout(jPanelAlocadores);
-        jPanelAlocadores.setLayout(jPanelAlocadoresLayout);
-        jPanelAlocadoresLayout.setHorizontalGroup(
-                jPanelAlocadoresLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanelAlocadoresLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jScrollPane3,
-                                        GroupLayout.DEFAULT_SIZE,
-                                        120, Short.MAX_VALUE)
-                                .addContainerGap())
-        );
-        jPanelAlocadoresLayout.setVerticalGroup(
-                jPanelAlocadoresLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(GroupLayout.Alignment.TRAILING,
-                                jPanelAlocadoresLayout.createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(jScrollPane3,
-                                                GroupLayout.DEFAULT_SIZE,
-                                                506, Short.MAX_VALUE)
-                                        .addContainerGap())
-        );
-
-
-        final var jPanelEditorTextoLayout = new GroupLayout(jPanelEditorTexto);
-        jPanelEditorTexto.setLayout(jPanelEditorTextoLayout);
-        jPanelEditorTextoLayout.setHorizontalGroup(
-                jPanelEditorTextoLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanelEditorTextoLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(this.jScrollPane2,
-                                        GroupLayout.DEFAULT_SIZE,
-                                        734, Short.MAX_VALUE)
-                                .addContainerGap())
-        );
-        jPanelEditorTextoLayout.setVerticalGroup(
-                jPanelEditorTextoLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanelEditorTextoLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(this.jScrollPane2)
-                                .addContainerGap())
-        );
-
+    private void initMenuBar() {
         this.setJMenuBar(this.makeMenuBar(
                 this.makeMenu("File",
                         this.makeMenuItem("New",
@@ -209,15 +167,15 @@ class ManageAllocationPolicies extends JFrame {
                         new JPopupMenu.Separator(),
                         this.makeMenuItem("Cut",
                                 "/ispd/gui/imagens/edit-cut.png",
-                                this::onCut, KeyEvent.VK_X
+                                e -> this.textPane.cut(), KeyEvent.VK_X
                         ),
                         this.makeMenuItem("Copy",
                                 "/ispd/gui/imagens/edit-copy.png",
-                                this::onCopy, KeyEvent.VK_C
+                                e -> this.textPane.copy(), KeyEvent.VK_C
                         ),
                         this.makeMenuItem("Paste",
                                 "/ispd/gui/imagens/edit-paste.png",
-                                this::onPaste, KeyEvent.VK_P
+                                e -> this.textPane.paste(), KeyEvent.VK_P
                         ),
                         new JPopupMenu.Separator(),
                         this.makeMenuItem("Delete",
@@ -226,8 +184,13 @@ class ManageAllocationPolicies extends JFrame {
                         )
                 )
         ));
+    }
 
+    private void makeLayout() {
         final var toolBar = this.makeToolBar();
+        final var policyListPanel = this.makePolicyListPanel();
+        final var textEditorPanel = this.makeTextEditorPanel();
+        final var caretPosLabel = new JLabel();
 
         final var layout = new GroupLayout(this.getContentPane());
         this.getContentPane().setLayout(layout);
@@ -236,18 +199,23 @@ class ManageAllocationPolicies extends JFrame {
                         .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                         .addGroup(layout.createSequentialGroup()
-                                                .addComponent(jPanelAlocadores, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(policyListPanel
+                                                        ,
+                                                        GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jPanelEditorTexto, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                                .addComponent(textEditorPanel
+                                                        ,
+                                                        GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                         .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                                 .addContainerGap(904,
                                                         Short.MAX_VALUE)
-                                                .addComponent(jLabelCaretPos))
+                                                .addComponent(caretPosLabel))
                                         .addComponent(toolBar,
                                                 GroupLayout.DEFAULT_SIZE, 904
                                                 , Short.MAX_VALUE))
                                 .addContainerGap())
         );
+
         layout.setVerticalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
@@ -257,18 +225,67 @@ class ManageAllocationPolicies extends JFrame {
                                         GroupLayout.PREFERRED_SIZE)
                                 .addGap(2, 2, 2)
                                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabelCaretPos,
+                                        .addComponent(caretPosLabel,
                                                 GroupLayout.Alignment.TRAILING)
-                                        .addComponent(jPanelAlocadores,
+                                        .addComponent(policyListPanel,
                                                 GroupLayout.DEFAULT_SIZE,
                                                 GroupLayout.DEFAULT_SIZE,
                                                 Short.MAX_VALUE)
-                                        .addComponent(jPanelEditorTexto,
+                                        .addComponent(textEditorPanel,
                                                 GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addContainerGap())
         );
+    }
 
-        this.pack();
+    private JPanel makeTextEditorPanel() {
+        final var textEditorPanel = new JPanel();
+        final var layout = new GroupLayout(textEditorPanel);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.scrollPane,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        734, Short.MAX_VALUE)
+                                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(this.scrollPane)
+                                .addContainerGap())
+        );
+        textEditorPanel.setLayout(layout);
+        return textEditorPanel;
+    }
+
+    private JPanel makePolicyListPanel() {
+        final var policyListScrollPane = new JScrollPane(this.policyList);
+
+        final var policyListPanel = new JPanel();
+        final var policyListPanelLayout = new GroupLayout(policyListPanel);
+        policyListPanelLayout.setHorizontalGroup(
+                policyListPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(policyListPanelLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(policyListScrollPane,
+                                        GroupLayout.DEFAULT_SIZE,
+                                        120, Short.MAX_VALUE)
+                                .addContainerGap())
+        );
+        policyListPanelLayout.setVerticalGroup(
+                policyListPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING,
+                                policyListPanelLayout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(policyListScrollPane,
+                                                GroupLayout.DEFAULT_SIZE,
+                                                506, Short.MAX_VALUE)
+                                        .addContainerGap())
+        );
+        policyListPanel.setLayout(policyListPanelLayout);
+        return policyListPanel;
     }
 
     private JMenuBar makeMenuBar(final JMenu... menus) {
@@ -466,34 +483,17 @@ class ManageAllocationPolicies extends JFrame {
         return ge;
     }
 
-    private void onCut(final ActionEvent evt) {
-
-        this.jTextPane1.cut();
-    }
-
-    private void onCopy(final ActionEvent evt) {
-
-        this.jTextPane1.copy();
-    }
-
-    private void onPaste(final ActionEvent evt) {
-
-        this.jTextPane1.paste();
-    }
-
     private void onUndo(final ActionEvent evt) {
-
         try {
             this.undo.undo();
-        } catch (final Exception e) {
+        } catch (final CannotUndoException ignored) {
         }
     }
 
     private void onRedo(final ActionEvent evt) {
-
         try {
             this.undo.redo();
-        } catch (final Exception e) {
+        } catch (final CannotRedoException ignored) {
         }
     }
 
@@ -655,10 +655,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     void updatePolicyList() {
-        this.policyList.setListData(
-                this.policyManager.listar()
-                        .toArray(String[]::new)
-        );
+        this.policyList.setListData(this.policyManager.listar().toArray(String[]::new));
     }
 
     private int onCloseCurrentModel() {
@@ -673,7 +670,7 @@ class ManageAllocationPolicies extends JFrame {
 
     private void saveModifications() {
         this.policyManager.escrever(
-                this.openFileName, this.jTextPane1.getText());
+                this.openFileName, this.textPane.getText());
         this.setAsNoPendingChanges();
     }
 
@@ -687,31 +684,35 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void fecharEdicao() {
-        this.setTitle(this.translate("Manage Schedulers"));
+        this.setNoFileTitle();
         this.openFileName = null;
 
         try {
-            final var doc = (TextEditorStyle) this.jTextPane1.getDocument();
+            final var doc = (TextEditorStyle) this.textPane.getDocument();
             doc.remove(0, doc.getLength());
         } catch (final BadLocationException ignored) {
         }
 
-        this.jTextPane1.setEnabled(false);
+        this.textPane.setEnabled(false);
         this.wasCurrentFileModified = false;
+    }
+
+    private void setNoFileTitle() {
+        this.setTitle(this.translate("Manage Schedulers"));
     }
 
     private void abrirEdicao(final String nome, final String conteudo) {
         this.openFileName = nome;
         try {
             final var doc =
-                    (TextEditorStyle) this.jTextPane1.getDocument();
+                    (TextEditorStyle) this.textPane.getDocument();
             if (doc.getLength() > 0) {
                 doc.remove(0, doc.getLength());
             }
             doc.insertString(0, conteudo, null);
         } catch (final BadLocationException ex) {
         }
-        this.jTextPane1.setEnabled(true);
+        this.textPane.setEnabled(true);
         this.setAsNoPendingChanges();
     }
 
