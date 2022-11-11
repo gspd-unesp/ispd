@@ -50,9 +50,17 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 class ManageAllocationPolicies extends JFrame {
+    public static final String[] POLICY_GENERATION_OPTIONS = {
+            "Edit java class",
+            "Generator schedulers"
+    };
+    private static final Set<Integer> CANCELLING_OPTIONS =
+            Set.of(JOptionPane.CANCEL_OPTION, JOptionPane.CLOSED_OPTION);
     private final UndoableEdit undo = new UndoManager();
     private final PolicyManager policyManager = new Alocadores();
     private final ResourceBundle words =
@@ -84,11 +92,11 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void configureTextEditor(
-            final JTextPane textPane, final JScrollPane scrollPane) {
+            final JTextPane theTextPane, final JScrollPane theScrollPane) {
         final var editor = new TextEditorStyle();
-        editor.configurarTextComponent(textPane);
-        scrollPane.setRowHeaderView(editor.getLinhas());
-        scrollPane.setColumnHeaderView(editor.getCursor());
+        editor.configurarTextComponent(theTextPane);
+        theScrollPane.setRowHeaderView(editor.getLinhas());
+        theScrollPane.setColumnHeaderView(editor.getCursor());
     }
 
     private void configureTextPaneDoc() {
@@ -144,7 +152,7 @@ class ManageAllocationPolicies extends JFrame {
                         ),
                         this.makeMenuItem("Open",
                                 "/ispd/gui/imagens/document-open.png",
-                                this::onOpen, KeyEvent.VK_O,
+                                evt1 -> this.runCancelableAction(this::openFile), KeyEvent.VK_O,
                                 "Opens an existing scheduler"
                         ),
                         this.makeMenuItem("Save",
@@ -154,7 +162,7 @@ class ManageAllocationPolicies extends JFrame {
                         ),
                         this.makeMenuItem("Import",
                                 "/ispd/gui/imagens/document-import.png",
-                                this::onImport, KeyEvent.VK_I
+                                evt -> this.runCancelableAction(this::importFile), KeyEvent.VK_I
                         )
                 ),
                 this.makeMenu("Edit",
@@ -385,7 +393,6 @@ class ManageAllocationPolicies extends JFrame {
                         iconPath
                 )), action)
                 .withToolTip(translated)
-//                .withAccessibleDescription(translated)
                 .withCenterBottomTextPosition()
                 .nonFocusable()
                 .build();
@@ -400,35 +407,25 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onNew(final ActionEvent e) {
-        int escolha = JOptionPane.YES_OPTION;
-        if (this.wasCurrentFileModified) {
-            escolha = this.onCloseCurrentModel();
-        }
+        this.runCancelableAction(this::makeNewPolicy);
+    }
 
-        if (escolha == JOptionPane.CANCEL_OPTION || escolha == JOptionPane.CLOSED_OPTION) {
-            return;
-        }
-
-        final var options = new String[] {
-                "Edit java class",
-                "Generator schedulers"
-        };
-
+    private void makeNewPolicy() {
         final var result = (String) JOptionPane.showInputDialog(
                 this,
                 "Creating the scheduler with:",
                 null,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
-                options,
-                options[0]
+                ManageAllocationPolicies.POLICY_GENERATION_OPTIONS,
+                ManageAllocationPolicies.POLICY_GENERATION_OPTIONS[0]
         );
 
         if (result == null) {
             return;
         }
 
-        if (!result.equals(options[0])) {
+        if (!result.equals(ManageAllocationPolicies.POLICY_GENERATION_OPTIONS[0])) {
             return;
         }
 
@@ -437,15 +434,18 @@ class ManageAllocationPolicies extends JFrame {
         );
 
         final boolean isValidClassName =
-                name != null && ValidaValores.validaNomeClasse(name);
+                name != null && ValidaValores.isValidClassName(name);
 
         if (isValidClassName) {
-            this.abrirEdicao(name, this.policyManager.getPolicyTemplate(name));
+            this.fillEditorArea(
+                    name,
+                    this.policyManager.getPolicyTemplate(name)
+            );
             this.setAsPendingChanges();
             return;
         }
 
-        if (!result.equals(options[1])) {
+        if (!result.equals(ManageAllocationPolicies.POLICY_GENERATION_OPTIONS[1])) {
             return;
         }
 
@@ -510,27 +510,18 @@ class ManageAllocationPolicies extends JFrame {
         }
     }
 
-    private void jListAlocadoresMouseClicked(final MouseEvent e) {
+    private void onPolicyListClicked(final MouseEvent e) {
         if (!ManageAllocationPolicies.isDoubleClick(e)) {
             return;
         }
 
-        final var choice = this.wasCurrentFileModified
-                ? this.onCloseCurrentModel()
-                : JOptionPane.YES_OPTION;
-
-        if (choice == JOptionPane.CANCEL_OPTION ||
-            choice == JOptionPane.CLOSED_OPTION) {
-            return;
-        }
-
-        this.openSelectedPolicy();
+        this.runCancelableAction(this::openSelectedPolicy);
     }
 
     private void openSelectedPolicy() {
         final var result = (String) this.policyList.getSelectedValue();
-        final String fileContents = this.policyManager.ler(result);
-        this.abrirEdicao(result, fileContents);
+        final var code = this.policyManager.ler(result);
+        this.fillEditorArea(result, code);
     }
 
     private void onSave(final ActionEvent evt) {
@@ -607,66 +598,43 @@ class ManageAllocationPolicies extends JFrame {
         this.updatePolicyList();
     }
 
-    private void onOpen(final ActionEvent evt) {
+    private void runCancelableAction(final Runnable action) {
         final var choice = this.wasCurrentFileModified
                 ? this.onCloseCurrentModel()
                 : JOptionPane.YES_OPTION;
 
-        if (choice == JOptionPane.CANCEL_OPTION || choice == JOptionPane.CLOSED_OPTION) {
+        if (ManageAllocationPolicies.CANCELLING_OPTIONS.contains(choice)) {
             return;
         }
 
-        final var chooserLayout = (BorderLayout) this.fileChooser.getLayout();
-        chooserLayout.getLayoutComponent(BorderLayout.NORTH).setVisible(false);
-
-        this.fileChooser.getComponent(0).setVisible(false);
-        this.fileChooser.setCurrentDirectory(this.policyManager.directory());
-
-        final int fileChoice = this.fileChooser.showOpenDialog(this);
-
-        if (fileChoice != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-
-        final var file = this.fileChooser.getSelectedFile();
-
-        if (file == null) {
-            return;
-        }
-
-        final var name = ManageAllocationPolicies.getPolicyNameFromFile(file);
-        final var code = this.policyManager.ler(name);
-        this.abrirEdicao(name, code);
+        action.run();
     }
 
-    private void onImport(final ActionEvent evt) {
-        int escolha = JOptionPane.YES_OPTION;
-        if (this.wasCurrentFileModified) {
-            escolha = this.onCloseCurrentModel();
-        }
+    private void openFile() {
+        final var file = this.getFileChoice(
+                false, this.policyManager.directory());
 
-        if (escolha == JOptionPane.CANCEL_OPTION || escolha == JOptionPane.CLOSED_OPTION) {
+        if (file.isEmpty())
+            return;
+
+        this.openChosenFile(file.get());
+    }
+
+    private void openChosenFile(final File file) {
+        final var name =
+                ManageAllocationPolicies.getPolicyNameFromFile(file);
+        final var code = this.policyManager.ler(name);
+        this.fillEditorArea(name, code);
+    }
+
+    private void importFile() {
+        final var file = this.getFileChoice(true, null);
+
+        if (file.isEmpty()) {
             return;
         }
 
-        final var chooserLayout = (BorderLayout) this.fileChooser.getLayout();
-        chooserLayout.getLayoutComponent(BorderLayout.NORTH).setVisible(true);
-
-        this.fileChooser.getComponent(0).setVisible(true);
-        this.fileChooser.setCurrentDirectory(null);
-        this.fileChooser.showOpenDialog(this);
-
-        if (escolha != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-
-        final var file = this.fileChooser.getSelectedFile();
-
-        if (file == null) {
-            return;
-        }
-
-        if (!this.policyManager.importJavaPolicy(file)) {
+        if (!this.policyManager.importJavaPolicy(file.get())) {
             JOptionPane.showMessageDialog(
                     this,
                     "Falha na importação",
@@ -677,9 +645,29 @@ class ManageAllocationPolicies extends JFrame {
         }
 
         this.updatePolicyList();
-        final var nome = ManageAllocationPolicies.getPolicyNameFromFile(file);
-        final var code = this.policyManager.ler(nome);
-        this.abrirEdicao(nome, code);
+        this.openChosenFile(file.get());
+    }
+
+    private Optional<File> getFileChoice(
+            final boolean showTopBorder, final File directory) {
+        this.configureFileChooser(showTopBorder, directory);
+        final int fileChoice = this.fileChooser.showOpenDialog(this);
+
+        if (fileChoice != JFileChooser.APPROVE_OPTION) {
+            return Optional.empty();
+        }
+
+        final var file = this.fileChooser.getSelectedFile();
+        return Optional.ofNullable(file);
+    }
+
+    private void configureFileChooser(
+            final boolean showTopBorder, final File directory) {
+        final var chooserLayout = (BorderLayout) this.fileChooser.getLayout();
+        chooserLayout.getLayoutComponent(BorderLayout.NORTH).setVisible(showTopBorder);
+
+        this.fileChooser.getComponent(0).setVisible(showTopBorder);
+        this.fileChooser.setCurrentDirectory(directory);
     }
 
     void updatePolicyList() {
@@ -729,15 +717,15 @@ class ManageAllocationPolicies extends JFrame {
         this.setTitle(this.translate("Manage Schedulers"));
     }
 
-    private void abrirEdicao(final String nome, final String conteudo) {
-        this.openFileName = nome;
+    private void fillEditorArea(final String fileName, final String code) {
+        this.openFileName = fileName;
         try {
             final var doc =
                     (TextEditorStyle) this.textPane.getDocument();
             if (doc.getLength() > 0) {
                 doc.remove(0, doc.getLength());
             }
-            doc.insertString(0, conteudo, null);
+            doc.insertString(0, code, null);
         } catch (final BadLocationException ex) {
         }
         this.textPane.setEnabled(true);
@@ -808,7 +796,7 @@ class ManageAllocationPolicies extends JFrame {
 
     private class SomeMouseAdapter extends MouseAdapter {
         public void mouseClicked(final MouseEvent evt) {
-            ManageAllocationPolicies.this.jListAlocadoresMouseClicked(evt);
+            ManageAllocationPolicies.this.onPolicyListClicked(evt);
         }
     }
 }

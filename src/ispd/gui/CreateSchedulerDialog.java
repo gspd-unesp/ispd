@@ -1673,7 +1673,7 @@ public class CreateSchedulerDialog extends JDialog {
                                                            "class"));
             this.jTextFieldP1LocalArq.setText("");
             this.buttonNext.setEnabled(false);
-        } else if (ValidaValores.validaNomeClasse(this.jTextFieldP1NomeEsc.getText())) {
+        } else if (ValidaValores.isValidClassName(this.jTextFieldP1NomeEsc.getText())) {
             this.jLabelP1Informacao.setText("");
             this.jTextFieldP1LocalArq.setText(this.path + "\\" + this.jTextFieldP1NomeEsc.getText() + ".java");
             this.buttonNext.setEnabled(true);

@@ -401,7 +401,7 @@ public class ManageCloudSchedulers extends JFrame {
                             "Enter the name of the scheduler");
                     boolean nomeOk = false;
                     if (result1 != null) {
-                        nomeOk = ValidaValores.validaNomeClasse(result1);
+                        nomeOk = ValidaValores.isValidClassName(result1);
                     }
                     if (nomeOk) {
                         //Carregar classe para esditar java

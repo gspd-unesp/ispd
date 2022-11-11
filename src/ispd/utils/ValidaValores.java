@@ -23,7 +23,7 @@ public class ValidaValores {
             "while"
     ); 
 
-    public static boolean validaNomeClasse(final String name) {
+    public static boolean isValidClassName(final String name) {
         return name.matches("[a-zA-Z$_][a-zA-Z\\d$_]*")
                && !ValidaValores.JAVA_RESERVED_KEYWORDS.contains(name);
     }
