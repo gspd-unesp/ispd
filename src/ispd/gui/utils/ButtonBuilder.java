@@ -87,9 +87,4 @@ public class ButtonBuilder {
         this.button.setActionCommand(theText);
         return this;
     }
-
-    public ButtonBuilder withAccessibleDescription(final String theDescription) {
-        this.button.getAccessibleContext().setAccessibleDescription(theDescription);
-        return this;
-    }
 }

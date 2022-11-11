@@ -32,6 +32,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -55,7 +56,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 
 class ManageAllocationPolicies extends JFrame {
-    public static final String[] POLICY_GENERATION_OPTIONS = {
+    private static final String[] POLICY_GENERATION_OPTIONS = {
             "Edit java class",
             "Generator schedulers"
     };
@@ -92,7 +93,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void configureTextEditor(
-            final JTextPane theTextPane, final JScrollPane theScrollPane) {
+            final JTextComponent theTextPane, final JScrollPane theScrollPane) {
         final var editor = new TextEditorStyle();
         editor.configurarTextComponent(theTextPane);
         theScrollPane.setRowHeaderView(editor.getLinhas());
@@ -389,9 +390,10 @@ class ManageAllocationPolicies extends JFrame {
             final String iconPath, final String helpText,
             final ActionListener action) {
         final var translated = this.translate(helpText);
-        return ButtonBuilder.aButton(new ImageIcon(this.getResource(
-                        iconPath
-                )), action)
+        return ButtonBuilder.aButton(
+                        new ImageIcon(this.getResource(iconPath)),
+                        action
+                )
                 .withToolTip(translated)
                 .withCenterBottomTextPosition()
                 .nonFocusable()
@@ -795,6 +797,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private class SomeMouseAdapter extends MouseAdapter {
+        @Override
         public void mouseClicked(final MouseEvent evt) {
             ManageAllocationPolicies.this.onPolicyListClicked(evt);
         }
