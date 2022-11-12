@@ -69,7 +69,27 @@ class ManageAllocationPolicies extends JFrame {
 
     ManageAllocationPolicies() {
         this.addWindowListener(new CancelableCloseWindowAdapter());
-        this.initComponents();
+        this.updateTitle();
+        this.setAlwaysOnTop(true);
+        this.setFocusable(false);
+        this.setIconImage(Toolkit.getDefaultToolkit()
+                .getImage(this.getResource("imagens/Logo_iSPD_25.png"))
+        );
+
+        this.textPane = new JTextPane();
+        this.scrollPane = new JScrollPane(this.textPane);
+
+        this.fileChooser = new JFileChooser();
+        this.fileChooser.setAcceptAllFileFilterUsed(false);
+        this.fileChooser.setFileFilter(new MultipleExtensionFileFilter(this.translate(
+                "Java Source Files (. java)"), ".java", true));
+
+
+        this.policyList = this.makePolicyList();
+
+        this.setJMenuBar(this.makeMenuBar());
+        this.makeLayout();
+        this.pack();
 
         final var editor = new TextEditorStyle();
         editor.configurarTextComponent(this.textPane);
@@ -95,30 +115,6 @@ class ManageAllocationPolicies extends JFrame {
         if (!"style change".equals(edit.getPresentationName())) {
             this.undoManager.addEdit(edit);
         }
-    }
-
-    private void initComponents() {
-        this.updateTitle();
-        this.setAlwaysOnTop(true);
-        this.setFocusable(false);
-        this.setIconImage(Toolkit.getDefaultToolkit()
-                .getImage(this.getResource("imagens/Logo_iSPD_25.png"))
-        );
-
-        this.textPane = new JTextPane();
-        this.scrollPane = new JScrollPane(this.textPane);
-
-        this.fileChooser = new JFileChooser();
-        this.fileChooser.setAcceptAllFileFilterUsed(false);
-        this.fileChooser.setFileFilter(new MultipleExtensionFileFilter(this.translate(
-                "Java Source Files (. java)"), ".java", true));
-
-
-        this.policyList = this.makePolicyList();
-
-        this.setJMenuBar(this.makeMenuBar());
-        this.makeLayout();
-        this.pack();
     }
 
     private JList<String> makePolicyList() {
