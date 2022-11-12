@@ -50,12 +50,13 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 
 class ManageAllocationPolicies extends JFrame {
-    private static final String[] POLICY_GENERATION_OPTIONS = {
+    private static final String[] NEW_POLICY_OPTIONS = {
             "Edit java class",
             "Generator schedulers"
     };
@@ -385,12 +386,11 @@ class ManageAllocationPolicies extends JFrame {
     private JButton makeButton(
             final String iconPath, final String helpText,
             final ActionListener action) {
-        final var translated = this.translate(helpText);
         return ButtonBuilder.aButton(
                         new ImageIcon(this.getResource(iconPath)),
                         action
                 )
-                .withToolTip(translated)
+                .withToolTip(this.translate(helpText))
                 .withCenterBottomTextPosition()
                 .nonFocusable()
                 .build();
@@ -405,44 +405,45 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void makeNewPolicy() {
+        final var options = Map.<String, Runnable>of(
+                "Edit java class", this::newPolicyFromCode,
+                "Generator schedulers", this::newPolicyFromGenerator
+        );
+
         final var result = (String) JOptionPane.showInputDialog(
                 this,
                 "Creating the scheduler with:",
                 null,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
-                ManageAllocationPolicies.POLICY_GENERATION_OPTIONS,
-                ManageAllocationPolicies.POLICY_GENERATION_OPTIONS[0]
+                options.keySet().toArray(String[]::new),
+                null
         );
 
-        if (result == null) {
-            return;
-        }
+        Optional.ofNullable(result)
+                .map(options::get)
+                .ifPresent(Runnable::run);
+    }
 
-        if (!result.equals(ManageAllocationPolicies.POLICY_GENERATION_OPTIONS[0])) {
-            return;
-        }
-
+    private void newPolicyFromCode() {
         final var name = JOptionPane.showInputDialog(
                 this, "Enter the name of the scheduler"
         );
 
-        final boolean isValidClassName =
-                name != null && ValidaValores.isValidClassName(name);
+        Optional.ofNullable(name)
+                .filter(ValidaValores::isValidClassName)
+                .ifPresent(this::openNewPolicyInEditor);
+    }
 
-        if (isValidClassName) {
-            this.fillEditorWithCode(
-                    name,
-                    this.policyManager.getPolicyTemplate(name)
-            );
-            this.setAsPendingChanges();
-            return;
-        }
+    private void openNewPolicyInEditor(final String name) {
+        this.fillEditorWithCode(
+                name,
+                this.policyManager.getPolicyTemplate(name)
+        );
+        this.setAsPendingChanges();
+    }
 
-        if (!result.equals(ManageAllocationPolicies.POLICY_GENERATION_OPTIONS[1])) {
-            return;
-        }
-
+    private void newPolicyFromGenerator() {
         this.getGeneratedPolicy()
                 .ifPresent(this::saveAndCompileGeneratedPolicy);
     }
@@ -547,7 +548,7 @@ class ManageAllocationPolicies extends JFrame {
         final int choice = JOptionPane.showConfirmDialog(
                 this,
                 """
-                        Are you sure want delete this scheduler:\s
+                        Are you sure want delete this scheduler:
                         %s""".formatted(selected),
                 null,
                 JOptionPane.YES_NO_OPTION,
