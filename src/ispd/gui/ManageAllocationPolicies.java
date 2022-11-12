@@ -32,11 +32,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-import javax.swing.undo.UndoableEdit;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Toolkit;
@@ -62,7 +60,8 @@ class ManageAllocationPolicies extends JFrame {
     };
     private static final Set<Integer> CANCELLING_OPTIONS =
             Set.of(JOptionPane.CANCEL_OPTION, JOptionPane.CLOSED_OPTION);
-    private final UndoableEdit undo = new UndoManager();
+    private final NonThrowingUndoManager undoManager =
+            new NonThrowingUndoManager();
     private final PolicyManager policyManager = new Alocadores();
     private final ResourceBundle words =
             ResourceBundle.getBundle("ispd.idioma.Idioma", Locale.getDefault());
@@ -74,42 +73,32 @@ class ManageAllocationPolicies extends JFrame {
     private String openFileName;
 
     ManageAllocationPolicies() {
+        this.addWindowListener(new CancelableCloseWindowAdapter());
         this.initComponents();
-        this.addWindowListener(new SomeWindowAdapter());
 
-        this.configureTextEditor(this.textPane, this.scrollPane);
+        final var editor = new TextEditorStyle();
+        editor.configurarTextComponent(this.textPane);
+        this.scrollPane.setRowHeaderView(editor.getLinhas());
+        this.scrollPane.setColumnHeaderView(editor.getCursor());
+
         this.closeEditing();
-        this.configureTextPaneDoc();
+
+        final var doc = this.textPane.getDocument();
+        doc.addUndoableEditListener(this::onUndoableEvent);
+        doc.addDocumentListener(new SomeDocumentListener());
+
         this.updatePolicyList();
     }
 
-    private static boolean isDoubleClick(final MouseEvent evt) {
-        return evt.getClickCount() == 2;
-    }
-
-    private static String getPolicyNameFromFile(final File file) {
+    private static String policyNameFromFile(final File file) {
         final var fullName = file.getName();
         return fullName.substring(0, fullName.length() - ".java".length());
     }
 
-    private void configureTextEditor(
-            final JTextComponent theTextPane, final JScrollPane theScrollPane) {
-        final var editor = new TextEditorStyle();
-        editor.configurarTextComponent(theTextPane);
-        theScrollPane.setRowHeaderView(editor.getLinhas());
-        theScrollPane.setColumnHeaderView(editor.getCursor());
-    }
-
-    private void configureTextPaneDoc() {
-        final var doc = this.textPane.getDocument();
-        doc.addUndoableEditListener(this::onUndoEvent);
-        doc.addDocumentListener(new SomeDocumentListener());
-    }
-
-    private void onUndoEvent(final UndoableEditEvent evt) {
+    private void onUndoableEvent(final UndoableEditEvent evt) {
         final var edit = evt.getEdit();
         if (!"style change".equals(edit.getPresentationName())) {
-            this.undo.addEdit(edit);
+            this.undoManager.addEdit(edit);
         }
     }
 
@@ -129,22 +118,28 @@ class ManageAllocationPolicies extends JFrame {
         this.fileChooser.setFileFilter(new MultipleExtensionFileFilter(this.translate(
                 "Java Source Files (. java)"), ".java", true));
 
-        this.policyList = new JList<>();
-        this.policyList.setBorder(BorderFactory.createTitledBorder(null,
-                this.translate("Scheduler"),
-                TitledBorder.CENTER,
-                TitledBorder.DEFAULT_POSITION
-        ));
-        this.policyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        this.policyList.addMouseListener(new SomeMouseAdapter());
 
-        this.initMenuBar();
+        this.policyList = this.makePolicyList();
+
+        this.setJMenuBar(this.makeMenuBar());
         this.makeLayout();
         this.pack();
     }
 
-    private void initMenuBar() {
-        this.setJMenuBar(this.makeMenuBar(
+    private JList<String> makePolicyList() {
+        final var list = new JList<String>();
+        list.setBorder(BorderFactory.createTitledBorder(null,
+                this.translate("Scheduler"),
+                TitledBorder.CENTER,
+                TitledBorder.DEFAULT_POSITION
+        ));
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.addMouseListener(new PolicyListMouseAdapter());
+        return list;
+    }
+
+    private JMenuBar makeMenuBar() {
+        return this.makePopulatedMenuBar(
                 this.makeMenu("File",
                         this.makeMenuItem("New",
                                 "/ispd/gui/imagens/insert-object_1.png",
@@ -169,11 +164,11 @@ class ManageAllocationPolicies extends JFrame {
                 this.makeMenu("Edit",
                         this.makeMenuItem("Undo",
                                 "/ispd/gui/imagens/edit-undo.png",
-                                this::onUndo, KeyEvent.VK_Z
+                                this.undoManager::undo, KeyEvent.VK_Z
                         ),
                         this.makeMenuItem("Redo",
                                 "/ispd/gui/imagens/edit-redo.png",
-                                this::onRedo, KeyEvent.VK_Y
+                                this.undoManager::redo, KeyEvent.VK_Y
                         ),
                         new JPopupMenu.Separator(),
                         this.makeMenuItem("Cut",
@@ -194,7 +189,7 @@ class ManageAllocationPolicies extends JFrame {
                                 this::onDelete
                         )
                 )
-        ));
+        );
     }
 
     private void makeLayout() {
@@ -311,7 +306,7 @@ class ManageAllocationPolicies extends JFrame {
         return policyListPanel;
     }
 
-    private JMenuBar makeMenuBar(final JMenu... menus) {
+    private JMenuBar makePopulatedMenuBar(final JMenu... menus) {
         final JMenuBar menuBar = new JMenuBar();
 
         for (final var menu : menus) {
@@ -398,10 +393,6 @@ class ManageAllocationPolicies extends JFrame {
                 .withCenterBottomTextPosition()
                 .nonFocusable()
                 .build();
-    }
-
-    private String translate(final String cut) {
-        return this.words.getString(cut);
     }
 
     private URL getResource(final String name) {
@@ -498,32 +489,42 @@ class ManageAllocationPolicies extends JFrame {
         return ge;
     }
 
-    private void onUndo(final ActionEvent evt) {
-        try {
-            this.undo.undo();
-        } catch (final CannotUndoException ignored) {
-        }
-    }
-
-    private void onRedo(final ActionEvent evt) {
-        try {
-            this.undo.redo();
-        } catch (final CannotRedoException ignored) {
-        }
-    }
-
-    private void onPolicyListClicked(final MouseEvent e) {
-        if (!ManageAllocationPolicies.isDoubleClick(e)) {
-            return;
-        }
-
-        this.runCancelableAction(this::openSelectedPolicy);
-    }
-
     private void openSelectedPolicy() {
         final var result = (String) this.policyList.getSelectedValue();
         final var code = this.policyManager.ler(result);
         this.fillEditorArea(result, code);
+    }
+
+    private void fillEditorArea(final String fileName, final String code) {
+        this.openFileName = fileName;
+        try {
+            final var doc =
+                    (TextEditorStyle) this.textPane.getDocument();
+            if (doc.getLength() > 0) {
+                doc.remove(0, doc.getLength());
+            }
+            doc.insertString(0, code, null);
+        } catch (final BadLocationException ex) {
+        }
+        this.textPane.setEnabled(true);
+        this.setAsNoPendingChanges();
+    }
+
+    private void setAsNoPendingChanges() {
+        this.updateTitle(" ");
+        this.wasCurrentFileModified = false;
+    }
+
+    private void updateTitle(final String afterFileName) {
+        this.setTitle("%s.java%s- %s".formatted(
+                this.openFileName,
+                afterFileName,
+                this.translate("Manage Schedulers")
+        ));
+    }
+
+    private String translate(final String cut) {
+        return this.words.getString(cut);
     }
 
     private void onSave(final ActionEvent evt) {
@@ -613,30 +614,26 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void openFile() {
-        final var file = this.getFileChoice(
-                false, this.policyManager.directory());
-
-        if (file.isEmpty())
-            return;
-
-        this.openChosenFile(file.get());
+        this.configureFileChooser(false, this.policyManager.directory());
+        this.getFileChoice()
+                .ifPresent(this::openChosenFile);
     }
 
     private void openChosenFile(final File file) {
         final var name =
-                ManageAllocationPolicies.getPolicyNameFromFile(file);
+                ManageAllocationPolicies.policyNameFromFile(file);
         final var code = this.policyManager.ler(name);
         this.fillEditorArea(name, code);
     }
 
     private void importFile() {
-        final var file = this.getFileChoice(true, null);
+        this.configureFileChooser(true, null);
+        this.getFileChoice()
+                .ifPresent(this::importFile);
+    }
 
-        if (file.isEmpty()) {
-            return;
-        }
-
-        if (!this.policyManager.importJavaPolicy(file.get())) {
+    private void importFile(final File f) {
+        if (!this.policyManager.importJavaPolicy(f)) {
             JOptionPane.showMessageDialog(
                     this,
                     "Falha na importação",
@@ -647,12 +644,10 @@ class ManageAllocationPolicies extends JFrame {
         }
 
         this.updatePolicyList();
-        this.openChosenFile(file.get());
+        this.openChosenFile(f);
     }
 
-    private Optional<File> getFileChoice(
-            final boolean showTopBorder, final File directory) {
-        this.configureFileChooser(showTopBorder, directory);
+    private Optional<File> getFileChoice() {
         final int fileChoice = this.fileChooser.showOpenDialog(this);
 
         if (fileChoice != JFileChooser.APPROVE_OPTION) {
@@ -664,12 +659,13 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void configureFileChooser(
-            final boolean showTopBorder, final File directory) {
-        final var chooserLayout = (BorderLayout) this.fileChooser.getLayout();
-        chooserLayout.getLayoutComponent(BorderLayout.NORTH).setVisible(showTopBorder);
+            final boolean showTopBorder, final File startDirectory) {
+        ((BorderLayout) this.fileChooser.getLayout())
+                .getLayoutComponent(BorderLayout.NORTH)
+                .setVisible(showTopBorder);
 
         this.fileChooser.getComponent(0).setVisible(showTopBorder);
-        this.fileChooser.setCurrentDirectory(directory);
+        this.fileChooser.setCurrentDirectory(startDirectory);
     }
 
     void updatePolicyList() {
@@ -719,41 +715,29 @@ class ManageAllocationPolicies extends JFrame {
         this.setTitle(this.translate("Manage Schedulers"));
     }
 
-    private void fillEditorArea(final String fileName, final String code) {
-        this.openFileName = fileName;
-        try {
-            final var doc =
-                    (TextEditorStyle) this.textPane.getDocument();
-            if (doc.getLength() > 0) {
-                doc.remove(0, doc.getLength());
-            }
-            doc.insertString(0, code, null);
-        } catch (final BadLocationException ex) {
-        }
-        this.textPane.setEnabled(true);
-        this.setAsNoPendingChanges();
-    }
-
     private void setAsPendingChanges() {
         this.updateTitle(" [%s] ".formatted(this.translate("modified")));
         this.wasCurrentFileModified = true;
     }
 
-    private void updateTitle(final String afterFileName) {
-        this.setTitle("%s.java%s- %s".formatted(
-                this.openFileName,
-                afterFileName,
-                this.translate("Manage Schedulers")
-        ));
-    }
-
-    private void setAsNoPendingChanges() {
-        this.updateTitle(" ");
-        this.wasCurrentFileModified = false;
-    }
-
     public PolicyManager getAlocadores() {
         return this.policyManager;
+    }
+
+    private static class NonThrowingUndoManager extends UndoManager {
+        private void undo(final ActionEvent evt) {
+            try {
+                this.undo();
+            } catch (final CannotUndoException ignored) {
+            }
+        }
+
+        private void redo(final ActionEvent evt) {
+            try {
+                this.redo();
+            } catch (final CannotRedoException ignored) {
+            }
+        }
     }
 
     private class SomeDocumentListener implements DocumentListener {
@@ -780,26 +764,30 @@ class ManageAllocationPolicies extends JFrame {
         }
     }
 
-    private class SomeWindowAdapter extends WindowAdapter {
+    private class CancelableCloseWindowAdapter extends WindowAdapter {
         @Override
         public void windowClosing(final WindowEvent e) {
-            if (!ManageAllocationPolicies.this.wasCurrentFileModified) {
-                ManageAllocationPolicies.this.setVisible(false);
-                return;
-            }
+            ManageAllocationPolicies.this.runCancelableAction(this::closeWindow);
+        }
 
-            final int choice =
-                    ManageAllocationPolicies.this.onCloseCurrentModel();
-            if (choice != JOptionPane.CANCEL_OPTION && choice != JOptionPane.CLOSED_OPTION) {
-                ManageAllocationPolicies.this.setVisible(false);
-            }
+        private void closeWindow() {
+            ManageAllocationPolicies.this.setVisible(false);
         }
     }
 
-    private class SomeMouseAdapter extends MouseAdapter {
+    private class PolicyListMouseAdapter extends MouseAdapter {
         @Override
         public void mouseClicked(final MouseEvent evt) {
-            ManageAllocationPolicies.this.onPolicyListClicked(evt);
+            if (!PolicyListMouseAdapter.isDoubleClick(evt)) {
+                return;
+            }
+
+            ManageAllocationPolicies.this.runCancelableAction(
+                    ManageAllocationPolicies.this::openSelectedPolicy);
+        }
+
+        private static boolean isDoubleClick(final MouseEvent evt) {
+            return evt.getClickCount() == 2;
         }
     }
 }
