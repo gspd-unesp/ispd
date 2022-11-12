@@ -65,7 +65,7 @@ class ManageAllocationPolicies extends JFrame {
     private JScrollPane scrollPane;
     private JTextPane textPane;
     private boolean wasCurrentFileModified;
-    private String openFileName;
+    private String currentlyOpenFile;
 
     ManageAllocationPolicies() {
         this.addWindowListener(new CancelableCloseWindowAdapter());
@@ -476,7 +476,7 @@ class ManageAllocationPolicies extends JFrame {
                     this,
                     """
                             Alocador%s
-                            Compilador com sucesso""".formatted(this.openFileName)
+                            Compilador com sucesso""".formatted(this.currentlyOpenFile)
             );
         }
 
@@ -490,7 +490,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void fillEditorWithCode(final String fileName, final String code) {
-        this.openFileName = fileName;
+        this.currentlyOpenFile = fileName;
         try {
             final var doc =
                     (TextEditorStyle) this.textPane.getDocument();
@@ -511,7 +511,7 @@ class ManageAllocationPolicies extends JFrame {
 
     private void updateTitle(final String afterFileName) {
         this.setTitle("%s.java%s- %s".formatted(
-                this.openFileName,
+                this.currentlyOpenFile,
                 afterFileName,
                 this.translate("Manage Schedulers")
         ));
@@ -522,7 +522,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onSave(final ActionEvent evt) {
-        if (this.openFileName != null && this.wasCurrentFileModified) {
+        if (this.currentlyOpenFile != null && this.wasCurrentFileModified) {
             this.saveModifications();
         }
     }
@@ -560,7 +560,7 @@ class ManageAllocationPolicies extends JFrame {
             return;
         }
 
-        if (selected.equals(this.openFileName)) {
+        if (selected.equals(this.currentlyOpenFile)) {
             this.closeEditing();
         }
 
@@ -568,12 +568,12 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onCompile(final ActionEvent evt) {
-        if (this.openFileName == null) {
+        if (this.currentlyOpenFile == null) {
             return;
         }
 
         this.saveIfNeeded();
-        this.tryCompileTarget(this.openFileName);
+        this.tryCompileTarget(this.currentlyOpenFile);
     }
 
     private void saveIfNeeded() {
@@ -660,7 +660,7 @@ class ManageAllocationPolicies extends JFrame {
                 this,
                 "%s %s.java".formatted(
                         this.translate("Do you want to save changes to"),
-                        this.openFileName
+                        this.currentlyOpenFile
                 )
         );
 
@@ -672,13 +672,13 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void saveModifications() {
-        this.policyManager.escrever(this.openFileName, this.textPane.getText());
+        this.policyManager.escrever(this.currentlyOpenFile, this.textPane.getText());
         this.setAsNoPendingChanges();
     }
 
     private void closeEditing() {
         this.setNoFileTitle();
-        this.openFileName = null;
+        this.currentlyOpenFile = null;
 
         try {
             final var doc = (TextEditorStyle) this.textPane.getDocument();
