@@ -448,27 +448,32 @@ class ManageAllocationPolicies extends JFrame {
             return;
         }
 
+        final var fileName = ge.getParse().getNome();
+
         this.policyManager.escrever(
-                ge.getParse().getNome(),
+                fileName,
                 ge.getParse().getCodigo()
         );
 
-        final var compilationErrors =
-                this.policyManager.compilar(ge.getParse().getNome());
+        this.tryCompileTarget(fileName);
+    }
 
-        if (compilationErrors == null) {
+    private void tryCompileTarget(final String fileName) {
+        final var errors = this.policyManager.compilar(fileName);
+
+        if (errors != null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    errors,
+                    "Erros encontrados",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        } else {
             JOptionPane.showMessageDialog(
                     this,
                     """
                             Alocador%s
                             Compilador com sucesso""".formatted(this.openFileName)
-            );
-        } else {
-            JOptionPane.showMessageDialog(
-                    this,
-                    compilationErrors,
-                    "Erros encontrados",
-                    JOptionPane.ERROR_MESSAGE
             );
         }
 
@@ -582,23 +587,9 @@ class ManageAllocationPolicies extends JFrame {
             this.saveModifications();
         }
 
-        final var errors = this.policyManager.compilar(this.openFileName);
+        final var compileTarget = this.openFileName;
 
-        if (errors == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Alocador%s\nCompilador com sucesso".formatted(this.openFileName)
-            );
-        } else {
-            JOptionPane.showMessageDialog(
-                    this,
-                    errors,
-                    "Erros encontrados",
-                    JOptionPane.ERROR_MESSAGE
-            );
-        }
-
-        this.updatePolicyList();
+        this.tryCompileTarget(compileTarget);
     }
 
     private void runCancelableAction(final Runnable action) {
