@@ -489,8 +489,9 @@ class ManageAllocationPolicies extends JFrame {
         this.currentlyOpenFile = Optional.of(fileName);
         this.setAsNoPendingChanges();
 
+        this.clearTextPaneContents();
+
         try {
-            this.clearTextPaneContents();
             this.textPane.getDocument()
                     .insertString(0, code, null);
         } catch (final BadLocationException ignored) {
@@ -499,9 +500,13 @@ class ManageAllocationPolicies extends JFrame {
         this.textPane.setEnabled(true);
     }
 
-    private void clearTextPaneContents() throws BadLocationException {
+    private void clearTextPaneContents() {
         final var doc = (TextEditorStyle) this.textPane.getDocument();
-        doc.remove(0, doc.getLength());
+
+        try {
+            doc.remove(0, doc.getLength());
+        } catch (final BadLocationException ignored) {
+        }
     }
 
     private void setAsNoPendingChanges() {
@@ -695,10 +700,7 @@ class ManageAllocationPolicies extends JFrame {
         this.hasPendingChanges = false;
         this.updateTitle();
 
-        try {
-            this.clearTextPaneContents();
-        } catch (final BadLocationException ignored) {
-        }
+        this.clearTextPaneContents();
 
         this.textPane.setEnabled(false);
     }
