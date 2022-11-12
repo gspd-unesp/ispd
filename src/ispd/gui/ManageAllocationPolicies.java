@@ -60,10 +60,10 @@ class ManageAllocationPolicies extends JFrame {
     private final PolicyManager policyManager = new Alocadores();
     private final ResourceBundle words =
             ResourceBundle.getBundle("ispd.idioma.Idioma", Locale.getDefault());
-    private JFileChooser fileChooser;
-    private JList<String> policyList;
-    private JScrollPane scrollPane;
-    private JTextPane textPane;
+    private final JFileChooser fileChooser;
+    private final JList<String> policyList;
+    private final JScrollPane scrollPane;
+    private final JTextPane textPane;
     private Optional<String> currentlyOpenFile = Optional.empty();
     private boolean hasPendingChanges = false;
 
@@ -110,6 +110,16 @@ class ManageAllocationPolicies extends JFrame {
         return fullName.substring(0, fullName.length() - ".java".length());
     }
 
+    private static JMenuBar makePopulatedMenuBar(final JMenu... menus) {
+        final JMenuBar menuBar = new JMenuBar();
+
+        for (final var menu : menus) {
+            menuBar.add(menu);
+        }
+
+        return menuBar;
+    }
+
     private void onUndoableEvent(final UndoableEditEvent evt) {
         final var edit = evt.getEdit();
         if (!"style change".equals(edit.getPresentationName())) {
@@ -130,7 +140,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private JMenuBar makeMenuBar() {
-        return this.makePopulatedMenuBar(
+        return ManageAllocationPolicies.makePopulatedMenuBar(
                 this.makeMenu("File",
                         this.makeMenuItem("New",
                                 "/ispd/gui/imagens/insert-object_1.png",
@@ -295,16 +305,6 @@ class ManageAllocationPolicies extends JFrame {
 
         policyListPanel.setLayout(layout);
         return policyListPanel;
-    }
-
-    private JMenuBar makePopulatedMenuBar(final JMenu... menus) {
-        final JMenuBar menuBar = new JMenuBar();
-
-        for (final var menu : menus) {
-            menuBar.add(menu);
-        }
-
-        return menuBar;
     }
 
     private JMenu makeMenu(final String name, final Component... items) {
@@ -493,7 +493,7 @@ class ManageAllocationPolicies extends JFrame {
             this.clearTextPaneContents();
             this.textPane.getDocument()
                     .insertString(0, code, null);
-        } catch (final BadLocationException ex) {
+        } catch (final BadLocationException ignored) {
         }
 
         this.textPane.setEnabled(true);
@@ -510,19 +510,23 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void updateTitle() {
-        if (this.currentlyOpenFile.isEmpty()) {
-            this.setTitle(this.translate("Manage Schedulers"));
-        } else if (this.hasPendingChanges) {
-            this.updateTitle(" [%s] ".formatted(this.translate("modified")));
-        } else {
-            this.updateTitle(" ");
-        }
+        this.currentlyOpenFile.ifPresentOrElse(
+                this::updateTitleWithFileName,
+                this::updateTitleWithNoFile
+        );
     }
 
-    private void updateTitle(final String afterFileName) {
+    private void updateTitleWithNoFile() {
+        this.setTitle(this.translate("Manage Schedulers"));
+    }
+
+    private void updateTitleWithFileName(final String fileName) {
+        final var afterFileName = this.hasPendingChanges
+                ? " [%s] ".formatted(this.translate("modified"))
+                : " ";
+
         this.setTitle("%s.java%s- %s".formatted(
-                this.currentlyOpenFile.get(),
-                afterFileName,
+                fileName, afterFileName,
                 this.translate("Manage Schedulers")
         ));
     }
