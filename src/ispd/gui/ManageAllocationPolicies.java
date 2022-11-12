@@ -65,7 +65,7 @@ class ManageAllocationPolicies extends JFrame {
     private JScrollPane scrollPane;
     private JTextPane textPane;
     private boolean wasCurrentFileModified;
-    private String currentlyOpenFile;
+    private Optional<String> currentlyOpenFile = Optional.empty();
 
     ManageAllocationPolicies() {
         this.addWindowListener(new CancelableCloseWindowAdapter());
@@ -476,7 +476,7 @@ class ManageAllocationPolicies extends JFrame {
                     this,
                     """
                             Alocador%s
-                            Compilador com sucesso""".formatted(this.currentlyOpenFile)
+                            Compilador com sucesso""".formatted(this.currentlyOpenFile.get())
             );
         }
 
@@ -490,7 +490,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void fillEditorWithCode(final String fileName, final String code) {
-        this.currentlyOpenFile = fileName;
+        this.currentlyOpenFile = Optional.of(fileName);
         try {
             final var doc =
                     (TextEditorStyle) this.textPane.getDocument();
@@ -511,7 +511,7 @@ class ManageAllocationPolicies extends JFrame {
 
     private void updateTitle(final String afterFileName) {
         this.setTitle("%s.java%s- %s".formatted(
-                this.currentlyOpenFile,
+                this.currentlyOpenFile.get(),
                 afterFileName,
                 this.translate("Manage Schedulers")
         ));
@@ -522,7 +522,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onSave(final ActionEvent evt) {
-        if (this.currentlyOpenFile != null && this.wasCurrentFileModified) {
+        if (this.currentlyOpenFile.isPresent() && this.wasCurrentFileModified) {
             this.saveModifications();
         }
     }
@@ -560,7 +560,7 @@ class ManageAllocationPolicies extends JFrame {
             return;
         }
 
-        if (selected.equals(this.currentlyOpenFile)) {
+        if (selected.equals(this.currentlyOpenFile.get())) {
             this.closeEditing();
         }
 
@@ -568,18 +568,15 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onCompile(final ActionEvent evt) {
-        if (this.currentlyOpenFile == null) {
+        if (this.currentlyOpenFile.isEmpty()) {
             return;
         }
 
-        this.saveIfNeeded();
-        this.tryCompileTarget(this.currentlyOpenFile);
-    }
-
-    private void saveIfNeeded() {
         if (this.wasCurrentFileModified) {
             this.saveModifications();
         }
+
+        this.tryCompileTarget(this.currentlyOpenFile.get());
     }
 
     private void runCancelableAction(final Runnable action) {
@@ -660,7 +657,7 @@ class ManageAllocationPolicies extends JFrame {
                 this,
                 "%s %s.java".formatted(
                         this.translate("Do you want to save changes to"),
-                        this.currentlyOpenFile
+                        this.currentlyOpenFile.get()
                 )
         );
 
@@ -672,13 +669,13 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void saveModifications() {
-        this.policyManager.escrever(this.currentlyOpenFile, this.textPane.getText());
+        this.policyManager.escrever(this.currentlyOpenFile.get(), this.textPane.getText());
         this.setAsNoPendingChanges();
     }
 
     private void closeEditing() {
+        this.currentlyOpenFile = Optional.empty();
         this.setNoFileTitle();
-        this.currentlyOpenFile = null;
 
         try {
             final var doc = (TextEditorStyle) this.textPane.getDocument();
@@ -688,6 +685,16 @@ class ManageAllocationPolicies extends JFrame {
 
         this.textPane.setEnabled(false);
         this.wasCurrentFileModified = false;
+    }
+
+    private void updateTitle() {
+        if (this.currentlyOpenFile.isEmpty()) {
+            this.setNoFileTitle();
+        } else if (this.wasCurrentFileModified) {
+            this.updateTitle(" [%s] ".formatted(this.translate("modified")));
+        } else {
+            this.updateTitle(" ");
+        }
     }
 
     private void setNoFileTitle() {
