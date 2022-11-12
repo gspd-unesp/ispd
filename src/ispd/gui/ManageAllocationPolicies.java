@@ -53,15 +53,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.Set;
 
 class ManageAllocationPolicies extends JFrame {
-    private static final String[] NEW_POLICY_OPTIONS = {
-            "Edit java class",
-            "Generator schedulers"
-    };
-    private static final Set<Integer> CANCELLING_OPTIONS =
-            Set.of(JOptionPane.CANCEL_OPTION, JOptionPane.CLOSED_OPTION);
     private final NonThrowingUndoManager undoManager =
             new NonThrowingUndoManager();
     private final PolicyManager policyManager = new Alocadores();
@@ -87,7 +80,7 @@ class ManageAllocationPolicies extends JFrame {
 
         final var doc = this.textPane.getDocument();
         doc.addUndoableEditListener(this::onUndoableEvent);
-        doc.addDocumentListener(new SomeDocumentListener());
+        doc.addDocumentListener(new PendingChangesDocListener());
 
         this.updatePolicyList();
     }
@@ -594,11 +587,13 @@ class ManageAllocationPolicies extends JFrame {
                 ? this.onCloseCurrentModel()
                 : JOptionPane.YES_OPTION;
 
-        if (ManageAllocationPolicies.CANCELLING_OPTIONS.contains(choice)) {
-            return;
+        switch (choice) {
+            case JOptionPane.CANCEL_OPTION,
+                    JOptionPane.CLOSED_OPTION:
+                return;
+            default:
+                action.run();
         }
-
-        action.run();
     }
 
     private void openFile() {
@@ -661,7 +656,13 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private int onCloseCurrentModel() {
-        final int choice = this.showConfirmSaveDialog();
+        final int choice = JOptionPane.showConfirmDialog(
+                this,
+                "%s %s.java".formatted(
+                        this.translate("Do you want to save changes to"),
+                        this.openFileName
+                )
+        );
 
         if (choice == JOptionPane.YES_OPTION) {
             this.saveModifications();
@@ -673,15 +674,6 @@ class ManageAllocationPolicies extends JFrame {
     private void saveModifications() {
         this.policyManager.escrever(this.openFileName, this.textPane.getText());
         this.setAsNoPendingChanges();
-    }
-
-    private int showConfirmSaveDialog() {
-        return JOptionPane.showConfirmDialog(this,
-                "%s %s.java".formatted(
-                        this.translate("Do you want to save changes to"),
-                        this.openFileName
-                )
-        );
     }
 
     private void closeEditing() {
@@ -727,7 +719,7 @@ class ManageAllocationPolicies extends JFrame {
         }
     }
 
-    private class SomeDocumentListener implements DocumentListener {
+    private class PendingChangesDocListener implements DocumentListener {
         @Override
         public void insertUpdate(final DocumentEvent e) {
             this.setAsPendingChanges();
