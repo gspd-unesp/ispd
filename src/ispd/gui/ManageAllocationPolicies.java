@@ -683,8 +683,10 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void savePendingChanges() {
-        this.policyManager.escrever(this.currentlyOpenFile.get(),
-                this.textPane.getText());
+        this.policyManager.escrever(
+                this.currentlyOpenFile.get(),
+                this.textPane.getText()
+        );
         this.setAsNoPendingChanges();
     }
 
