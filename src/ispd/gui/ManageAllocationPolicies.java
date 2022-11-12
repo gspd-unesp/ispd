@@ -1,5 +1,6 @@
 package ispd.gui;
 
+import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.gui.utils.ButtonBuilder;
@@ -430,7 +431,7 @@ class ManageAllocationPolicies extends JFrame {
                 name != null && ValidaValores.isValidClassName(name);
 
         if (isValidClassName) {
-            this.fillEditorArea(
+            this.fillEditorWithCode(
                     name,
                     this.policyManager.getPolicyTemplate(name)
             );
@@ -442,20 +443,28 @@ class ManageAllocationPolicies extends JFrame {
             return;
         }
 
-        final var ge = this.makePolicyGeneratorDialog();
+        this.getGeneratedPolicy()
+                .ifPresent(this::saveAndCompileGeneratedPolicy);
+    }
 
-        if (ge.getParse() == null) {
-            return;
-        }
+    private void saveAndCompileGeneratedPolicy(final InterpretadorGerador policy) {
+        final var fileName = policy.getNome();
+        this.policyManager.escrever(fileName, policy.getCodigo());
+        this.tryCompileTarget(fileName);
+    }
 
-        final var fileName = ge.getParse().getNome();
-
-        this.policyManager.escrever(
-                fileName,
-                ge.getParse().getCodigo()
+    private Optional<InterpretadorGerador> getGeneratedPolicy() {
+        final var dialog = new CreateSchedulerDialog(
+                this,
+                true,
+                this.policyManager.directory().getAbsolutePath(),
+                this.words
         );
 
-        this.tryCompileTarget(fileName);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+
+        return Optional.ofNullable(dialog.getParse());
     }
 
     private void tryCompileTarget(final String fileName) {
@@ -480,27 +489,13 @@ class ManageAllocationPolicies extends JFrame {
         this.updatePolicyList();
     }
 
-    private CreateSchedulerDialog makePolicyGeneratorDialog() {
-        final var ge = new CreateSchedulerDialog(
-                this,
-                true,
-                this.policyManager.directory().getAbsolutePath(),
-                this.words
-        );
-
-        ge.setLocationRelativeTo(this);
-        ge.setVisible(true);
-
-        return ge;
-    }
-
     private void openSelectedPolicy() {
-        final var result = (String) this.policyList.getSelectedValue();
-        final var code = this.policyManager.ler(result);
-        this.fillEditorArea(result, code);
+        final var name = (String) this.policyList.getSelectedValue();
+        final var code = this.policyManager.ler(name);
+        this.fillEditorWithCode(name, code);
     }
 
-    private void fillEditorArea(final String fileName, final String code) {
+    private void fillEditorWithCode(final String fileName, final String code) {
         this.openFileName = fileName;
         try {
             final var doc =
@@ -583,13 +578,14 @@ class ManageAllocationPolicies extends JFrame {
             return;
         }
 
+        this.saveIfNeeded();
+        this.tryCompileTarget(this.openFileName);
+    }
+
+    private void saveIfNeeded() {
         if (this.wasCurrentFileModified) {
             this.saveModifications();
         }
-
-        final var compileTarget = this.openFileName;
-
-        this.tryCompileTarget(compileTarget);
     }
 
     private void runCancelableAction(final Runnable action) {
@@ -614,7 +610,7 @@ class ManageAllocationPolicies extends JFrame {
         final var name =
                 ManageAllocationPolicies.policyNameFromFile(file);
         final var code = this.policyManager.ler(name);
-        this.fillEditorArea(name, code);
+        this.fillEditorWithCode(name, code);
     }
 
     private void importFile() {
@@ -674,8 +670,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void saveModifications() {
-        this.policyManager.escrever(
-                this.openFileName, this.textPane.getText());
+        this.policyManager.escrever(this.openFileName, this.textPane.getText());
         this.setAsNoPendingChanges();
     }
 
