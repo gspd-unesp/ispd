@@ -64,8 +64,8 @@ class ManageAllocationPolicies extends JFrame {
     private JList<String> policyList;
     private JScrollPane scrollPane;
     private JTextPane textPane;
-    private boolean wasCurrentFileModified;
     private Optional<String> currentlyOpenFile = Optional.empty();
+    private boolean hasPendingChanges = false;
 
     ManageAllocationPolicies() {
         this.addWindowListener(new CancelableCloseWindowAdapter());
@@ -98,7 +98,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void initComponents() {
-        this.setNoFileTitle();
+        this.updateTitle();
         this.setAlwaysOnTop(true);
         this.setFocusable(false);
         this.setIconImage(Toolkit.getDefaultToolkit()
@@ -491,22 +491,36 @@ class ManageAllocationPolicies extends JFrame {
 
     private void fillEditorWithCode(final String fileName, final String code) {
         this.currentlyOpenFile = Optional.of(fileName);
+        this.setAsNoPendingChanges();
+
         try {
-            final var doc =
-                    (TextEditorStyle) this.textPane.getDocument();
-            if (doc.getLength() > 0) {
-                doc.remove(0, doc.getLength());
-            }
-            doc.insertString(0, code, null);
+            this.clearTextPaneContents();
+            this.textPane.getDocument()
+                    .insertString(0, code, null);
         } catch (final BadLocationException ex) {
         }
+
         this.textPane.setEnabled(true);
-        this.setAsNoPendingChanges();
+    }
+
+    private void clearTextPaneContents() throws BadLocationException {
+        final var doc = (TextEditorStyle) this.textPane.getDocument();
+        doc.remove(0, doc.getLength());
     }
 
     private void setAsNoPendingChanges() {
-        this.updateTitle(" ");
-        this.wasCurrentFileModified = false;
+        this.hasPendingChanges = false;
+        this.updateTitle();
+    }
+
+    private void updateTitle() {
+        if (this.currentlyOpenFile.isEmpty()) {
+            this.setTitle(this.translate("Manage Schedulers"));
+        } else if (this.hasPendingChanges) {
+            this.updateTitle(" [%s] ".formatted(this.translate("modified")));
+        } else {
+            this.updateTitle(" ");
+        }
     }
 
     private void updateTitle(final String afterFileName) {
@@ -522,8 +536,8 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onSave(final ActionEvent evt) {
-        if (this.currentlyOpenFile.isPresent() && this.wasCurrentFileModified) {
-            this.saveModifications();
+        if (this.currentlyOpenFile.isPresent() && this.hasPendingChanges) {
+            this.savePendingChanges();
         }
     }
 
@@ -572,16 +586,16 @@ class ManageAllocationPolicies extends JFrame {
             return;
         }
 
-        if (this.wasCurrentFileModified) {
-            this.saveModifications();
+        if (this.hasPendingChanges) {
+            this.savePendingChanges();
         }
 
         this.tryCompileTarget(this.currentlyOpenFile.get());
     }
 
     private void runCancelableAction(final Runnable action) {
-        final var choice = this.wasCurrentFileModified
-                ? this.onCloseCurrentModel()
+        final var choice = this.hasPendingChanges
+                ? this.askAboutPendingChanges()
                 : JOptionPane.YES_OPTION;
 
         switch (choice) {
@@ -652,7 +666,7 @@ class ManageAllocationPolicies extends JFrame {
         this.policyList.setListData(this.policyManager.listar().toArray(String[]::new));
     }
 
-    private int onCloseCurrentModel() {
+    private int askAboutPendingChanges() {
         final int choice = JOptionPane.showConfirmDialog(
                 this,
                 "%s %s.java".formatted(
@@ -662,48 +676,34 @@ class ManageAllocationPolicies extends JFrame {
         );
 
         if (choice == JOptionPane.YES_OPTION) {
-            this.saveModifications();
+            this.savePendingChanges();
         }
 
         return choice;
     }
 
-    private void saveModifications() {
-        this.policyManager.escrever(this.currentlyOpenFile.get(), this.textPane.getText());
+    private void savePendingChanges() {
+        this.policyManager.escrever(this.currentlyOpenFile.get(),
+                this.textPane.getText());
         this.setAsNoPendingChanges();
     }
 
     private void closeEditing() {
         this.currentlyOpenFile = Optional.empty();
-        this.setNoFileTitle();
+        this.hasPendingChanges = false;
+        this.updateTitle();
 
         try {
-            final var doc = (TextEditorStyle) this.textPane.getDocument();
-            doc.remove(0, doc.getLength());
+            this.clearTextPaneContents();
         } catch (final BadLocationException ignored) {
         }
 
         this.textPane.setEnabled(false);
-        this.wasCurrentFileModified = false;
-    }
-
-    private void updateTitle() {
-        if (this.currentlyOpenFile.isEmpty()) {
-            this.setNoFileTitle();
-        } else if (this.wasCurrentFileModified) {
-            this.updateTitle(" [%s] ".formatted(this.translate("modified")));
-        } else {
-            this.updateTitle(" ");
-        }
-    }
-
-    private void setNoFileTitle() {
-        this.setTitle(this.translate("Manage Schedulers"));
     }
 
     private void setAsPendingChanges() {
-        this.updateTitle(" [%s] ".formatted(this.translate("modified")));
-        this.wasCurrentFileModified = true;
+        this.hasPendingChanges = true;
+        this.updateTitle();
     }
 
     public PolicyManager getAlocadores() {
@@ -742,7 +742,7 @@ class ManageAllocationPolicies extends JFrame {
         }
 
         private void setAsPendingChanges() {
-            if (ManageAllocationPolicies.this.wasCurrentFileModified) {
+            if (ManageAllocationPolicies.this.hasPendingChanges) {
                 return;
             }
 
