@@ -67,6 +67,7 @@ class ManageAllocationPolicies extends JFrame {
     private Optional<String> currentlyOpenFile = Optional.empty();
     private boolean hasPendingChanges = false;
 
+    /* package-private */
     ManageAllocationPolicies() {
         this.addWindowListener(new CancelableCloseWindowAdapter());
         this.updateTitle();
@@ -710,7 +711,8 @@ class ManageAllocationPolicies extends JFrame {
         this.updateTitle();
     }
 
-    public PolicyManager getAlocadores() {
+    /* package-private */
+    PolicyManager getAlocadores() {
         return this.policyManager;
     }
 
