@@ -90,9 +90,6 @@ class ManageAllocationPolicies extends JFrame {
 
         this.policyList = this.makePolicyList();
 
-        this.makeLayout();
-        this.pack();
-
         final var editor = new TextEditorStyle();
         editor.configurarTextComponent(this.textPane);
         this.scrollPane.setRowHeaderView(editor.getLinhas());
@@ -105,6 +102,9 @@ class ManageAllocationPolicies extends JFrame {
         doc.addDocumentListener(new PendingChangesDocListener());
 
         this.updatePolicyList();
+
+        this.makeLayout();
+        this.pack();
     }
 
     private static String policyNameFromFile(final File file) {
