@@ -60,51 +60,45 @@ class ManageAllocationPolicies extends JFrame {
     private final PolicyManager policyManager = new Alocadores();
     private final ResourceBundle words =
             ResourceBundle.getBundle("ispd.idioma.Idioma", Locale.getDefault());
-    private final JFileChooser fileChooser;
-    private final JList<String> policyList;
-    private final JScrollPane scrollPane;
-    private final JTextPane textPane;
+    private final JFileChooser fileChooser = this.configuredFileChooser();
+    private final JList<String> policyList = this.makePolicyList();
+    private final JTextPane textPane =
+            ManageAllocationPolicies.disabledTextPane();
+    private final TextEditorStyle textEditor = new TextEditorStyle();
     private Optional<String> currentlyOpenFileName = Optional.empty();
     private boolean hasPendingChanges = false;
 
     /* package-private */
     ManageAllocationPolicies() {
         this.addWindowListener(new CancelableCloseWindowAdapter());
-        this.updateTitle();
         this.setAlwaysOnTop(true);
         this.setFocusable(false);
-        this.setIconImage(Toolkit.getDefaultToolkit()
-                .getImage(this.getResource("imagens/Logo_iSPD_25.png"))
+        this.setIconImage(Toolkit.getDefaultToolkit().getImage(
+                this.getResource("imagens/Logo_iSPD_25.png"))
         );
 
-        this.setJMenuBar(this.makeMenuBar());
+        this.configureMenuBar();
+        this.configureTextEditor();
 
-        this.textPane = new JTextPane();
-        this.scrollPane = new JScrollPane(this.textPane);
+        this.makeLayout();
+        this.pack();
 
-        this.fileChooser = new JFileChooser();
-        this.fileChooser.setAcceptAllFileFilterUsed(false);
-        this.fileChooser.setFileFilter(new MultipleExtensionFileFilter(this.translate(
-                "Java Source Files (. java)"), ".java", true));
+        this.updateTitle();
+        this.updatePolicyList();
+    }
 
-
-        this.policyList = this.makePolicyList();
-
-        final var editor = new TextEditorStyle();
-        editor.configurarTextComponent(this.textPane);
-        this.scrollPane.setRowHeaderView(editor.getLinhas());
-        this.scrollPane.setColumnHeaderView(editor.getCursor());
-
-        this.closeEditing();
+    private void configureTextEditor() {
+        this.textEditor.configurarTextComponent(this.textPane);
 
         final var doc = this.textPane.getDocument();
         doc.addUndoableEditListener(this::onUndoableEvent);
         doc.addDocumentListener(new PendingChangesDocListener());
+    }
 
-        this.updatePolicyList();
-
-        this.makeLayout();
-        this.pack();
+    private static JTextPane disabledTextPane() {
+        final var tp = new JTextPane();
+        tp.setEnabled(false);
+        return tp;
     }
 
     private static String policyNameFromFile(final File file) {
@@ -112,7 +106,7 @@ class ManageAllocationPolicies extends JFrame {
         return fullName.substring(0, fullName.length() - ".java".length());
     }
 
-    private static JMenuBar makePopulatedMenuBar(final JMenu... menus) {
+    private static JMenuBar makeMenuBarWith(final JMenu... menus) {
         final JMenuBar menuBar = new JMenuBar();
 
         for (final var menu : menus) {
@@ -122,27 +116,21 @@ class ManageAllocationPolicies extends JFrame {
         return menuBar;
     }
 
-    private void onUndoableEvent(final UndoableEditEvent evt) {
-        final var edit = evt.getEdit();
-        if (!"style change".equals(edit.getPresentationName())) {
-            this.undoManager.addEdit(edit);
-        }
-    }
-
-    private JList<String> makePolicyList() {
-        final var list = new JList<String>();
-        list.setBorder(BorderFactory.createTitledBorder(null,
-                this.translate("Scheduler"),
-                TitledBorder.CENTER,
-                TitledBorder.DEFAULT_POSITION
+    private JFileChooser configuredFileChooser() {
+        final var fileChooser = new JFileChooser();
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setFileFilter(new MultipleExtensionFileFilter(
+                this.translate("Java Source Files (. java)"), ".java", true
         ));
-        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        list.addMouseListener(new PolicyListMouseAdapter());
-        return list;
+        return fileChooser;
     }
 
-    private JMenuBar makeMenuBar() {
-        return ManageAllocationPolicies.makePopulatedMenuBar(
+    private String translate(final String cut) {
+        return this.words.getString(cut);
+    }
+
+    private void configureMenuBar() {
+        this.setJMenuBar(ManageAllocationPolicies.makeMenuBarWith(
                 this.makeMenu("File",
                         this.makeMenuItem("New",
                                 "/ispd/gui/imagens/insert-object_1.png",
@@ -192,13 +180,39 @@ class ManageAllocationPolicies extends JFrame {
                                 this::onDelete
                         )
                 )
-        );
+        ));
+    }
+
+    private JScrollPane makeEditorScrollPane() {
+        final var scrollPane = new JScrollPane(this.textPane);
+        scrollPane.setRowHeaderView(this.textEditor.getLinhas());
+        scrollPane.setColumnHeaderView(this.textEditor.getCursor());
+        return scrollPane;
+    }
+
+    private void onUndoableEvent(final UndoableEditEvent evt) {
+        final var edit = evt.getEdit();
+        if (!"style change".equals(edit.getPresentationName())) {
+            this.undoManager.addEdit(edit);
+        }
+    }
+
+    private JList<String> makePolicyList() {
+        final var list = new JList<String>();
+        list.setBorder(BorderFactory.createTitledBorder(null,
+                this.translate("Scheduler"),
+                TitledBorder.CENTER,
+                TitledBorder.DEFAULT_POSITION
+        ));
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.addMouseListener(new PolicyListMouseAdapter());
+        return list;
     }
 
     private void makeLayout() {
         final var toolBar = this.makeToolBar();
-        final var policyListPanel = this.makePolicyListPanel();
-        final var textEditorPanel = this.makeTextEditorPanel();
+        final var policyListPanel = this.makePolicyListPane();
+        final var textEditorPanel = this.makeEditorPanel();
         final var caretPosLabel = new JLabel();
 
         final var layout = new GroupLayout(this.getContentPane());
@@ -254,16 +268,17 @@ class ManageAllocationPolicies extends JFrame {
                         .addContainerGap()));
     }
 
-    private JPanel makeTextEditorPanel() {
-        final var textEditorPanel = new JPanel();
-        final var layout = new GroupLayout(textEditorPanel);
+    private JPanel makeEditorPanel() {
+        final var editorPane = this.makeEditorScrollPane();
+        final var editorPanel = new JPanel();
+        final var layout = new GroupLayout(editorPanel);
 
         layout.setHorizontalGroup(layout
                 .createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addGroup(layout
                         .createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(this.scrollPane,
+                        .addComponent(editorPane,
                                 GroupLayout.DEFAULT_SIZE, 734, Short.MAX_VALUE)
                         .addContainerGap()));
 
@@ -272,15 +287,15 @@ class ManageAllocationPolicies extends JFrame {
                 .addGroup(layout
                         .createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(this.scrollPane)
+                        .addComponent(editorPane)
                         .addContainerGap())
         );
 
-        textEditorPanel.setLayout(layout);
-        return textEditorPanel;
+        editorPanel.setLayout(layout);
+        return editorPanel;
     }
 
-    private JPanel makePolicyListPanel() {
+    private JPanel makePolicyListPane() {
         final var policyListScrollPane = new JScrollPane(this.policyList);
 
         final var policyListPanel = new JPanel();
@@ -536,10 +551,6 @@ class ManageAllocationPolicies extends JFrame {
                 fileName, afterFileName,
                 this.translate("Manage Schedulers")
         ));
-    }
-
-    private String translate(final String cut) {
-        return this.words.getString(cut);
     }
 
     private void onSave(final ActionEvent evt) {
