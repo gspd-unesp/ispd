@@ -64,7 +64,7 @@ class ManageAllocationPolicies extends JFrame {
     private final JList<String> policyList;
     private final JScrollPane scrollPane;
     private final JTextPane textPane;
-    private Optional<String> currentlyOpenFile = Optional.empty();
+    private Optional<String> currentlyOpenFileName = Optional.empty();
     private boolean hasPendingChanges = false;
 
     /* package-private */
@@ -473,7 +473,7 @@ class ManageAllocationPolicies extends JFrame {
                     this,
                     """
                             Alocador%s
-                            Compilador com sucesso""".formatted(this.currentlyOpenFile.get())
+                            Compilador com sucesso""".formatted(this.currentlyOpenFileName.get())
             );
         }
 
@@ -487,7 +487,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void fillEditorWithCode(final String fileName, final String code) {
-        this.currentlyOpenFile = Optional.of(fileName);
+        this.currentlyOpenFileName = Optional.of(fileName);
         this.setAsNoPendingChanges();
 
         this.clearTextPaneContents();
@@ -516,7 +516,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void updateTitle() {
-        this.currentlyOpenFile.ifPresentOrElse(
+        this.currentlyOpenFileName.ifPresentOrElse(
                 this::updateTitleWithFileName,
                 this::updateTitleWithNoFile
         );
@@ -542,7 +542,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onSave(final ActionEvent evt) {
-        if (this.currentlyOpenFile.isPresent() && this.hasPendingChanges) {
+        if (this.currentlyOpenFileName.isPresent() && this.hasPendingChanges) {
             this.savePendingChanges();
         }
     }
@@ -580,7 +580,7 @@ class ManageAllocationPolicies extends JFrame {
             return;
         }
 
-        if (selected.equals(this.currentlyOpenFile.get())) {
+        if (selected.equals(this.currentlyOpenFileName.get())) {
             this.closeEditing();
         }
 
@@ -588,7 +588,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void onCompile(final ActionEvent evt) {
-        if (this.currentlyOpenFile.isEmpty()) {
+        if (this.currentlyOpenFileName.isEmpty()) {
             return;
         }
 
@@ -596,7 +596,7 @@ class ManageAllocationPolicies extends JFrame {
             this.savePendingChanges();
         }
 
-        this.tryCompileTarget(this.currentlyOpenFile.get());
+        this.tryCompileTarget(this.currentlyOpenFileName.get());
     }
 
     private void runCancelableAction(final Runnable action) {
@@ -677,7 +677,7 @@ class ManageAllocationPolicies extends JFrame {
                 this,
                 "%s %s.java".formatted(
                         this.translate("Do you want to save changes to"),
-                        this.currentlyOpenFile.get()
+                        this.currentlyOpenFileName.get()
                 )
         );
 
@@ -690,14 +690,14 @@ class ManageAllocationPolicies extends JFrame {
 
     private void savePendingChanges() {
         this.policyManager.escrever(
-                this.currentlyOpenFile.get(),
+                this.currentlyOpenFileName.get(),
                 this.textPane.getText()
         );
         this.setAsNoPendingChanges();
     }
 
     private void closeEditing() {
-        this.currentlyOpenFile = Optional.empty();
+        this.currentlyOpenFileName = Optional.empty();
         this.hasPendingChanges = false;
         this.updateTitle();
 
