@@ -23,8 +23,8 @@ dependencies {
 
 jar {
     manifest {
-        attributes (
-            'Main-Class' : 'ispd.Main'
+        attributes(
+                'Main-Class': 'ispd.Main'
         )
     }
 }
@@ -32,10 +32,15 @@ jar {
 sourceSets {
     main {
         java {
-            srcDirs= ["src/"]
+            srcDirs = ["src/"]
         }
         resources {
-            srcDirs= ["src/"]
+            srcDirs = ["src/"]
+        }
+    }
+    test {
+        java {
+            srcDirs = ["test/"]
         }
     }
 }
