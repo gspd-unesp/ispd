@@ -77,6 +77,8 @@ class ManageAllocationPolicies extends JFrame {
                 .getImage(this.getResource("imagens/Logo_iSPD_25.png"))
         );
 
+        this.setJMenuBar(this.makeMenuBar());
+
         this.textPane = new JTextPane();
         this.scrollPane = new JScrollPane(this.textPane);
 
@@ -88,7 +90,6 @@ class ManageAllocationPolicies extends JFrame {
 
         this.policyList = this.makePolicyList();
 
-        this.setJMenuBar(this.makeMenuBar());
         this.makeLayout();
         this.pack();
 
