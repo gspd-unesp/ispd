@@ -2,6 +2,7 @@ package ispd.policy.managers;
 
 import ispd.policy.PolicyManager;
 
+import javax.tools.Tool;
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -34,7 +35,8 @@ abstract class FilePolicyManager implements PolicyManager {
     private final List<String> addedPolicies = new ArrayList<>();
     private final List<String> removedPolicies = new ArrayList<>();
 
-    protected FilePolicyManager() {
+    /* package-private */
+    FilePolicyManager() {
         this.initialize();
     }
 
@@ -143,15 +145,7 @@ abstract class FilePolicyManager implements PolicyManager {
      */
     @Override
     public String getPolicyTemplate(final String policyName) {
-        return FilePolicyManager.formatTemplate(
-                this.getTemplate(),
-                policyName
-        );
-    }
-
-    protected static String formatTemplate(
-            final String template, final String policyName) {
-        return template.replace(
+        return this.getTemplate().replace(
                 FilePolicyManager.POLICY_NAME_REPL,
                 policyName
         );
@@ -170,7 +164,7 @@ abstract class FilePolicyManager implements PolicyManager {
     @Override
     public boolean escrever(final String nome, final String codigo) {
         try (final var fw = new FileWriter(
-                new File(this.directory(), nome + ".java"),
+                this.javaFileWithName(nome),
                 StandardCharsets.UTF_8
         )) {
             fw.write(codigo);
@@ -191,7 +185,7 @@ abstract class FilePolicyManager implements PolicyManager {
      */
     @Override
     public String compilar(final String nome) {
-        final var target = new File(this.directory(), nome + ".java");
+        final var target = this.javaFileWithName(nome);
         final var err = FilePolicyManager.compile(target);
 
         try {
@@ -201,39 +195,60 @@ abstract class FilePolicyManager implements PolicyManager {
                     .log(Level.SEVERE, null, ex);
         }
 
-        // Check if compilation worked, looking for a .class file
-        if (new File(this.directory(), nome + ".class").exists()) {
+        if (this.checkIfDotClassExists(nome)) {
             this.addPolicy(nome);
         }
 
         return err.isEmpty() ? null : err;
     }
 
+    private File javaFileWithName(final String name) {
+        return new File(this.directory(), name + ".java");
+    }
+
+    private boolean checkIfDotClassExists(final String nome) {
+        return new File(this.directory(), nome + ".class").exists();
+    }
+
     private static String compile(final File target) {
+        return innerCompile(target);
+    }
+
+    private static String innerCompile(File target) {
         final var compiler = ToolProvider.getSystemJavaCompiler();
 
         if (compiler != null) {
-            final var err = new ByteArrayOutputStream();
-            compiler.run(null, null, err, target.getPath());
-            return err.toString();
+            return FilePolicyManager.compileWithCompiler(compiler, target);
         } else {
-            try {
-                return FilePolicyManager.compileManually(target);
-            } catch (final IOException ex) {
-                Logger.getLogger(FilePolicyManager.class.getName())
-                        .log(Level.SEVERE, null, ex);
-                return "Não foi possível compilar";
-            }
+            return FilePolicyManager.tryCompileWithJavac(target);
         }
     }
 
-    private static String compileManually(final File target) throws IOException {
-        final var proc = Runtime.getRuntime()
-                .exec("javac " + target.getPath());
+    private static String compileWithCompiler(
+            final Tool compiler, final File target) {
+        final var err = new ByteArrayOutputStream();
+        compiler.run(null, null, err, target.getPath());
+        return err.toString();
+    }
 
-        try (final var err = new BufferedReader(new InputStreamReader(
-                proc.getErrorStream(), StandardCharsets.UTF_8))
-        ) {
+    private static String tryCompileWithJavac(final File target) {
+        try {
+            return FilePolicyManager.compileWithJavac(target);
+        } catch (final IOException ex) {
+            Logger.getLogger(FilePolicyManager.class.getName())
+                    .log(Level.SEVERE, null, ex);
+            return "Não foi possível compilar";
+        }
+    }
+
+    private static String compileWithJavac(final File target) throws IOException {
+        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
+
+        try (final var err = new BufferedReader(
+                new InputStreamReader(
+                        proc.getErrorStream(), StandardCharsets.UTF_8
+                )
+        )) {
             return err.lines().collect(Collectors.joining("\n"));
         }
     }
@@ -258,7 +273,7 @@ abstract class FilePolicyManager implements PolicyManager {
     public String ler(final String policy) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        new File(this.directory(), policy + ".java"),
+                        this.javaFileWithName(policy),
                         StandardCharsets.UTF_8)
         )) {
             return br.lines().collect(Collectors.joining("\n"));
@@ -281,8 +296,7 @@ abstract class FilePolicyManager implements PolicyManager {
         final var classFile = new File(
                 this.directory(), policy + ".class");
 
-        final File javaFile = new File(
-                this.directory(), policy + ".java");
+        final File javaFile = this.javaFileWithName(policy);
 
         boolean deleted = false;
 
@@ -333,7 +347,7 @@ abstract class FilePolicyManager implements PolicyManager {
         final var nome = arquivo.getName()
                 .substring(0, arquivo.getName().length() - ".java".length());
 
-        if (!new File(this.directory(), nome + ".class").exists()) {
+        if (!this.checkIfDotClassExists(nome)) {
             return false;
         }
 
@@ -371,4 +385,5 @@ abstract class FilePolicyManager implements PolicyManager {
     public List listarRemovidos() {
         return this.removedPolicies;
     }
+
 }
