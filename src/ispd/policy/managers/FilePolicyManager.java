@@ -26,13 +26,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 // TODO: Document
 /* package-private */
 abstract class FilePolicyManager implements PolicyManager {
     private static final String POLICY_NAME_REPL = "__POLICY_NAME__";
-    private static final String MOTOR = "motor";
     private final ArrayList<String> policies = new ArrayList<>();
     private final List<String> addedPolicies = new ArrayList<>();
     private final List<String> removedPolicies = new ArrayList<>();
@@ -55,7 +53,11 @@ abstract class FilePolicyManager implements PolicyManager {
         }
 
         if (this.getExecutable().toString().startsWith("jar:")) {
-            new JarExecutioner().executeFromJar();
+            try {
+                new JarExtractor(this.packageName()).extractDirsFromJar();
+            } catch (final IOException e) {
+                FilePolicyManager.severeLog(e);
+            }
         }
     }
 
@@ -98,39 +100,12 @@ abstract class FilePolicyManager implements PolicyManager {
         return fileName.substring(0, fileName.length() - extension.length());
     }
 
-    private static void extractDirFromJar(
-            final String dir, final File file) throws IOException {
-        try (final var jar = new JarFile(file)) {
-            final var entries = jar.stream()
-                    .filter(e -> e.getName().contains(dir))
-                    .toList();
-
-            for (final var entry : entries) {
-                FilePolicyManager.processZipEntry(entry, jar);
-            }
-        }
-    }
-
-    private static void processZipEntry(
-            final ZipEntry entry, final ZipFile zip) throws IOException {
-        final var file = new File(entry.getName());
-
-        if (entry.isDirectory() && !file.exists()) {
-            FilePolicyManager.createDirectory(file);
-            return;
-        }
-
-        if (!file.getParentFile().exists()) {
-            FilePolicyManager.createDirectory(file.getParentFile());
-        }
-
-        try (final var is = zip.getInputStream(entry);
-             final var os = new FileOutputStream(file)) {
-            is.transferTo(os);
-        }
-    }
-
     protected abstract String packageName();
+
+    private static void severeLog(final Throwable e) {
+        Logger.getLogger(FilePolicyManager.class.getName())
+                .log(Level.SEVERE, null, e);
+    }
 
     /**
      * Lists all available allocation policies.
@@ -172,8 +147,7 @@ abstract class FilePolicyManager implements PolicyManager {
             fw.write(codigo);
             return true;
         } catch (final IOException ex) {
-            Logger.getLogger(FilePolicyManager.class.getName())
-                    .log(Level.SEVERE, null, ex);
+            FilePolicyManager.severeLog(ex);
             return false;
         }
     }
@@ -193,8 +167,7 @@ abstract class FilePolicyManager implements PolicyManager {
         try {
             Thread.sleep(1000);
         } catch (final InterruptedException ex) {
-            Logger.getLogger(FilePolicyManager.class.getName())
-                    .log(Level.SEVERE, null, ex);
+            FilePolicyManager.severeLog(ex);
         }
 
         if (this.checkIfDotClassExists(nome)) {
@@ -237,8 +210,7 @@ abstract class FilePolicyManager implements PolicyManager {
         )) {
             return br.lines().collect(Collectors.joining("\n"));
         } catch (final IOException ex) {
-            Logger.getLogger(FilePolicyManager.class.getName())
-                    .log(Level.SEVERE, null, ex);
+            FilePolicyManager.severeLog(ex);
             return null;
         }
     }
@@ -325,8 +297,7 @@ abstract class FilePolicyManager implements PolicyManager {
              final var destFs = new FileOutputStream(dest)) {
             srcFs.transferTo(destFs);
         } catch (final IOException ex) {
-            Logger.getLogger(FilePolicyManager.class.getName())
-                    .log(Level.SEVERE, null, ex);
+            FilePolicyManager.severeLog(ex);
         }
     }
 
@@ -376,8 +347,7 @@ abstract class FilePolicyManager implements PolicyManager {
             try {
                 return this.compileWithJavac();
             } catch (final IOException ex) {
-                Logger.getLogger(FilePolicyManager.class.getName())
-                        .log(Level.SEVERE, null, ex);
+                FilePolicyManager.severeLog(ex);
                 return "Não foi possível compilar";
             }
         }
@@ -394,17 +364,47 @@ abstract class FilePolicyManager implements PolicyManager {
         }
     }
 
-    public class JarExecutioner {
-        private File jar = new File(System.getProperty("java.class.path"));
+    private static class JarExtractor {
+        private static final String MOTOR_PKG_PATH = "motor";
+        private final JarFile jar = new JarFile(new File(
+                System.getProperty("java.class.path")
+        ));
+        private final String targetPackage;
 
-        private void executeFromJar() {
-            try {
-                FilePolicyManager.extractDirFromJar(FilePolicyManager.this.packageName(), this.jar);
-                FilePolicyManager.extractDirFromJar(FilePolicyManager.MOTOR,
-                        this.jar);
-            } catch (final IOException ex) {
-                Logger.getLogger(FilePolicyManager.class.getName())
-                        .log(Level.SEVERE, null, ex);
+        private JarExtractor(final String targetPackage) throws IOException {
+            this.targetPackage = targetPackage;
+        }
+
+        private void extractDirsFromJar() throws IOException {
+            this.extractDirFromJar(this.targetPackage);
+            this.extractDirFromJar(JarExtractor.MOTOR_PKG_PATH);
+        }
+
+        private void extractDirFromJar(final String dir) throws IOException {
+            final var entries = this.jar.stream()
+                    .filter(e -> e.getName().contains(dir))
+                    .toList();
+
+            for (final var entry : entries) {
+                this.processZipEntry(entry);
+            }
+        }
+
+        private void processZipEntry(final ZipEntry entry) throws IOException {
+            final var file = new File(entry.getName());
+
+            if (entry.isDirectory() && !file.exists()) {
+                FilePolicyManager.createDirectory(file);
+                return;
+            }
+
+            if (!file.getParentFile().exists()) {
+                FilePolicyManager.createDirectory(file.getParentFile());
+            }
+
+            try (final var is = this.jar.getInputStream(entry);
+                 final var os = new FileOutputStream(file)) {
+                is.transferTo(os);
             }
         }
     }
