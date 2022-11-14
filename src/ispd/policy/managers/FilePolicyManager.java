@@ -55,58 +55,9 @@ abstract class FilePolicyManager implements PolicyManager {
         }
 
         if (this.getExecutable().toString().startsWith("jar:")) {
-            this.executeFromJar();
+            new JarExecutioner().executeFromJar();
         }
     }
-
-    private void executeFromJar() {
-        final var jar = new File(System.getProperty("java.class.path"));
-        executeFromActualJar(jar);
-    }
-
-    private void executeFromActualJar(File jar) {
-        try {
-            FilePolicyManager.extractDirFromJar(this.packageName(), jar);
-            FilePolicyManager.extractDirFromJar(FilePolicyManager.MOTOR, jar);
-        } catch (final IOException ex) {
-            Logger.getLogger(FilePolicyManager.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private static void extractDirFromJar(
-            final String dir, final File file) throws IOException {
-        try (final var jar = new JarFile(file)) {
-            final var entries = jar.stream()
-                    .filter(e -> e.getName().contains(dir))
-                    .toList();
-
-            for (final var entry : entries) {
-                FilePolicyManager.processZipEntry(entry, jar);
-            }
-        }
-    }
-
-    private static void processZipEntry(
-            final ZipEntry entry, final ZipFile zip) throws IOException {
-        final var file = new File(entry.getName());
-
-        if (entry.isDirectory() && !file.exists()) {
-            FilePolicyManager.createDirectory(file);
-            return;
-        }
-
-        if (!file.getParentFile().exists()) {
-            FilePolicyManager.createDirectory(file.getParentFile());
-        }
-
-        try (final var is = zip.getInputStream(entry);
-             final var os = new FileOutputStream(file)) {
-            is.transferTo(os);
-        }
-    }
-
-    protected abstract String packageName();
 
     private URL getExecutable() {
         return Objects.requireNonNull(
@@ -146,6 +97,40 @@ abstract class FilePolicyManager implements PolicyManager {
             final String fileName, final String extension) {
         return fileName.substring(0, fileName.length() - extension.length());
     }
+
+    private static void extractDirFromJar(
+            final String dir, final File file) throws IOException {
+        try (final var jar = new JarFile(file)) {
+            final var entries = jar.stream()
+                    .filter(e -> e.getName().contains(dir))
+                    .toList();
+
+            for (final var entry : entries) {
+                FilePolicyManager.processZipEntry(entry, jar);
+            }
+        }
+    }
+
+    private static void processZipEntry(
+            final ZipEntry entry, final ZipFile zip) throws IOException {
+        final var file = new File(entry.getName());
+
+        if (entry.isDirectory() && !file.exists()) {
+            FilePolicyManager.createDirectory(file);
+            return;
+        }
+
+        if (!file.getParentFile().exists()) {
+            FilePolicyManager.createDirectory(file.getParentFile());
+        }
+
+        try (final var is = zip.getInputStream(entry);
+             final var os = new FileOutputStream(file)) {
+            is.transferTo(os);
+        }
+    }
+
+    protected abstract String packageName();
 
     /**
      * Lists all available allocation policies.
@@ -405,6 +390,21 @@ abstract class FilePolicyManager implements PolicyManager {
                     process.getErrorStream(), StandardCharsets.UTF_8
             ))) {
                 return err.lines().collect(Collectors.joining("\n"));
+            }
+        }
+    }
+
+    public class JarExecutioner {
+        private File jar = new File(System.getProperty("java.class.path"));
+
+        private void executeFromJar() {
+            try {
+                FilePolicyManager.extractDirFromJar(FilePolicyManager.this.packageName(), this.jar);
+                FilePolicyManager.extractDirFromJar(FilePolicyManager.MOTOR,
+                        this.jar);
+            } catch (final IOException ex) {
+                Logger.getLogger(FilePolicyManager.class.getName())
+                        .log(Level.SEVERE, null, ex);
             }
         }
     }
