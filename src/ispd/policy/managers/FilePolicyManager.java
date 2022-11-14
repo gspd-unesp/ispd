@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -202,55 +203,12 @@ abstract class FilePolicyManager implements PolicyManager {
         return err.isEmpty() ? null : err;
     }
 
-    private File javaFileWithName(final String name) {
-        return new File(this.directory(), name + ".java");
-    }
-
     private boolean checkIfDotClassExists(final String nome) {
         return new File(this.directory(), nome + ".class").exists();
     }
 
     private static String compile(final File target) {
-        return innerCompile(target);
-    }
-
-    private static String innerCompile(File target) {
-        final var compiler = ToolProvider.getSystemJavaCompiler();
-
-        if (compiler != null) {
-            return FilePolicyManager.compileWithCompiler(compiler, target);
-        } else {
-            return FilePolicyManager.tryCompileWithJavac(target);
-        }
-    }
-
-    private static String compileWithCompiler(
-            final Tool compiler, final File target) {
-        final var err = new ByteArrayOutputStream();
-        compiler.run(null, null, err, target.getPath());
-        return err.toString();
-    }
-
-    private static String tryCompileWithJavac(final File target) {
-        try {
-            return FilePolicyManager.compileWithJavac(target);
-        } catch (final IOException ex) {
-            Logger.getLogger(FilePolicyManager.class.getName())
-                    .log(Level.SEVERE, null, ex);
-            return "Não foi possível compilar";
-        }
-    }
-
-    private static String compileWithJavac(final File target) throws IOException {
-        final var proc = Runtime.getRuntime().exec("javac " + target.getPath());
-
-        try (final var err = new BufferedReader(
-                new InputStreamReader(
-                        proc.getErrorStream(), StandardCharsets.UTF_8
-                )
-        )) {
-            return err.lines().collect(Collectors.joining("\n"));
-        }
+        return new CompilationHelper(target).compile();
     }
 
     private void addPolicy(final String policyName) {
@@ -335,6 +293,7 @@ abstract class FilePolicyManager implements PolicyManager {
      */
     @Override
     public boolean importJavaPolicy(final File arquivo) {
+        // TODO: Merge this and static method compile into one
         final var target = new File(this.directory(), arquivo.getName());
         FilePolicyManager.copyFile(target, arquivo);
 
@@ -386,4 +345,51 @@ abstract class FilePolicyManager implements PolicyManager {
         return this.removedPolicies;
     }
 
+    private File javaFileWithName(final String name) {
+        return new File(this.directory(), name + ".java");
+    }
+
+    private static class CompilationHelper {
+        private final Optional<Tool> compiler = Optional.ofNullable(
+                ToolProvider.getSystemJavaCompiler());
+        private final File target;
+
+        private CompilationHelper(final File target) {
+            this.target = target;
+        }
+
+        private String compile() {
+            return this.compiler
+                    .map(this::compileWithTool)
+                    .orElseGet(this::tryCompileWithJavac);
+        }
+
+        private String compileWithTool(final Tool tool) {
+            final var err = new ByteArrayOutputStream();
+            final var arg = this.target.getPath();
+            tool.run(null, null, err, arg);
+            return err.toString();
+        }
+
+        private String tryCompileWithJavac() {
+            try {
+                return this.compileWithJavac();
+            } catch (final IOException ex) {
+                Logger.getLogger(FilePolicyManager.class.getName())
+                        .log(Level.SEVERE, null, ex);
+                return "Não foi possível compilar";
+            }
+        }
+
+        private String compileWithJavac() throws IOException {
+            final var command = "javac %s".formatted(this.target.getPath());
+            final var process = Runtime.getRuntime().exec(command);
+
+            try (final var err = new BufferedReader(new InputStreamReader(
+                    process.getErrorStream(), StandardCharsets.UTF_8
+            ))) {
+                return err.lines().collect(Collectors.joining("\n"));
+            }
+        }
+    }
 }
