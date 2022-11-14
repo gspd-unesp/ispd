@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +32,7 @@ import java.util.zip.ZipFile;
 /* package-private */
 abstract class FilePolicyManager implements PolicyManager {
     private static final String POLICY_NAME_REPL = "__POLICY_NAME__";
-    private static final String MOTOR_PKG_NAME = "motor";
+    private static final String MOTOR = "motor";
     private final ArrayList<String> policies = new ArrayList<>();
     private final List<String> addedPolicies = new ArrayList<>();
     private final List<String> removedPolicies = new ArrayList<>();
@@ -43,7 +44,7 @@ abstract class FilePolicyManager implements PolicyManager {
 
     private void initialize() {
         if (this.directory().exists()) {
-            this.findDotClassPolicies();
+            this.loadPoliciesFromFoundDotClassFiles();
             return;
         }
 
@@ -53,22 +54,20 @@ abstract class FilePolicyManager implements PolicyManager {
             throw new RuntimeException(e);
         }
 
-        final var executable = this.getClass()
-                .getResource(this.className());
-
-        Objects.requireNonNull(executable);
-
-        if (executable.toString().startsWith("jar:")) {
-            FilePolicyManager.executeFromJar(this.packageName());
+        if (this.getExecutable().toString().startsWith("jar:")) {
+            this.executeFromJar();
         }
     }
 
-    private static void executeFromJar(final String path) {
+    private void executeFromJar() {
         final var jar = new File(System.getProperty("java.class.path"));
+        executeFromActualJar(jar);
+    }
+
+    private void executeFromActualJar(File jar) {
         try {
-            FilePolicyManager.extractDirFromJar(path, jar);
-            FilePolicyManager.extractDirFromJar(
-                    FilePolicyManager.MOTOR_PKG_NAME, jar);
+            FilePolicyManager.extractDirFromJar(this.packageName(), jar);
+            FilePolicyManager.extractDirFromJar(FilePolicyManager.MOTOR, jar);
         } catch (final IOException ex) {
             Logger.getLogger(FilePolicyManager.class.getName())
                     .log(Level.SEVERE, null, ex);
@@ -107,16 +106,32 @@ abstract class FilePolicyManager implements PolicyManager {
         }
     }
 
+    protected abstract String packageName();
+
+    private URL getExecutable() {
+        return Objects.requireNonNull(
+                this.getClass().getResource(this.className())
+        );
+    }
+
+    protected abstract String className();
+
     private static void createDirectory(final File dir) throws IOException {
         if (!dir.mkdirs()) {
             throw new IOException("Failed to create directory " + dir);
         }
     }
 
-    private void findDotClassPolicies() {
-        final FilenameFilter filter = (b, name) -> name.endsWith(".class");
+    private void loadPoliciesFromFoundDotClassFiles() {
+        final FilenameFilter f = (b, name) -> name.endsWith(".class");
+
+        /*
+         * {@link File#list()} returns {@code null} on I/O error,
+         * or if the given {@link File} is not a directory that exists,
+         * but that situation has already been accounted for.
+         */
         final var dotClassFiles =
-                Objects.requireNonNull(this.directory().list(filter));
+                Objects.requireNonNull(this.directory().list(f));
 
         Arrays.stream(dotClassFiles)
                 .map(FilePolicyManager::removeDotClassSuffix)
@@ -124,12 +139,13 @@ abstract class FilePolicyManager implements PolicyManager {
     }
 
     private static String removeDotClassSuffix(final String s) {
-        return s.substring(0, s.length() - ".class".length());
+        return FilePolicyManager.fileWithoutExtension(s, ".class");
     }
 
-    protected abstract String className();
-
-    protected abstract String packageName();
+    private static String fileWithoutExtension(
+            final String fileName, final String extension) {
+        return fileName.substring(0, fileName.length() - extension.length());
+    }
 
     /**
      * Lists all available allocation policies.
@@ -303,8 +319,8 @@ abstract class FilePolicyManager implements PolicyManager {
             return false;
         }
 
-        final var nome = arquivo.getName()
-                .substring(0, arquivo.getName().length() - ".java".length());
+        final var nome = FilePolicyManager.fileWithoutExtension(
+                arquivo.getName(), ".java");
 
         if (!this.checkIfDotClassExists(nome)) {
             return false;
