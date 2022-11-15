@@ -402,8 +402,15 @@ abstract class FilePolicyManager implements PolicyManager {
                 return;
             }
 
-            if (!file.getParentFile().exists()) {
-                FilePolicyManager.createDirectory(file.getParentFile());
+            // TODO: Idea; process ALL directories FIRST, and only THEN
+            //  non-directory entries.
+            //  In such a way, this logic (entry without parent directory
+            //  created) may not be necessary anymore
+
+            final var parent = file.getParentFile();
+
+            if (!parent.exists()) {
+                FilePolicyManager.createDirectory(parent);
             }
 
             try (final var is = this.jar.getInputStream(entry);
