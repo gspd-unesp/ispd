@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 // TODO: Document
 /* package-private */
@@ -83,9 +84,9 @@ abstract class FilePolicyManager implements PolicyManager {
         final FilenameFilter f = (b, name) -> name.endsWith(".class");
 
         /*
-         * {@link File#list()} returns {@code null} on I/O error,
-         * or if the given {@link File} is not a directory that exists,
-         * but that situation has already been accounted for.
+         * {@link File#list()} returns {@code null} on I/O error
+         * (or if the given {@link File} is not a directory that exists,
+         * but that situation has already been accounted for).
          */
         final var dotClassFiles =
                 Objects.requireNonNull(this.directory().list(f));
@@ -96,12 +97,11 @@ abstract class FilePolicyManager implements PolicyManager {
     }
 
     private static String removeDotClassSuffix(final String s) {
-        return FilePolicyManager.fileWithoutExtension(s, ".class");
+        return FilePolicyManager.removeSuffix(s, ".class");
     }
 
-    private static String fileWithoutExtension(
-            final String fileName, final String extension) {
-        return fileName.substring(0, fileName.length() - extension.length());
+    private static String removeSuffix(final String str, final String suffix) {
+        return str.substring(0, str.length() - suffix.length());
     }
 
     protected abstract String packageName();
@@ -169,6 +169,15 @@ abstract class FilePolicyManager implements PolicyManager {
         final var err = FilePolicyManager.compile(target);
 
         try {
+            /*
+              {@link Runtime#exec(String)} runs on a <i>separate</i>
+              process, so we need to wait for potential compilation time.<br>
+              However, this solution is <b>bad</b> because the compilation
+              may easily take longer than {@code 1000} milliseconds
+              (complicated target files or low-end systems running the
+              application).<br>
+              Thus, we need to look for an alternative in the future.
+             */
             Thread.sleep(1000);
         } catch (final InterruptedException ex) {
             FilePolicyManager.severeLog(ex);
@@ -272,7 +281,7 @@ abstract class FilePolicyManager implements PolicyManager {
     public boolean importJavaPolicy(final File arquivo) {
         // TODO: Merge this and static method compile into one
         final var target = new File(this.directory(), arquivo.getName());
-        FilePolicyManager.copyFile(target, arquivo);
+        FilePolicyManager.transferFileContents(arquivo, target);
 
         final var err = FilePolicyManager.compile(target);
 
@@ -280,20 +289,20 @@ abstract class FilePolicyManager implements PolicyManager {
             return false;
         }
 
-        final var nome = FilePolicyManager.fileWithoutExtension(
-                arquivo.getName(), ".java");
+        final var policyName = FilePolicyManager
+                .removeSuffix(arquivo.getName(), ".java");
 
-        if (!this.checkIfDotClassExists(nome)) {
+        if (!this.checkIfDotClassExists(policyName)) {
             return false;
         }
 
-        this.addPolicy(nome);
+        this.addPolicy(policyName);
 
         return true;
     }
 
-    private static void copyFile(final File dest, final File src) {
-        if (dest.getPath().equals(src.getPath())) {
+    private static void transferFileContents(final File src, final File dest) {
+        if (src.getPath().equals(dest.getPath())) {
             return;
         }
 
@@ -336,11 +345,11 @@ abstract class FilePolicyManager implements PolicyManager {
 
         private String compile() {
             return this.compiler
-                    .map(this::compileWithTool)
+                    .map(this::compileWithSystemTool)
                     .orElseGet(this::tryCompileWithJavac);
         }
 
-        private String compileWithTool(final Tool tool) {
+        private String compileWithSystemTool(final Tool tool) {
             final var err = new ByteArrayOutputStream();
             final var arg = this.target.getPath();
             tool.run(null, null, err, arg);
@@ -370,7 +379,7 @@ abstract class FilePolicyManager implements PolicyManager {
 
     private static class JarExtractor {
         private static final String MOTOR_PKG_PATH = "motor";
-        private final JarFile jar = new JarFile(new File(
+        private final ZipFile jar = new JarFile(new File(
                 System.getProperty("java.class.path")
         ));
         private final String targetPackage;
