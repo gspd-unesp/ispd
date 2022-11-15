@@ -14,7 +14,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +29,7 @@ import java.util.zip.ZipEntry;
 // TODO: Document
 /* package-private */
 abstract class FilePolicyManager implements PolicyManager {
+    private static final String JAR_PREFIX = "jar:";
     private static final String POLICY_NAME_REPL = "__POLICY_NAME__";
     private final ArrayList<String> policies = new ArrayList<>();
     private final List<String> addedPolicies = new ArrayList<>();
@@ -52,7 +52,7 @@ abstract class FilePolicyManager implements PolicyManager {
             throw new RuntimeException(e);
         }
 
-        if (this.getExecutable().toString().startsWith("jar:")) {
+        if (this.isExecutingFromJar()) {
             try {
                 new JarExtractor(this.packageName()).extractDirsFromJar();
             } catch (final IOException e) {
@@ -61,10 +61,14 @@ abstract class FilePolicyManager implements PolicyManager {
         }
     }
 
-    private URL getExecutable() {
+    private boolean isExecutingFromJar() {
+        return this.getExecutableName().startsWith(FilePolicyManager.JAR_PREFIX);
+    }
+
+    private String getExecutableName() {
         return Objects.requireNonNull(
                 this.getClass().getResource(this.className())
-        );
+        ).toString();
     }
 
     protected abstract String className();
