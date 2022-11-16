@@ -190,8 +190,8 @@ abstract class FilePolicyManager implements PolicyManager {
         return err.isEmpty() ? null : err;
     }
 
-    private boolean checkIfDotClassExists(final String nome) {
-        return this.policyDotClassFile(nome).exists();
+    private boolean checkIfDotClassExists(final String policyName) {
+        return this.policyDotClassFile(policyName).exists();
     }
 
     private File policyDotClassFile(final String policyName) {
@@ -241,25 +241,23 @@ abstract class FilePolicyManager implements PolicyManager {
      */
     @Override
     public boolean remover(final String policy) {
-        final var classFile = this.policyDotClassFile(policy);
-        final var javaFile = this.policyJavaFile(policy);
+        // TODO: This logic is sus
 
-        boolean deleted = false;
+        boolean deleted = FilePolicyManager
+                .canDeleteFile(this.policyDotClassFile(policy));
 
-        if (classFile.exists()) {
-            if (classFile.delete()) {
-                this.removePolicy(policy);
-                deleted = true;
-            }
+        if (deleted) {
+            this.removePolicy(policy);
         }
 
-        if (javaFile.exists()) {
-            if (javaFile.delete()) {
-                deleted = true;
-            }
-        }
+        deleted = deleted || FilePolicyManager
+                .canDeleteFile(this.policyJavaFile(policy));
 
         return deleted;
+    }
+
+    private static boolean canDeleteFile(final File classFile) {
+        return classFile.exists() && classFile.delete();
     }
 
     private void removePolicy(final String policyName) {
