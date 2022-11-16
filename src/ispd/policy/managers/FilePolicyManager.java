@@ -2,10 +2,7 @@ package ispd.policy.managers;
 
 import ispd.policy.PolicyManager;
 
-import javax.tools.Tool;
-import javax.tools.ToolProvider;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,13 +10,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -106,7 +101,8 @@ abstract class FilePolicyManager implements PolicyManager {
 
     protected abstract String packageName();
 
-    private static void severeLog(final Throwable e) {
+    /* package-private */
+    static void severeLog(final Throwable e) {
         Logger.getLogger(FilePolicyManager.class.getName())
                 .log(Level.SEVERE, null, e);
     }
@@ -336,49 +332,6 @@ abstract class FilePolicyManager implements PolicyManager {
 
     private File fileWithExtension(final String policyName, final String ext) {
         return new File(this.directory(), policyName + ext);
-    }
-
-    private static class CompilationHelper {
-        private final Optional<Tool> compiler = Optional.ofNullable(
-                ToolProvider.getSystemJavaCompiler());
-        private final File target;
-
-        private CompilationHelper(final File target) {
-            this.target = target;
-        }
-
-        private String compile() {
-            return this.compiler
-                    .map(this::compileWithSystemTool)
-                    .orElseGet(this::tryCompileWithJavac);
-        }
-
-        private String compileWithSystemTool(final Tool tool) {
-            final var err = new ByteArrayOutputStream();
-            final var arg = this.target.getPath();
-            tool.run(null, null, err, arg);
-            return err.toString();
-        }
-
-        private String tryCompileWithJavac() {
-            try {
-                return this.compileWithJavac();
-            } catch (final IOException ex) {
-                FilePolicyManager.severeLog(ex);
-                return "Não foi possível compilar";
-            }
-        }
-
-        private String compileWithJavac() throws IOException {
-            final var command = "javac %s".formatted(this.target.getPath());
-            final var process = Runtime.getRuntime().exec(command);
-
-            try (final var err = new BufferedReader(new InputStreamReader(
-                    process.getErrorStream(), StandardCharsets.UTF_8
-            ))) {
-                return err.lines().collect(Collectors.joining("\n"));
-            }
-        }
     }
 
     private static class JarExtractor {
