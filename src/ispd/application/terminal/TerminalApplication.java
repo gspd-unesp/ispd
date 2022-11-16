@@ -412,7 +412,7 @@ public class TerminalApplication implements Application {
      */
     private List<Tarefa> createJobsList(final Document model, final RedeDeFilas queueNetwork) {
         System.out.print("  Creating tasks: ");
-        final var jobs = IconicoXML.newGerarCarga(model).toTarefaList(queueNetwork);
+        final var jobs = IconicoXML.newGerarCarga(model).makeTaskList(queueNetwork);
         System.out.print(ConsoleColors.GREEN + "OK\n  " + ConsoleColors.RESET);
 
         return jobs;
