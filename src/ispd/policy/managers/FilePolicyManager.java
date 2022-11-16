@@ -145,7 +145,7 @@ abstract class FilePolicyManager implements PolicyManager {
     @Override
     public boolean escrever(final String nome, final String codigo) {
         try (final var fw = new FileWriter(
-                this.javaFileWithName(nome),
+                this.policyJavaFile(nome),
                 StandardCharsets.UTF_8
         )) {
             fw.write(codigo);
@@ -165,7 +165,7 @@ abstract class FilePolicyManager implements PolicyManager {
      */
     @Override
     public String compilar(final String nome) {
-        final var target = this.javaFileWithName(nome);
+        final var target = this.policyJavaFile(nome);
         final var err = FilePolicyManager.compile(target);
 
         try {
@@ -191,7 +191,11 @@ abstract class FilePolicyManager implements PolicyManager {
     }
 
     private boolean checkIfDotClassExists(final String nome) {
-        return new File(this.directory(), nome + ".class").exists();
+        return this.policyDotClassFile(nome).exists();
+    }
+
+    private File policyDotClassFile(final String policyName) {
+        return this.fileWithExtension(policyName, ".class");
     }
 
     private static String compile(final File target) {
@@ -218,7 +222,7 @@ abstract class FilePolicyManager implements PolicyManager {
     public String ler(final String policy) {
         try (final var br = new BufferedReader(
                 new FileReader(
-                        this.javaFileWithName(policy),
+                        this.policyJavaFile(policy),
                         StandardCharsets.UTF_8)
         )) {
             return br.lines().collect(Collectors.joining("\n"));
@@ -237,10 +241,8 @@ abstract class FilePolicyManager implements PolicyManager {
      */
     @Override
     public boolean remover(final String policy) {
-        final var classFile = new File(
-                this.directory(), policy + ".class");
-
-        final File javaFile = this.javaFileWithName(policy);
+        final var classFile = this.policyDotClassFile(policy);
+        final var javaFile = this.policyJavaFile(policy);
 
         boolean deleted = false;
 
@@ -330,8 +332,12 @@ abstract class FilePolicyManager implements PolicyManager {
         return this.removedPolicies;
     }
 
-    private File javaFileWithName(final String name) {
-        return new File(this.directory(), name + ".java");
+    private File policyJavaFile(final String name) {
+        return this.fileWithExtension(name, ".java");
+    }
+
+    private File fileWithExtension(final String policyName, final String ext) {
+        return new File(this.directory(), policyName + ext);
     }
 
     private static class CompilationHelper {
