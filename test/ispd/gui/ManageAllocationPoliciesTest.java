@@ -13,8 +13,9 @@ class ManageAllocationPoliciesTest {
         window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         final var compar = new ManageSchedulers();
-        compar.setLocationRelativeTo(window);
+        compar.setLocationRelativeTo(null);
         compar.setVisible(true);
+        compar.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         while (true) {
             continue;

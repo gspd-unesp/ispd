@@ -1,6 +1,6 @@
 package ispd.motor.workload.impl;
 
-import ispd.escalonador.Escalonador;
+import ispd.policy.escalonador.Escalonador;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
