@@ -9,7 +9,7 @@ import ispd.motor.filas.TarefaVM;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.policy.PolicyMaster;
+import ispd.policy.PolicyCondition;
 import ispd.policy.alocacaoVM.Alocacao;
 import ispd.policy.alocacaoVM.CarregarAlloc;
 import ispd.policy.alocacaoVM.VMM;
@@ -18,6 +18,7 @@ import ispd.policy.escalonadorCloud.EscalonadorCloud;
 import ispd.policy.escalonadorCloud.MestreCloud;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,7 +37,8 @@ public class CS_VMM extends CS_Processamento
     private boolean escDisponivel = false;
     private boolean alocDisponivel = true;
     private int tipoEscalonamento = MestreCloud.ENQUANTO_HOUVER_TAREFAS;
-    private int tipoAlocacao = PolicyMaster.ENQUANTO_HOUVER_VMS;
+    private EnumSet<PolicyCondition> tipoAlocacao =
+            EnumSet.of(PolicyCondition.WHILE_THERE_ARE_RESOURCES);
     private List<List> caminhoEscravo = null;
     private List<List> caminhoVMs = null;
     private Simulation simulacao = null;
@@ -174,7 +176,7 @@ public class CS_VMM extends CS_Processamento
                     cliente.getCaminho().remove(0), cliente);
             // Event adicionado a lista de evntos futuros
             simulacao.addFutureEvent(evtFut);
-            if (this.tipoAlocacao == PolicyMaster.ENQUANTO_HOUVER_VMS || this.tipoAlocacao == PolicyMaster.DOISCASOS) {
+            if (this.tipoAlocacao.contains(PolicyCondition.WHILE_THERE_ARE_RESOURCES)) {
                 if (this.alocadorVM.getMaquinasVirtuais().isEmpty()) {
                     this.alocDisponivel = true;
                 } else {
@@ -402,6 +404,49 @@ public class CS_VMM extends CS_Processamento
         // | Templates.
     }
 
+    @Override
+    public void executePolicy() {
+        final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
+                FutureEvent.ALOCAR_VMS, this, null);
+        // Event adicionado a lista de evntos futuros
+        this.simulacao.addFutureEvent(evtFut);
+    }
+
+    @Override
+    public void sendMessage(final Tarefa task, final CS_Processamento machine,
+                            final int messageType) {
+        throw new UnsupportedOperationException("Not supported yet."); // To
+        // change body of generated methods, choose Tools
+        // | Templates.
+    }
+
+    @Override
+    public void updateSubordinate(final CS_Processamento subordinate) {
+        throw new UnsupportedOperationException("Not supported yet."); // To
+        // change body of generated methods, choose Tools
+        // | Templates.
+    }
+
+    @Override
+    public EnumSet<PolicyCondition> getPolicyCondition() {
+        return this.tipoAlocacao;
+    }
+
+    @Override
+    public void setPolicyCondition(final EnumSet<PolicyCondition> newPolicyCondition) {
+        this.tipoAlocacao = newPolicyCondition;
+    }
+
+    @Override
+    public Simulation getSimulation() {
+        return this.simulacao;
+    }
+
+    @Override
+    public void setSimulation(final Simulation newSimulation) {
+        this.simulacao = newSimulation;
+    }
+
     // métodos do Mestre
     @Override
     public void enviarTarefa(final Tarefa tarefa) {
@@ -498,49 +543,6 @@ public class CS_VMM extends CS_Processamento
                 FutureEvent.SAIDA, this, tarefa);
         // Event adicionado a lista de evntos futuros
         this.simulacao.addFutureEvent(evtFut);
-    }
-
-    @Override
-    public void executePolicy() {
-        final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
-                FutureEvent.ALOCAR_VMS, this, null);
-        // Event adicionado a lista de evntos futuros
-        this.simulacao.addFutureEvent(evtFut);
-    }
-
-    @Override
-    public void sendMessage(final Tarefa task, final CS_Processamento machine,
-                            final int messageType) {
-        throw new UnsupportedOperationException("Not supported yet."); // To
-        // change body of generated methods, choose Tools
-        // | Templates.
-    }
-
-    @Override
-    public void updateSubordinate(final CS_Processamento subordinate) {
-        throw new UnsupportedOperationException("Not supported yet."); // To
-        // change body of generated methods, choose Tools
-        // | Templates.
-    }
-
-    @Override
-    public int getPolicyCondition() {
-        return this.tipoAlocacao;
-    }
-
-    @Override
-    public void setPolicyCondition(final int newPolicyCondition) {
-        this.tipoAlocacao = newPolicyCondition;
-    }
-
-    @Override
-    public Simulation getSimulation() {
-        return this.simulacao;
-    }
-
-    @Override
-    public void setSimulation(final Simulation newSimulation) {
-        this.simulacao = newSimulation;
     }
 
     public void atualizar(final CentroServico escravo, final Double time) {
