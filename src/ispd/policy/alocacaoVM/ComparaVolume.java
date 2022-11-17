@@ -1,27 +1,20 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ispd.policy.alocacaoVM;
 
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 
+import java.io.Serializable;
+import java.util.Comparator;
 
-/**
- *
- * @author Diogo Tavares
- */
-public class ComparaVolume implements java.util.Comparator {
-    
-
+public class ComparaVolume implements
+        Comparator<CS_MaquinaCloud>, Serializable {
     @Override
-    public int compare(Object t1, Object t2) {
-        CS_MaquinaCloud aux1 = (CS_MaquinaCloud) t1;
-        CS_MaquinaCloud aux2 = (CS_MaquinaCloud) t2;
-        int valor1 = aux1.getProcessadoresDisponiveis()*100 * (int) aux1.getMemoriaDisponivel()*100 * (int) aux1.getDiscoDisponivel()*100;
-        int valor2 = aux2.getProcessadoresDisponiveis()*100 * (int) aux2.getMemoriaDisponivel()*100 * (int) aux2.getDiscoDisponivel()*100;
-        return (valor1 - valor2);
+    public int compare(final CS_MaquinaCloud t1, final CS_MaquinaCloud t2) {
+        return (ComparaVolume.getValue(t1) - ComparaVolume.getValue(t2));
     }
-    
+
+    private static int getValue(final CS_MaquinaCloud m) {
+        return m.getProcessadoresDisponiveis() * 100
+               * (int) m.getMemoriaDisponivel() * 100
+               * (int) m.getDiscoDisponivel() * 100;
+    }
 }
