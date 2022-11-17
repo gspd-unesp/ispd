@@ -11,19 +11,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 public abstract class EscalonadorCloud {
-
     protected List<CS_Processamento> escravos;
-    protected List<CS_Processamento> maqFisicas;
-    protected List<List> filaEscravo;
     protected List<Tarefa> tarefas;
     protected MetricasUsuarios metricaUsuarios;
     protected MestreCloud mestre;
-    /**
-     * Armazena os caminhos possiveis para alcançar cada escravo
-     */
     protected List<List> caminhoEscravo;
+    protected List<CS_Processamento> maqFisicas;
+    protected List<List> filaEscravo;
     protected List<List> caminhoMaquinas;
-
 
     public abstract void iniciar();
 
@@ -45,11 +40,6 @@ public abstract class EscalonadorCloud {
 
     public List<CS_Processamento> getEscravos() {
         return escravos;
-        //System.out.println ("Retorna escravos");
-    }
-
-    public void setCaminhoEscravo(List<List> caminhoEscravo) {
-        this.caminhoEscravo = caminhoEscravo;
     }
 
     public void addEscravo(final CS_Processamento vm) {
@@ -94,12 +84,12 @@ public abstract class EscalonadorCloud {
         this.caminhoMaquinas = caminhoMaquinas;
     }
 
-
-
-
-
     public List<List> getCaminhoEscravo() {
         return caminhoEscravo;
+    }
+
+    public void setCaminhoEscravo(List<List> caminhoEscravo) {
+        this.caminhoEscravo = caminhoEscravo;
     }
 
     protected List<CS_Processamento> getVMsAdequadas(
@@ -116,13 +106,6 @@ public abstract class EscalonadorCloud {
         return escravosUsuario;
     }
 
-    /**
-     * Indica o intervalo de tempo utilizado pelo escalonador para realizar
-     * atualização dos dados dos escravos Retornar null para escalonadores
-     * estáticos, nos dinâmicos o método deve ser reescrito
-     *
-     * @return Intervalo em segundos para atualização
-     */
     public Double getTempoAtualizar() {
         return null;
     }
