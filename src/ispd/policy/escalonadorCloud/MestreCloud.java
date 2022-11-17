@@ -9,25 +9,23 @@ import ispd.motor.filas.servidores.CS_Processamento;
  * os métodos desta interface são utilizados pelos escalonadores
  */
 public interface MestreCloud {
-    int ENQUANTO_HOUVER_TAREFAS = 1;
-    int QUANDO_RECEBE_RESULTADO = 2;
-    int AMBOS = 3;
+    //Tipos de escalonamentos
+    public static final int ENQUANTO_HOUVER_TAREFAS = 1;
+    public static final int QUANDO_RECEBE_RESULTADO = 2;
+    public static final int AMBOS = 3;
+    //Métodos que geram eventos
+    public void enviarTarefa(Tarefa tarefa);
+    public void processarTarefa(Tarefa tarefa);
+    public void executarEscalonamento();
+    public void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo);
+    public void atualizar(CS_Processamento escravo);
 
-    void enviarTarefa(Tarefa tarefa);
+    //Get e Set
+    public void liberarEscalonador();
+    public void setSimulacao(Simulation simulacao);
+    public int getTipoEscalonamento();
+    public void setTipoEscalonamento(int tipo);
 
-    void executarEscalonamento();
-
-    void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo);
-
-    void atualizar(CS_Processamento escravo);
-
-    void liberarEscalonador();
-
-    // TODO: Again, Interpretador
-    @SuppressWarnings("unused")
-    void setTipoEscalonamento(int tipo);
-
-    Simulation getSimulacao();
-
-    void setSimulacao(Simulation simulacao);
+    public Tarefa criarCopia(Tarefa get);
+    public Simulation getSimulacao();
 }

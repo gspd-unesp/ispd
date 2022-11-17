@@ -232,6 +232,17 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     }
 
     @Override
+    public void processarTarefa(Tarefa tarefa) {
+        tarefa.iniciarEsperaProcessamento(simulacao.getTime(this));
+        FutureEvent evtFut = new FutureEvent(
+                simulacao.getTime(this),
+                FutureEvent.ATENDIMENTO,
+                this, tarefa);
+        //Event adicionado a lista de evntos futuros
+        simulacao.addFutureEvent(evtFut);
+    }
+
+    @Override
     public void executarEscalonamento() {
         FutureEvent evtFut = new FutureEvent(
                 simulacao.getTime(this),
@@ -337,8 +348,20 @@ public class CS_Mestre extends CS_Processamento implements Mestre, Mensagens, Ve
     }
 
     @Override
+    public int getTipoEscalonamento() {
+        return tipoEscalonamento;
+    }
+
+    @Override
     public void setTipoEscalonamento(int tipo) {
         tipoEscalonamento = tipo;
+    }
+
+    @Override
+    public Tarefa criarCopia(Tarefa get) {
+        Tarefa tarefa = new Tarefa(get);
+        simulacao.addJob(tarefa);
+        return tarefa;
     }
 
     @Override

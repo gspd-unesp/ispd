@@ -22,6 +22,8 @@ import ispd.motor.filas.servidores.CentroServico;
 
 import java.util.ArrayList;
 import java.util.List;
+import ispd.policy.alocacaoVM.CarregarAlloc;
+import ispd.motor.filas.TarefaVM;
 
 /**
  *
@@ -247,6 +249,12 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
+  public void processarTarefa(Tarefa tarefa) {
+    throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose Tools
+                                                                   // | Templates.
+  }
+
+  @Override
   public void executarEscalonamento() {
     System.out.println(this.getId() + " solicitando escalonamento");
     FutureEvent evtFut = new FutureEvent(simulacao.getTime(this), FutureEvent.ESCALONAR, this, null);
@@ -367,12 +375,25 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
     }
 
     alocadorVM.setCaminhoMaquinas(caminhoEscravo);
+    escalonador.setMaqFisicas(escravos);
     escalonador.setCaminhoMaquinas(caminhoEscravo);
+  }
+
+  @Override
+  public int getTipoEscalonamento() {
+    return tipoEscalonamento;
   }
 
   @Override
   public void setTipoEscalonamento(int tipo) {
     tipoEscalonamento = tipo;
+  }
+
+  @Override
+  public Tarefa criarCopia(Tarefa get) {
+    Tarefa tarefa = new Tarefa(get);
+    simulacao.addJob(tarefa);
+    return tarefa;
   }
 
   @Override
@@ -436,8 +457,35 @@ public class CS_VMM extends CS_Processamento implements VMM, MestreCloud, Mensag
   }
 
   @Override
+  public void enviarMensagemAlloc(Tarefa tarefa, CS_Processamento maquina, int tipo) {
+    throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose Tools
+                                                                   // | Templates.
+  }
+
+  @Override
+  public void atualizarAlloc(CS_Processamento maquina) {
+    throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose Tools
+                                                                   // | Templates.
+  }
+
+  @Override
   public void setSimulacaoAlloc(Simulation simulacao) {
     this.simulacao = simulacao;
+  }
+
+  @Override
+  public int getTipoAlocacao() {
+    return this.tipoAlocacao;
+  }
+
+  @Override
+  public void setTipoAlocacao(int tipo) {
+    this.tipoAlocacao = tipo;
+  }
+
+  @Override
+  public Simulation getSimulacaoAlloc() {
+    return this.simulacao;
   }
 
   public void instanciarCaminhosVMs() {

@@ -7,20 +7,13 @@ import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import java.util.List;
 
 public abstract class Alocacao {
-    /**
-     * List of "Slaves".
-     */
-    protected List<CS_Processamento> maquinasFisicas = null;
-    /**
-     * List of Virtual Machine "Tasks".
-     */
-    protected List<CS_VirtualMac> maquinasVirtuais = null;
-    /**
-     * VMM responsible for implementing allocation policy.
-     */
-    protected VMM VMM = null;
-    protected List<CS_VirtualMac> VMsRejeitadas = null;
-    protected List<List> caminhoMaquina = null;
+    protected List<CS_Processamento> maquinasFisicas; //lista de "escravos"
+    protected List<List> infoMaquinas; // lista de informações armazenada
+    // sobre cada máquina física
+    protected List<CS_VirtualMac> maquinasVirtuais; //lista de vms "tarefas"
+    protected VMM VMM; //vmm responsável por implementar a política de alocação
+    protected List<CS_VirtualMac> VMsRejeitadas;
+    protected List<List> caminhoMaquina;
 
     /**
      * Begin the allocation.
@@ -54,12 +47,18 @@ public abstract class Alocacao {
      */
     public abstract void escalonar();
 
+    public abstract void migrarVM();
+
     public void addVM(final CS_VirtualMac vm) {
         this.maquinasVirtuais.add(vm);
     }
 
     public List<CS_Processamento> getMaquinasFisicas() {
         return this.maquinasFisicas;
+    }
+
+    public void setMaquinasFisicas(final List<CS_Processamento> maquinasFisicas) {
+        this.maquinasFisicas = maquinasFisicas;
     }
 
     public void addMaquinaFisica(final CS_Processamento maq) {
@@ -70,6 +69,10 @@ public abstract class Alocacao {
         return this.maquinasVirtuais;
     }
 
+    public void setMaquinasVirtuais(final List<CS_VirtualMac> maquinasVirtuais) {
+        this.maquinasVirtuais = maquinasVirtuais;
+    }
+
     public VMM getVMM() {
         return this.VMM;
     }
@@ -78,11 +81,28 @@ public abstract class Alocacao {
         this.VMM = hypervisor;
     }
 
+    public List<List> getCaminhoMaquinas() {
+        return this.caminhoMaquina;
+    }
+
     public void setCaminhoMaquinas(final List<List> caminhoMaquinas) {
         this.caminhoMaquina = caminhoMaquinas;
     }
 
     public List<CS_VirtualMac> getVMsRejeitadas() {
         return this.VMsRejeitadas;
+    }
+
+
+    /**
+     * Indica o intervalo de tempo utilizado pelo escalonador para realizar
+     * atualização dos dados dos escravos
+     * Retornar null para escalonadores estáticos, nos dinâmicos o método
+     * deve ser reescrito
+     *
+     * @return Intervalo em segundos para atualização
+     */
+    public Double getTempoAtualizar() {
+        return null;
     }
 }

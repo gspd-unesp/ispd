@@ -9,24 +9,21 @@ import ispd.motor.filas.servidores.CS_Processamento;
  * os métodos desta interface são utilizados pelos escalonadores
  */
 public interface Mestre {
-    int ENQUANTO_HOUVER_TAREFAS = 1;
-    int QUANDO_RECEBE_RESULTADO = 2;
-    int AMBOS = 3;
-
-    void enviarTarefa(Tarefa tarefa);
-
-    void executarEscalonamento();
-
-    void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo);
-
-    void atualizar(CS_Processamento escravo);
-
-    // TODO: Figure out how to deal with Interpretador's shenanigans
-    @SuppressWarnings("unused")
-    void setTipoEscalonamento(int tipo);
-
-    Simulation getSimulacao();
-
+    //Tipos de escalonamentos
+    public static final int ENQUANTO_HOUVER_TAREFAS = 1;
+    public static final int QUANDO_RECEBE_RESULTADO = 2;
+    public static final int AMBOS = 3;
+    //Métodos que geram eventos
+    public void enviarTarefa(Tarefa tarefa);
+    public void processarTarefa(Tarefa tarefa);
+    public void executarEscalonamento();
+    public void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo);
+    public void atualizar(CS_Processamento escravo);
     //Get e Set
-    void setSimulacao(Simulation simulacao);
+    public void setSimulacao(Simulation simulacao);
+    public int getTipoEscalonamento();
+    public void setTipoEscalonamento(int tipo);
+
+    public Tarefa criarCopia(Tarefa get);
+    public Simulation getSimulacao();
 }

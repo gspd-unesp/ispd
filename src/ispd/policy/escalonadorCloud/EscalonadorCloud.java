@@ -13,15 +13,17 @@ import java.util.List;
 public abstract class EscalonadorCloud {
 
     protected List<CS_Processamento> escravos;
+    protected List<CS_Processamento> maqFisicas;
+    protected List<List> filaEscravo;
     protected List<Tarefa> tarefas;
+    protected MetricasUsuarios metricaUsuarios;
     protected MestreCloud mestre;
     /**
      * Armazena os caminhos possiveis para alcançar cada escravo
      */
     protected List<List> caminhoEscravo;
     protected List<List> caminhoMaquinas;
-    private List<List> filaEscravo;
-    private MetricasUsuarios metricaUsuarios;
+
 
     public abstract void iniciar();
 
@@ -42,7 +44,12 @@ public abstract class EscalonadorCloud {
     }
 
     public List<CS_Processamento> getEscravos() {
-        return this.escravos;
+        return escravos;
+        //System.out.println ("Retorna escravos");
+    }
+
+    public void setCaminhoEscravo(List<List> caminhoEscravo) {
+        this.caminhoEscravo = caminhoEscravo;
     }
 
     public void addEscravo(final CS_Processamento vm) {
@@ -71,12 +78,28 @@ public abstract class EscalonadorCloud {
         this.mestre = mestre;
     }
 
-    public void setCaminhoMaquinas(final List<List> caminhoMaquinas) {
+    public List<CS_Processamento> getMaqFisicas() {
+        return maqFisicas;
+    }
+
+    public void setMaqFisicas(List<CS_Processamento> maqFisicas) {
+        this.maqFisicas = maqFisicas;
+    }
+
+    public List<List> getCaminhoMaquinas() {
+        return caminhoMaquinas;
+    }
+
+    public void setCaminhoMaquinas(List<List> caminhoMaquinas) {
         this.caminhoMaquinas = caminhoMaquinas;
     }
 
-    public void setCaminhoEscravo(final List<List> caminhoEscravo) {
-        this.caminhoEscravo = caminhoEscravo;
+
+
+
+
+    public List<List> getCaminhoEscravo() {
+        return caminhoEscravo;
     }
 
     protected List<CS_Processamento> getVMsAdequadas(
