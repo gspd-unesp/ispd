@@ -16,6 +16,7 @@ import ispd.policy.alocacaoVM.ComparaVolume;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -51,7 +52,7 @@ public class Volume extends Alocacao {
         Collections.sort(VMsOrdenadas, comparaReq); //ordena vms
         Collections.reverse(VMsOrdenadas);//deixa a ordenação decrescente
         MaqsOrdenadas = new ArrayList<CS_Processamento>(maquinasFisicas);
-        Collections.sort(MaqsOrdenadas,comparaRec);//ordena recursos por volume
+        Collections.sort(MaqsOrdenadas,(Comparator) comparaRec);//ordena recursos por volume
         Collections.reverse(MaqsOrdenadas); //deixa a ordenação decrescente
         
         if(!maquinasFisicas.isEmpty() && !maquinasVirtuais.isEmpty()){
@@ -166,7 +167,7 @@ public class Volume extends Alocacao {
     }
     
     public void atualizarVolume(){
-        Collections.sort(MaqsOrdenadas,comparaRec);
+        Collections.sort(MaqsOrdenadas,(Comparator)comparaRec);
         Collections.reverse(infoMaquinas);
     }
     
