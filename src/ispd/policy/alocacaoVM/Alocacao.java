@@ -7,11 +7,10 @@ import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import java.util.List;
 
 public abstract class Alocacao {
-    protected List<CS_Processamento> maquinasFisicas; //lista de "escravos"
-    protected List<List> infoMaquinas; // lista de informações armazenada
-    // sobre cada máquina física
-    protected List<CS_VirtualMac> maquinasVirtuais; //lista de vms "tarefas"
-    protected VMM VMM; //vmm responsável por implementar a política de alocação
+    protected List<CS_Processamento> maquinasFisicas;
+    protected List<List> infoMaquinas;
+    protected List<CS_VirtualMac> maquinasVirtuais;
+    protected VMM VMM;
     protected List<CS_VirtualMac> VMsRejeitadas;
     protected List<List> caminhoMaquina;
 
