@@ -17,19 +17,19 @@ public interface Mestre {
 
     void processarTarefa(Tarefa tarefa);
 
-    void executarEscalonamento();
+    void executePolicy();
 
-    void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo);
+    void sendMessage(Tarefa task, CS_Processamento machine, int messageType);
 
-    void atualizar(CS_Processamento escravo);
+    void updateSubordinate(CS_Processamento subordinate);
 
-    int getTipoEscalonamento();
+    int getPolicyCondition();
 
-    void setTipoEscalonamento(int tipo);
+    void setPolicyCondition(int newPolicyCondition);
 
     Tarefa criarCopia(Tarefa get);
 
-    Simulation getSimulacao();
+    Simulation getSimulation();
 
-    void setSimulacao(Simulation simulacao);
+    void setSimulation(Simulation newSimulation);
 }

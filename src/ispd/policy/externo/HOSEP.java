@@ -78,7 +78,7 @@ public class HOSEP extends Escalonador {
     @Override
     public void iniciar() {
         //Escalonamento quando chegam tarefas e quando tarefas são concluídas
-        this.mestre.setTipoEscalonamento(Mestre.AMBOS);
+        this.mestre.setPolicyCondition(Mestre.AMBOS);
         
         //Objetos de controle de uso e cota para cada um dos usuários
         for (int i = 0; i < metricaUsuarios.getUsuarios().size(); i++) {
@@ -279,7 +279,7 @@ public class HOSEP extends Escalonador {
                         esperaTarefas.add(tar);
 
                         //Solicitação de retorno da tarefa em execução e atualização da demanda do usuário
-                        mestre.enviarMensagem((Tarefa) controleEscravos.get(indexEscravo).GetProcessador().get(0), escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
+                        mestre.sendMessage((Tarefa) controleEscravos.get(indexEscravo).GetProcessador().get(0), escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
                         controleEscravos.get(indexEscravo).setBloqueado();
                         cliente.rmDemanda();
                         return;

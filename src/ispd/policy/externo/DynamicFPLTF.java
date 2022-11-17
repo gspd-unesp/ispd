@@ -146,7 +146,7 @@ public class DynamicFPLTF extends Escalonador {
                     if (tempoTornaDisponivel.get(i) - custo > 0) {
                         tempoTornaDisponivel.set(i, tempoTornaDisponivel.get(i) - custo);
                     }
-                    mestre.enviarMensagem(trf, escravo, Mensagens.DEVOLVER);
+                    mestre.sendMessage(trf, escravo, Mensagens.DEVOLVER);
                 }
                 filaEscravo.get(i).clear();
             }

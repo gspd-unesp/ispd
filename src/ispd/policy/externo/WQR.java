@@ -134,7 +134,7 @@ public class WQR extends Escalonador {
             Tarefa trf = escalonarTarefa();
             if(trf != null){
                 if(tarefaEnviada.get(escravos.indexOf(rec)) != null){
-                    mestre.enviarMensagem(tarefaEnviada.get(escravos.indexOf(rec)), rec, Mensagens.CANCELAR);
+                    mestre.sendMessage(tarefaEnviada.get(escravos.indexOf(rec)), rec, Mensagens.CANCELAR);
                 }else{
                     servidoresOcupados++;
                 }
@@ -150,7 +150,7 @@ public class WQR extends Escalonador {
         if(servidoresOcupados > 0 && servidoresOcupados < escravos.size() && tarefas.isEmpty() && !sair){
             for (Tarefa tar : tarefaEnviada) {
                 if(tar != null && tar.getOrigem().equals(mestre)){
-                    mestre.executarEscalonamento();
+                    mestre.executePolicy();
                     break;
                 }
             }
@@ -167,14 +167,14 @@ public class WQR extends Escalonador {
         }
         for(int i = 0; i < tarefaEnviada.size(); i++){
             if(tarefaEnviada.get(i) != null && tarefaEnviada.get(i).isCopyOf(tarefa)){
-                mestre.enviarMensagem(tarefaEnviada.get(i), escravos.get(i), Mensagens.CANCELAR);
+                mestre.sendMessage(tarefaEnviada.get(i), escravos.get(i), Mensagens.CANCELAR);
                 servidoresOcupados--;
                 tarefaEnviada.set(i,null);
             }
         }
         this.ultimaTarefaConcluida = tarefa;
         if((servidoresOcupados > 0 && servidoresOcupados < escravos.size()) || !tarefas.isEmpty()){
-                mestre.executarEscalonamento();
+                mestre.executePolicy();
         }
     }
 

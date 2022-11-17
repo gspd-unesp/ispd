@@ -78,7 +78,7 @@ public class OSEP extends Escalonador {
 
     @Override
     public void iniciar() {
-        this.mestre.setTipoEscalonamento(Mestre.AMBOS);//Escalonamento quando chegam tarefas e quando tarefas são concluídas
+        this.mestre.setPolicyCondition(Mestre.AMBOS);//Escalonamento quando chegam tarefas e quando tarefas são concluídas
         status = new HashMap<>();
 
         for (int i = 0; i < metricaUsuarios.getUsuarios().size(); i++) {//Objetos de controle de uso e cota para cada um dos usuários
@@ -219,7 +219,7 @@ public class OSEP extends Escalonador {
             selec = escravos.get(index);
             int index_selec = escravos.indexOf(selec);
             //controleEscravos.get(escravos.indexOf(selec)).setBloqueado();
-            mestre.enviarMensagem((Tarefa) processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
+            mestre.sendMessage((Tarefa) processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
             return selec;
         }
         return null;
@@ -258,7 +258,7 @@ public class OSEP extends Escalonador {
             }
             contadorEscravos = 0;
             if (tarefas.size() > 0 && escalona) {
-                mestre.executarEscalonamento();
+                mestre.executePolicy();
             }
         }
     }
@@ -372,7 +372,7 @@ public class OSEP extends Escalonador {
             //}
         } else {
             //System.out.println("Tarefa " + tarefa.getIdentificador() + " do user " + tarefa.getProprietario() + " chegou " + mestre.getSimulacao().getTime());
-            mestre.executarEscalonamento();
+            mestre.executePolicy();
             estadoUser.addDemanda();
         }
     }
