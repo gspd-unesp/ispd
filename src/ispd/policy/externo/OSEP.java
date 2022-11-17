@@ -44,10 +44,11 @@ import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.PolicyCondition;
 import ispd.policy.escalonador.Escalonador;
-import ispd.policy.escalonador.Mestre;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 
@@ -78,7 +79,7 @@ public class OSEP extends Escalonador {
 
     @Override
     public void iniciar() {
-        this.mestre.setPolicyCondition(Mestre.AMBOS);//Escalonamento quando chegam tarefas e quando tarefas são concluídas
+        this.mestre.setPolicyCondition(EnumSet.allOf(PolicyCondition.class));//Escalonamento quando chegam tarefas e quando tarefas são concluídas
         status = new HashMap<>();
 
         for (int i = 0; i < metricaUsuarios.getUsuarios().size(); i++) {//Objetos de controle de uso e cota para cada um dos usuários

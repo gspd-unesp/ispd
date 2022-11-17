@@ -44,11 +44,13 @@ import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.PolicyCondition;
 import ispd.policy.escalonador.Escalonador;
 import ispd.policy.escalonador.Mestre;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -78,7 +80,7 @@ public class HOSEP extends Escalonador {
     @Override
     public void iniciar() {
         //Escalonamento quando chegam tarefas e quando tarefas são concluídas
-        this.mestre.setPolicyCondition(Mestre.AMBOS);
+        this.mestre.setPolicyCondition(EnumSet.allOf(PolicyCondition.class));
         
         //Objetos de controle de uso e cota para cada um dos usuários
         for (int i = 0; i < metricaUsuarios.getUsuarios().size(); i++) {

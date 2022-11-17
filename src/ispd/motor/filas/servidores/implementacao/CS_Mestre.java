@@ -8,11 +8,13 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.PolicyCondition;
 import ispd.policy.escalonador.Carregar;
 import ispd.policy.escalonador.Escalonador;
 import ispd.policy.escalonador.Mestre;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,7 +26,7 @@ public class CS_Mestre extends CS_Processamento
     private final List<Tarefa> filaTarefas = new ArrayList<>();
     private boolean maqDisponivel = true;
     private boolean escDisponivel = true;
-    private int tipoEscalonamento = Mestre.ENQUANTO_HOUVER_TAREFAS;
+    private EnumSet<PolicyCondition> tipoEscalonamento = EnumSet.of(PolicyCondition.WHILE_THERE_ARE_RESOURCES);
     private Simulation simulacao = null;
 
     public CS_Mestre(final String id, final String owner,
@@ -54,7 +56,7 @@ public class CS_Mestre extends CS_Processamento
                     simulacao.addFutureEvent(evtFut);
                 }
                 this.escalonador.addTarefaConcluida(cliente);
-                if (this.tipoEscalonamento == Mestre.QUANDO_RECEBE_RESULTADO || this.tipoEscalonamento == Mestre.AMBOS) {
+                if (this.tipoEscalonamento.contains(PolicyCondition.WHEN_RECEIVES_RETURN)) {
                     if (this.escalonador.getFilaTarefas().isEmpty()) {
                         this.escDisponivel = true;
                     } else {
@@ -130,7 +132,7 @@ public class CS_Mestre extends CS_Processamento
                     cliente.getCaminho().remove(0), cliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addFutureEvent(evtFut);
-            if (this.tipoEscalonamento == Mestre.ENQUANTO_HOUVER_TAREFAS || this.tipoEscalonamento == Mestre.AMBOS) {
+            if (this.tipoEscalonamento.contains(PolicyCondition.WHILE_THERE_ARE_RESOURCES)) {
                 //se fila de tarefas do servidor não estiver vazia escalona
                 // proxima tarefa
                 if (this.escalonador.getFilaTarefas().isEmpty()) {
@@ -437,12 +439,12 @@ public class CS_Mestre extends CS_Processamento
     }
 
     @Override
-    public int getPolicyCondition() {
+    public EnumSet<PolicyCondition> getPolicyCondition() {
         return this.tipoEscalonamento;
     }
 
     @Override
-    public void setPolicyCondition(final int newPolicyCondition) {
+    public void setPolicyCondition(final EnumSet<PolicyCondition> newPolicyCondition) {
         this.tipoEscalonamento = newPolicyCondition;
     }
 
