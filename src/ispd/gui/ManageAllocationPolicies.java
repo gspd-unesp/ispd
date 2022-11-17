@@ -117,12 +117,12 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private JFileChooser configuredFileChooser() {
-        final var fileChooser = new JFileChooser();
-        fileChooser.setAcceptAllFileFilterUsed(false);
-        fileChooser.setFileFilter(new MultipleExtensionFileFilter(
+        final var chooser = new JFileChooser();
+        chooser.setAcceptAllFileFilterUsed(false);
+        chooser.setFileFilter(new MultipleExtensionFileFilter(
                 this.translate("Java Source Files (. java)"), ".java", true
         ));
-        return fileChooser;
+        return chooser;
     }
 
     private String translate(final String cut) {
