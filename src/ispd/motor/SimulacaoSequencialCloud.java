@@ -24,7 +24,7 @@ import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.metricas.MetricasGlobais;
-import ispd.policy.alocacaoVM.VMM;
+import ispd.policy.PolicyMaster;
 import ispd.policy.escalonadorCloud.MestreCloud;
 
 import java.awt.Color;
@@ -69,7 +69,7 @@ public class SimulacaoSequencialCloud extends Simulation {
         System.out.println("---------------------------------------");
 
         for (final var mst : redeDeFilas.getMestres()) {
-            final var temp = (VMM) mst;
+            final var temp = (PolicyMaster) mst;
             final var aux = (MestreCloud) mst;
             aux.setSimulacao(this);
             temp.setSimulation(this);
