@@ -16,17 +16,17 @@ public interface VMM {
 
     void enviarVM(CS_VirtualMac vm);
 
-    void executarAlocacao();
+    void executePolicy();
 
-    void enviarMensagemAlloc(Tarefa tarefa, CS_Processamento maquina, int tipo);
+    void sendMessage(Tarefa task, CS_Processamento machine, int messageType);
 
-    void atualizarAlloc(CS_Processamento maquina);
+    void updateSubordinate(CS_Processamento subordinate);
 
-    int getTipoAlocacao();
+    int getPolicyCondition();
 
-    void setTipoAlocacao(int tipo);
+    void setPolicyCondition(int newPolicyCondition);
 
-    Simulation getSimulacaoAlloc();
+    Simulation getSimulation();
 
-    void setSimulacaoAlloc(Simulation simulacao);
+    void setSimulation(Simulation newSimulation);
 }
