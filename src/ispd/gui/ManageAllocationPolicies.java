@@ -87,14 +87,6 @@ class ManageAllocationPolicies extends JFrame {
         this.updatePolicyList();
     }
 
-    private void configureTextEditor() {
-        this.textEditor.configurarTextComponent(this.textPane);
-
-        final var doc = this.textPane.getDocument();
-        doc.addUndoableEditListener(this::onUndoableEvent);
-        doc.addDocumentListener(new PendingChangesDocListener());
-    }
-
     private static JTextPane disabledTextPane() {
         final var tp = new JTextPane();
         tp.setEnabled(false);
@@ -114,6 +106,14 @@ class ManageAllocationPolicies extends JFrame {
         }
 
         return menuBar;
+    }
+
+    private void configureTextEditor() {
+        this.textEditor.configurarTextComponent(this.textPane);
+
+        final var doc = this.textPane.getDocument();
+        doc.addUndoableEditListener(this::onUndoableEvent);
+        doc.addDocumentListener(new PendingChangesDocListener());
     }
 
     private JFileChooser configuredFileChooser() {
