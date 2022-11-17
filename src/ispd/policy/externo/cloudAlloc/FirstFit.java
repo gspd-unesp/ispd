@@ -15,12 +15,8 @@ import ispd.policy.alocacaoVM.Alocacao;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author Diogo Tavares
- */
+@SuppressWarnings("unused")
 public class FirstFit extends Alocacao {
-
     private boolean fit;
     private int maqIndex;
 
@@ -28,107 +24,99 @@ public class FirstFit extends Alocacao {
         this.maquinasVirtuais = new ArrayList<CS_VirtualMac>();
         this.maquinasFisicas = new ArrayList<CS_Processamento>();
         this.VMsRejeitadas = new ArrayList<CS_VirtualMac>();
-
     }
 
     @Override
     public void iniciar() {
-        fit = true;
-        maqIndex = 0;
+        this.fit = true;
+        this.maqIndex = 0;
 
-        if (!maquinasFisicas.isEmpty() && !maquinasVirtuais.isEmpty()) {
-            escalonar();
+        if (!this.maquinasFisicas.isEmpty() && !this.maquinasVirtuais.isEmpty()) {
+            this.escalonar();
         }
     }
 
     @Override
     public CS_VirtualMac escalonarVM() {
-        return maquinasVirtuais.remove(0);
+        return this.maquinasVirtuais.remove(0);
     }
 
     @Override
     public CS_Processamento escalonarRecurso() {
-        if (fit) {
-            return maquinasFisicas.get(0);
-        } else {
-            return maquinasFisicas.get(maqIndex);
-        }
+        return this.maquinasFisicas.get(this.fit ? 0 : this.maqIndex);
     }
 
     @Override
-    public List<CentroServico> escalonarRota(CentroServico destino) {
-        int index = maquinasFisicas.indexOf(destino);
-        return new ArrayList<CentroServico>((List<CentroServico>) caminhoMaquina.get(index));
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final int index = this.maquinasFisicas.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoMaquina.get(index));
     }
 
     @Override
     public void escalonar() {
+        while (!(this.maquinasVirtuais.isEmpty())) {
+            var slaveCount = this.maquinasFisicas.size();
+            final var auxVM = this.escalonarVM();
 
-        while (!(maquinasVirtuais.isEmpty())) {
-            int num_escravos;
-            num_escravos = maquinasFisicas.size();
-
-            CS_VirtualMac auxVM = escalonarVM();
-
-            while (num_escravos >= 0) {
-                if (num_escravos > 0) { //caso existam máquinas livres
-                    CS_Processamento auxMaq = escalonarRecurso(); //escalona o recurso
-                    maqIndex++;
-
-                    if (auxMaq instanceof CS_VMM) {
-
-                        System.out.println(auxMaq.getId() + " é um VMM, a VM será redirecionada");
-                        auxVM.setCaminho(escalonarRota(auxMaq));
-                        //salvando uma lista de VMMs intermediarios no caminho da vm e seus respectivos caminhos
-                        //CS_VMM maq = (CS_VMM) auxMaq;
-                        //auxVM.addIntermediario(maq);
-                        //List<CS_VMM> inter = auxVM.getVMMsIntermediarios();
-                        //int index = inter.indexOf((CS_VMM) auxMaq);
-                        //ArrayList<CentroServico> caminhoInter = new ArrayList<CentroServico>(escalonarRota(auxMaq));
-                        //auxVM.addCaminhoIntermediario(index, caminhoInter);
-                        System.out.println(auxVM.getId() + " enviada para " + auxMaq.getId());
-                        VMM.enviarVM(auxVM);
-                        System.out.println("---------------------------------------");
-                        break;
-                    } else {
-                        CS_MaquinaCloud maq = (CS_MaquinaCloud) auxMaq;
-                        double memoriaMaq = maq.getMemoriaDisponivel();
-                        double memoriaNecessaria = auxVM.getMemoriaDisponivel();
-                        double discoMaq = maq.getDiscoDisponivel();
-                        double discoNecessario = auxVM.getDiscoDisponivel();
-                        int maqProc = maq.getProcessadoresDisponiveis();
-                        int procVM = auxVM.getProcessadoresDisponiveis();
-
-                        if ((memoriaNecessaria <= memoriaMaq && discoNecessario <= discoMaq && procVM <= maqProc)) {
-                            maq.setMemoriaDisponivel(memoriaMaq - memoriaNecessaria);
-                            maq.setDiscoDisponivel(discoMaq - discoNecessario);
-                            maq.setProcessadoresDisponiveis(maqProc - procVM);
-                            auxVM.setMaquinaHospedeira((CS_MaquinaCloud) auxMaq);
-                            auxVM.setCaminho(escalonarRota(auxMaq));
-                            VMM.enviarVM(auxVM);
-                            maqIndex = 0;
-                            fit = true;
-                            break;
-                        } else {
-                            num_escravos--;
-                            fit = false;
-                        }
-                    }
-                } else {
+            do {
+                if (slaveCount == 0) {
                     auxVM.setStatus(CS_VirtualMac.REJEITADA);
-                    VMsRejeitadas.add(auxVM);
-                    maqIndex = 0;
-                    num_escravos--;
+                    this.VMsRejeitadas.add(auxVM);
+                    this.maqIndex = 0;
+                    slaveCount--;
+                    continue;
                 }
 
-            }
-        }
+                final var auxMaq = this.escalonarRecurso();
+                this.maqIndex++;
 
+                if (auxMaq instanceof CS_VMM) {
+
+                    System.out.printf(
+                            "%s é um VMM, a VM será redirecionada\n",
+                            auxMaq.getId());
+                    auxVM.setCaminho(this.escalonarRota(auxMaq));
+                    System.out.printf("%s enviada para %s\n",
+                            auxVM.getId(), auxMaq.getId());
+                    this.VMM.enviarVM(auxVM);
+                    System.out.println(
+                            "---------------------------------------");
+                    break;
+                } else {
+                    final var maq = (CS_MaquinaCloud) auxMaq;
+                    final double memoriaMaq =
+                            maq.getMemoriaDisponivel();
+                    final double memoriaNecessaria =
+                            auxVM.getMemoriaDisponivel();
+                    final double discoMaq = maq.getDiscoDisponivel();
+                    final double discoNecessario =
+                            auxVM.getDiscoDisponivel();
+                    final int maqProc =
+                            maq.getProcessadoresDisponiveis();
+                    final int procVM =
+                            auxVM.getProcessadoresDisponiveis();
+
+                    if ((memoriaNecessaria <= memoriaMaq && discoNecessario <= discoMaq && procVM <= maqProc)) {
+                        maq.setMemoriaDisponivel(memoriaMaq - memoriaNecessaria);
+                        maq.setDiscoDisponivel(discoMaq - discoNecessario);
+                        maq.setProcessadoresDisponiveis(maqProc - procVM);
+                        auxVM.setMaquinaHospedeira((CS_MaquinaCloud) auxMaq);
+                        auxVM.setCaminho(this.escalonarRota(auxMaq));
+                        this.VMM.enviarVM(auxVM);
+                        this.maqIndex = 0;
+                        this.fit = true;
+                        break;
+                    } else {
+                        slaveCount--;
+                        this.fit = false;
+                    }
+                }
+            } while (slaveCount >= 0);
+        }
     }
 
     @Override
     public void migrarVM() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-
 }
