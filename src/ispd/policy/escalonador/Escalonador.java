@@ -9,22 +9,7 @@ import ispd.motor.metricas.MetricasUsuarios;
 import java.util.List;
 
 /**
- * Classe abstrata ue implementa os escalonadores.
- * <p>
- * lista de atributos:
- * <p>
- * protected {@code List<CS_Processamento>} escravos : Lista de escravos para
- * quem o
- * escalonador dele distribuir tarefas
- * protected {@code List<List>} filaEscravo : Lista que contem informações
- * sobre cada
- * escravo, utilizado em políticas dinâmicas.
- * protected {@code List<Tarefa>} tarefas : Lista de tarefas para serem
- * distribuídas
- * entre os escravos
- * protected MetricasUsuarios metricaUsuarios : Objeto que calcula métricas
- * sobre o escalonamento para os usuários
- * protected Mestre mestre :
+ * Abstract class to represent a scheduling policy
  */
 public abstract class Escalonador {
     protected List<CS_Processamento> escravos;
@@ -32,9 +17,6 @@ public abstract class Escalonador {
     protected List<Tarefa> tarefas;
     protected MetricasUsuarios metricaUsuarios;
     protected Mestre mestre;
-    /**
-     * Armazena os caminhos possiveis para alcançar cada escravo
-     */
     protected List<List> caminhoEscravo;
 
     public abstract void iniciar();
@@ -90,14 +72,6 @@ public abstract class Escalonador {
         this.mestre = mestre;
     }
 
-    /**
-     * Indica o intervalo de tempo utilizado pelo escalonador para realizar
-     * atualização dos dados dos escravos
-     * Retornar null para escalonadores estáticos, nos dinâmicos o method
-     * deve ser reescrito
-     *
-     * @return Intervalo em segundos para atualização
-     */
     public Double getTempoAtualizar() {
         return null;
     }
