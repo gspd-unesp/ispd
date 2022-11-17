@@ -12,14 +12,24 @@ public interface Mestre {
     int ENQUANTO_HOUVER_TAREFAS = 1;
     int QUANDO_RECEBE_RESULTADO = 2;
     int AMBOS = 3;
+
     void enviarTarefa(Tarefa tarefa);
+
     void processarTarefa(Tarefa tarefa);
+
     void executarEscalonamento();
+
     void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo);
+
     void atualizar(CS_Processamento escravo);
-    void setSimulacao(Simulation simulacao);
+
     int getTipoEscalonamento();
+
     void setTipoEscalonamento(int tipo);
+
     Tarefa criarCopia(Tarefa get);
+
     Simulation getSimulacao();
+
+    void setSimulacao(Simulation simulacao);
 }
