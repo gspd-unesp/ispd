@@ -509,8 +509,7 @@ class ManageAllocationPolicies extends JFrame {
         this.clearTextPaneContents();
 
         try {
-            this.textPane.getDocument()
-                    .insertString(0, code, null);
+            this.textPane.getDocument().insertString(0, code, null);
         } catch (final BadLocationException ignored) {
         }
 
