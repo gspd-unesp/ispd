@@ -539,7 +539,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void updateTitleWithNoFile() {
-        this.setTitle(this.translate("Manage Schedulers"));
+        this.setTitle(this.getWindowTitle());
     }
 
     private void updateTitleWithFileName(final String fileName) {
@@ -549,8 +549,12 @@ class ManageAllocationPolicies extends JFrame {
 
         this.setTitle("%s.java%s- %s".formatted(
                 fileName, afterFileName,
-                this.translate("Manage Schedulers")
+                this.getWindowTitle()
         ));
+    }
+
+    private String getWindowTitle() {
+        return this.translate("Manage Schedulers");
     }
 
     private void onSave(final ActionEvent evt) {
