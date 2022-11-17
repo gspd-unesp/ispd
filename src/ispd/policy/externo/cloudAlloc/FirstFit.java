@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ispd.policy.externo.cloudAlloc;
 
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -21,9 +16,9 @@ public class FirstFit extends Alocacao {
     private int maqIndex;
 
     public FirstFit() {
-        this.maquinasVirtuais = new ArrayList<CS_VirtualMac>();
-        this.maquinasFisicas = new ArrayList<CS_Processamento>();
-        this.VMsRejeitadas = new ArrayList<CS_VirtualMac>();
+        this.maquinasVirtuais = new ArrayList<>();
+        this.maquinasFisicas = new ArrayList<>();
+        this.VMsRejeitadas = new ArrayList<>();
     }
 
     @Override
@@ -71,7 +66,6 @@ public class FirstFit extends Alocacao {
                 this.maqIndex++;
 
                 if (auxMaq instanceof CS_VMM) {
-
                     System.out.printf(
                             "%s é um VMM, a VM será redirecionada\n",
                             auxMaq.getId());
@@ -84,27 +78,14 @@ public class FirstFit extends Alocacao {
                     break;
                 } else {
                     final var maq = (CS_MaquinaCloud) auxMaq;
-                    final double memoriaMaq =
-                            maq.getMemoriaDisponivel();
-                    final double memoriaNecessaria =
-                            auxVM.getMemoriaDisponivel();
-                    final double discoMaq = maq.getDiscoDisponivel();
-                    final double discoNecessario =
-                            auxVM.getDiscoDisponivel();
-                    final int maqProc =
-                            maq.getProcessadoresDisponiveis();
-                    final int procVM =
-                            auxVM.getProcessadoresDisponiveis();
-
-                    if ((memoriaNecessaria <= memoriaMaq && discoNecessario <= discoMaq && procVM <= maqProc)) {
-                        maq.setMemoriaDisponivel(memoriaMaq - memoriaNecessaria);
-                        maq.setDiscoDisponivel(discoMaq - discoNecessario);
-                        maq.setProcessadoresDisponiveis(maqProc - procVM);
-                        auxVM.setMaquinaHospedeira((CS_MaquinaCloud) auxMaq);
+                    if (FirstFit.canMachineFitVm(maq, auxVM)) {
+                        FirstFit.makeMachineHostVm(maq, auxVM);
                         auxVM.setCaminho(this.escalonarRota(auxMaq));
+
                         this.VMM.enviarVM(auxVM);
                         this.maqIndex = 0;
                         this.fit = true;
+
                         break;
                     } else {
                         slaveCount--;
@@ -113,6 +94,21 @@ public class FirstFit extends Alocacao {
                 }
             } while (slaveCount >= 0);
         }
+    }
+
+    private static boolean canMachineFitVm(
+            final CS_MaquinaCloud machine, final CS_VirtualMac vm) {
+        return vm.getMemoriaDisponivel() <= machine.getMemoriaDisponivel()
+               && vm.getDiscoDisponivel() <= machine.getDiscoDisponivel()
+               && vm.getProcessadoresDisponiveis() <= machine.getProcessadoresDisponiveis();
+    }
+
+    private static void makeMachineHostVm(
+            final CS_MaquinaCloud machine, final CS_VirtualMac vm) {
+        machine.setMemoriaDisponivel(machine.getMemoriaDisponivel() - vm.getMemoriaDisponivel());
+        machine.setDiscoDisponivel(machine.getDiscoDisponivel() - vm.getDiscoDisponivel());
+        machine.setProcessadoresDisponiveis(machine.getProcessadoresDisponiveis() - vm.getProcessadoresDisponiveis());
+        vm.setMaquinaHospedeira(machine);
     }
 
     @Override
