@@ -251,10 +251,10 @@ class Interpretador implements InterpretadorConstants {
                     + "        }\u005cn"
                     + "    }\u005cn"
                     + "    if(cont >= tarExecRec.size()){\u005cn"
-                    + "        mestre.setPolicyCondition(EnumSet.of(PolicyCondition.WHEN_RECEIVES_RETURN));\u005cn"
+                    + "        mestre.setPolicyCondition(mestre.QUANDO_RECEBE_RESULTADO);\u005cn"
                     + "        return false;\u005cn"
                     + "    }\u005cn"
-                    + "    mestre.setPolicyCondition(EnumSet.of(PolicyCondition.WHILE_THERE_ARE_RESOURCES));\u005cn"
+                    + "    mestre.setPolicyCondition(mestre.ENQUANTO_HOUVER_TAREFAS);\u005cn"
                     + "    return true;\u005cn"
                     + "}\u005cn\u005cn";
             if (!variavel.contains("tarExecRec")) {
@@ -301,10 +301,10 @@ class Interpretador implements InterpretadorConstants {
                     + "        }\u005cn"
                     + "    }\u005cn"
                     + "    if(cont >= metricaUsuarios.getUsuarios().size()){\u005cn"
-                    + "        mestre.setPolicyCondition(EnumSet.of(PolicyCondition.WHEN_RECEIVES_RETURN));\u005cn"
+                    + "        mestre.setPolicyCondition(mestre.QUANDO_RECEBE_RESULTADO);\u005cn"
                     + "        return false;\u005cn"
                     + "    }\u005cn"
-                    + "    mestre.setPolicyCondition(EnumSet.of(PolicyCondition.WHILE_THERE_ARE_RESOURCES));\u005cn"
+                    + "    mestre.setPolicyCondition(mestre.ENQUANTO_HOUVER_TAREFAS);\u005cn"
                     + "    return true;\u005cn"
                     + "}\u005cn\u005cn";
         }

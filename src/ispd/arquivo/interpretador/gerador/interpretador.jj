@@ -325,10 +325,10 @@ class Interpretador{
                                  +"        }\n"
                                  +"    }\n"
                                  +"    if(cont >= tarExecRec.size()){\n"
-                                 +"        mestre.setPolicyCondition(EnumSet.of(PolicyCondition.WHEN_RECEIVES_RETURN));\n"
+                                 +"        mestre.setPolicyCondition(mestre.QUANDO_RECEBE_RESULTADO);\n"
                                  +"        return false;\n"
                                  +"    }\n"
-                                 +"    mestre.setPolicyCondition(EnumSet.of(PolicyCondition.WHILE_THERE_ARE_RESOURCES));\n"
+                                 +"    mestre.setPolicyCondition(mestre.ENQUANTO_HOUVER_TAREFAS);\n"
                                  +"    return true;\n"
                                  +"}\n\n";
                 if(!variavel.contains("tarExecRec")){
@@ -375,10 +375,10 @@ class Interpretador{
                                  +"        }\n"
                                  +"    }\n"
                                  +"    if(cont >= metricaUsuarios.getUsuarios().size()){\n"
-                                 +"        mestre.setPolicyCondition(EnumSet.of(PolicyCondition.WHEN_RECEIVES_RETURN));\n"
+                                 +"        mestre.setPolicyCondition(mestre.QUANDO_RECEBE_RESULTADO);\n"
                                  +"        return false;\n"
                                  +"    }\n"
-                                 +"    mestre.setPolicyCondition(EnumSet.of(PolicyCondition.WHILE_THERE_ARE_RESOURCES));\n"
+                                 +"    mestre.setPolicyCondition(mestre.ENQUANTO_HOUVER_TAREFAS);\n"
                                  +"    return true;\n"
                                  +"}\n\n";
             }

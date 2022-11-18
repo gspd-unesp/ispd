@@ -3,9 +3,6 @@ package ispd.policy.escalonador;
 import ispd.motor.Simulation;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.policy.PolicyCondition;
-
-import java.util.EnumSet;
 
 /**
  * Interface that has methods implemented only in a Master node,
@@ -26,9 +23,9 @@ public interface Mestre {
 
     void updateSubordinate(CS_Processamento subordinate);
 
-    EnumSet<PolicyCondition> getPolicyCondition();
+    int getPolicyCondition();
 
-    void setPolicyCondition(EnumSet<PolicyCondition> newPolicyCondition);
+    void setPolicyCondition(int newPolicyCondition);
 
     Tarefa criarCopia(Tarefa get);
 

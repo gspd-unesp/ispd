@@ -10,13 +10,11 @@ import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.policy.PolicyCondition;
 import ispd.policy.escalonador.Escalonador;
 import ispd.policy.escalonador.Mestre;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -46,7 +44,7 @@ public class EHOSEP extends Escalonador {
     @Override
     public void iniciar() {
         //Escalonamento quando chegam tarefas e quando tarefas são concluídas
-        this.mestre.setPolicyCondition(EnumSet.allOf(PolicyCondition.class));
+        this.mestre.setPolicyCondition(Mestre.AMBOS);
         
         //Calcular poder computacional total do sistema, e consumo total do mesmo.
         this.poderTotal = 0.0;
