@@ -3,7 +3,6 @@ package ispd.policy.alocacaoVM;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import ispd.policy.PolicyMaster;
 
 import java.util.List;
 
@@ -73,7 +72,7 @@ public abstract class Alocacao {
         this.maquinasVirtuais = maquinasVirtuais;
     }
 
-    public PolicyMaster getVMM() {
+    public VMM getVMM() {
         return this.VMM;
     }
 
