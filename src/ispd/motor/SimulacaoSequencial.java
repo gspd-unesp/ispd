@@ -86,7 +86,7 @@ public class SimulacaoSequencial extends Simulation {
         for (CS_Processamento mst : redeDeFilas.getMestres()) {
             Mestre temp = (Mestre) mst;
             //Cede acesso ao mestre a fila de eventos futuros
-            temp.setSimulation(this);
+            temp.setSimulacao(this);
             //Encontra menor caminho entre o mestre e seus escravos
             mst.determinarCaminhos(); //mestre encontra caminho para seus escravos
         }

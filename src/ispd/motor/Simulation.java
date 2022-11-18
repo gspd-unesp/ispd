@@ -156,7 +156,7 @@ public abstract class Simulation
             final Mestre temp = (Mestre) master;
 
             // Give access to the master of the queue of future events.
-            temp.setSimulation(this);
+            temp.setSimulacao(this);
 
             // Find the shortest path between the master and its slaves.
             master.determinarCaminhos();

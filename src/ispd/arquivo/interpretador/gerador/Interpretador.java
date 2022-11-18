@@ -112,13 +112,13 @@ class Interpretador implements InterpretadorConstants {
                     + "public void adicionarTarefa(Tarefa tarefa){\u005cn"
                     + "    super.adicionarTarefa(tarefa);\u005cn"
                     + "    for(CS_Processamento maq : this.getEscravos()){\u005cn"
-                    + "        mestre.updateSubordinate(maq);\u005cn"
+                    + "        mestre.atualizar(maq);\u005cn"
                     + "    }\u005cn"
                     + "}\u005cn\u005cn";
         }
         if (tipo.equals("out")) {
             ifEscalonar = "    for(CS_Processamento maq : this.getEscravos()){\u005cn"
-                    + "        mestre.updateSubordinate(maq);\u005cn"
+                    + "        mestre.atualizar(maq);\u005cn"
                     + "    }\u005cn";
         }
         if (tipo.equals("end")) {
@@ -126,7 +126,7 @@ class Interpretador implements InterpretadorConstants {
                     + "public void addTarefaConcluida(Tarefa tarefa) {\u005cn"
                     + "    super.addTarefaConcluida(tarefa);\u005cn";
             addTarefaConcluida += "    for(CS_Processamento maq : this.getEscravos()){\u005cn"
-                    + "        mestre.updateSubordinate(maq);\u005cn"
+                    + "        mestre.atualizar(maq);\u005cn"
                     + "    }\u005cn";
             fimAddTarefaConcluida = "}\u005cn\u005cn";
 
@@ -251,10 +251,10 @@ class Interpretador implements InterpretadorConstants {
                     + "        }\u005cn"
                     + "    }\u005cn"
                     + "    if(cont >= tarExecRec.size()){\u005cn"
-                    + "        mestre.setPolicyCondition(mestre.QUANDO_RECEBE_RESULTADO);\u005cn"
+                    + "        mestre.setTipoEscalonamento(mestre.QUANDO_RECEBE_RESULTADO);\u005cn"
                     + "        return false;\u005cn"
                     + "    }\u005cn"
-                    + "    mestre.setPolicyCondition(mestre.ENQUANTO_HOUVER_TAREFAS);\u005cn"
+                    + "    mestre.setTipoEscalonamento(mestre.ENQUANTO_HOUVER_TAREFAS);\u005cn"
                     + "    return true;\u005cn"
                     + "}\u005cn\u005cn";
             if (!variavel.contains("tarExecRec")) {
@@ -301,10 +301,10 @@ class Interpretador implements InterpretadorConstants {
                     + "        }\u005cn"
                     + "    }\u005cn"
                     + "    if(cont >= metricaUsuarios.getUsuarios().size()){\u005cn"
-                    + "        mestre.setPolicyCondition(mestre.QUANDO_RECEBE_RESULTADO);\u005cn"
+                    + "        mestre.setTipoEscalonamento(mestre.QUANDO_RECEBE_RESULTADO);\u005cn"
                     + "        return false;\u005cn"
                     + "    }\u005cn"
-                    + "    mestre.setPolicyCondition(mestre.ENQUANTO_HOUVER_TAREFAS);\u005cn"
+                    + "    mestre.setTipoEscalonamento(mestre.ENQUANTO_HOUVER_TAREFAS);\u005cn"
                     + "    return true;\u005cn"
                     + "}\u005cn\u005cn";
         }
@@ -361,14 +361,14 @@ class Interpretador implements InterpretadorConstants {
                 tarefaExpressao += "tNumTarSub";
                 if (!declararVariaveisTarefa.contains("tNumTarSub")) {
                     if (dinamico) {
-                        declararVariaveisTarefa += "int tNumTarSub = mestre.getSimulation().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasSubmetidas(tarefas.get(0).getProprietario());\u005cn";
+                        declararVariaveisTarefa += "int tNumTarSub = mestre.getSimulacao().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasSubmetidas(tarefas.get(0).getProprietario());\u005cn";
                     } else {
                         declararVariaveisTarefa += "int tNumTarSub = metricaUsuarios.getSizeTarefasSubmetidas(tarefas.get(0).getProprietario());\u005cn";
                     }
                 }
                 if (!carregarVariaveisTarefa.contains("tNumTarSub")) {
                     if (dinamico) {
-                        carregarVariaveisTarefa += "tNumTarSub = mestre.getSimulation().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasSubmetidas(tarefas.get(i).getProprietario());\u005cn";
+                        carregarVariaveisTarefa += "tNumTarSub = mestre.getSimulacao().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasSubmetidas(tarefas.get(i).getProprietario());\u005cn";
                     } else {
                         carregarVariaveisTarefa += "tNumTarSub = metricaUsuarios.getSizeTarefasSubmetidas(tarefas.get(i).getProprietario());\u005cn";
                     }
@@ -378,14 +378,14 @@ class Interpretador implements InterpretadorConstants {
                 tarefaExpressao += "tNumTarConc";
                 if (!declararVariaveisTarefa.contains("tNumTarConc")) {
                     if (dinamico) {
-                        declararVariaveisTarefa += "int tNumTarConc = mestre.getSimulation().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasConcluidas(tarefas.get(0).getProprietario());\u005cn";
+                        declararVariaveisTarefa += "int tNumTarConc = mestre.getSimulacao().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasConcluidas(tarefas.get(0).getProprietario());\u005cn";
                     } else {
                         declararVariaveisTarefa += "int tNumTarConc = metricaUsuarios.getSizeTarefasConcluidas(tarefas.get(0).getProprietario());\u005cn";
                     }
                 }
                 if (!carregarVariaveisTarefa.contains("tNumTarConc")) {
                     if (dinamico) {
-                        carregarVariaveisTarefa += "tNumTarConc = mestre.getSimulation().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasConcluidas(tarefas.get(i).getProprietario());\u005cn";
+                        carregarVariaveisTarefa += "tNumTarConc = mestre.getSimulacao().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasConcluidas(tarefas.get(i).getProprietario());\u005cn";
                     } else {
                         carregarVariaveisTarefa += "tNumTarConc = metricaUsuarios.getSizeTarefasConcluidas(tarefas.get(i).getProprietario());\u005cn";
                     }

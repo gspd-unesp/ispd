@@ -125,7 +125,7 @@ public class Workqueue extends Escalonador {
         if(tarefaEnviada.contains(tarefa)){
             int index = tarefaEnviada.indexOf(tarefa);
             tarefaEnviada.set(index, null);
-            mestre.executePolicy();
+            mestre.executarEscalonamento();
         }
     }
     
@@ -134,7 +134,7 @@ public class Workqueue extends Escalonador {
         super.addTarefaConcluida(tarefa);
         ultimaTarefaConcluida.add(tarefa);
         if (!tarefas.isEmpty()) {
-            mestre.executePolicy();
+            mestre.executarEscalonamento();
         }
     }
 }

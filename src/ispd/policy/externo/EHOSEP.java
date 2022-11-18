@@ -44,7 +44,7 @@ public class EHOSEP extends Escalonador {
     @Override
     public void iniciar() {
         //Escalonamento quando chegam tarefas e quando tarefas são concluídas
-        this.mestre.setPolicyCondition(Mestre.AMBOS);
+        this.mestre.setTipoEscalonamento(Mestre.AMBOS);
         
         //Calcular poder computacional total do sistema, e consumo total do mesmo.
         this.poderTotal = 0.0;
@@ -215,19 +215,19 @@ public class EHOSEP extends Escalonador {
                         //Se há checkpointing de tarefas
                         if ( tarPreemp.getCheckPoint() > 0.0 ) {
                             //((tempo atual - tempo em que a execução da tarefa começou no recurso)*poder computacional)%bloco de checkpointing
-                            desperdicioSelec = ((mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
+                            desperdicioSelec = ((mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
                         } else {
                             //Se não há chekcpointin de tarefas, o desperdício é o tempo total executado para a tarefa na máquina corrente no laço
-                            desperdicioSelec = (mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional();
+                            desperdicioSelec = (mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional();
                         }
                         indexSelec = j;
                     } else {
                         
                         if (tarPreemp.getCheckPoint() > 0.0) {
                             
-                            desperdicioTestado = ((mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
+                            desperdicioTestado = ((mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
                         } else {
-                            desperdicioTestado = (mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional();
+                            desperdicioTestado = (mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional();
                         }
                         //É escolhida a máquina de menor desperdício
                         if ( desperdicioTestado < desperdicioSelec ) {
@@ -354,7 +354,7 @@ public class EHOSEP extends Escalonador {
                         esperaTarefas.add(tar);
 
                         //Solicitação de retorno da tarefa em execução e atualização da demanda do usuário
-                        mestre.sendMessage((Tarefa) controleEscravos.get(indexEscravo).GetProcessador().get(0), escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
+                        mestre.enviarMensagem((Tarefa) controleEscravos.get(indexEscravo).GetProcessador().get(0), escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
                         controleEscravos.get(indexEscravo).setBloqueado();
                         cliente.rmDemanda();
                         return;

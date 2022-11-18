@@ -46,7 +46,7 @@ public class M_OSEP extends Escalonador {
 
     @Override
     public void iniciar() {
-        this.mestre.setPolicyCondition(Mestre.AMBOS);//Escalonamento quando chegam tarefas e quando tarefas são concluídas
+        this.mestre.setTipoEscalonamento(Mestre.AMBOS);//Escalonamento quando chegam tarefas e quando tarefas são concluídas
         status = new ArrayList<StatusUser>();
 
         for (int i = 0; i < metricaUsuarios.getUsuarios().size(); i++) {//Objetos de controle de uso e cota para cada um dos usuários
@@ -226,7 +226,7 @@ public class M_OSEP extends Escalonador {
                 //System.out.println("Preempção: Tarefa " + ((Tarefa) selec.getInformacaoDinamicaProcessador().get(0)).getIdentificador() + " do user " + ((Tarefa) selec.getInformacaoDinamicaProcessador().get(0)).getProprietario() + " <=> " + tarefaSelec.getIdentificador() + " do user " + tarefaSelec.getProprietario());
                 index_selec = escravos.indexOf(selec);
                 controleEscravos.get(escravos.indexOf(selec)).setPreemp();
-                mestre.sendMessage((Tarefa) processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
+                mestre.enviarMensagem((Tarefa) processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
                 return selec;
             }
         }
@@ -268,7 +268,7 @@ public class M_OSEP extends Escalonador {
             }
             contadorEscravos = 0;
             if (tarefas.size() > 0 && escalona) {
-                mestre.executePolicy();
+                mestre.executarEscalonamento();
             }
         }
        
@@ -374,7 +374,7 @@ public class M_OSEP extends Escalonador {
             //}
         } else {
             //System.out.println("Tarefa " + tarefa.getIdentificador() + " do user " + tarefa.getProprietario() + " chegou " + mestre.getSimulacao().getTime());
-            mestre.executePolicy();
+            mestre.executarEscalonamento();
         }
     }
 
