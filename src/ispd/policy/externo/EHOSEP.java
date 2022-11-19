@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ispd.policy.externo;
 
 import ispd.motor.Mensagens;
@@ -17,18 +12,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- *
- * @author cassio
- */
+@SuppressWarnings("unused")
 public class EHOSEP extends Escalonador {
-
-    ArrayList<StatusUser> status;
-    List<ControleEscravos> controleEscravos;
-    List<Tarefa> esperaTarefas;
-    List<ControlePreempcao> controlePreempcao;
-    List<List> processadorEscravos;
-    Double poderTotal, consumoTotal;
+    private final ArrayList<StatusUser> status;
+    private final List<ControleEscravos> controleEscravos;
+    private final List<Tarefa> esperaTarefas;
+    private final List<ControlePreempcao> controlePreempcao;
 
     public EHOSEP() {
         this.tarefas = new ArrayList<>();
@@ -37,7 +26,7 @@ public class EHOSEP extends Escalonador {
         this.esperaTarefas = new ArrayList<>();
         this.controlePreempcao = new ArrayList<>();
         this.filaEscravo = new ArrayList<>();
-        this.processadorEscravos = new ArrayList<>();
+        final List<List> processadorEscravos = new ArrayList<>();
         this.status = new ArrayList();
     }
 
@@ -45,60 +34,159 @@ public class EHOSEP extends Escalonador {
     public void iniciar() {
         //Escalonamento quando chegam tarefas e quando tarefas são concluídas
         this.mestre.setTipoEscalonamento(Mestre.AMBOS);
-        
-        //Calcular poder computacional total do sistema, e consumo total do mesmo.
-        this.poderTotal = 0.0;
-        this.consumoTotal = 0.0;
-        for (int i = 0; i < escravos.size(); i++) {
-            this.poderTotal += escravos.get(i).getPoderComputacional();
-            this.consumoTotal += escravos.get(i).getConsumoEnergia();
+
+        //Calcular poder computacional total do sistema, e consumo total do
+        // mesmo.
+        double poderTotal = 0.0;
+        Double consumoTotal = 0.0;
+        for (int i = 0; i < this.escravos.size(); i++) {
+            poderTotal += this.escravos.get(i).getPoderComputacional();
+            consumoTotal += this.escravos.get(i).getConsumoEnergia();
         }
         //System.out.println(consumoTotal);
         //System.out.println(poderTotal);
-        
+
         //Objetos de controle de uso e cota para cada um dos usuários
-        for (int i = 0; i < metricaUsuarios.getUsuarios().size(); i++) {
+        for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             //Calcular o poder computacional da porção de cada usuário
-            Double poderComp = 0.0;
+            double poderComp = 0.0;
             Double consumoPorcao = 0.0;
-            for (int j = 0; j < escravos.size(); j++) {
+            for (int j = 0; j < this.escravos.size(); j++) {
                 //Se o nó corrente não é mestre e pertence ao usuário corrente
-                if (!(escravos.get(j) instanceof Mestre) && escravos.get(j).getProprietario().equals(metricaUsuarios.getUsuarios().get(i))) {
+                if (!(this.escravos.get(j) instanceof Mestre) && this.escravos.get(j).getProprietario().equals(this.metricaUsuarios.getUsuarios().get(i))) {
                     //Calcular o poder total da porcao do usuário corrente
-                    poderComp += escravos.get(j).getPoderComputacional();
+                    poderComp += this.escravos.get(j).getPoderComputacional();
                     //Calcular o consumo total da porcao do usuário correntes
-                    consumoPorcao += escravos.get(j).getConsumoEnergia();
+                    consumoPorcao += this.escravos.get(j).getConsumoEnergia();
                 }
             }
             //Adiciona dados do usuário corrente à lista 
-            status.add(new StatusUser(metricaUsuarios.getUsuarios().get(i), i, poderComp));
+            this.status.add(new StatusUser(this.metricaUsuarios.getUsuarios().get(i), i
+                    , poderComp));
             //Inserir consumo da porção nos dados do usuário
-            status.get(i).setPowerShare(consumoPorcao);
-            //Calcular a relação entre a eficiência da porção e a eficiência do sistema
-            status.get(i).calculaRelacaoEficienciaEficienciaSisPor(this.poderTotal, this.consumoTotal);
+            this.status.get(i).setPowerShare(consumoPorcao);
+            //Calcular a relação entre a eficiência da porção e a eficiência
+            // do sistema
+            this.status.get(i).calculaRelacaoEficienciaEficienciaSisPor(poderTotal, consumoTotal);
             //Calcular o consumo máximo de energia de cada usuario
-            Double limite = status.get(i).getPowerShare() * ((metricaUsuarios.getLimites().get(status.get(i).getNome())/100));
-            status.get(i).setLimite(limite);
+            final Double limite =
+                    this.status.get(i).getPowerShare() * ((this.metricaUsuarios.getLimites().get(this.status.get(i).getNome()) / 100));
+            this.status.get(i).setLimite(limite);
         }
 
-        //Controle dos nós, com cópias das filas de cada um e da tarefa que executa em cada um
-        for (int i = 0; i < escravos.size(); i++) {
-            controleEscravos.add(new ControleEscravos(escravos.get(i).getId(),i,new ArrayList<Tarefa>(),new ArrayList<Tarefa>()));
+        //Controle dos nós, com cópias das filas de cada um e da tarefa que
+        // executa em cada um
+        for (int i = 0; i < this.escravos.size(); i++) {
+            this.controleEscravos.add(new ControleEscravos(this.escravos.get(i).getId()
+                    , i, new ArrayList<>(), new ArrayList<>()));
         }
     }
 
-    private int buscarTarefa(StatusUser usuario) {
+    //Metodo necessario para implementar interface. Não é usado.
+    @Override
+    public Tarefa escalonarTarefa() {
+        throw new UnsupportedOperationException("Not supported yet."); //To
+        // change body of generated methods, choose Tools | Templates.
+    }
+
+    //Metodo necessario para implementar interface. Não é usado.
+    @Override
+    public CS_Processamento escalonarRecurso() {
+        throw new UnsupportedOperationException("Not supported yet."); //To
+        // change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
+    }
+
+    @Override
+    public void escalonar() {
+
+        int indexTarefa;
+        int indexEscravo;
+        StatusUser cliente;
+
+        //Ordenar os usuários em ordem crescente de Poder Remanescente
+        Collections.sort(this.status);
+
+
+        for (int i = 0; i < this.status.size(); i++) {
+            cliente = this.status.get(i);
+
+            //Buscar tarefa para execucao
+            indexTarefa = this.buscarTarefa(cliente);
+            if (indexTarefa != -1) {
+
+                //Buscar máquina para executar a tarefa definida
+                indexEscravo = this.buscarRecurso(cliente,
+                        this.tarefas.get(indexTarefa));
+                if (indexEscravo != -1) {
+
+                    //Se não é caso de preempção, a tarefa é configurada e
+                    // enviada
+                    if ("Livre".equals(this.controleEscravos.get(indexEscravo).getStatus())) {
+
+                        final Tarefa tar = this.tarefas.remove(indexTarefa);
+                        tar.setLocalProcessamento(this.escravos.get(indexEscravo));
+                        tar.setCaminho(this.escalonarRota(this.escravos.get(indexEscravo)));
+                        this.mestre.enviarTarefa(tar);
+
+                        //Atualização dos dados sobre o usuário
+                        cliente.rmDemanda();
+                        cliente.addServedNum();
+                        cliente.addServedPerf(this.escravos.get(indexEscravo).getPoderComputacional());
+                        cliente.addServedPower(this.escravos.get(indexEscravo).getConsumoEnergia());
+
+                        //Controle das máquinas
+                        this.controleEscravos.get(indexEscravo).setBloqueado();
+                        return;
+                    }
+
+                    //Se é caso de preempção, a tarefa configurada e colocada
+                    // em espera
+                    if ("Ocupado".equals(this.controleEscravos.get(indexEscravo).getStatus())) {
+
+                        final Tarefa tar = this.tarefas.remove(indexTarefa);
+                        tar.setLocalProcessamento(this.escravos.get(indexEscravo));
+                        tar.setCaminho(this.escalonarRota(this.escravos.get(indexEscravo)));
+
+                        //Controle de preempção para enviar a nova tarefa no
+                        // momento certo
+                        final String userPreemp =
+                                this.controleEscravos.get(indexEscravo).GetProcessador().get(0).getProprietario();
+                        final int idTarefaPreemp =
+                                this.controleEscravos.get(indexEscravo).GetProcessador().get(0).getIdentificador();
+                        this.controlePreempcao.add(new ControlePreempcao(userPreemp, idTarefaPreemp, tar.getProprietario(), tar.getIdentificador()));
+                        this.esperaTarefas.add(tar);
+
+                        //Solicitação de retorno da tarefa em execução e
+                        // atualização da demanda do usuário
+                        this.mestre.enviarMensagem(this.controleEscravos.get(indexEscravo).GetProcessador().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
+                        this.controleEscravos.get(indexEscravo).setBloqueado();
+                        cliente.rmDemanda();
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    private int buscarTarefa(final StatusUser usuario) {
 
         //Indice da tarefa na lista de tarefas
         int trf = -1;
-        //Se o usuario tem demanda nao atendida e seu consumo nao chegou ao limite
+        //Se o usuario tem demanda nao atendida e seu consumo nao chegou ao
+        // limite
         if (usuario.getDemanda() > 0 && usuario.getServedPower() < usuario.getLimite()) {
             //Procura pela menor tarefa nao atendida do usuario.
-            for (int j = 0; j < tarefas.size(); j++) {
-                if (tarefas.get(j).getProprietario().equals(usuario.getNome())) {
+            for (int j = 0; j < this.tarefas.size(); j++) {
+                if (this.tarefas.get(j).getProprietario().equals(usuario.getNome())) {
                     if (trf == -1) {
                         trf = j;
-                    } else if (tarefas.get(j).getTamProcessamento() < tarefas.get(trf).getTamProcessamento()) {//Escolher a tarefa de menor tamanho do usuario
+                    } else if (this.tarefas.get(j).getTamProcessamento() < this.tarefas.get(trf).getTamProcessamento()) {//Escolher a tarefa de menor tamanho do usuario
                         trf = j;
                     }
                 }
@@ -107,44 +195,51 @@ public class EHOSEP extends Escalonador {
         return trf;
     }
 
-    private int buscarRecurso(StatusUser cliente, Tarefa TarAloc) {
+    private int buscarRecurso(final StatusUser cliente, final Tarefa TarAloc) {
 
         /*++++++++++++++++++Buscando recurso livres++++++++++++++++++*/
-        
+
         //Índice da máquina escolhida, na lista de máquinas
         int indexSelec = -1;
-        //Consumo da máquina escolhida e da máquina comparada com a escolhida previamente em passagem anterior do laço
+        //Consumo da máquina escolhida e da máquina comparada com a escolhida
+        // previamente em passagem anterior do laço
         double consumoSelec = 0.0;
         double consumoMaqTestada;
-        
-        for (int i = 0; i < escravos.size(); i++) {
-            
-            //Verificar o limite de consumo e garantir que o escravo está de fato livre e que não há nenhuma tarefa em trânsito para o escravo. É escolhido o recurso que consumir menos energia pra executar a tarefa alocada.
-            if (controleEscravos.get(i).getStatus().equals("Livre") && (escravos.get(i).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
-                
+
+        for (int i = 0; i < this.escravos.size(); i++) {
+
+            //Verificar o limite de consumo e garantir que o escravo está de
+            // fato livre e que não há nenhuma tarefa em trânsito para o
+            // escravo. É escolhido o recurso que consumir menos energia pra
+            // executar a tarefa alocada.
+            if ("Livre".equals(this.controleEscravos.get(i).getStatus()) && (this.escravos.get(i).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
+
                 if (indexSelec == -1) {
-                    
+
                     indexSelec = i;
                     //Tempo para processar
-                    consumoSelec = TarAloc.getTamProcessamento()/escravos.get(i).getPoderComputacional();
+                    consumoSelec =
+                            TarAloc.getTamProcessamento() / this.escravos.get(i).getPoderComputacional();
                     //Consumo em Joule para processar
-                    consumoSelec = consumoSelec*escravos.get(i).getConsumoEnergia();
-                    
+                    consumoSelec =
+                            consumoSelec * this.escravos.get(i).getConsumoEnergia();
+
                 } else {
                     //Tempo para processar
-                    consumoMaqTestada = TarAloc.getTamProcessamento()/escravos.get(i).getPoderComputacional();
+                    consumoMaqTestada =
+                            TarAloc.getTamProcessamento() / this.escravos.get(i).getPoderComputacional();
                     //Consumo em Joule para processar
-                    consumoMaqTestada = consumoMaqTestada*escravos.get(i).getConsumoEnergia();
-                    
-                    if( consumoSelec > consumoMaqTestada ){
-                        
+                    consumoMaqTestada =
+                            consumoMaqTestada * this.escravos.get(i).getConsumoEnergia();
+
+                    if (consumoSelec > consumoMaqTestada) {
+
                         indexSelec = i;
                         consumoSelec = consumoMaqTestada;
-                    }
-                    else if ( consumoSelec == consumoMaqTestada ){
-                        
-                        if(escravos.get(i).getPoderComputacional() > escravos.get(indexSelec).getPoderComputacional()){
-                            
+                    } else if (consumoSelec == consumoMaqTestada) {
+
+                        if (this.escravos.get(i).getPoderComputacional() > this.escravos.get(indexSelec).getPoderComputacional()) {
+
                             indexSelec = i;
                             consumoSelec = consumoMaqTestada;
                         }
@@ -156,209 +251,192 @@ public class EHOSEP extends Escalonador {
         if (indexSelec != -1) {
             return indexSelec;
         }
-        
+
         /*+++++++++++++++++Busca por usuário para preempção+++++++++++++++++*/
-        
-        //Se o usuário com maior valor de DifPoder não tem excesso de poder computacional, não há usuário que possa sofrer preempção. Além disso, não ocorrerá preempção para atender usuário que tem excesso.
-        if( status.get(status.size() -1).getServedPerf() <= status.get(status.size() -1).getPerfShare() || cliente.getServedPerf() >= cliente.getPerfShare()){
+
+        //Se o usuário com maior valor de DifPoder não tem excesso de poder
+        // computacional, não há usuário que possa sofrer preempção. Além
+        // disso, não ocorrerá preempção para atender usuário que tem excesso.
+        if (this.status.get(this.status.size() - 1).getServedPerf() <= this.status.get(this.status.size() - 1).getPerfShare() || cliente.getServedPerf() >= cliente.getPerfShare()) {
             return -1;
         }
-        
+
+
         //Métricas e índice do usuário que possivelmente perderá recurso
-        double consumoPonderadoCorrente = 0.0;
         double consumoPonderadoSelec = 0.0;
         int indexUserPreemp = -1;
-        
         //Começando pelo usuário de maior excesso
-        for (int i = status.size() - 1; i >= 0; i--) {
-            //Apenas usuários que tem excesso de poder computacional podem sofrer preempção
-            if (status.get(i).getServedPerf() > status.get(i).getPerfShare()) {
+        for (int i = this.status.size() - 1; i >= 0; i--) {
+            //Apenas usuários que tem excesso de poder computacional podem
+            // sofrer preempção
+            if (this.status.get(i).getServedPerf() > this.status.get(i).getPerfShare()) {
                 //Se ainda não foi escolhido
                 if (indexUserPreemp == -1) {
                     indexUserPreemp = i;
                     //Sofre preempção o usuário com maior métrica calculada
-                    consumoPonderadoSelec = (status.get(i).getServedPower()) * status.get(i).getRelacaoEficienciSisPor();
+                    consumoPonderadoSelec =
+                            (this.status.get(i).getServedPower()) * this.status.get(i).getRelacaoEficienciSisPor();
                 } else {
-                    
-                    consumoPonderadoCorrente = (status.get(i).getServedPower()) * status.get(i).getRelacaoEficienciSisPor();
+
+                    final double consumoPonderadoCorrente =
+                            (this.status.get(i).getServedPower()) * this.status.get(i).getRelacaoEficienciSisPor();
                     if (consumoPonderadoCorrente > consumoPonderadoSelec) {
-                        
+
                         indexUserPreemp = i;
                         consumoPonderadoSelec = consumoPonderadoCorrente;
-                    } else if( consumoPonderadoCorrente == consumoPonderadoSelec ){
-                        
-                        if( (status.get(i).getServedPerf() - status.get(i).getPerfShare()) > (status.get(indexUserPreemp).getServedPerf() - status.get(indexUserPreemp).getPerfShare()) ){
+                    } else if (consumoPonderadoCorrente == consumoPonderadoSelec) {
+
+                        if ((this.status.get(i).getServedPerf() - this.status.get(i).getPerfShare()) > (this.status.get(indexUserPreemp).getServedPerf() - this.status.get(indexUserPreemp).getPerfShare())) {
                             indexUserPreemp = i;
-                            consumoPonderadoSelec = consumoPonderadoCorrente;   
+                            consumoPonderadoSelec = consumoPonderadoCorrente;
                         }
                     }
                 }
             }
         }
-        
-        if( indexUserPreemp == -1 ){
+
+        if (indexUserPreemp == -1) {
             return -1;
         }
 
         //Buscar recurso para preempção
         double desperdicioTestado;
         double desperdicioSelec = 0.0;
-        
-        for (int j = 0; j < escravos.size(); j++) {
+
+        for (int j = 0; j < this.escravos.size(); j++) {
             //Procurar recurso ocupado com tarefa do usuário que perderá máquina
-            if (controleEscravos.get(j).getStatus().equals("Ocupado") && (escravos.get(j).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
-                
-                Tarefa tarPreemp = (Tarefa) controleEscravos.get(j).GetProcessador().get(0);
-                if (tarPreemp.getProprietario().equals(status.get(indexUserPreemp).getNome())) {
-                    
+            if ("Ocupado".equals(this.controleEscravos.get(j).getStatus()) && (this.escravos.get(j).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
+
+                final Tarefa tarPreemp =
+                        this.controleEscravos.get(j).GetProcessador().get(0);
+                if (tarPreemp.getProprietario().equals(this.status.get(indexUserPreemp).getNome())) {
+
                     if (indexSelec == -1) {
                         //Se há checkpointing de tarefas
-                        if ( tarPreemp.getCheckPoint() > 0.0 ) {
-                            //((tempo atual - tempo em que a execução da tarefa começou no recurso)*poder computacional)%bloco de checkpointing
-                            desperdicioSelec = ((mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
+                        if (tarPreemp.getCheckPoint() > 0.0) {
+                            //((tempo atual - tempo em que a execução da
+                            // tarefa começou no recurso)*poder
+                            // computacional)%bloco de checkpointing
+                            desperdicioSelec =
+                                    ((this.mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
                         } else {
-                            //Se não há chekcpointin de tarefas, o desperdício é o tempo total executado para a tarefa na máquina corrente no laço
-                            desperdicioSelec = (mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional();
+                            //Se não há chekcpointin de tarefas, o
+                            // desperdício é o tempo total executado para a
+                            // tarefa na máquina corrente no laço
+                            desperdicioSelec =
+                                    (this.mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional();
                         }
                         indexSelec = j;
                     } else {
-                        
+
                         if (tarPreemp.getCheckPoint() > 0.0) {
-                            
-                            desperdicioTestado = ((mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
+
+                            desperdicioTestado =
+                                    ((this.mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
                         } else {
-                            desperdicioTestado = (mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * escravos.get(j).getPoderComputacional();
+                            desperdicioTestado =
+                                    (this.mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional();
                         }
                         //É escolhida a máquina de menor desperdício
-                        if ( desperdicioTestado < desperdicioSelec ) {
-                            
+                        if (desperdicioTestado < desperdicioSelec) {
+
                             desperdicioSelec = desperdicioTestado;
                             indexSelec = j;
                         }
-                        //Se o desperdício é igual, é escolhida a máquina com menor poder computacional
-                        else if ( desperdicioTestado == desperdicioSelec && escravos.get(j).getPoderComputacional() < escravos.get(indexSelec).getPoderComputacional()) {
+                        //Se o desperdício é igual, é escolhida a máquina com
+                        // menor poder computacional
+                        else if (desperdicioTestado == desperdicioSelec && this.escravos.get(j).getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
                             indexSelec = j;
                         }
                     }
                 }
             }
         }
-        
+
         if (indexUserPreemp != -1 && indexSelec != -1) {
-            if ((status.get(indexUserPreemp).getServedPerf() - escravos.get(indexSelec).getPoderComputacional()) < status.get(indexUserPreemp).getPerfShare()) {
-                if (status.get(indexUserPreemp).getLimite() <= cliente.getLimite()) {
+            if ((this.status.get(indexUserPreemp).getServedPerf() - this.escravos.get(indexSelec).getPoderComputacional()) < this.status.get(indexUserPreemp).getPerfShare()) {
+                if (this.status.get(indexUserPreemp).getLimite() <= cliente.getLimite()) {
                     indexSelec = -1;
                 }
             }
         }
-        
+
         return indexSelec;
     }
 
     @Override
-    public List<CentroServico> escalonarRota(CentroServico destino) {
-        int index = escravos.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) caminhoEscravo.get(index));
-    }
+    //Receber nova tarefa submetida ou tarefa que sofreu preemoção
+    public void adicionarTarefa(final Tarefa tarefa) {
 
-    @Override
-    public void resultadoAtualizar(Mensagem mensagem) {
-        //super.resultadoAtualizar(mensagem);
-        //Localizar máquina que enviou estado atualizado
-        int index = escravos.indexOf(mensagem.getOrigem());
-        
-        //Atualizar listas de espera e processamento da máquina
-        controleEscravos.get(index).setProcessador((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
-        controleEscravos.get(index).setFila((ArrayList<Tarefa>) mensagem.getFilaEscravo());
+        //Method herdado, obrigatório executar para obter métricas ao final
+        // da slimuação
+        super.adicionarTarefa(tarefa);
 
-        //Tanto alocação para recurso livre como a preempção levam dois ciclos de atualização para que a máquina possa ser considerada para esacalonamento novamente 
-        
-        //Primeiro ciclo
-        if (controleEscravos.get(index).getStatus().equals("Bloqueado")) {
-            controleEscravos.get(index).setIncerto();
-        //Segundo ciclo
-        } else if (controleEscravos.get(index).getStatus().equals("Incerto")) {
-            //Se não está executando nada
-            if (controleEscravos.get(index).GetProcessador().isEmpty()) {
-
-                controleEscravos.get(index).setLivre();
-            //Se está executando uma tarefa
-            } else if (controleEscravos.get(index).GetProcessador().size() == 1) {
-
-                controleEscravos.get(index).setOcupado();
-            //Se há mais de uma tarefa e a máquina tem mais de um núcleo
-            } else if (controleEscravos.get(index).GetProcessador().size() > 1) {
-
-                System.out.println("Houve Paralelismo");
+        //Atualização da demanda do usuário proprietário da tarefa
+        for (int i = 0; i < this.status.size(); i++) {
+            if (this.status.get(i).getNome().equals(tarefa.getProprietario())) {
+                this.status.get(i).addDemanda();
             }
         }
-        //Se há fila de tarefa na máquina
-        if (controleEscravos.get(index).GetFila().size() > 0) {
 
-            System.out.println("Houve Fila");
-        }
-    }
+        //Em caso de preempção
+        if (tarefa.getLocalProcessamento() != null) {
 
-    @Override
-    public void escalonar() {
+            //Localizar informações de estado de máquina que executou a
+            // tarefa (se houver)
+            final CS_Processamento maq =
+                    (CS_Processamento) tarefa.getLocalProcessamento();
 
-        int indexTarefa;
-        int indexEscravo;
-        StatusUser cliente;
+            //Localizar informações armazenadas sobre a preempção em particular
 
-        //Ordenar os usuários em ordem crescente de Poder Remanescente
-        Collections.sort(status);
+            int indexControlePreemp = -1;
+            int indexStatusUserAlloc = -1;
+            int indexStatusUserPreemp = -1;
 
-        
-        for (int i = 0; i < status.size(); i++) {
-            cliente = status.get(i);
+            for (int j = 0; j < this.controlePreempcao.size(); j++) {
+                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
+                    indexControlePreemp = j;
+                    break;
+                }
+            }
 
-            //Buscar tarefa para execucao
-            indexTarefa = buscarTarefa(cliente);
-            if (indexTarefa != -1) {
+            for (int k = 0; k < this.status.size(); k++) {
+                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
+                    indexStatusUserAlloc = k;
+                }
+            }
 
-                //Buscar máquina para executar a tarefa definida
-                indexEscravo = buscarRecurso(cliente,tarefas.get(indexTarefa));
-                if (indexEscravo != -1) {
+            for (int k = 0; k < this.status.size(); k++) {
+                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
+                    indexStatusUserPreemp = k;
+                }
+            }
 
-                    //Se não é caso de preempção, a tarefa é configurada e enviada
-                    if (controleEscravos.get(indexEscravo).getStatus().equals("Livre")) {
+            //Localizar tarefa em espera deseignada para executar
+            for (int i = 0; i < this.esperaTarefas.size(); i++) {
 
-                        Tarefa tar = tarefas.remove(indexTarefa);
-                        tar.setLocalProcessamento(escravos.get(indexEscravo));
-                        tar.setCaminho(escalonarRota(escravos.get(indexEscravo)));
-                        mestre.enviarTarefa(tar);
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
 
-                        //Atualização dos dados sobre o usuário
-                        cliente.rmDemanda();
-                        cliente.addServedNum();
-                        cliente.addServedPerf(escravos.get(indexEscravo).getPoderComputacional());
-                        cliente.addServedPower(escravos.get(indexEscravo).getConsumoEnergia());
+                    //Enviar tarefa para execução
+                    this.mestre.enviarTarefa(this.esperaTarefas.remove(i));
 
-                        //Controle das máquinas
-                        controleEscravos.get(indexEscravo).setBloqueado();
-                        return;
-                    }
+                    //Atualizar informações de estado do usuário cuja tarefa
+                    // será executada
+                    this.status.get(indexStatusUserAlloc).addServedNum();
+                    this.status.get(indexStatusUserAlloc).addServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserAlloc).addServedPower(maq.getConsumoEnergia());
 
-                    //Se é caso de preempção, a tarefa configurada e colocada em espera
-                    if (controleEscravos.get(indexEscravo).getStatus().equals("Ocupado")) {
+                    //Atualizar informações de estado do usuáro cuja tarefa
+                    // foi interrompida
+                    this.status.get(indexStatusUserPreemp).rmServedNum();
+                    this.status.get(indexStatusUserPreemp).rmServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserPreemp).rmServedPower(maq.getConsumoEnergia());
 
-                        Tarefa tar = tarefas.remove(indexTarefa);
-                        tar.setLocalProcessamento(escravos.get(indexEscravo));
-                        tar.setCaminho(escalonarRota(escravos.get(indexEscravo)));
-
-                        //Controle de preempção para enviar a nova tarefa no momento certo
-                        String userPreemp = ((Tarefa) controleEscravos.get(indexEscravo).GetProcessador().get(0)).getProprietario();
-                        int idTarefaPreemp = ((Tarefa) controleEscravos.get(indexEscravo).GetProcessador().get(0)).getIdentificador();
-                        controlePreempcao.add(new ControlePreempcao(userPreemp, idTarefaPreemp, tar.getProprietario(), tar.getIdentificador()));
-                        esperaTarefas.add(tar);
-
-                        //Solicitação de retorno da tarefa em execução e atualização da demanda do usuário
-                        mestre.enviarMensagem((Tarefa) controleEscravos.get(indexEscravo).GetProcessador().get(0), escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
-                        controleEscravos.get(indexEscravo).setBloqueado();
-                        cliente.rmDemanda();
-                        return;
-                    }
+                    //Com a preempção feita, os dados necessários para ela
+                    // são eliminados
+                    this.controlePreempcao.remove(indexControlePreemp);
+                    //Encerrar laço
+                    break;
                 }
             }
         }
@@ -366,76 +444,84 @@ public class EHOSEP extends Escalonador {
 
     @Override
     //Chegada de tarefa concluida
-    public void addTarefaConcluida(Tarefa tarefa) {
-        //Método herdado, obrigatório executar para obter métricas ao final da simulação
+    public void addTarefaConcluida(final Tarefa tarefa) {
+        //Method herdado, obrigatório executar para obter métricas ao final
+        // da simulação
         super.addTarefaConcluida(tarefa);
 
-        //Localizar informações sobre máquina que executou a tarefa e usuário proprietário da tarefa
-        CS_Processamento maq = (CS_Processamento) tarefa.getLocalProcessamento();
-        int maqIndex = escravos.indexOf(maq);
+        //Localizar informações sobre máquina que executou a tarefa e usuário
+        // proprietário da tarefa
+        final CS_Processamento maq =
+                (CS_Processamento) tarefa.getLocalProcessamento();
+        final int maqIndex = this.escravos.indexOf(maq);
 
-        if (controleEscravos.get(maqIndex).getStatus().equals("Ocupado")) {
+        if ("Ocupado".equals(this.controleEscravos.get(maqIndex).getStatus())) {
 
             int statusIndex = -1;
 
-            for (int i = 0; i < status.size(); i++) {
-                if (status.get(i).getNome().equals(tarefa.getProprietario())) {
+            for (int i = 0; i < this.status.size(); i++) {
+                if (this.status.get(i).getNome().equals(tarefa.getProprietario())) {
                     statusIndex = i;
                 }
             }
 
-            //Atualização das informações de estado do proprietario da tarefa terminada.
-            status.get(statusIndex).rmServedNum();
-            status.get(statusIndex).rmServedPerf(maq.getPoderComputacional());
-            status.get(statusIndex).rmServedPower(maq.getConsumoEnergia());
+            //Atualização das informações de estado do proprietario da tarefa
+            // terminada.
+            this.status.get(statusIndex).rmServedNum();
+            this.status.get(statusIndex).rmServedPerf(maq.getPoderComputacional());
+            this.status.get(statusIndex).rmServedPower(maq.getConsumoEnergia());
 
-            controleEscravos.get(maqIndex).setLivre();
-        } else if (controleEscravos.get(maqIndex).getStatus().equals("Bloqueado")) {
-            
+            this.controleEscravos.get(maqIndex).setLivre();
+        } else if ("Bloqueado".equals(
+                this.controleEscravos.get(maqIndex).getStatus())) {
+
             int indexControlePreemp = -1;
             int indexStatusUserAlloc = -1;
             int indexStatusUserPreemp = -1;
-            
-            for ( int j = 0; j < controlePreempcao.size(); j++) {
-                if (controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
+
+            for (int j = 0; j < this.controlePreempcao.size(); j++) {
+                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
                     indexControlePreemp = j;
                     break;
                 }
             }
-            
-            for (int k = 0; k < status.size(); k++) {
-                if (status.get(k).getNome().equals(controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
+
+            for (int k = 0; k < this.status.size(); k++) {
+                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
             }
 
-            for (int k = 0; k < status.size(); k++) {
-                if (status.get(k).getNome().equals(controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
+            for (int k = 0; k < this.status.size(); k++) {
+                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
                     indexStatusUserPreemp = k;
                     break;
                 }
             }
-            
+
             //Localizar tarefa em espera designada para executar
-            for (int i = 0; i < esperaTarefas.size(); i++) {
-                if (esperaTarefas.get(i).getProprietario().equals(controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && esperaTarefas.get(i).getIdentificador() == controlePreempcao.get(indexControlePreemp).getAllocID()) {
+            for (int i = 0; i < this.esperaTarefas.size(); i++) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
 
                     //Enviar tarefa para execução
-                    mestre.enviarTarefa(esperaTarefas.remove(i));
+                    this.mestre.enviarTarefa(this.esperaTarefas.remove(i));
 
-                    //Atualizar informações de estado do usuário cuja tarefa será executada
-                    status.get(indexStatusUserAlloc).addServedNum();
-                    status.get(indexStatusUserAlloc).addServedPerf(maq.getPoderComputacional());
-                    status.get(indexStatusUserAlloc).addServedPower(maq.getConsumoEnergia());
-                    
-                    //Atualizar informações de estado do usuário cuja tarefa teve a execução interrompida
-                    status.get(indexStatusUserPreemp).rmServedNum();
-                    status.get(indexStatusUserPreemp).rmServedPerf(maq.getPoderComputacional());
-                    status.get(indexStatusUserPreemp).rmServedPower(maq.getConsumoEnergia());
+                    //Atualizar informações de estado do usuário cuja tarefa
+                    // será executada
+                    this.status.get(indexStatusUserAlloc).addServedNum();
+                    this.status.get(indexStatusUserAlloc).addServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserAlloc).addServedPower(maq.getConsumoEnergia());
 
-                    //Com a preempção feita, os dados necessários para ela são eliminados
-                    controlePreempcao.remove(indexControlePreemp);
+                    //Atualizar informações de estado do usuário cuja tarefa
+                    // teve a execução interrompida
+                    this.status.get(indexStatusUserPreemp).rmServedNum();
+                    this.status.get(indexStatusUserPreemp).rmServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserPreemp).rmServedPower(maq.getConsumoEnergia());
+
+                    //Com a preempção feita, os dados necessários para ela
+                    // são eliminados
+                    this.controlePreempcao.remove(indexControlePreemp);
                     //Encerrar laço
                     break;
                 }
@@ -443,112 +529,73 @@ public class EHOSEP extends Escalonador {
         }
     }
 
-    @Override
-    //Receber nova tarefa submetida ou tarefa que sofreu preemoção
-    public void adicionarTarefa(Tarefa tarefa) {
-
-        //Método herdado, obrigatório executar para obter métricas ao final da slimuação
-        super.adicionarTarefa(tarefa);
-        
-        //Atualização da demanda do usuário proprietário da tarefa
-        for (int i = 0; i < status.size(); i++) {
-            if (status.get(i).getNome().equals(tarefa.getProprietario())) {
-                status.get(i).addDemanda();
-            }
-        }
-
-        //Em caso de preempção
-        if ((CS_Processamento) tarefa.getLocalProcessamento() != null) {
-            
-            //Localizar informações de estado de máquina que executou a tarefa (se houver)
-            CS_Processamento maq = (CS_Processamento) tarefa.getLocalProcessamento();
-        
-            //Localizar informações armazenadas sobre a preempção em particular
-            
-            int indexControlePreemp = -1;
-            int indexStatusUserAlloc = -1;
-            int indexStatusUserPreemp = -1 ;
-            
-            for (int j = 0; j < controlePreempcao.size(); j++) {
-                if (controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
-                    indexControlePreemp = j;
-                    break;
-                }
-            }
-            
-            for( int k = 0; k < status.size(); k++ ){
-                if(status.get(k).getNome().equals(controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())){
-                    indexStatusUserAlloc = k;
-                }
-            }
-            
-            for( int k = 0; k < status.size(); k++ ){
-                if(status.get(k).getNome().equals(controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())){
-                    indexStatusUserPreemp = k;
-                }
-            }
-            
-            //Localizar tarefa em espera deseignada para executar
-            for (int i = 0; i < esperaTarefas.size(); i++) {
-                
-                if (esperaTarefas.get(i).getProprietario().equals(controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && esperaTarefas.get(i).getIdentificador() == controlePreempcao.get(indexControlePreemp).getAllocID()) {
-
-                    //Enviar tarefa para execução
-                    mestre.enviarTarefa(esperaTarefas.remove(i));
-
-                    //Atualizar informações de estado do usuário cuja tarefa será executada
-                    status.get(indexStatusUserAlloc).addServedNum();
-                    status.get(indexStatusUserAlloc).addServedPerf(maq.getPoderComputacional());
-                    status.get(indexStatusUserAlloc).addServedPower(maq.getConsumoEnergia());
-
-                    //Atualizar informações de estado do usuáro cuja tarefa foi interrompida
-                    status.get(indexStatusUserPreemp).rmServedNum();
-                    status.get(indexStatusUserPreemp).rmServedPerf(maq.getPoderComputacional());
-                    status.get(indexStatusUserPreemp).rmServedPower(maq.getConsumoEnergia());
-
-                    //Com a preempção feita, os dados necessários para ela são eliminados
-                    controlePreempcao.remove(indexControlePreemp);
-                    //Encerrar laço
-                    break;
-                }
-            }
-        }
-    }
-
-    //Definir o intervalo de tempo, em segundos, em que as máquinas enviarão dados de atualização para o escalonador
+    //Definir o intervalo de tempo, em segundos, em que as máquinas enviarão
+    // dados de atualização para o escalonador
     @Override
     public Double getTempoAtualizar() {
         return 15.0;
     }
 
-    //Metodo necessario para implementar interface. Não é usado.
     @Override
-    public Tarefa escalonarTarefa() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public void resultadoAtualizar(final Mensagem mensagem) {
+        //super.resultadoAtualizar(mensagem);
+        //Localizar máquina que enviou estado atualizado
+        final int index = this.escravos.indexOf(mensagem.getOrigem());
 
-    //Metodo necessario para implementar interface. Não é usado.
-    @Override
-    public CS_Processamento escalonarRecurso() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //Atualizar listas de espera e processamento da máquina
+        this.controleEscravos.get(index).setProcessador((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
+        this.controleEscravos.get(index).setFila((ArrayList<Tarefa>) mensagem.getFilaEscravo());
+
+        //Tanto alocação para recurso livre como a preempção levam dois
+        // ciclos de atualização para que a máquina possa ser considerada
+        // para esacalonamento novamente
+
+        //Primeiro ciclo
+        if ("Bloqueado".equals(this.controleEscravos.get(index).getStatus())) {
+            this.controleEscravos.get(index).setIncerto();
+            //Segundo ciclo
+        } else if ("Incerto".equals(this.controleEscravos.get(index).getStatus())) {
+            //Se não está executando nada
+            if (this.controleEscravos.get(index).GetProcessador().isEmpty()) {
+
+                this.controleEscravos.get(index).setLivre();
+                //Se está executando uma tarefa
+            } else if (this.controleEscravos.get(index).GetProcessador().size() == 1) {
+
+                this.controleEscravos.get(index).setOcupado();
+                //Se há mais de uma tarefa e a máquina tem mais de um núcleo
+            } else if (this.controleEscravos.get(index).GetProcessador().size() > 1) {
+
+                System.out.println("Houve Paralelismo");
+            }
+        }
+        //Se há fila de tarefa na máquina
+        if (!this.controleEscravos.get(index).GetFila().isEmpty()) {
+            System.out.println("Houve Fila");
+        }
     }
 
     //Classe para dados de estado dos usuários
-    private class StatusUser implements Comparable<StatusUser> {
+    private static class StatusUser implements Comparable<StatusUser> {
 
-        private String user;//Nome do usuario;
-        private int indexUser;//Índice do usuário;
+        private final String user;//Nome do usuario;
+        private final int indexUser;//Índice do usuário;
+        private final double perfShare;//Desempenho total das máquinas do
         private int demanda;//Número de tarefas na fila
         private int ownerShare;//Número de máquinas do usuario
-        private double perfShare;//Desempenho total das máquinas do usuário
-        private double powerShare;//Consumo de energia total das máquinas do usuário
+        // usuário
+        private double powerShare;//Consumo de energia total das máquinas do
+        // usuário
         private int servedNum;//Número de máquinas que atendem ao usuário
         private double servedPerf;//Desempenho total que atende ao usuário
-        private double servedPower;//Consumo de energia total que atende ao usuario
+        private double servedPower;//Consumo de energia total que atende ao
+        // usuario
         private double limiteConsumo;//Limite de consumo definido pelo usuario;
-        private double relacaoEficienciaSistemaPorcao;//Nova métrica para decisão de preempção
+        private double relacaoEficienciaSistemaPorcao;//Nova métrica para
+        // decisão de preempção
 
-        public StatusUser(String user, int indexUser, double perfShare) {
+        public StatusUser(final String user, final int indexUser,
+                          final double perfShare) {
             this.user = user;
             this.indexUser = indexUser;
             this.demanda = 0;
@@ -560,8 +607,10 @@ public class EHOSEP extends Escalonador {
             this.limiteConsumo = 0.0;
         }
 
-        public void calculaRelacaoEficienciaEficienciaSisPor(Double poderSis, Double consumoSis) {
-            this.relacaoEficienciaSistemaPorcao = ((poderSis / consumoSis) / (this.perfShare / this.powerShare));
+        public void calculaRelacaoEficienciaEficienciaSisPor(
+                final Double poderSis, final Double consumoSis) {
+            this.relacaoEficienciaSistemaPorcao =
+                    ((poderSis / consumoSis) / (this.perfShare / this.powerShare));
         }
 
         public void addDemanda() {
@@ -572,14 +621,6 @@ public class EHOSEP extends Escalonador {
             this.demanda--;
         }
 
-        public void setLimite(Double lim) {
-            this.limiteConsumo = lim;
-        }
-
-        public void setPowerShare(Double power) {
-            this.powerShare = power;
-        }
-
         public void addServedNum() {
             this.servedNum++;
         }
@@ -588,19 +629,19 @@ public class EHOSEP extends Escalonador {
             this.servedNum--;
         }
 
-        public void addServedPerf(Double perf) {
+        public void addServedPerf(final Double perf) {
             this.servedPerf += perf;
         }
 
-        public void rmServedPerf(Double perf) {
+        public void rmServedPerf(final Double perf) {
             this.servedPerf -= perf;
         }
 
-        public void addServedPower(Double power) {
+        public void addServedPower(final Double power) {
             this.servedPower += power;
         }
 
-        public void rmServedPower(Double power) {
+        public void rmServedPower(final Double power) {
             this.servedPower -= power;
         }
 
@@ -620,24 +661,16 @@ public class EHOSEP extends Escalonador {
             return this.limiteConsumo;
         }
 
+        public void setLimite(final Double lim) {
+            this.limiteConsumo = lim;
+        }
+
         public int getOwnerShare() {
             return this.ownerShare;
         }
 
-        public double getPerfShare() {
-            return this.perfShare;
-        }
-
-        public double getPowerShare() {
-            return this.powerShare;
-        }
-
         public int getServedNum() {
             return this.servedNum;
-        }
-
-        public double getServedPerf() {
-            return this.servedPerf;
         }
 
         public double getServedPower() {
@@ -650,7 +683,7 @@ public class EHOSEP extends Escalonador {
 
         //Comparador para ordenação
         @Override
-        public int compareTo(StatusUser o) {
+        public int compareTo(final StatusUser o) {
 
             if (((this.servedPerf - this.perfShare) / this.perfShare) < ((o.getServedPerf() - o.getPerfShare()) / o.getPerfShare())) {
                 return -1;
@@ -660,15 +693,15 @@ public class EHOSEP extends Escalonador {
                 return 1;
             }
 
-            //Se as defasagens/excessos relativos forem iguais, os ifs anteriores não são executados
+            //Se as defasagens/excessos relativos forem iguais, os ifs
+            // anteriores não são executados
             if (this.perfShare > o.getPerfShare()) {
                 return -1;
             } else {
                 if (this.perfShare < o.getPerfShare()) {
                     return 1;
-                }
-                else{
-                    if( this.powerShare >= o.getPowerShare() ){
+                } else {
+                    if (this.powerShare >= o.getPowerShare()) {
                         return 1;
                     } else {
                         return -1;
@@ -676,18 +709,36 @@ public class EHOSEP extends Escalonador {
                 }
             }
         }
+
+        public double getPerfShare() {
+            return this.perfShare;
+        }
+
+        public double getPowerShare() {
+            return this.powerShare;
+        }
+
+        public void setPowerShare(final Double power) {
+            this.powerShare = power;
+        }
+
+        public double getServedPerf() {
+            return this.servedPerf;
+        }
     }
 
     //Classe para arnazenar o estado das máquinas no sistema
-    private class ControleEscravos {
+    private static class ControleEscravos {
 
+        private final String ID;//Id da máquina escravo
+        private final int index;//Índice na lista de escravos
         private String status;//Estado da máquina
-        private String ID;//Id da máquina escravo
-        private int index;//Índice na lista de escravos
         private ArrayList<Tarefa> fila;
         private ArrayList<Tarefa> processador;
 
-        public ControleEscravos(String Ident, int ind, ArrayList<Tarefa> F, ArrayList<Tarefa> P) {
+        public ControleEscravos(final String Ident, final int ind,
+                                final ArrayList<Tarefa> F,
+                                final ArrayList<Tarefa> P) {
             this.status = "Livre";
             this.ID = Ident;
             this.index = ind;
@@ -698,28 +749,28 @@ public class EHOSEP extends Escalonador {
         public String getID() {
             return this.ID;
         }
-        
-        public int GetIndex(){
+
+        public int GetIndex() {
             return this.index;
         }
-        
-        public ArrayList<Tarefa> GetFila(){
+
+        public List<Tarefa> GetFila() {
             return this.fila;
         }
-        
-        public ArrayList<Tarefa> GetProcessador(){
+
+        public ArrayList<Tarefa> GetProcessador() {
             return this.processador;
         }
 
         public String getStatus() {
             return this.status;
         }
-        
-        public void setFila(ArrayList<Tarefa> F){
+
+        public void setFila(final ArrayList<Tarefa> F) {
             this.fila = F;
         }
-        
-        public void setProcessador(ArrayList<Tarefa> P){
+
+        public void setProcessador(final ArrayList<Tarefa> P) {
             this.processador = P;
         }
 
@@ -741,14 +792,15 @@ public class EHOSEP extends Escalonador {
     }
 
     //Classe para armazenar dados sobre as preempções que ainda não terminaram
-    public class ControlePreempcao {
+    public static class ControlePreempcao {
 
         private final String usuarioPreemp;
         private final String usuarioAlloc;
         private final int preempID;//ID da tarefa que sofreu preempção
         private final int allocID;//ID da tarefa alocada
 
-        public ControlePreempcao(String userP, int pID, String userA, int aID) {
+        public ControlePreempcao(final String userP, final int pID,
+                                 final String userA, final int aID) {
             this.usuarioPreemp = userP;
             this.preempID = pID;
             this.usuarioAlloc = userA;
