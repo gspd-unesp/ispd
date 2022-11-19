@@ -4,6 +4,7 @@ import ispd.motor.Simulation;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.PolicyCondition;
+import ispd.policy.scheduling.SchedulingMaster;
 
 import java.util.Set;
 
@@ -11,7 +12,7 @@ import java.util.Set;
  * Interface that has methods implemented only in a Master node,
  * these methods will be used by the schedulers.
  */
-public interface MestreCloud {
+public interface MestreCloud extends SchedulingMaster {
     void enviarTarefa(Tarefa tarefa);
 
     void processarTarefa(Tarefa tarefa);

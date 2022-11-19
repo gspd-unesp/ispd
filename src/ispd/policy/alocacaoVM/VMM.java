@@ -5,6 +5,7 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.policy.PolicyCondition;
+import ispd.policy.allocation.AllocationMaster;
 
 import java.util.Set;
 
@@ -12,7 +13,7 @@ import java.util.Set;
  * Interface that has methods implemented only in a Master node,
  * these methods will be used by the schedulers.
  */
-public interface VMM {
+public interface VMM extends AllocationMaster {
     void enviarVM(CS_VirtualMac vm);
 
     void executarAlocacao();
