@@ -1,4 +1,4 @@
-package ispd.policy.externo.cloudAlloc;
+package ispd.policy.allocation.vm.impl;
 
 import ispd.policy.allocation.vm.Alocacao;
 import ispd.motor.filas.servidores.CS_Processamento;

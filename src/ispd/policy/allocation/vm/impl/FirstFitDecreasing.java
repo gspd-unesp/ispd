@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ispd.policy.externo.cloudAlloc;
+package ispd.policy.allocation.vm.impl;
 
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
@@ -12,33 +12,29 @@ import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.policy.allocation.vm.Alocacao;
 import ispd.policy.alocacaoVM.ComparaRequisitos;
-import ispd.policy.alocacaoVM.ComparaVolume;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
  *
  * @author Diogo Tavares
  */
-public class Volume extends Alocacao {
+public class FirstFitDecreasing extends Alocacao {
 
     private boolean fit;
     private int maqIndex;
     private List<CS_VirtualMac>VMsOrdenadas;
     private List<CS_Processamento>MaqsOrdenadas;
     private ComparaRequisitos comparaReq;
-    private ComparaVolume comparaRec;
     
 
-    public Volume() {
+    public FirstFitDecreasing() {
         this.maquinasVirtuais = new ArrayList<CS_VirtualMac>();
         this.maquinasFisicas = new ArrayList<CS_Processamento>();
         this.VMsRejeitadas = new ArrayList<CS_VirtualMac>();
         this.comparaReq = new ComparaRequisitos();
-        this.comparaRec = new ComparaVolume();
         //this.VMsOrdenadas = new ArrayList<CS_VirtualMac>();
         //this.MaqsOrdenadas = new ArrayList<CS_Processamento>();
         
@@ -49,12 +45,19 @@ public class Volume extends Alocacao {
         fit = true;
         maqIndex = 0;
         VMsOrdenadas = new ArrayList<CS_VirtualMac>(maquinasVirtuais);
-        Collections.sort(VMsOrdenadas, comparaReq); //ordena vms
-        Collections.reverse(VMsOrdenadas);//deixa a ordenação decrescente
-        MaqsOrdenadas = new ArrayList<CS_Processamento>(maquinasFisicas);
-        Collections.sort(MaqsOrdenadas,(Comparator) comparaRec);//ordena recursos por volume
-        Collections.reverse(MaqsOrdenadas); //deixa a ordenação decrescente
-        
+        for(CS_VirtualMac aux : VMsOrdenadas){
+            System.out.println(aux.getId());
+        }
+        Collections.sort(VMsOrdenadas, comparaReq);
+        System.out.println("Ordem crescente");
+        for(CS_VirtualMac aux : VMsOrdenadas){
+            System.out.println(aux.getId());
+        }
+        Collections.reverse(VMsOrdenadas);
+        System.out.println("Ordem decrescente");
+        for(CS_VirtualMac aux : VMsOrdenadas){
+            System.out.println(aux.getId());
+        }
         if(!maquinasFisicas.isEmpty() && !maquinasVirtuais.isEmpty()){
             escalonar();
         }
@@ -140,8 +143,8 @@ public class Volume extends Alocacao {
                             auxVM.setCaminho(escalonarRota(auxMaq));
                             System.out.println( auxVM.getId() + " enviada para " + auxMaq.getId());
                             vmMaster.sendVm(auxVM);
-                            System.out.println("---------------------------------------");
-                            atualizarVolume();
+                             System.out.println("---------------------------------------");
+
                             break;
 
                         } else {
@@ -161,10 +164,5 @@ public class Volume extends Alocacao {
 
     }
 
-    public void atualizarVolume(){
-        Collections.sort(MaqsOrdenadas,(Comparator)comparaRec);
-        Collections.reverse(infoMaquinas);
-    }
-    
 }
 
