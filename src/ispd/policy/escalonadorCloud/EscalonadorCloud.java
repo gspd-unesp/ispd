@@ -12,12 +12,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 public abstract class EscalonadorCloud {
-    protected List<CS_Processamento> escravos;
-    protected List<Tarefa> tarefas;
-    protected MetricasUsuarios metricaUsuarios;
-    protected CloudMaster mestre;
-    protected List<List> caminhoEscravo;
-    private List<List> filaEscravo = null;
+    private final List<List> filaEscravo = null;
+    protected List<CS_Processamento> escravos = null;
+    protected List<Tarefa> tarefas = null;
+    protected MetricasUsuarios metricaUsuarios = null;
+    protected CloudMaster mestre = null;
+    protected List<List> caminhoEscravo = null;
 
     public abstract void iniciar();
 
@@ -38,7 +38,7 @@ public abstract class EscalonadorCloud {
     }
 
     public List<CS_Processamento> getEscravos() {
-        return escravos;
+        return this.escravos;
     }
 
     public void addEscravo(final CS_Processamento vm) {
@@ -67,17 +67,11 @@ public abstract class EscalonadorCloud {
         this.mestre = mestre;
     }
 
-    public void setMaqFisicas(List<CS_Processamento> maqFisicas) {
-    }
-
-    public void setCaminhoMaquinas(List<List> caminhoMaquinas) {
-    }
-
     public List<List> getCaminhoEscravo() {
-        return caminhoEscravo;
+        return this.caminhoEscravo;
     }
 
-    public void setCaminhoEscravo(List<List> caminhoEscravo) {
+    public void setCaminhoEscravo(final List<List> caminhoEscravo) {
         this.caminhoEscravo = caminhoEscravo;
     }
 

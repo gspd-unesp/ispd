@@ -585,8 +585,6 @@ public class CS_VMM extends CS_Processamento
         }
 
         this.alocadorVM.setCaminhoMaquinas(this.caminhoEscravo);
-        this.escalonador.setMaqFisicas(escravos);
-        this.escalonador.setCaminhoMaquinas(this.caminhoEscravo);
     }
 
     public void instanciarCaminhosVMs() {
