@@ -6,7 +6,7 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
-import ispd.policy.escalonador.Escalonador;
+import ispd.policy.scheduling.grid.Escalonador;
 
 import java.util.ArrayList;
 import java.util.HashMap;

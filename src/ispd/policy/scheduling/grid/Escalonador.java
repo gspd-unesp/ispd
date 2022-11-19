@@ -1,12 +1,10 @@
-package ispd.policy.escalonador;
+package ispd.policy.scheduling.grid;
 
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.metricas.MetricasUsuarios;
-import ispd.policy.scheduling.grid.GridMaster;
-import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.List;
 

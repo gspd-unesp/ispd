@@ -1,6 +1,7 @@
 package ispd.policy.escalonador;
 
 import ispd.gui.LogExceptions;
+import ispd.policy.scheduling.grid.Escalonador;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

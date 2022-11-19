@@ -16,7 +16,7 @@ class Interpretador implements InterpretadorConstants {
     //dados para costruir classe
     private String arquivoNome;
     private String pacote = "package ispd.policy.externo;\u005cn\u005cn";
-    private String imports = "import ispd.policy.escalonador.Escalonador;\u005cn"
+    private String imports = "import ispd.policy.scheduling.grid.Escalonador;\u005cn"
             + "import ispd.motor.filas.Tarefa;\u005cn"
             + "import ispd.motor.filas.servidores.CS_Processamento;\u005cn"
             + "import ispd.motor.filas.servidores.CentroServico;\u005cn"
