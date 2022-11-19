@@ -517,8 +517,8 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void setSimulation(final Simulation simulacao) {
-        this.simulacao = simulacao;
+    public void setSimulation(final Simulation newSimulation) {
+        this.simulacao = newSimulation;
     }
 
     public void atualizar(final CentroServico escravo, final Double time) {
