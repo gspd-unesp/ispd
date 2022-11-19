@@ -6,10 +6,11 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.metricas.MetricasUsuarios;
 import ispd.policy.scheduling.grid.GridMaster;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.List;
 
-public abstract class Escalonador {
+public abstract class Escalonador implements GridSchedulingPolicy {
     protected List<CS_Processamento> escravos = null;
     protected List<List> filaEscravo = null;
     protected List<Tarefa> tarefas = null;
