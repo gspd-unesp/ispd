@@ -17,9 +17,9 @@ public abstract class EscalonadorCloud {
     protected MetricasUsuarios metricaUsuarios;
     protected CloudMaster mestre;
     protected List<List> caminhoEscravo;
-    protected List<CS_Processamento> maqFisicas;
-    protected List<List> filaEscravo;
-    protected List<List> caminhoMaquinas;
+    private List<CS_Processamento> maqFisicas;
+    private List<List> filaEscravo = null;
+    private List<List> caminhoMaquinas;
 
     public abstract void iniciar();
 
