@@ -39,7 +39,7 @@
  */
 package ispd.motor;
 
-import ispd.policy.scheduling.grid.GridMaster;
+import ispd.policy.PolicyMaster;
 import ispd.motor.filas.Client;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.RedeDeFilas;
@@ -108,7 +108,7 @@ public class SimulacaoParalela extends Simulation {
     @Override
     public void createRouting() {
         for (CS_Processamento mst : getQueueNetwork().getMestres()) {
-            GridMaster temp = (GridMaster) mst;
+            PolicyMaster temp = (PolicyMaster) mst;
             //Cede acesso ao mestre a fila de eventos futuros
             temp.setSimulation(this);
             //Encontra menor caminho entre o mestre e seus escravos

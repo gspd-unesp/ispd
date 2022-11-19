@@ -38,7 +38,7 @@
  */
 package ispd.motor;
 
-import ispd.policy.scheduling.grid.GridMaster;
+import ispd.policy.PolicyMaster;
 import ispd.motor.filas.Client;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
@@ -153,7 +153,7 @@ public abstract class Simulation
     {
         for (final CS_Processamento master : this.queueNetwork.getMestres())
         {
-            final GridMaster temp = (GridMaster) master;
+            final PolicyMaster temp = (PolicyMaster) master;
 
             // Give access to the master of the queue of future events.
             temp.setSimulation(this);

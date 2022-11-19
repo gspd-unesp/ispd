@@ -39,7 +39,7 @@
  */
 package ispd.motor;
 
-import ispd.policy.scheduling.grid.GridMaster;
+import ispd.policy.PolicyMaster;
 import ispd.motor.filas.Client;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.RedeDeFilas;
@@ -84,7 +84,7 @@ public class SimulacaoSequencial extends Simulation {
          * Trecho de código que implementa o roteamento entre os mestres e os seus respectivos escravos
          */
         for (CS_Processamento mst : redeDeFilas.getMestres()) {
-            GridMaster temp = (GridMaster) mst;
+            PolicyMaster temp = (PolicyMaster) mst;
             //Cede acesso ao mestre a fila de eventos futuros
             temp.setSimulation(this);
             //Encontra menor caminho entre o mestre e seus escravos

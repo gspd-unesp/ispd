@@ -5,8 +5,8 @@
 
 package ispd.motor;
 
+import ispd.policy.PolicyMaster;
 import ispd.policy.escalonadorCloud.EscalonadorCloud;
-import ispd.policy.scheduling.cloud.CloudMaster;
 import ispd.gui.PickSimulationFaultsDialog;
 import ispd.motor.falhas.FIBadDesign;
 import ispd.motor.falhas.FIDenialService;
@@ -33,7 +33,6 @@ import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.motor.metricas.MetricasGlobais;
-import ispd.policy.allocation.vm.VmMaster;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -80,8 +79,8 @@ public class SimulacaoSequencialCloud extends Simulation {
          */
         System.out.println("---------------------------------------");
         for (CS_Processamento mst : redeDeFilas.getMestres()) {
-            VmMaster temp = (VmMaster) mst;
-            CloudMaster aux = (CloudMaster) mst;
+            PolicyMaster temp = (PolicyMaster) mst;
+            PolicyMaster aux = (PolicyMaster) mst;
             //Cede acesso ao mestre a fila de eventos futuros
             aux.setSimulation(this);
             temp.setSimulation(this);
