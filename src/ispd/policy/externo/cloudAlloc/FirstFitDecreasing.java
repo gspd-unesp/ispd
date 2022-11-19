@@ -10,7 +10,7 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import ispd.policy.alocacaoVM.Alocacao;
+import ispd.policy.allocation.vm.Alocacao;
 import ispd.policy.alocacaoVM.ComparaRequisitos;
 
 import java.util.ArrayList;

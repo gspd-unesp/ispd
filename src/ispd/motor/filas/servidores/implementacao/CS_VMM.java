@@ -11,7 +11,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
-import ispd.policy.alocacaoVM.Alocacao;
+import ispd.policy.allocation.vm.Alocacao;
 import ispd.policy.alocacaoVM.CarregarAlloc;
 import ispd.policy.allocation.vm.VmMaster;
 import ispd.policy.escalonadorCloud.CarregarCloud;

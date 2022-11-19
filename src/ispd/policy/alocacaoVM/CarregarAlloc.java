@@ -1,5 +1,7 @@
 package ispd.policy.alocacaoVM;
 
+import ispd.policy.allocation.vm.Alocacao;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;

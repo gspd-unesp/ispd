@@ -1,4 +1,4 @@
-package ispd.policy.alocacaoVM;
+package ispd.policy.allocation.vm;
 
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
