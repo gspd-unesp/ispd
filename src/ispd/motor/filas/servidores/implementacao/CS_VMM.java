@@ -16,7 +16,7 @@ import ispd.policy.alocacaoVM.CarregarAlloc;
 import ispd.policy.allocation.vm.VmMaster;
 import ispd.policy.escalonadorCloud.CarregarCloud;
 import ispd.policy.escalonadorCloud.EscalonadorCloud;
-import ispd.policy.escalonadorCloud.MestreCloud;
+import ispd.policy.escalonadorCloud.CloudMaster;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class CS_VMM extends CS_Processamento
-        implements VmMaster, MestreCloud, Mensagens, Vertice {
+        implements VmMaster, CloudMaster, Mensagens, Vertice {
     private final List<CS_Comunicacao> conexoesEntrada = new ArrayList<>();
     private final List<CS_Comunicacao> conexoesSaida = new ArrayList<>();
     private final EscalonadorCloud escalonador;

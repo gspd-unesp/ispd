@@ -6,7 +6,7 @@
 package ispd.motor;
 
 import ispd.policy.escalonadorCloud.EscalonadorCloud;
-import ispd.policy.escalonadorCloud.MestreCloud;
+import ispd.policy.escalonadorCloud.CloudMaster;
 import ispd.gui.PickSimulationFaultsDialog;
 import ispd.motor.falhas.FIBadDesign;
 import ispd.motor.falhas.FIDenialService;
@@ -81,7 +81,7 @@ public class SimulacaoSequencialCloud extends Simulation {
         System.out.println("---------------------------------------");
         for (CS_Processamento mst : redeDeFilas.getMestres()) {
             VmMaster temp = (VmMaster) mst;
-            MestreCloud aux = (MestreCloud) mst;
+            CloudMaster aux = (CloudMaster) mst;
             //Cede acesso ao mestre a fila de eventos futuros
             aux.setSimulation(this);
             temp.setSimulation(this);

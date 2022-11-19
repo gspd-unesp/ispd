@@ -14,7 +14,7 @@ public abstract class EscalonadorCloud {
     protected List<CS_Processamento> escravos;
     protected List<Tarefa> tarefas;
     protected MetricasUsuarios metricaUsuarios;
-    protected MestreCloud mestre;
+    protected CloudMaster mestre;
     protected List<List> caminhoEscravo;
     protected List<CS_Processamento> maqFisicas;
     protected List<List> filaEscravo;
@@ -64,7 +64,7 @@ public abstract class EscalonadorCloud {
         this.metricaUsuarios = metricaUsuarios;
     }
 
-    public void setMestre(final MestreCloud mestre) {
+    public void setMestre(final CloudMaster mestre) {
         this.mestre = mestre;
     }
 
