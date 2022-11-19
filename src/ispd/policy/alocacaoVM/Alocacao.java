@@ -47,18 +47,12 @@ public abstract class Alocacao {
      */
     public abstract void escalonar();
 
-    public abstract void migrarVM();
-
     public void addVM(final CS_VirtualMac vm) {
         this.maquinasVirtuais.add(vm);
     }
 
     public List<CS_Processamento> getMaquinasFisicas() {
         return this.maquinasFisicas;
-    }
-
-    public void setMaquinasFisicas(final List<CS_Processamento> maquinasFisicas) {
-        this.maquinasFisicas = maquinasFisicas;
     }
 
     public void addMaquinaFisica(final CS_Processamento maq) {
@@ -69,20 +63,12 @@ public abstract class Alocacao {
         return this.maquinasVirtuais;
     }
 
-    public void setMaquinasVirtuais(final List<CS_VirtualMac> maquinasVirtuais) {
-        this.maquinasVirtuais = maquinasVirtuais;
-    }
-
     public VmMaster getVMM() {
         return this.vmMaster;
     }
 
     public void setVMM(final VmMaster hypervisor) {
         this.vmMaster = hypervisor;
-    }
-
-    public List<List> getCaminhoMaquinas() {
-        return this.caminhoMaquina;
     }
 
     public void setCaminhoMaquinas(final List<List> caminhoMaquinas) {
@@ -93,15 +79,6 @@ public abstract class Alocacao {
         return this.VMsRejeitadas;
     }
 
-
-    /**
-     * Indica o intervalo de tempo utilizado pelo escalonador para realizar
-     * atualização dos dados dos escravos
-     * Retornar null para escalonadores estáticos, nos dinâmicos o método
-     * deve ser reescrito
-     *
-     * @return Intervalo em segundos para atualização
-     */
     public Double getTempoAtualizar() {
         return null;
     }

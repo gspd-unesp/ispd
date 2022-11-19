@@ -164,10 +164,5 @@ public class FirstFitDecreasing extends Alocacao {
 
     }
 
-    @Override
-    public void migrarVM() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
 }
 

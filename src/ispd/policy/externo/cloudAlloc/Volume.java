@@ -161,11 +161,6 @@ public class Volume extends Alocacao {
 
     }
 
-    @Override
-    public void migrarVM() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
     public void atualizarVolume(){
         Collections.sort(MaqsOrdenadas,(Comparator)comparaRec);
         Collections.reverse(infoMaquinas);

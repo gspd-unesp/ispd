@@ -111,8 +111,4 @@ public class FirstFit extends Alocacao {
         vm.setMaquinaHospedeira(machine);
     }
 
-    @Override
-    public void migrarVM() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 }
