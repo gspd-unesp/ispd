@@ -12,7 +12,7 @@ import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
 import ispd.policy.escalonador.Carregar;
 import ispd.policy.escalonador.Escalonador;
-import ispd.policy.escalonador.Mestre;
+import ispd.policy.escalonador.GridMaster;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class CS_Mestre extends CS_Processamento
-        implements Mestre, Mensagens, Vertice {
+        implements GridMaster, Mensagens, Vertice {
     private final List<CS_Comunicacao> conexoesEntrada;
     private final List<CS_Comunicacao> conexoesSaida;
     private final Escalonador escalonador;

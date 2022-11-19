@@ -16,7 +16,7 @@ public abstract class Escalonador {
     protected List<List> filaEscravo;
     protected List<Tarefa> tarefas;
     protected MetricasUsuarios metricaUsuarios;
-    protected Mestre mestre;
+    protected GridMaster mestre;
     protected List<List> caminhoEscravo;
 
     public abstract void iniciar();
@@ -68,7 +68,7 @@ public abstract class Escalonador {
         this.metricaUsuarios = metricaUsuarios;
     }
 
-    public void setMestre(final Mestre mestre) {
+    public void setMestre(final GridMaster mestre) {
         this.mestre = mestre;
     }
 

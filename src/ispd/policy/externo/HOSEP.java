@@ -7,7 +7,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.escalonador.Escalonador;
-import ispd.policy.escalonador.Mestre;
+import ispd.policy.escalonador.GridMaster;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +42,7 @@ public class HOSEP extends Escalonador {
             double poderComp = 0.0;
             for (final CS_Processamento escravo : this.escravos) {
                 //Se o nó corrente não é mestre e pertence ao usuário corrente
-                if (!(escravo instanceof Mestre) && escravo.getProprietario().equals(this.metricaUsuarios.getUsuarios().get(i))) {
+                if (!(escravo instanceof GridMaster) && escravo.getProprietario().equals(this.metricaUsuarios.getUsuarios().get(i))) {
                     //Calcular o poder total da porcao do usuário corrente
                     poderComp += escravo.getPoderComputacional();
                 }
