@@ -1,42 +1,3 @@
-/* ==========================================================
- * iSPD : iconic Simulator of Parallel and Distributed System
- * ==========================================================
- *
- * (C) Copyright 2010-2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Project Info:  http://gspd.dcce.ibilce.unesp.br/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
- *
- * ---------------
- * WQR.java
- * ---------------
- * (C) Copyright 2014, by Grupo de pesquisas em Sistemas Paralelos e Distribuídos da Unesp (GSPD).
- *
- * Original Author:  Denison Menezes (for GSPD);
- * Contributor(s):   -;
- *
- * Changes
- * -------
- * 
- * 09-Set-2014 : Version 2.0;
- *
- */
 package ispd.policy.externo;
 
 import ispd.motor.Mensagens;
@@ -48,53 +9,45 @@ import ispd.policy.escalonador.Escalonador;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Implementação do algoritmo de escalonamento Workqueue com replicação
- * Atribui a proxima tarefa da fila (FIFO), ou uma copia de uma tarefa em execução,
- * para um recurso que está livre
- * @author denison_usuario
- */
+@SuppressWarnings("unused")
 public class WQR extends Escalonador {
-    private Tarefa ultimaTarefaConcluida;
-    private List<Tarefa> tarefaEnviada;
-    private int servidoresOcupados;
-    private int cont;
-    
+    private Tarefa ultimaTarefaConcluida = null;
+    private List<Tarefa> tarefaEnviada = null;
+    private int servidoresOcupados = 0;
+    private int cont = 0;
+
     public WQR() {
-        this.tarefas = new ArrayList<Tarefa>();
-        this.escravos = new ArrayList<CS_Processamento>();
-        this.ultimaTarefaConcluida = null;
-        this.servidoresOcupados = 0;
-        this.cont = 0;
+        this.tarefas = new ArrayList<>();
+        this.escravos = new ArrayList<>();
     }
-    
+
     @Override
     public void iniciar() {
-        tarefaEnviada = new ArrayList<Tarefa>(escravos.size());
-        for(int i = 0; i < escravos.size(); i++){
-            tarefaEnviada.add(null);
+        this.tarefaEnviada = new ArrayList<>(this.escravos.size());
+        for (int i = 0; i < this.escravos.size(); i++) {
+            this.tarefaEnviada.add(null);
         }
     }
 
     @Override
     public Tarefa escalonarTarefa() {
-        if (!tarefas.isEmpty()) {
-            return tarefas.remove(0);
+        if (!this.tarefas.isEmpty()) {
+            return this.tarefas.remove(0);
         }
-        if(cont >= tarefaEnviada.size()){
-            cont = 0;
+        if (this.cont >= this.tarefaEnviada.size()) {
+            this.cont = 0;
         }
-        if(servidoresOcupados >= escravos.size()){
+        if (this.servidoresOcupados >= this.escravos.size()) {
             return null;
         }
-        for(int i = cont; i < tarefaEnviada.size(); i++){
-            if(tarefaEnviada.get(i) != null){
-                    cont = i;
-                    if(!tarefaEnviada.get(i).getOrigem().equals(mestre)){
-                        cont++;
-                        return null;
-                    }
-                    return mestre.criarCopia(tarefaEnviada.get(i));
+        for (int i = this.cont; i < this.tarefaEnviada.size(); i++) {
+            if (this.tarefaEnviada.get(i) != null) {
+                this.cont = i;
+                if (!this.tarefaEnviada.get(i).getOrigem().equals(this.mestre)) {
+                    this.cont++;
+                    return null;
+                }
+                return this.mestre.criarCopia(this.tarefaEnviada.get(i));
             }
         }
         return null;
@@ -102,18 +55,19 @@ public class WQR extends Escalonador {
 
     @Override
     public CS_Processamento escalonarRecurso() {
-        int index = tarefaEnviada.indexOf(ultimaTarefaConcluida);
-        if (ultimaTarefaConcluida != null && index != -1) {    
+        final int index =
+                this.tarefaEnviada.indexOf(this.ultimaTarefaConcluida);
+        if (this.ultimaTarefaConcluida != null && index != -1) {
             return this.escravos.get(index);
-        }else{
-            for(int i = 0; i < tarefaEnviada.size(); i++){
-                if(tarefaEnviada.get(i) == null){
+        } else {
+            for (int i = 0; i < this.tarefaEnviada.size(); i++) {
+                if (this.tarefaEnviada.get(i) == null) {
                     return this.escravos.get(i);
                 }
             }
         }
-        for(int i = 0; i < tarefaEnviada.size(); i++){
-            if(tarefaEnviada.get(i) != null && tarefaEnviada.get(i).isCopy()){
+        for (int i = 0; i < this.tarefaEnviada.size(); i++) {
+            if (this.tarefaEnviada.get(i) != null && this.tarefaEnviada.get(i).isCopy()) {
                 return this.escravos.get(i);
             }
         }
@@ -121,36 +75,36 @@ public class WQR extends Escalonador {
     }
 
     @Override
-    public List<CentroServico> escalonarRota(CentroServico destino) {
-        int index = escravos.indexOf(destino);
-        return new ArrayList<CentroServico>((List<CentroServico>) caminhoEscravo.get(index));
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
 
     @Override
     public void escalonar() {
-        CS_Processamento rec = escalonarRecurso();
+        final CS_Processamento rec = this.escalonarRecurso();
         boolean sair = false;
-        if(rec != null){
-            Tarefa trf = escalonarTarefa();
-            if(trf != null){
-                if(tarefaEnviada.get(escravos.indexOf(rec)) != null){
-                    mestre.enviarMensagem(tarefaEnviada.get(escravos.indexOf(rec)), rec, Mensagens.CANCELAR);
-                }else{
-                    servidoresOcupados++;
+        if (rec != null) {
+            final Tarefa trf = this.escalonarTarefa();
+            if (trf != null) {
+                if (this.tarefaEnviada.get(this.escravos.indexOf(rec)) != null) {
+                    this.mestre.enviarMensagem(this.tarefaEnviada.get(this.escravos.indexOf(rec)), rec, Mensagens.CANCELAR);
+                } else {
+                    this.servidoresOcupados++;
                 }
-                tarefaEnviada.set(escravos.indexOf(rec), trf);
-                ultimaTarefaConcluida = null;
+                this.tarefaEnviada.set(this.escravos.indexOf(rec), trf);
+                this.ultimaTarefaConcluida = null;
                 trf.setLocalProcessamento(rec);
-                trf.setCaminho(escalonarRota(rec));
-                mestre.enviarTarefa(trf);
-            } else if(tarefas.isEmpty()) {
+                trf.setCaminho(this.escalonarRota(rec));
+                this.mestre.enviarTarefa(trf);
+            } else if (this.tarefas.isEmpty()) {
                 sair = true;
             }
         }
-        if(servidoresOcupados > 0 && servidoresOcupados < escravos.size() && tarefas.isEmpty() && !sair){
-            for (Tarefa tar : tarefaEnviada) {
-                if(tar != null && tar.getOrigem().equals(mestre)){
-                    mestre.executarEscalonamento();
+        if (this.servidoresOcupados > 0 && this.servidoresOcupados < this.escravos.size() && this.tarefas.isEmpty() && !sair) {
+            for (final Tarefa tar : this.tarefaEnviada) {
+                if (tar != null && tar.getOrigem().equals(this.mestre)) {
+                    this.mestre.executarEscalonamento();
                     break;
                 }
             }
@@ -158,23 +112,24 @@ public class WQR extends Escalonador {
     }
 
     @Override
-    public void addTarefaConcluida(Tarefa tarefa) {
+    public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
-        int index = tarefaEnviada.indexOf(tarefa);
+        final int index = this.tarefaEnviada.indexOf(tarefa);
         if (index != -1) {
-            servidoresOcupados--;
-            tarefaEnviada.set(index, null);
+            this.servidoresOcupados--;
+            this.tarefaEnviada.set(index, null);
         }
-        for(int i = 0; i < tarefaEnviada.size(); i++){
-            if(tarefaEnviada.get(i) != null && tarefaEnviada.get(i).isCopyOf(tarefa)){
-                mestre.enviarMensagem(tarefaEnviada.get(i), escravos.get(i), Mensagens.CANCELAR);
-                servidoresOcupados--;
-                tarefaEnviada.set(i,null);
+        for (int i = 0; i < this.tarefaEnviada.size(); i++) {
+            if (this.tarefaEnviada.get(i) != null && this.tarefaEnviada.get(i).isCopyOf(tarefa)) {
+                this.mestre.enviarMensagem(this.tarefaEnviada.get(i),
+                        this.escravos.get(i), Mensagens.CANCELAR);
+                this.servidoresOcupados--;
+                this.tarefaEnviada.set(i, null);
             }
         }
         this.ultimaTarefaConcluida = tarefa;
-        if((servidoresOcupados > 0 && servidoresOcupados < escravos.size()) || !tarefas.isEmpty()){
-                mestre.executarEscalonamento();
+        if ((this.servidoresOcupados > 0 && this.servidoresOcupados < this.escravos.size()) || !this.tarefas.isEmpty()) {
+            this.mestre.executarEscalonamento();
         }
     }
 
