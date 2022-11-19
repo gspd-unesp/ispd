@@ -69,16 +69,8 @@ public abstract class EscalonadorCloud {
         this.mestre = mestre;
     }
 
-    public List<CS_Processamento> getMaqFisicas() {
-        return maqFisicas;
-    }
-
     public void setMaqFisicas(List<CS_Processamento> maqFisicas) {
         this.maqFisicas = maqFisicas;
-    }
-
-    public List<List> getCaminhoMaquinas() {
-        return caminhoMaquinas;
     }
 
     public void setCaminhoMaquinas(List<List> caminhoMaquinas) {
