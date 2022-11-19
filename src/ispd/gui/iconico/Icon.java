@@ -15,16 +15,12 @@ public interface Icon {
     /**
      * Returns {@code true} if this icon is contained in an area near
      * the given X and Y coordinates. Otherwise, {@code false} is
-     * returned.
-     *
-     * @apiNote
+     * returned.<br>
      * This method is often used to detect clicks on the icon from the
-     * user interacting in the grid.
-     *
-     * @implNote
+     * user interacting in the grid.<br>
      * The area in which will be set to define whether this icon is
      * contained is this area is implementation-dependent, that is each
-     * class implementing {@link Icon} may define a different area.
+     * class implementing Icon may define a different area.
      *
      * @param x the X-coordinate
      * @param y the Y-coordinate

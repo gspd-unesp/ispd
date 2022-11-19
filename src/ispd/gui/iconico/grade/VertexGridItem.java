@@ -40,6 +40,28 @@ import java.util.Set;
     /**
      * Constructor of {@link VertexGridItem} which specifies
      * the local, global and name identifiers, as well as,
+     * the X and Y coordinates.
+     *
+     * @param localId  the local id
+     * @param globalId the global id
+     * @param name     the name
+     * @param x        the vertex grid item x-coordinate
+     *                 in cartesian coordinates
+     * @param y        the vertex grid item y-coordinate
+     *                 in cartesian coordinates
+     */
+    public VertexGridItem(
+            final int localId,
+            final int globalId,
+            final String name,
+            final Integer x,
+            final Integer y) {
+        this(localId, globalId, name, x, y, false);
+    }
+
+    /**
+     * Constructor of {@link VertexGridItem} which specifies
+     * the local, global and name identifiers, as well as,
      * the X and Y coordinates and whether is selected.
      *
      * @param localId  the local id
@@ -62,28 +84,6 @@ import java.util.Set;
         this.id = new GridItemIdentifier(localId, globalId, name + globalId);
         this.inboundConnections = new HashSet<>();
         this.outboundConnections = new HashSet<>();
-    }
-
-    /**
-     * Constructor of {@link VertexGridItem} which specifies
-     * the local, global and name identifiers, as well as,
-     * the X and Y coordinates.
-     *
-     * @param localId  the local id
-     * @param globalId the global id
-     * @param name     the name
-     * @param x        the vertex grid item x-coordinate
-     *                 in cartesian coordinates
-     * @param y        the vertex grid item y-coordinate
-     *                 in cartesian coordinates
-     */
-    public VertexGridItem(
-            final int localId,
-            final int globalId,
-            final String name,
-            final Integer x,
-            final Integer y) {
-        this(localId, globalId, name, x, y, false);
     }
 
     /**
@@ -116,13 +116,12 @@ import java.util.Set;
     }
 
     /**
-     * Returns this grid item offset.
+     * Returns this grid item offset.<br>
+     * The offset represents a <i>margin of error</i> to state whether this
+     * grid item is contained at a given x-coordinate and y-coordinate in
+     * {@link #contains(int, int)} method.
      *
      * @return this grid item offset
-     * @apiNote The offset represents a <em>margin of error</em> to
-     *         state whether this grid item is contained at a given
-     *         x-coordinate and y-coordinate in {@link #contains(int, int)}
-     *         method.
      */
     protected int getOffset() {
         return 17;
@@ -137,14 +136,14 @@ import java.util.Set;
      * @param x the X-coordinate
      * @param y the Y-coordinate
      * @return {@code true} if this grid item is contained at
-     *         the given coordinates; otherwise {@code false}
-     *         is returned.
+     * the given coordinates; otherwise {@code false}
+     * is returned.
      */
     @Override
     public boolean contains(final int x, final int y) {
         final var offset = this.getOffset();
         return (x > this.getX() - offset && x < this.getX() + offset) &&
-                (y > this.getY() - offset && y < this.getY() + offset);
+               (y > this.getY() - offset && y < this.getY() + offset);
     }
 
     /**
