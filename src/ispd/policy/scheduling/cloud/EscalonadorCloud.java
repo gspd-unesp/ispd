@@ -1,4 +1,4 @@
-package ispd.policy.escalonadorCloud;
+package ispd.policy.scheduling.cloud;
 
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
@@ -6,8 +6,6 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.motor.metricas.MetricasUsuarios;
-import ispd.policy.scheduling.cloud.CloudMaster;
-import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 
 import java.util.LinkedList;
 import java.util.List;

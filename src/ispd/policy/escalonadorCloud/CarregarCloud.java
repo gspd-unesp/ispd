@@ -1,5 +1,7 @@
 package ispd.policy.escalonadorCloud;
 
+import ispd.policy.scheduling.cloud.EscalonadorCloud;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;

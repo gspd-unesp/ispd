@@ -1,6 +1,6 @@
 package ispd.policy.externo.cloudSchedulers;
 
-import ispd.policy.escalonadorCloud.EscalonadorCloud;
+import ispd.policy.scheduling.cloud.EscalonadorCloud;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;

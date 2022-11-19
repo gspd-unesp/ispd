@@ -1,7 +1,7 @@
 package ispd.arquivo.xml.utils;
 
 import ispd.policy.scheduling.grid.Escalonador;
-import ispd.policy.escalonadorCloud.EscalonadorCloud;
+import ispd.policy.scheduling.cloud.EscalonadorCloud;
 import ispd.motor.metricas.MetricasUsuarios;
 
 import java.util.ArrayList;

@@ -15,7 +15,7 @@ import ispd.policy.allocation.vm.Alocacao;
 import ispd.policy.alocacaoVM.CarregarAlloc;
 import ispd.policy.allocation.vm.VmMaster;
 import ispd.policy.escalonadorCloud.CarregarCloud;
-import ispd.policy.escalonadorCloud.EscalonadorCloud;
+import ispd.policy.scheduling.cloud.EscalonadorCloud;
 import ispd.policy.scheduling.cloud.CloudMaster;
 
 import java.util.ArrayList;
