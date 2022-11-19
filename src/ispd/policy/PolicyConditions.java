@@ -9,6 +9,7 @@ public class PolicyConditions {
             Collections.unmodifiableSet(EnumSet.allOf(PolicyCondition.class));
     public static final Set<PolicyCondition> WHILE_MUST_DISTRIBUTE =
             Collections.unmodifiableSet(EnumSet.of(PolicyCondition.WHILE_MUST_DISTRIBUTE));
+    @SuppressWarnings("unused")
     public static final Set<PolicyCondition> WHEN_RECEIVES_RESULT =
             Collections.unmodifiableSet(EnumSet.of(PolicyCondition.WHEN_RECEIVES_RESULT));
 }
