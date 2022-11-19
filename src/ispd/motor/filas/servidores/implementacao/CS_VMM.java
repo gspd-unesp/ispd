@@ -10,6 +10,7 @@ import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyCondition;
+import ispd.policy.PolicyConditions;
 import ispd.policy.alocacaoVM.Alocacao;
 import ispd.policy.alocacaoVM.CarregarAlloc;
 import ispd.policy.alocacaoVM.VMM;
@@ -18,9 +19,9 @@ import ispd.policy.escalonadorCloud.EscalonadorCloud;
 import ispd.policy.escalonadorCloud.MestreCloud;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class CS_VMM extends CS_Processamento
         implements VMM, MestreCloud, Mensagens, Vertice {
@@ -34,8 +35,8 @@ public class CS_VMM extends CS_Processamento
     private boolean escDisponivel = false;
     private boolean alocDisponivel = true;
     private int tipoEscalonamento = MestreCloud.ENQUANTO_HOUVER_TAREFAS;
-    private EnumSet<PolicyCondition> tipoAlocacao =
-            EnumSet.of(PolicyCondition.WHILE_MUST_DISTRIBUTE);
+    private Set<PolicyCondition> tipoAlocacao =
+            PolicyConditions.WHILE_MUST_DISTRIBUTE;
     private List<List> caminhoEscravo = null;
     private List<List> caminhoVMs = null;
     private Simulation simulacao = null;
@@ -526,12 +527,12 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public EnumSet<PolicyCondition> getTipoAlocacao() {
+    public Set<PolicyCondition> getTipoAlocacao() {
         return this.tipoAlocacao;
     }
 
     @Override
-    public void setTipoAlocacao(final EnumSet<PolicyCondition> tipo) {
+    public void setTipoAlocacao(final Set<PolicyCondition> tipo) {
         this.tipoAlocacao = tipo;
     }
 

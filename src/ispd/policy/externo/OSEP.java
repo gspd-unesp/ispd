@@ -5,8 +5,8 @@ import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.PolicyConditions;
 import ispd.policy.escalonador.Escalonador;
-import ispd.policy.escalonador.Mestre;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +30,7 @@ public class OSEP extends Escalonador {
 
     @Override
     public void iniciar() {
-        this.mestre.setTipoEscalonamento(Mestre.AMBOS);//Escalonamento quando
+        this.mestre.setTipoEscalonamento(PolicyConditions.ALL);//Escalonamento quando
         // chegam tarefas e quando tarefas são concluídas
         this.status = new HashMap<>();
 

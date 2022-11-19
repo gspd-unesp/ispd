@@ -6,7 +6,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.policy.PolicyCondition;
 
-import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Interface that has methods implemented only in a Master node,
@@ -21,9 +21,9 @@ public interface VMM {
 
     void atualizarAlloc(CS_Processamento maquina);
 
-    EnumSet<PolicyCondition> getTipoAlocacao();
+    Set<PolicyCondition> getTipoAlocacao();
 
-    void setTipoAlocacao(EnumSet<PolicyCondition> tipo);
+    void setTipoAlocacao(Set<PolicyCondition> tipo);
 
     Simulation getSimulacaoAlloc();
 

@@ -8,6 +8,8 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.PolicyCondition;
+import ispd.policy.PolicyConditions;
 import ispd.policy.escalonador.Carregar;
 import ispd.policy.escalonador.Escalonador;
 import ispd.policy.escalonador.Mestre;
@@ -15,6 +17,7 @@ import ispd.policy.escalonador.Mestre;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class CS_Mestre extends CS_Processamento
         implements Mestre, Mensagens, Vertice {
@@ -24,7 +27,7 @@ public class CS_Mestre extends CS_Processamento
     private final List<Tarefa> filaTarefas;
     private boolean maqDisponivel;
     private boolean escDisponivel;
-    private int tipoEscalonamento;
+    private Set<PolicyCondition> tipoEscalonamento;
 
     private Simulation simulacao = null;
 
@@ -39,7 +42,7 @@ public class CS_Mestre extends CS_Processamento
         this.escDisponivel = true;
         this.conexoesEntrada = new ArrayList<>();
         this.conexoesSaida = new ArrayList<>();
-        this.tipoEscalonamento = Mestre.ENQUANTO_HOUVER_TAREFAS;
+        this.tipoEscalonamento = PolicyConditions.WHILE_MUST_DISTRIBUTE;
     }
 
     //Métodos do centro de serviços
@@ -62,7 +65,7 @@ public class CS_Mestre extends CS_Processamento
                     simulacao.addFutureEvent(evtFut);
                 }
                 this.escalonador.addTarefaConcluida(cliente);
-                if (this.tipoEscalonamento == Mestre.QUANDO_RECEBE_RESULTADO || this.tipoEscalonamento == Mestre.AMBOS) {
+                if (this.tipoEscalonamento.contains(PolicyCondition.WHEN_RECEIVES_RESULT)) {
                     if (this.escalonador.getFilaTarefas().isEmpty()) {
                         this.escDisponivel = true;
                     } else {
@@ -138,7 +141,7 @@ public class CS_Mestre extends CS_Processamento
                     cliente.getCaminho().remove(0), cliente);
             //Event adicionado a lista de evntos futuros
             simulacao.addFutureEvent(evtFut);
-            if (this.tipoEscalonamento == Mestre.ENQUANTO_HOUVER_TAREFAS || this.tipoEscalonamento == Mestre.AMBOS) {
+            if (this.tipoEscalonamento.contains(PolicyCondition.WHILE_MUST_DISTRIBUTE)) {
                 //se fila de tarefas do servidor não estiver vazia escalona
                 // proxima tarefa
                 if (this.escalonador.getFilaTarefas().isEmpty()) {
@@ -447,12 +450,12 @@ public class CS_Mestre extends CS_Processamento
     }
 
     @Override
-    public int getTipoEscalonamento() {
+    public Set<PolicyCondition> getTipoEscalonamento() {
         return this.tipoEscalonamento;
     }
 
     @Override
-    public void setTipoEscalonamento(final int tipo) {
+    public void setTipoEscalonamento(final Set<PolicyCondition> tipo) {
         this.tipoEscalonamento = tipo;
     }
 

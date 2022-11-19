@@ -5,6 +5,7 @@ import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.PolicyConditions;
 import ispd.policy.escalonador.Escalonador;
 import ispd.policy.escalonador.Mestre;
 
@@ -33,7 +34,7 @@ public class HOSEP extends Escalonador {
     @Override
     public void iniciar() {
         //Escalonamento quando chegam tarefas e quando tarefas são concluídas
-        this.mestre.setTipoEscalonamento(Mestre.AMBOS);
+        this.mestre.setTipoEscalonamento(PolicyConditions.ALL);
 
         //Objetos de controle de uso e cota para cada um dos usuários
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
