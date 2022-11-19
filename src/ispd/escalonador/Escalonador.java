@@ -46,19 +46,6 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.metricas.MetricasUsuarios;
 import java.util.List;
 
-/**
- * Classe abstrata ue implementa os escalonadores.
- * 
- * lista de atributos:
- * 
- *  protected List<CS_Processamento> escravos : Lista de escravos para quem o escalonador dele distribuir tarefas
- *  protected List<List> filaEscravo : Lista que contem informações sobre cada escravo, utilizado em políticas dinâmicas.
- *  protected List<Tarefa> tarefas : Lista de tarefas para serem distribuídas entre os escravos
- *  protected MetricasUsuarios metricaUsuarios : Objeto que calcula métricas sobre o escalonamento para os usuários
- *  protected Mestre mestre : 
- 
- * @author Diogo Tavares
- */
 public abstract class Escalonador {
     //Atributos
     protected List<CS_Processamento> escravos;
