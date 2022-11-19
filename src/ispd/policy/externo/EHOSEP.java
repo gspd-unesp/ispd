@@ -34,7 +34,7 @@ public class EHOSEP extends Escalonador {
     @Override
     public void iniciar() {
         //Escalonamento quando chegam tarefas e quando tarefas são concluídas
-        this.mestre.setTipoEscalonamento(PolicyConditions.ALL);
+        this.mestre.setSchedulingConditions(PolicyConditions.ALL);
 
         //Calcular poder computacional total do sistema, e consumo total do
         // mesmo.
@@ -133,7 +133,7 @@ public class EHOSEP extends Escalonador {
                         final Tarefa tar = this.tarefas.remove(indexTarefa);
                         tar.setLocalProcessamento(this.escravos.get(indexEscravo));
                         tar.setCaminho(this.escalonarRota(this.escravos.get(indexEscravo)));
-                        this.mestre.enviarTarefa(tar);
+                        this.mestre.sendTask(tar);
 
                         //Atualização dos dados sobre o usuário
                         cliente.rmDemanda();
@@ -165,7 +165,7 @@ public class EHOSEP extends Escalonador {
 
                         //Solicitação de retorno da tarefa em execução e
                         // atualização da demanda do usuário
-                        this.mestre.enviarMensagem(this.controleEscravos.get(indexEscravo).GetProcessador().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
+                        this.mestre.sendMessage(this.controleEscravos.get(indexEscravo).GetProcessador().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
                         this.controleEscravos.get(indexEscravo).setBloqueado();
                         cliente.rmDemanda();
                         return;
@@ -319,13 +319,13 @@ public class EHOSEP extends Escalonador {
                             // tarefa começou no recurso)*poder
                             // computacional)%bloco de checkpointing
                             desperdicioSelec =
-                                    ((this.mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
+                                    ((this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
                         } else {
                             //Se não há chekcpointin de tarefas, o
                             // desperdício é o tempo total executado para a
                             // tarefa na máquina corrente no laço
                             desperdicioSelec =
-                                    (this.mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional();
+                                    (this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional();
                         }
                         indexSelec = j;
                     } else {
@@ -333,10 +333,10 @@ public class EHOSEP extends Escalonador {
                         if (tarPreemp.getCheckPoint() > 0.0) {
 
                             desperdicioTestado =
-                                    ((this.mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
+                                    ((this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
                         } else {
                             desperdicioTestado =
-                                    (this.mestre.getSimulacao().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional();
+                                    (this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional();
                         }
                         //É escolhida a máquina de menor desperdício
                         if (desperdicioTestado < desperdicioSelec) {
@@ -419,7 +419,7 @@ public class EHOSEP extends Escalonador {
                 if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
 
                     //Enviar tarefa para execução
-                    this.mestre.enviarTarefa(this.esperaTarefas.remove(i));
+                    this.mestre.sendTask(this.esperaTarefas.remove(i));
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // será executada
@@ -506,7 +506,7 @@ public class EHOSEP extends Escalonador {
                 if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
 
                     //Enviar tarefa para execução
-                    this.mestre.enviarTarefa(this.esperaTarefas.remove(i));
+                    this.mestre.sendTask(this.esperaTarefas.remove(i));
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // será executada

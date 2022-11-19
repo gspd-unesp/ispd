@@ -70,7 +70,7 @@ public class DynamicFPLTF extends Escalonador {
                     this.tempoTornaDisponivel.get(index) + custo);
             trf.setLocalProcessamento(rec);
             trf.setCaminho(this.escalonarRota(rec));
-            this.mestre.enviarTarefa(trf);
+            this.mestre.sendTask(trf);
         }
     }
 
@@ -109,7 +109,7 @@ public class DynamicFPLTF extends Escalonador {
                         this.tempoTornaDisponivel.set(i,
                                 this.tempoTornaDisponivel.get(i) - custo);
                     }
-                    this.mestre.enviarMensagem(trf, escravo,
+                    this.mestre.sendMessage(trf, escravo,
                             Mensagens.DEVOLVER);
                 }
                 this.filaEscravo.get(i).clear();

@@ -110,7 +110,7 @@ public class SimulacaoParalela extends Simulation {
         for (CS_Processamento mst : getQueueNetwork().getMestres()) {
             Mestre temp = (Mestre) mst;
             //Cede acesso ao mestre a fila de eventos futuros
-            temp.setSimulacao(this);
+            temp.setSimulation(this);
             //Encontra menor caminho entre o mestre e seus escravos
             threadPool.execute(new determinarCaminho(mst));
         }

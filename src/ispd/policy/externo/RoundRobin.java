@@ -53,6 +53,6 @@ public class RoundRobin extends Escalonador {
         final var resource = this.escalonarRecurso();
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
-        this.mestre.enviarTarefa(task);
+        this.mestre.sendTask(task);
     }
 }

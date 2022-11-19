@@ -65,10 +65,10 @@ public class TextEditorStyle extends DefaultStyledDocument implements CaretListe
             "escravos", "filaEscravo", "tarefas", "metricaUsuarios",
             "mestre", "caminhoEscravo", "adicionarTarefa(tarefa)",
             "getTempoAtualizar()", "resultadoAtualizar(mensagem)",
-            "addTarefaConcluida(tarefa)", "enviarTarefa(Tarefa tarefa)",
-            "processarTarefa(Tarefa tarefa)", "executarEscalonamento()",
-            "enviarMensagem(tarefa, escravo, tipo)",
-            "atualizar(CS_Processamento escravo)", "criarCopia(Tarefa get)",
+            "addTarefaConcluida(tarefa)", "sendTask(Tarefa tarefa)",
+            "processTask(Tarefa tarefa)", "executeScheduling()",
+            "sendMessage(tarefa, escravo, tipo)",
+            "updateSubordinate(CS_Processamento escravo)", "cloneTask(Tarefa get)",
             "Mensagens.CANCELAR", "Mensagens.PARAR", "Mensagens.DEVOLVER",
             "Mensagens.DEVOLVER_COM_PREEMPCAO", "Mensagens.ATUALIZAR"
     };

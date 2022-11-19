@@ -13,23 +13,23 @@ import java.util.Set;
  * these methods will be use by the schedulers.
  */
 public interface Mestre extends SchedulingMaster {
-    void enviarTarefa(Tarefa tarefa);
+    void sendTask(Tarefa tarefa);
 
-    void processarTarefa(Tarefa tarefa);
+    void processTask(Tarefa tarefa);
 
-    void executarEscalonamento();
+    void executeScheduling();
 
-    void enviarMensagem(Tarefa tarefa, CS_Processamento escravo, int tipo);
+    void sendMessage(Tarefa tarefa, CS_Processamento escravo, int tipo);
 
-    void atualizar(CS_Processamento escravo);
+    void updateSubordinate(CS_Processamento escravo);
 
-    Set<PolicyCondition> getTipoEscalonamento();
+    Set<PolicyCondition> getSchedulingConditions();
 
-    void setTipoEscalonamento(Set<PolicyCondition> tipo);
+    void setSchedulingConditions(Set<PolicyCondition> tipo);
 
-    Tarefa criarCopia(Tarefa get);
+    Tarefa cloneTask(Tarefa get);
 
-    Simulation getSimulacao();
+    Simulation getSimulation();
 
-    void setSimulacao(Simulation simulacao);
+    void setSimulation(Simulation simulacao);
 }

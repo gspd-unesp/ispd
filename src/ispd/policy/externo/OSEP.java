@@ -30,7 +30,7 @@ public class OSEP extends Escalonador {
 
     @Override
     public void iniciar() {
-        this.mestre.setTipoEscalonamento(PolicyConditions.ALL);//Escalonamento quando
+        this.mestre.setSchedulingConditions(PolicyConditions.ALL);//Escalonamento quando
         // chegam tarefas e quando tarefas são concluídas
         this.status = new HashMap<>();
 
@@ -184,7 +184,7 @@ public class OSEP extends Escalonador {
             selec = this.escravos.get(index);
             final int index_selec = this.escravos.indexOf(selec);
             //controleEscravos.get(escravos.indexOf(selec)).setBloqueado();
-            this.mestre.enviarMensagem((Tarefa) this.processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
+            this.mestre.sendMessage((Tarefa) this.processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
             return selec;
         }
         return null;
@@ -213,7 +213,7 @@ public class OSEP extends Escalonador {
                     estado.addServedNum();
 
                     this.controleEscravos.get(this.escravos.indexOf(rec)).setBloqueado();
-                    this.mestre.enviarTarefa(trf);
+                    this.mestre.sendTask(trf);
 
                 } else {
 
@@ -236,8 +236,6 @@ public class OSEP extends Escalonador {
                         System.out.println("Tem Fila");
                     }
                 }
-                //mestre.enviarTarefa(trf);
-
             } else {
                 this.tarefas.add(trf);
                 this.tarefaSelec = null;
@@ -268,7 +266,7 @@ public class OSEP extends Escalonador {
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
                 if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).getAllocID()) {
 
-                    this.mestre.enviarTarefa(this.esperaTarefas.get(i));
+                    this.mestre.sendTask(this.esperaTarefas.get(i));
 
                     this.status.get(this.controlePreempcao.get(indexControle).getUsuarioAlloc()).addServedNum();
 
@@ -284,10 +282,7 @@ public class OSEP extends Escalonador {
             }
 
         } else {
-            //System.out.println("Tarefa " + tarefa.getIdentificador() + " do
-            // user " + tarefa.getProprietario() + " chegou " + mestre
-            // .getSimulacao().getTime());
-            this.mestre.executarEscalonamento();
+            this.mestre.executeScheduling();
             estadoUser.addDemanda();
         }
     }
@@ -336,7 +331,7 @@ public class OSEP extends Escalonador {
             }
             this.contadorEscravos = 0;
             if (!this.tarefas.isEmpty() && escalona) {
-                this.mestre.executarEscalonamento();
+                this.mestre.executeScheduling();
             }
         }
     }

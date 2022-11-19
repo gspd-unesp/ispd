@@ -77,7 +77,7 @@ public class RoundRobin extends EscalonadorCloud {
                 "Não existem VMs alocadas ainda, devolvendo tarefa %d%n",
                 task.getIdentificador());
         this.adicionarTarefa(task);
-        this.mestre.liberarEscalonador();
+        this.mestre.freeScheduler();
     }
 
     private void scheduleTask(final Tarefa task) {
@@ -86,6 +86,6 @@ public class RoundRobin extends EscalonadorCloud {
                 task.getIdentificador(), resource.getId());
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
-        this.mestre.enviarTarefa(task);
+        this.mestre.sendTask(task);
     }
 }

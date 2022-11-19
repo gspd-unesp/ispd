@@ -124,7 +124,7 @@ public class CS_VMM extends CS_Processamento
                         if (this.escalonador.getFilaTarefas().isEmpty()) {
                             this.escDisponivel = true;
                         } else {
-                            this.executarEscalonamento();
+                            this.executeScheduling();
                         }
                     }
                 } // Caso a tarefa está chegando pra ser escalonada
@@ -144,7 +144,7 @@ public class CS_VMM extends CS_Processamento
                             this.escalonador.adicionarTarefa(cliente);
                             // como o escalonador está disponível vai
                             // executar o escalonamento diretamente
-                            this.executarEscalonamento();
+                            this.executeScheduling();
                         } else {
                             // escalonador apenas adiciona a tarefa
                             this.escalonador.adicionarTarefa(cliente);
@@ -190,7 +190,7 @@ public class CS_VMM extends CS_Processamento
                 // se fila de tarefas do servidor não estiver vazia escalona
                 // proxima tarefa
                 if (!this.escalonador.getFilaTarefas().isEmpty()) {
-                    this.executarEscalonamento();
+                    this.executeScheduling();
                 } else {
                     this.escDisponivel = true;
                 }
@@ -233,7 +233,7 @@ public class CS_VMM extends CS_Processamento
                 this.atenderRetornoAtualizacao(simulacao, mensagem);
             } else if (mensagem.getTarefa() != null) {
                 // encaminhando mensagem para o destino
-                this.enviarMensagem(mensagem.getTarefa(),
+                this.sendMessage(mensagem.getTarefa(),
                         (CS_Processamento) mensagem.getTarefa().getLocalProcessamento(),
                         mensagem.getTipo());
             }
@@ -407,7 +407,7 @@ public class CS_VMM extends CS_Processamento
 
     // métodos do Mestre
     @Override
-    public void enviarTarefa(final Tarefa tarefa) {
+    public void sendTask(final Tarefa tarefa) {
         // Gera evento para atender proximo cliente da lista
         System.out.println(
                 "Tarefa:" + tarefa.getIdentificador() + "escalonada para vm:" + tarefa.getLocalProcessamento().getId());
@@ -418,14 +418,14 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void processarTarefa(final Tarefa tarefa) {
+    public void processTask(final Tarefa tarefa) {
         throw new UnsupportedOperationException("Not supported yet."); // To
         // change body of generated methods, choose Tools
         // | Templates.
     }
 
     @Override
-    public void executarEscalonamento() {
+    public void executeScheduling() {
         System.out.println(this.getId() + " solicitando escalonamento");
         final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
                 FutureEvent.ESCALONAR, this, null);
@@ -434,9 +434,9 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void enviarMensagem(final Tarefa tarefa,
-                               final CS_Processamento escravo,
-                               final int tipo) {
+    public void sendMessage(final Tarefa tarefa,
+                            final CS_Processamento escravo,
+                            final int tipo) {
         final Mensagem msg = new Mensagem(this, tipo, tarefa);
         msg.setCaminho(this.escalonador.escalonarRota(escravo));
         final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
@@ -447,7 +447,7 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void atualizar(final CS_Processamento escravo) {
+    public void updateSubordinate(final CS_Processamento escravo) {
         final Mensagem msg = new Mensagem(this, 0.011444091796875,
                 Mensagens.ATUALIZAR);
         msg.setCaminho(this.escalonador.escalonarRota(escravo));
@@ -459,35 +459,25 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void liberarEscalonador() {
+    public void freeScheduler() {
         this.escDisponivel = true;
     }
 
     @Override
-    public Set<PolicyCondition> getTipoEscalonamento() {
+    public Set<PolicyCondition> getSchedulingConditions() {
         return this.tipoEscalonamento;
     }
 
     @Override
-    public void setTipoEscalonamento(final Set<PolicyCondition> tipo) {
+    public void setSchedulingConditions(final Set<PolicyCondition> tipo) {
         this.tipoEscalonamento = tipo;
     }
 
     @Override
-    public Tarefa criarCopia(final Tarefa get) {
+    public Tarefa cloneTask(final Tarefa get) {
         final Tarefa tarefa = new Tarefa(get);
         this.simulacao.addJob(tarefa);
         return tarefa;
-    }
-
-    @Override
-    public Simulation getSimulacao() {
-        return this.simulacao;
-    }
-
-    @Override
-    public void setSimulacao(final Simulation simulacao) {
-        this.simulacao = simulacao;
     }
 
     @Override

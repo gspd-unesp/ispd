@@ -77,7 +77,7 @@ public class Workqueue extends Escalonador {
         }
         trf.setLocalProcessamento(rec);
         trf.setCaminho(this.escalonarRota(rec));
-        this.mestre.enviarTarefa(trf);
+        this.mestre.sendTask(trf);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class Workqueue extends Escalonador {
         if (this.tarefaEnviada.contains(tarefa)) {
             final int index = this.tarefaEnviada.indexOf(tarefa);
             this.tarefaEnviada.set(index, null);
-            this.mestre.executarEscalonamento();
+            this.mestre.executeScheduling();
         }
     }
 
@@ -95,7 +95,7 @@ public class Workqueue extends Escalonador {
         super.addTarefaConcluida(tarefa);
         this.ultimaTarefaConcluida.add(tarefa);
         if (!this.tarefas.isEmpty()) {
-            this.mestre.executarEscalonamento();
+            this.mestre.executeScheduling();
         }
     }
 }

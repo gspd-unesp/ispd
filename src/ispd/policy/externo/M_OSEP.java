@@ -33,7 +33,7 @@ public class M_OSEP extends Escalonador {
 
     @Override
     public void iniciar() {
-        this.mestre.setTipoEscalonamento(PolicyConditions.ALL);//Escalonamento quando
+        this.mestre.setSchedulingConditions(PolicyConditions.ALL);//Escalonamento quando
         // chegam tarefas e quando tarefas são concluídas
         this.status = new ArrayList<>();
 
@@ -233,7 +233,7 @@ public class M_OSEP extends Escalonador {
                 // .getProprietario());
                 index_selec = this.escravos.indexOf(selec);
                 this.controleEscravos.get(this.escravos.indexOf(selec)).setPreemp();
-                this.mestre.enviarMensagem((Tarefa) this.processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
+                this.mestre.sendMessage((Tarefa) this.processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
                 return selec;
             }
         }
@@ -261,7 +261,7 @@ public class M_OSEP extends Escalonador {
                     this.status.get(this.metricaUsuarios.getUsuarios().indexOf(trf.getProprietario())).AtualizaUso(rec.getPoderComputacional(), 1);
                     //controleEscravos.get(escravos.indexOf(rec))
                     // .SetBloqueado();
-                    this.mestre.enviarTarefa(trf);
+                    this.mestre.sendTask(trf);
                 } else {
                     final int index_rec = this.escravos.indexOf(rec);
                     this.esperaTarefas.add(trf);
@@ -316,7 +316,7 @@ public class M_OSEP extends Escalonador {
                     indexUser =
                             this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).getUsuarioAlloc());
                     this.status.get(indexUser).AtualizaUso(maq.getPoderComputacional(), 1);
-                    this.mestre.enviarTarefa(this.esperaTarefas.get(i));
+                    this.mestre.sendTask(this.esperaTarefas.get(i));
                     final int index =
                             this.escravos.indexOf(this.esperaTarefas.get(i).getLocalProcessamento());
                     //controleEscravos.get(index).SetBloqueado();
@@ -327,10 +327,7 @@ public class M_OSEP extends Escalonador {
             }
 
         } else {
-            //System.out.println("Tarefa " + tarefa.getIdentificador() + " do
-            // user " + tarefa.getProprietario() + " chegou " + mestre
-            // .getSimulacao().getTime());
-            this.mestre.executarEscalonamento();
+            this.mestre.executeScheduling();
         }
     }
 
@@ -342,11 +339,6 @@ public class M_OSEP extends Escalonador {
         final int indexUser =
                 this.metricaUsuarios.getUsuarios().indexOf(tarefa.getProprietario());
         this.status.get(indexUser).AtualizaUso(maq.getPoderComputacional(), 0);
-
-        //System.out.println("Tarefa " + tarefa.getIdentificador() + " do
-        // user " + tarefa.getProprietario() + " concluida " + mestre
-        // .getSimulacao().getTime() + " O usuário perdeu " + maq
-        // .getPoderComputacional() + " MFLOPS");
     }
 
     @Override
@@ -385,7 +377,7 @@ public class M_OSEP extends Escalonador {
             }
             this.contadorEscravos = 0;
             if (!this.tarefas.isEmpty() && escalona) {
-                this.mestre.executarEscalonamento();
+                this.mestre.executeScheduling();
             }
         }
 

@@ -47,7 +47,7 @@ public class WQR extends Escalonador {
                     this.cont++;
                     return null;
                 }
-                return this.mestre.criarCopia(this.tarefaEnviada.get(i));
+                return this.mestre.cloneTask(this.tarefaEnviada.get(i));
             }
         }
         return null;
@@ -88,7 +88,7 @@ public class WQR extends Escalonador {
             final Tarefa trf = this.escalonarTarefa();
             if (trf != null) {
                 if (this.tarefaEnviada.get(this.escravos.indexOf(rec)) != null) {
-                    this.mestre.enviarMensagem(this.tarefaEnviada.get(this.escravos.indexOf(rec)), rec, Mensagens.CANCELAR);
+                    this.mestre.sendMessage(this.tarefaEnviada.get(this.escravos.indexOf(rec)), rec, Mensagens.CANCELAR);
                 } else {
                     this.servidoresOcupados++;
                 }
@@ -96,7 +96,7 @@ public class WQR extends Escalonador {
                 this.ultimaTarefaConcluida = null;
                 trf.setLocalProcessamento(rec);
                 trf.setCaminho(this.escalonarRota(rec));
-                this.mestre.enviarTarefa(trf);
+                this.mestre.sendTask(trf);
             } else if (this.tarefas.isEmpty()) {
                 sair = true;
             }
@@ -104,7 +104,7 @@ public class WQR extends Escalonador {
         if (this.servidoresOcupados > 0 && this.servidoresOcupados < this.escravos.size() && this.tarefas.isEmpty() && !sair) {
             for (final Tarefa tar : this.tarefaEnviada) {
                 if (tar != null && tar.getOrigem().equals(this.mestre)) {
-                    this.mestre.executarEscalonamento();
+                    this.mestre.executeScheduling();
                     break;
                 }
             }
@@ -121,7 +121,7 @@ public class WQR extends Escalonador {
         }
         for (int i = 0; i < this.tarefaEnviada.size(); i++) {
             if (this.tarefaEnviada.get(i) != null && this.tarefaEnviada.get(i).isCopyOf(tarefa)) {
-                this.mestre.enviarMensagem(this.tarefaEnviada.get(i),
+                this.mestre.sendMessage(this.tarefaEnviada.get(i),
                         this.escravos.get(i), Mensagens.CANCELAR);
                 this.servidoresOcupados--;
                 this.tarefaEnviada.set(i, null);
@@ -129,7 +129,7 @@ public class WQR extends Escalonador {
         }
         this.ultimaTarefaConcluida = tarefa;
         if ((this.servidoresOcupados > 0 && this.servidoresOcupados < this.escravos.size()) || !this.tarefas.isEmpty()) {
-            this.mestre.executarEscalonamento();
+            this.mestre.executeScheduling();
         }
     }
 

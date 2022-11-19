@@ -34,7 +34,7 @@ public class HOSEP extends Escalonador {
     @Override
     public void iniciar() {
         //Escalonamento quando chegam tarefas e quando tarefas são concluídas
-        this.mestre.setTipoEscalonamento(PolicyConditions.ALL);
+        this.mestre.setSchedulingConditions(PolicyConditions.ALL);
 
         //Objetos de controle de uso e cota para cada um dos usuários
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
@@ -108,7 +108,7 @@ public class HOSEP extends Escalonador {
                         final Tarefa tar = this.tarefas.remove(indexTarefa);
                         tar.setLocalProcessamento(this.escravos.get(indexEscravo));
                         tar.setCaminho(this.escalonarRota(this.escravos.get(indexEscravo)));
-                        this.mestre.enviarTarefa(tar);
+                        this.mestre.sendTask(tar);
 
                         //Atualização dos dados sobre o usuário
                         cliente.rmDemanda();
@@ -138,7 +138,7 @@ public class HOSEP extends Escalonador {
 
                         //Solicitação de retorno da tarefa em execução e
                         // atualização da demanda do usuário
-                        this.mestre.enviarMensagem(this.controleEscravos.get(indexEscravo).GetProcessador().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
+                        this.mestre.sendMessage(this.controleEscravos.get(indexEscravo).GetProcessador().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
                         this.controleEscravos.get(indexEscravo).setBloqueado();
                         cliente.rmDemanda();
                         return;
@@ -288,7 +288,7 @@ public class HOSEP extends Escalonador {
                 if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
 
                     //Enviar tarefa para execução
-                    this.mestre.enviarTarefa(this.esperaTarefas.remove(i));
+                    this.mestre.sendTask(this.esperaTarefas.remove(i));
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // será executada
@@ -368,7 +368,7 @@ public class HOSEP extends Escalonador {
                 if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
 
                     //Enviar tarefa para execução
-                    this.mestre.enviarTarefa(this.esperaTarefas.remove(i));
+                    this.mestre.sendTask(this.esperaTarefas.remove(i));
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // será executada
