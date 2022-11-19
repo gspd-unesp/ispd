@@ -1,4 +1,4 @@
-package ispd.policy.escalonador;
+package ispd.policy.loaders;
 
 import ispd.gui.LogExceptions;
 import ispd.policy.scheduling.grid.Escalonador;

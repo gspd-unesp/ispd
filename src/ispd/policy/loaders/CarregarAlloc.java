@@ -1,4 +1,4 @@
-package ispd.policy.alocacaoVM;
+package ispd.policy.loaders;
 
 import ispd.policy.allocation.vm.Alocacao;
 

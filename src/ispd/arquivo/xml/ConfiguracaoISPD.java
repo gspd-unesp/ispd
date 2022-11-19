@@ -2,7 +2,7 @@ package ispd.arquivo.xml;
 
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.policy.escalonador.Carregar;
+import ispd.policy.loaders.Carregar;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;

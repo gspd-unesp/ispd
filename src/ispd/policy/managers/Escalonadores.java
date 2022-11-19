@@ -1,7 +1,7 @@
 package ispd.policy.managers;
 
 import ispd.policy.PolicyManager;
-import ispd.policy.escalonador.Carregar;
+import ispd.policy.loaders.Carregar;
 
 import java.io.File;
 

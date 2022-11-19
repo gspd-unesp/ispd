@@ -10,7 +10,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
-import ispd.policy.escalonador.Carregar;
+import ispd.policy.loaders.Carregar;
 import ispd.policy.scheduling.grid.Escalonador;
 import ispd.policy.scheduling.grid.GridMaster;
 

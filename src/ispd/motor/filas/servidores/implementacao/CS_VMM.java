@@ -12,9 +12,9 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
 import ispd.policy.allocation.vm.Alocacao;
-import ispd.policy.alocacaoVM.CarregarAlloc;
+import ispd.policy.loaders.CarregarAlloc;
 import ispd.policy.allocation.vm.VmMaster;
-import ispd.policy.escalonadorCloud.CarregarCloud;
+import ispd.policy.loaders.CarregarCloud;
 import ispd.policy.scheduling.cloud.EscalonadorCloud;
 import ispd.policy.scheduling.cloud.CloudMaster;
 
