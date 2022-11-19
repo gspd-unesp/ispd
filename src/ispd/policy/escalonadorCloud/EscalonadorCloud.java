@@ -6,6 +6,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.motor.metricas.MetricasUsuarios;
+import ispd.policy.scheduling.cloud.CloudMaster;
 
 import java.util.LinkedList;
 import java.util.List;

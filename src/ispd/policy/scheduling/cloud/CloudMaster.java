@@ -1,4 +1,4 @@
-package ispd.policy.escalonadorCloud;
+package ispd.policy.scheduling.cloud;
 
 import ispd.policy.scheduling.SchedulingMaster;
 
