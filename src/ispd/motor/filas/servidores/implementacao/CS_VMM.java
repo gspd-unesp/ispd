@@ -34,7 +34,8 @@ public class CS_VMM extends CS_Processamento
     private boolean vmsAlocadas = false;
     private boolean escDisponivel = false;
     private boolean alocDisponivel = true;
-    private int tipoEscalonamento = MestreCloud.ENQUANTO_HOUVER_TAREFAS;
+    private Set<PolicyCondition> tipoEscalonamento =
+            PolicyConditions.WHILE_MUST_DISTRIBUTE;
     private Set<PolicyCondition> tipoAlocacao =
             PolicyConditions.WHILE_MUST_DISTRIBUTE;
     private List<List> caminhoEscravo = null;
@@ -119,7 +120,7 @@ public class CS_VMM extends CS_Processamento
                     System.out.println("Tarefa " + cliente.getIdentificador() + " adicionada na lista de concluídas");
                     this.escalonador.addTarefaConcluida(cliente);
 
-                    if (this.tipoEscalonamento == MestreCloud.QUANDO_RECEBE_RESULTADO || this.tipoEscalonamento == MestreCloud.AMBOS) {
+                    if (this.tipoEscalonamento.contains(PolicyCondition.WHEN_RECEIVES_RESULT)) {
                         if (this.escalonador.getFilaTarefas().isEmpty()) {
                             this.escDisponivel = true;
                         } else {
@@ -185,7 +186,7 @@ public class CS_VMM extends CS_Processamento
                     cliente.getCaminho().remove(0), cliente);
             // Event adicionado a lista de evntos futuros
             simulacao.addFutureEvent(evtFut);
-            if (this.tipoEscalonamento == MestreCloud.ENQUANTO_HOUVER_TAREFAS || this.tipoEscalonamento == MestreCloud.AMBOS) {
+            if (this.tipoEscalonamento.contains(PolicyCondition.WHILE_MUST_DISTRIBUTE)) {
                 // se fila de tarefas do servidor não estiver vazia escalona
                 // proxima tarefa
                 if (!this.escalonador.getFilaTarefas().isEmpty()) {
@@ -463,12 +464,12 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public int getTipoEscalonamento() {
+    public Set<PolicyCondition> getTipoEscalonamento() {
         return this.tipoEscalonamento;
     }
 
     @Override
-    public void setTipoEscalonamento(final int tipo) {
+    public void setTipoEscalonamento(final Set<PolicyCondition> tipo) {
         this.tipoEscalonamento = tipo;
     }
 
