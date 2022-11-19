@@ -10,7 +10,7 @@ public abstract class Alocacao {
     protected List<CS_Processamento> maquinasFisicas;
     protected List<List> infoMaquinas;
     protected List<CS_VirtualMac> maquinasVirtuais;
-    protected VMM VMM;
+    protected VmMaster vmMaster;
     protected List<CS_VirtualMac> VMsRejeitadas;
     protected List<List> caminhoMaquina;
 
@@ -72,12 +72,12 @@ public abstract class Alocacao {
         this.maquinasVirtuais = maquinasVirtuais;
     }
 
-    public VMM getVMM() {
-        return this.VMM;
+    public VmMaster getVMM() {
+        return this.vmMaster;
     }
 
-    public void setVMM(final VMM hypervisor) {
-        this.VMM = hypervisor;
+    public void setVMM(final VmMaster hypervisor) {
+        this.vmMaster = hypervisor;
     }
 
     public List<List> getCaminhoMaquinas() {

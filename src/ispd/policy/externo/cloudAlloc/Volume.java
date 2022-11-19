@@ -108,7 +108,7 @@ public class Volume extends Alocacao {
                         //ArrayList<CentroServico> caminhoInter = new ArrayList<CentroServico>(escalonarRota(auxMaq));
                         //auxVM.addCaminhoIntermediario(index, caminhoInter);
                         System.out.println( auxVM.getId() + " enviada para " + auxMaq.getId());
-                        VMM.sendVm(auxVM);
+                        vmMaster.sendVm(auxVM);
                         System.out.println("---------------------------------------");
                         break;
                     } else {
@@ -139,7 +139,7 @@ public class Volume extends Alocacao {
                             auxVM.setMaquinaHospedeira((CS_MaquinaCloud) auxMaq);
                             auxVM.setCaminho(escalonarRota(auxMaq));
                             System.out.println( auxVM.getId() + " enviada para " + auxMaq.getId());
-                            VMM.sendVm(auxVM);
+                            vmMaster.sendVm(auxVM);
                             System.out.println("---------------------------------------");
                             atualizarVolume();
                             break;

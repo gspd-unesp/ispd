@@ -33,7 +33,7 @@ import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.motor.metricas.MetricasGlobais;
-import ispd.policy.alocacaoVM.VMM;
+import ispd.policy.alocacaoVM.VmMaster;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -80,7 +80,7 @@ public class SimulacaoSequencialCloud extends Simulation {
          */
         System.out.println("---------------------------------------");
         for (CS_Processamento mst : redeDeFilas.getMestres()) {
-            VMM temp = (VMM) mst;
+            VmMaster temp = (VmMaster) mst;
             MestreCloud aux = (MestreCloud) mst;
             //Cede acesso ao mestre a fila de eventos futuros
             aux.setSimulation(this);
