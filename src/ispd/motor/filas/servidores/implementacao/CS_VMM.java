@@ -407,18 +407,18 @@ public class CS_VMM extends CS_Processamento
 
     // métodos do Mestre
     @Override
-    public void sendTask(final Tarefa tarefa) {
+    public void sendTask(final Tarefa task) {
         // Gera evento para atender proximo cliente da lista
         System.out.println(
-                "Tarefa:" + tarefa.getIdentificador() + "escalonada para vm:" + tarefa.getLocalProcessamento().getId());
+                "Tarefa:" + task.getIdentificador() + "escalonada para vm:" + task.getLocalProcessamento().getId());
         final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
-                FutureEvent.SAIDA, this, tarefa);
+                FutureEvent.SAIDA, this, task);
         // Event adicionado a lista de evntos futuros
         this.simulacao.addFutureEvent(evtFut);
     }
 
     @Override
-    public void processTask(final Tarefa tarefa) {
+    public void processTask(final Tarefa task) {
         throw new UnsupportedOperationException("Not supported yet."); // To
         // change body of generated methods, choose Tools
         // | Templates.
@@ -434,11 +434,11 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void sendMessage(final Tarefa tarefa,
-                            final CS_Processamento escravo,
-                            final int tipo) {
-        final Mensagem msg = new Mensagem(this, tipo, tarefa);
-        msg.setCaminho(this.escalonador.escalonarRota(escravo));
+    public void sendMessage(final Tarefa task,
+                            final CS_Processamento slave,
+                            final int messageType) {
+        final Mensagem msg = new Mensagem(this, messageType, task);
+        msg.setCaminho(this.escalonador.escalonarRota(slave));
         final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
                 FutureEvent.MENSAGEM, msg.getCaminho().remove(0),
                 msg);
@@ -447,10 +447,10 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void updateSubordinate(final CS_Processamento escravo) {
+    public void updateSubordinate(final CS_Processamento slave) {
         final Mensagem msg = new Mensagem(this, 0.011444091796875,
                 Mensagens.ATUALIZAR);
-        msg.setCaminho(this.escalonador.escalonarRota(escravo));
+        msg.setCaminho(this.escalonador.escalonarRota(slave));
         final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
                 FutureEvent.MENSAGEM, msg.getCaminho().remove(0),
                 msg);
@@ -469,13 +469,13 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void setSchedulingConditions(final Set<PolicyCondition> tipo) {
-        this.tipoEscalonamento = tipo;
+    public void setSchedulingConditions(final Set<PolicyCondition> newConditions) {
+        this.tipoEscalonamento = newConditions;
     }
 
     @Override
-    public Tarefa cloneTask(final Tarefa get) {
-        final Tarefa tarefa = new Tarefa(get);
+    public Tarefa cloneTask(final Tarefa task) {
+        final Tarefa tarefa = new Tarefa(task);
         this.simulacao.addJob(tarefa);
         return tarefa;
     }
