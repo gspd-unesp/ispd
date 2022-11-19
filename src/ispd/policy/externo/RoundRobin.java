@@ -1,9 +1,9 @@
 package ispd.policy.externo;
 
-import ispd.policy.escalonador.Escalonador;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.escalonador.Escalonador;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 /**
- * Implementation of the RoundRobin scheduling algorithm.
+ * Implementation of the RoundRobin scheduling algorithm.<br>
  * Hands over the next task on the FIFO queue,
  * for the next resource in a circular queue of resources.
  */
