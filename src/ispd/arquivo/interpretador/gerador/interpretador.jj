@@ -325,10 +325,10 @@ class Interpretador{
                                  +"        }\n"
                                  +"    }\n"
                                  +"    if(cont >= tarExecRec.size()){\n"
-                                 +"        mestre.setTipoEscalonamento(mestre.QUANDO_RECEBE_RESULTADO);\n"
+                                 +"        mestre.setTipoEscalonamento(PolicyConditions.WHEN_RECEIVES_RESULT);\n"
                                  +"        return false;\n"
                                  +"    }\n"
-                                 +"    mestre.setTipoEscalonamento(mestre.ENQUANTO_HOUVER_TAREFAS);\n"
+                                 +"    mestre.setTipoEscalonamento(PolicyConditions.WHILE_MUST_DISTRIBUTE);\n"
                                  +"    return true;\n"
                                  +"}\n\n";
                 if(!variavel.contains("tarExecRec")){
@@ -375,10 +375,10 @@ class Interpretador{
                                  +"        }\n"
                                  +"    }\n"
                                  +"    if(cont >= metricaUsuarios.getUsuarios().size()){\n"
-                                 +"        mestre.setTipoEscalonamento(mestre.QUANDO_RECEBE_RESULTADO);\n"
+                                 +"        mestre.setTipoEscalonamento(PolicyConditions.WHEN_RECEIVES_RESULT);\n"
                                  +"        return false;\n"
                                  +"    }\n"
-                                 +"    mestre.setTipoEscalonamento(mestre.ENQUANTO_HOUVER_TAREFAS);\n"
+                                 +"    mestre.setTipoEscalonamento(PolicyConditions.WHILE_MUST_DISTRIBUTE);\n"
                                  +"    return true;\n"
                                  +"}\n\n";
             }

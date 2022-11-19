@@ -251,10 +251,10 @@ class Interpretador implements InterpretadorConstants {
                     + "        }\u005cn"
                     + "    }\u005cn"
                     + "    if(cont >= tarExecRec.size()){\u005cn"
-                    + "        mestre.setTipoEscalonamento(mestre.QUANDO_RECEBE_RESULTADO);\u005cn"
+                    + "        mestre.setTipoEscalonamento(PolicyConditions.WHEN_RECEIVES_RESULT);\u005cn"
                     + "        return false;\u005cn"
                     + "    }\u005cn"
-                    + "    mestre.setTipoEscalonamento(mestre.ENQUANTO_HOUVER_TAREFAS);\u005cn"
+                    + "    mestre.setTipoEscalonamento(PolicyConditions.WHILE_MUST_DISTRIBUTE);\u005cn"
                     + "    return true;\u005cn"
                     + "}\u005cn\u005cn";
             if (!variavel.contains("tarExecRec")) {
@@ -301,10 +301,10 @@ class Interpretador implements InterpretadorConstants {
                     + "        }\u005cn"
                     + "    }\u005cn"
                     + "    if(cont >= metricaUsuarios.getUsuarios().size()){\u005cn"
-                    + "        mestre.setTipoEscalonamento(mestre.QUANDO_RECEBE_RESULTADO);\u005cn"
+                    + "        mestre.setTipoEscalonamento(PolicyConditions.WHEN_RECEIVES_RESULT);\u005cn"
                     + "        return false;\u005cn"
                     + "    }\u005cn"
-                    + "    mestre.setTipoEscalonamento(mestre.ENQUANTO_HOUVER_TAREFAS);\u005cn"
+                    + "    mestre.setTipoEscalonamento(PolicyConditions.WHILE_MUST_DISTRIBUTE);\u005cn"
                     + "    return true;\u005cn"
                     + "}\u005cn\u005cn";
         }
