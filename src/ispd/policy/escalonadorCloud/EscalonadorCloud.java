@@ -17,9 +17,7 @@ public abstract class EscalonadorCloud {
     protected MetricasUsuarios metricaUsuarios;
     protected CloudMaster mestre;
     protected List<List> caminhoEscravo;
-    private List<CS_Processamento> maqFisicas;
     private List<List> filaEscravo = null;
-    private List<List> caminhoMaquinas;
 
     public abstract void iniciar();
 
@@ -70,11 +68,9 @@ public abstract class EscalonadorCloud {
     }
 
     public void setMaqFisicas(List<CS_Processamento> maqFisicas) {
-        this.maqFisicas = maqFisicas;
     }
 
     public void setCaminhoMaquinas(List<List> caminhoMaquinas) {
-        this.caminhoMaquinas = caminhoMaquinas;
     }
 
     public List<List> getCaminhoEscravo() {
