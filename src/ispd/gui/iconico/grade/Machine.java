@@ -170,8 +170,29 @@ public class Machine extends VertexGridItem {
         }
 
         this.configured = !(this.master &&
-                ("---".equals(this.schedulingAlgorithm) ||
-                        "---".equals(this.vmmAllocationPolicy)));
+                            ("---".equals(this.schedulingAlgorithm) ||
+                             "---".equals(this.vmmAllocationPolicy)));
+    }
+
+    /**
+     * It describes this machine's role relative if it is a
+     * master.
+     *
+     * @param translator the translator containing the
+     *                   translated messages
+     * @return the described machine role
+     */
+    private String describeRole(
+            final ResourceBundle translator) {
+        if (!this.master) {
+            return "<br>" + translator.getString("Slave");
+        }
+
+        return "<br>%s<br>%s: %s".formatted(
+                translator.getString("Master"),
+                translator.getString("Scheduling algorithm"),
+                this.schedulingAlgorithm
+        );
     }
 
     /**
@@ -191,21 +212,18 @@ public class Machine extends VertexGridItem {
     }
 
     /**
-     * It calculates the <strong>connected</strong> outbound
-     * nodes starting from the given <em>grid item</em>. Further,
-     * those nodes found in the process are added into the
-     * given outbound connected nodes set.
+     * It calculates the <strong>connected</strong> outbound nodes starting
+     * from the given <em>grid item</em>. Further, those nodes found in the
+     * process are added into the given outbound connected nodes set.<br>
+     * Pre-conditions: <ol>
+     * <li>It is assumed that the given grid item is <b>not null</b>.
+     * Otherwise, a {@link NullPointerException} will be thrown.</li>
+     * <li>It is assumed that the given outbound connected nodes set is
+     * <b>not null</b>. Otherwise, a {@link NullPointerException} will be
+     * thrown.</li> </ol>
      *
      * @param gridItem               the grid item
-     * @param outboundConnectedNodes the outbound connected
-     *                               nodes
-     * @implNote Pre-conditions:
-     *         1. It is supposed that the given grid item is
-     *         <strong>not null</strong>. Otherwise, a
-     *         {@link NullPointerException} will be thrown.
-     *         2. It is supposed that the given outbound
-     *         connected nodes set is <strong>not null</strong>.
-     *         Otherwise, a {@link NullPointerException} will be thrown.
+     * @param outboundConnectedNodes the outbound connected nodes
      */
     private void calculateConnectedOutboundNodes(
             final GridItem gridItem,
@@ -220,7 +238,7 @@ public class Machine extends VertexGridItem {
             /* If the destination item is a Cluster or */
             /* a Machine, then just add them */
             if (destinationItem instanceof Cluster ||
-                    destinationItem instanceof Machine) {
+                destinationItem instanceof Machine) {
                 outboundConnectedNodes.add(destinationItem);
             }
             /* If the destination item is an Internet, then */
@@ -256,18 +274,16 @@ public class Machine extends VertexGridItem {
      * It calculates the <strong>connected</strong> inbound
      * nodes ending at the given <em>grid item</em>. Further,
      * those nodes found in the process are added into the
-     * inbound connected nodes set.
+     * inbound connected nodes set.<br>
+     * Preconditions: <ol>
+     * <li>It is assumed that the given grid item is <b>not null</b>.
+     * Otherwise, a {@link NullPointerException} will be thrown.</li>
+     * <li>It is assumed that the given inbound connected nodes set is <b>not
+     * null</b>. Otherwise, {@link NullPointerException} will be thrown.</li>
+     * </ol>
      *
      * @param gridItem              the grid item
-     * @param inboundConnectedNodes the inbound connected
-     *                              nodes
-     * @implNote Pre-conditions:
-     *         1. It is supposed that the given grid item is
-     *         <strong>not null</strong>. Otherwise, a
-     *         {@link NullPointerException} will be thrown.
-     *         2. It is supposed that the given inbound connected
-     *         nodes set is <strong>not null</strong>.
-     *         Otherwise, {@link NullPointerException} will be thrown.
+     * @param inboundConnectedNodes the inbound connected nodes
      */
     private void calculateConnectedInboundNodes(
             final GridItem gridItem,
@@ -280,7 +296,7 @@ public class Machine extends VertexGridItem {
             /* If the source item is a Cluster or a Machine, */
             /* then just add them */
             if (sourceItem instanceof Cluster ||
-                    sourceItem instanceof Machine) {
+                sourceItem instanceof Machine) {
                 inboundConnectedNodes.add(sourceItem);
             }
             /* If the source item is an Internet, then add */
@@ -314,20 +330,21 @@ public class Machine extends VertexGridItem {
         return schedulableItems;
     }
 
+    /* Getters & Setters */
+
     /**
-     * It calculates the <strong>connected</strong> schedulable
-     * nodes. Further, those nodes found in the process are
-     * added into the schedulable items list.
+     * It calculates the <strong>connected</strong> schedulable nodes.
+     * Further, those nodes found in the process are added into the
+     * schedulable items list.<br>
+     * Preconditions: <ol>
+     * <li>It is assumed that the given grid item is <b>not null</b>.
+     * Otherwise, a {@link NullPointerException} will be thrown.</li>
+     * <li>It is assumed that the given schedulable items list is <b>not
+     * null</b>. Otherwise, {@link NullPointerException} will be thrown.</li>
+     * </ol>
      *
      * @param gridItem         the grid item
      * @param schedulableItems the schedulable items
-     * @implNote Pre-conditions:
-     *         1. It is supposed that the given grid item is
-     *         <strong>not null</strong>. Otherwise, a
-     *         {@link NullPointerException} will be thrown.
-     *         2. It is supposed that the given schedulable items
-     *         list is <strong>not null</strong>. Otherwise,
-     *         {@link NullPointerException} will be thrown.
      */
     private void calculateConnectedSchedulableNodes(
             final GridItem gridItem,
@@ -340,7 +357,7 @@ public class Machine extends VertexGridItem {
             /* If the destination item is a Cluster or is */
             /* a Machine, then just add them */
             if (destinationItem instanceof Cluster ||
-                    destinationItem instanceof Machine) {
+                destinationItem instanceof Machine) {
                 /* Prevent duplicates */
                 if (!schedulableItems.contains(destinationItem))
                     schedulableItems.add(destinationItem);
@@ -353,8 +370,6 @@ public class Machine extends VertexGridItem {
             }
         }
     }
-
-    /* Getters & Setters */
 
     /**
      * Returns the computational power.
@@ -376,7 +391,6 @@ public class Machine extends VertexGridItem {
         this.computationalPower = computationalPower;
         this.checkConfiguration();
     }
-
 
     /**
      * Returns the load factor.
@@ -529,13 +543,12 @@ public class Machine extends VertexGridItem {
         this.coreCount = coreCount;
     }
 
-
     /**
      * Returns {@code true} since this machine is master.
      * Otherwise, {@code false} is returned.
      *
      * @return {@code true} since this machine is master;
-     *         otherwise, {@code false} is returned.
+     * otherwise, {@code false} is returned.
      */
     public Boolean isMaster() {
         return this.master;
@@ -621,6 +634,8 @@ public class Machine extends VertexGridItem {
         return this.slaves;
     }
 
+    /* getImage */
+
     /**
      * It sets the list of slaves.
      *
@@ -630,7 +645,7 @@ public class Machine extends VertexGridItem {
         this.slaves = slaves;
     }
 
-    /* getImage */
+    /* toString */
 
     /**
      * Returns the machine icon image.
@@ -642,8 +657,6 @@ public class Machine extends VertexGridItem {
         return DesenhoGrade.machineIcon;
     }
 
-    /* toString */
-
     /**
      * Returns the string representation of {@link Machine}.
      *
@@ -652,27 +665,6 @@ public class Machine extends VertexGridItem {
     @Override
     public String toString() {
         return "id: " + this.id.getGlobalId()
-                + " " + this.id.getName();
-    }
-
-    /**
-     * It describes this machine's role relative if it is a
-     * master.
-     *
-     * @param translator the translator containing the
-     *                   translated messages
-     * @return the described machine role
-     */
-    private String describeRole(
-            final ResourceBundle translator) {
-        if (!this.master) {
-            return "<br>" + translator.getString("Slave");
-        }
-
-        return "<br>%s<br>%s: %s".formatted(
-                translator.getString("Master"),
-                translator.getString("Scheduling algorithm"),
-                this.schedulingAlgorithm
-        );
+               + " " + this.id.getName();
     }
 }

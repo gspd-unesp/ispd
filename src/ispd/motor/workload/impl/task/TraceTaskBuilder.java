@@ -35,16 +35,16 @@ public class TraceTaskBuilder extends TaskBuilder {
     /**
      * Pops a {@link TraceTaskInfo} object from the inner list
      * {@link #traceTaskInfos} and converts it into a task originating from
-     * the given {@link CS_Processamento}.
+     * the given {@link CS_Processamento}.<br>
+     * This method can only be called successfully at most {@code n} times,
+     * where {@code n} is the size of the {@link List} this instance was
+     * initialized with.
      *
      * @param master {@link CS_Processamento} that will host the task.
      * @return created {@link Tarefa}.
      * @throws IndexOutOfBoundsException if there are no more usable task
      *                                   information instances in the inner
      *                                   list.
-     * @apiNote this method can only be called successfully at most {@code n}
-     * times, where {@code n} is the size of the {@link List} this instance
-     * was initialized with.
      */
     @Override
     public Tarefa makeTaskFor(final CS_Processamento master) {

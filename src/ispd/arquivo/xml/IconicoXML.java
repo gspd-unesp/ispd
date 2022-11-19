@@ -11,12 +11,12 @@ import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Vertex;
 import ispd.gui.iconico.grade.VirtualMachine;
-import ispd.motor.workload.impl.CollectionWorkloadGenerator;
-import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
-import ispd.motor.workload.impl.GlobalWorkloadGenerator;
-import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
+import ispd.motor.workload.WorkloadGenerator;
+import ispd.motor.workload.impl.CollectionWorkloadGenerator;
+import ispd.motor.workload.impl.GlobalWorkloadGenerator;
+import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -157,7 +157,8 @@ public class IconicoXML {
      * Get load configuration containing in the iconic model present in the
      * {@link Document}
      *
-     * @return {@link WorkloadGenerator} with load configuration from the model, if
+     * @return {@link WorkloadGenerator} with load configuration from the
+     * model, if
      * a valid one is present, {@code null} otherwise
      * @see LoadBuilder
      * @see TraceFileWorkloadGenerator
@@ -718,9 +719,8 @@ public class IconicoXML {
     }
 
     /**
-     * Add a random load to the current model being built.
-     *
-     * @apiNote This method just be called at most <b>once</b>> per instance,
+     * Add a random load to the current model being built.<br>
+     * This method should be called at most <b>once</b> per instance,
      * and not mixed with calls to
      * {@link #setLoadTrace(String, int, String)} or
      * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
@@ -767,10 +767,9 @@ public class IconicoXML {
     }
 
     /**
-     * Add a per-node load to the current model being built.
-     *
-     * @apiNote This method may be called more than once per instance,
-     * however it should be mixed with calls to
+     * Add a per-node load to the current model being built.<br>
+     * This method may be called more than once per instance, however it
+     * should be mixed with calls to
      * {@link #setLoadTrace(String, int, String)} or
      * {@link #setLoadRandom(int, int, double, double, double, double, double, double, double, double)}.
      */
@@ -803,10 +802,9 @@ public class IconicoXML {
     }
 
     /**
-     * Add a trace load to the current model being built.
-     *
-     * @apiNote This method just be called at most <b>once</b>> per instance,
-     * and not mixed with calls to
+     * Add a trace load to the current model being built.<br>
+     * This method just be called at most <b>once</b>> per instance, and not
+     * mixed with calls to
      * {@link #setLoadRandom(int, int, double, double, double, double, double, double, double, double)} or
      * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
      */
