@@ -10,12 +10,12 @@ import ispd.policy.scheduling.grid.GridMaster;
 import java.util.List;
 
 public abstract class Escalonador {
-    protected List<CS_Processamento> escravos;
-    protected List<List> filaEscravo;
-    protected List<Tarefa> tarefas;
-    protected MetricasUsuarios metricaUsuarios;
-    protected GridMaster mestre;
-    protected List<List> caminhoEscravo;
+    protected List<CS_Processamento> escravos = null;
+    protected List<List> filaEscravo = null;
+    protected List<Tarefa> tarefas = null;
+    protected MetricasUsuarios metricaUsuarios = null;
+    protected GridMaster mestre = null;
+    protected List<List> caminhoEscravo = null;
 
     public abstract void iniciar();
 

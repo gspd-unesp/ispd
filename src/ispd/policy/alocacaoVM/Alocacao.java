@@ -8,12 +8,12 @@ import ispd.policy.allocation.vm.VmMaster;
 import java.util.List;
 
 public abstract class Alocacao {
-    protected List<CS_Processamento> maquinasFisicas;
-    protected List<List> infoMaquinas;
-    protected List<CS_VirtualMac> maquinasVirtuais;
-    protected VmMaster vmMaster;
-    protected List<CS_VirtualMac> VMsRejeitadas;
-    protected List<List> caminhoMaquina;
+    protected List<CS_Processamento> maquinasFisicas = null;
+    protected List<List> infoMaquinas = null;
+    protected List<CS_VirtualMac> maquinasVirtuais = null;
+    protected VmMaster vmMaster = null;
+    protected List<CS_VirtualMac> VMsRejeitadas = null;
+    protected List<List> caminhoMaquina = null;
 
     /**
      * Begin the allocation.
