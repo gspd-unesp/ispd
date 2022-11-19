@@ -1,4 +1,4 @@
-package ispd.policy.mock.scheduling.grid;
+package ispd.policy._mock.scheduling.grid;
 
 public class GridRoundRobin implements GridSchedulingPolicy {
     private GridMaster master;

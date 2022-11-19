@@ -1,8 +1,8 @@
-package ispd.policy.mock.managers;
+package ispd.policy._mock.managers;
 
-import ispd.policy.mock.PolicyManager;
-import ispd.policy.mock.loaders.GridSchedulingPolicyLoader;
-import ispd.policy.mock.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy._mock.PolicyManager;
+import ispd.policy._mock.loaders.GridSchedulingPolicyLoader;
+import ispd.policy._mock.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;

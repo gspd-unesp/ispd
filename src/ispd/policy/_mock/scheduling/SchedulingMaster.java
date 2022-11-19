@@ -1,6 +1,6 @@
-package ispd.policy.mock.scheduling;
+package ispd.policy._mock.scheduling;
 
-import ispd.policy.mock.Master;
+import ispd.policy._mock.Master;
 
 public interface SchedulingMaster extends Master {
     void scheduleTask(int taskId);

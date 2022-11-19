@@ -1,4 +1,4 @@
-package ispd.policy.mock;
+package ispd.policy._mock;
 
 public interface Master {
     void executePolicy();
