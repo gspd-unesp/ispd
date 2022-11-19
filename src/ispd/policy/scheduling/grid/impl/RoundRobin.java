@@ -1,4 +1,4 @@
-package ispd.policy.externo;
+package ispd.policy.scheduling.grid.impl;
 
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;

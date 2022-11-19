@@ -1,4 +1,4 @@
-package ispd.policy.externo;
+package ispd.policy.scheduling.grid.impl;
 
 import ispd.motor.Mensagens;
 import ispd.motor.filas.Mensagem;
