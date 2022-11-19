@@ -9,9 +9,6 @@ import ispd.policy.scheduling.grid.GridMaster;
 
 import java.util.List;
 
-/**
- * Abstract class to represent a scheduling policy
- */
 public abstract class Escalonador {
     protected List<CS_Processamento> escravos;
     protected List<List> filaEscravo;
@@ -36,8 +33,6 @@ public abstract class Escalonador {
         }
         this.tarefas.add(tarefa);
     }
-
-    //Get e Set
 
     public List<CS_Processamento> getEscravos() {
         return this.escravos;
