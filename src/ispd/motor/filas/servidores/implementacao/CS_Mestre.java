@@ -12,7 +12,7 @@ import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
 import ispd.policy.escalonador.Carregar;
 import ispd.policy.escalonador.Escalonador;
-import ispd.policy.escalonador.GridMaster;
+import ispd.policy.scheduling.grid.GridMaster;
 
 import java.util.ArrayList;
 import java.util.List;

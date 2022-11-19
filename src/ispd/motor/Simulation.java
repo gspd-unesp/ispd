@@ -38,7 +38,7 @@
  */
 package ispd.motor;
 
-import ispd.policy.escalonador.GridMaster;
+import ispd.policy.scheduling.grid.GridMaster;
 import ispd.motor.filas.Client;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;

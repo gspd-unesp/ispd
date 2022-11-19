@@ -43,7 +43,7 @@ import ispd.policy.allocation.vm.VmMaster;
 import ispd.motor.filas.servidores.implementacao.CS_Link;
 import ispd.motor.filas.servidores.implementacao.CS_Switch;
 import ispd.motor.filas.servidores.implementacao.CS_Internet;
-import ispd.policy.escalonador.GridMaster;
+import ispd.policy.scheduling.grid.GridMaster;
 import ispd.motor.metricas.MetricasProcessamento;
 import java.util.ArrayList;
 import java.util.List;

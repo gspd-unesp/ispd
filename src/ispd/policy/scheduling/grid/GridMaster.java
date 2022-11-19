@@ -1,4 +1,4 @@
-package ispd.policy.escalonador;
+package ispd.policy.scheduling.grid;
 
 import ispd.policy.scheduling.SchedulingMaster;
 
