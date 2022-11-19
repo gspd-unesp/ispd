@@ -100,6 +100,44 @@ public class QueueNetworkBuilder {
     }
 
     /**
+     * Build and process the machine (more specifically, the
+     * {@link CS_Processamento} represented by the {@link WrappedElement}
+     * {@code e}. Since the machine may or may not be a master, it can be
+     * added to either the collection of {@link #masters} or {@link #machines}.
+     *
+     * @param e {@link WrappedElement} representing a {@link CS_Processamento}.
+     * @return the interpreted {@link CS_Processamento} from the given
+     * {@link WrappedElement}. May either be a {@link CS_Mestre} or a
+     * {@link CS_Maquina}.
+     */
+    protected CS_Processamento makeAndAddMachine(final WrappedElement e) {
+        final CS_Processamento machine;
+
+        if (e.hasMasterAttribute()) {
+            machine = ServiceCenterBuilder.aMaster(e);
+            this.masters.add(machine);
+        } else {
+            machine = ServiceCenterBuilder.aMachine(e);
+            this.machines.add((CS_Maquina) machine);
+        }
+
+        return machine;
+    }
+
+    /**
+     * Increase the power limit of the user with given id by the given amount.
+     *
+     * @param userId    id of the user whose power limit will be increased.
+     * @param increment amount to increment the power limit by. Should be
+     *                  <b>positive</b>.
+     */
+    protected void increaseUserPower(
+            final String userId, final double increment) {
+        final var oldValue = this.powerLimits.get(userId);
+        this.powerLimits.put(userId, oldValue + increment);
+    }
+
+    /**
      * Process a {@link WrappedElement} that is representing a cluster of
      * {@link CentroServico}s. The {@link CS_Mestre}, {@link CS_Maquina}s and
      * {@link CS_Link}s in the cluster are differentiated and all processed
@@ -179,55 +217,6 @@ public class QueueNetworkBuilder {
         this.links.add(link);
     }
 
-    private void addSlavesToMachine(final WrappedElement e) {
-        final var master =
-                (CS_Processamento) this.serviceCenters.get(e.globalIconId());
-
-        e.master().slaves()
-                .map(WrappedElement::id)
-                .map(Integer::parseInt)
-                .map(this.serviceCenters::get)
-                .forEach(sc -> this.addSlavesToProcessingCenter(master, sc));
-    }
-
-    /**
-     * Build and process the machine (more specifically, the
-     * {@link CS_Processamento} represented by the {@link WrappedElement}
-     * {@code e}. Since the machine may or may not be a master, it can be
-     * added to either the collection of {@link #masters} or {@link #machines}.
-     *
-     * @param e {@link WrappedElement} representing a {@link CS_Processamento}.
-     * @return the interpreted {@link CS_Processamento} from the given
-     * {@link WrappedElement}. May either be a {@link CS_Mestre} or a
-     * {@link CS_Maquina}.
-     */
-    protected CS_Processamento makeAndAddMachine(final WrappedElement e) {
-        final CS_Processamento machine;
-
-        if (e.hasMasterAttribute()) {
-            machine = ServiceCenterBuilder.aMaster(e);
-            this.masters.add(machine);
-        } else {
-            machine = ServiceCenterBuilder.aMachine(e);
-            this.machines.add((CS_Maquina) machine);
-        }
-
-        return machine;
-    }
-
-    /**
-     * Increase the power limit of the user with given id by the given amount.
-     *
-     * @param userId    id of the user whose power limit will be increased.
-     * @param increment amount to increment the power limit by. Should be
-     *                  <b>positive</b>.
-     */
-    protected void increaseUserPower(
-            final String userId, final double increment) {
-        final var oldValue = this.powerLimits.get(userId);
-        this.powerLimits.put(userId, oldValue + increment);
-    }
-
     private static void connectLinkAndVertices(
             final CS_Link link,
             final Vertice origination, final Vertice destination) {
@@ -241,10 +230,21 @@ public class QueueNetworkBuilder {
         return (Vertice) this.serviceCenters.get(e);
     }
 
+    private void addSlavesToMachine(final WrappedElement e) {
+        final var master =
+                (CS_Processamento) this.serviceCenters.get(e.globalIconId());
+
+        e.master().slaves()
+                .map(WrappedElement::id)
+                .map(Integer::parseInt)
+                .map(this.serviceCenters::get)
+                .forEach(sc -> this.addSlavesToProcessingCenter(master, sc));
+    }
+
     /**
      * Add {@link CentroServico} {@code slave} to the list of slaves of the
      * {@link CS_Processamento} {@code master} (which is always interpreted
-     * as an instance of {@link CS_Mestre}. Note that {@code master} <b>is a
+     * as an instance of {@link CS_Mestre}). Note that {@code master} <b>is a
      * master</b>, and {@link CS_Processamento} may either be:
      * <ul>
      *      <li>another master</li>
@@ -253,17 +253,19 @@ public class QueueNetworkBuilder {
      * </ul>
      * In any case, the method process the element appropriately and updates
      * the necessary master-slave relations.
+     * <p>
+     * <b><i>Note:</i></b> the parameter {@code master} is typed as a
+     * {@link CS_Processamento} to support overrides that deal with other
+     * types of masters. See
+     * {@link CloudQueueNetworkBuilder#addSlavesToProcessingCenter} for an
+     * example.
+     * </p>
      *
      * @param master an instance of {@link CS_Mestre}.
      * @param slave  <b>slave</b> {@link CentroServico}.
      * @throws ClassCastException if the given {@link CS_Processamento}
      *                            {@code master} is not an instance of
      *                            {@link CS_Mestre}.
-     * @apiNote the parameter {@code master} is typed as a
-     * {@link CS_Processamento} to support overrides that deal with other
-     * types of masters. See
-     * {@link CloudQueueNetworkBuilder#addSlavesToProcessingCenter} for an
-     * example.
      */
     protected void addSlavesToProcessingCenter(
             final CS_Processamento master, final CentroServico slave) {
