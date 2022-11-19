@@ -405,6 +405,25 @@ public class CS_VMM extends CS_Processamento
         // | Templates.
     }
 
+    @Override
+    public void executeScheduling() {
+        System.out.println(this.getId() + " solicitando escalonamento");
+        final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
+                FutureEvent.ESCALONAR, this, null);
+        // Event adicionado a lista de evntos futuros
+        this.simulacao.addFutureEvent(evtFut);
+    }
+
+    @Override
+    public Set<PolicyCondition> getSchedulingConditions() {
+        return this.tipoEscalonamento;
+    }
+
+    @Override
+    public void setSchedulingConditions(final Set<PolicyCondition> newConditions) {
+        this.tipoEscalonamento = newConditions;
+    }
+
     // métodos do Mestre
     @Override
     public void sendTask(final Tarefa task) {
@@ -425,12 +444,10 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void executeScheduling() {
-        System.out.println(this.getId() + " solicitando escalonamento");
-        final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
-                FutureEvent.ESCALONAR, this, null);
-        // Event adicionado a lista de evntos futuros
-        this.simulacao.addFutureEvent(evtFut);
+    public Tarefa cloneTask(final Tarefa task) {
+        final Tarefa tarefa = new Tarefa(task);
+        this.simulacao.addJob(tarefa);
+        return tarefa;
     }
 
     @Override
@@ -459,41 +476,6 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void freeScheduler() {
-        this.escDisponivel = true;
-    }
-
-    @Override
-    public Set<PolicyCondition> getSchedulingConditions() {
-        return this.tipoEscalonamento;
-    }
-
-    @Override
-    public void setSchedulingConditions(final Set<PolicyCondition> newConditions) {
-        this.tipoEscalonamento = newConditions;
-    }
-
-    @Override
-    public Tarefa cloneTask(final Tarefa task) {
-        final Tarefa tarefa = new Tarefa(task);
-        this.simulacao.addJob(tarefa);
-        return tarefa;
-    }
-
-    @Override
-    public void sendVm(final CS_VirtualMac vm) {
-        System.out.println("Enviar VM: alocando VM " + vm.getId());
-        System.out.println("------------------------------------------");
-        final TarefaVM tarefa = new TarefaVM(vm.getVmmResponsavel(), vm,
-                300.0, 0.0);
-        tarefa.setCaminho(vm.getCaminho());
-        final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
-                FutureEvent.SAIDA, this, tarefa);
-        // Event adicionado a lista de evntos futuros
-        this.simulacao.addFutureEvent(evtFut);
-    }
-
-    @Override
     public void executeAllocation() {
         final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
                 FutureEvent.ALOCAR_VMS, this, null);
@@ -509,6 +491,24 @@ public class CS_VMM extends CS_Processamento
     @Override
     public void setAllocationConditions(final Set<PolicyCondition> tipo) {
         this.tipoAlocacao = tipo;
+    }
+
+    @Override
+    public void freeScheduler() {
+        this.escDisponivel = true;
+    }
+
+    @Override
+    public void sendVm(final CS_VirtualMac vm) {
+        System.out.println("Enviar VM: alocando VM " + vm.getId());
+        System.out.println("------------------------------------------");
+        final TarefaVM tarefa = new TarefaVM(vm.getVmmResponsavel(), vm,
+                300.0, 0.0);
+        tarefa.setCaminho(vm.getCaminho());
+        final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
+                FutureEvent.SAIDA, this, tarefa);
+        // Event adicionado a lista de evntos futuros
+        this.simulacao.addFutureEvent(evtFut);
     }
 
     @Override

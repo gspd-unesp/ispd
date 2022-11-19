@@ -387,6 +387,26 @@ public class CS_Mestre extends CS_Processamento
         // change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public void executeScheduling() {
+        final FutureEvent evtFut = new FutureEvent(
+                this.simulacao.getTime(this),
+                FutureEvent.ESCALONAR,
+                this, null);
+        //Event adicionado a lista de evntos futuros
+        this.simulacao.addFutureEvent(evtFut);
+    }
+
+    @Override
+    public Set<PolicyCondition> getSchedulingConditions() {
+        return this.tipoEscalonamento;
+    }
+
+    @Override
+    public void setSchedulingConditions(final Set<PolicyCondition> newConditions) {
+        this.tipoEscalonamento = newConditions;
+    }
+
     //métodos do Mestre
     @Override
     public void sendTask(final Tarefa task) {
@@ -411,13 +431,10 @@ public class CS_Mestre extends CS_Processamento
     }
 
     @Override
-    public void executeScheduling() {
-        final FutureEvent evtFut = new FutureEvent(
-                this.simulacao.getTime(this),
-                FutureEvent.ESCALONAR,
-                this, null);
-        //Event adicionado a lista de evntos futuros
-        this.simulacao.addFutureEvent(evtFut);
+    public Tarefa cloneTask(final Tarefa task) {
+        final Tarefa tarefa = new Tarefa(task);
+        this.simulacao.addJob(tarefa);
+        return tarefa;
     }
 
     @Override
@@ -447,23 +464,6 @@ public class CS_Mestre extends CS_Processamento
                 msg);
         //Event adicionado a lista de evntos futuros
         this.simulacao.addFutureEvent(evtFut);
-    }
-
-    @Override
-    public Set<PolicyCondition> getSchedulingConditions() {
-        return this.tipoEscalonamento;
-    }
-
-    @Override
-    public void setSchedulingConditions(final Set<PolicyCondition> newConditions) {
-        this.tipoEscalonamento = newConditions;
-    }
-
-    @Override
-    public Tarefa cloneTask(final Tarefa task) {
-        final Tarefa tarefa = new Tarefa(task);
-        this.simulacao.addJob(tarefa);
-        return tarefa;
     }
 
     @Override
