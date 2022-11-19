@@ -9,6 +9,7 @@ import ispd.motor.filas.TarefaVM;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.PolicyCondition;
 import ispd.policy.alocacaoVM.Alocacao;
 import ispd.policy.alocacaoVM.CarregarAlloc;
 import ispd.policy.alocacaoVM.VMM;
@@ -17,6 +18,7 @@ import ispd.policy.escalonadorCloud.EscalonadorCloud;
 import ispd.policy.escalonadorCloud.MestreCloud;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,7 +34,8 @@ public class CS_VMM extends CS_Processamento
     private boolean escDisponivel = false;
     private boolean alocDisponivel = true;
     private int tipoEscalonamento = MestreCloud.ENQUANTO_HOUVER_TAREFAS;
-    private int tipoAlocacao = VMM.ENQUANTO_HOUVER_VMS;
+    private EnumSet<PolicyCondition> tipoAlocacao =
+            EnumSet.of(PolicyCondition.WHILE_MUST_DISTRIBUTE);
     private List<List> caminhoEscravo = null;
     private List<List> caminhoVMs = null;
     private Simulation simulacao = null;
@@ -167,7 +170,7 @@ public class CS_VMM extends CS_Processamento
                     cliente.getCaminho().remove(0), cliente);
             // Event adicionado a lista de evntos futuros
             simulacao.addFutureEvent(evtFut);
-            if (this.tipoAlocacao == VMM.ENQUANTO_HOUVER_VMS || this.tipoAlocacao == VMM.DOISCASOS) {
+            if (this.tipoAlocacao.contains(PolicyCondition.WHILE_MUST_DISTRIBUTE)) {
                 if (!this.alocadorVM.getMaquinasVirtuais().isEmpty()) {
                     this.executarAlocacao();
                 } else {
@@ -523,12 +526,12 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public int getTipoAlocacao() {
+    public EnumSet<PolicyCondition> getTipoAlocacao() {
         return this.tipoAlocacao;
     }
 
     @Override
-    public void setTipoAlocacao(final int tipo) {
+    public void setTipoAlocacao(final EnumSet<PolicyCondition> tipo) {
         this.tipoAlocacao = tipo;
     }
 
