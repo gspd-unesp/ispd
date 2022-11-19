@@ -3,6 +3,7 @@ package ispd.policy.alocacaoVM;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
+import ispd.policy.allocation.vm.VmMaster;
 
 import java.util.List;
 

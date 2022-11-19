@@ -33,7 +33,7 @@ import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.motor.metricas.MetricasGlobais;
-import ispd.policy.alocacaoVM.VmMaster;
+import ispd.policy.allocation.vm.VmMaster;
 
 import java.awt.Color;
 import java.util.ArrayList;

@@ -13,7 +13,7 @@ import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
 import ispd.policy.alocacaoVM.Alocacao;
 import ispd.policy.alocacaoVM.CarregarAlloc;
-import ispd.policy.alocacaoVM.VmMaster;
+import ispd.policy.allocation.vm.VmMaster;
 import ispd.policy.escalonadorCloud.CarregarCloud;
 import ispd.policy.escalonadorCloud.EscalonadorCloud;
 import ispd.policy.escalonadorCloud.MestreCloud;

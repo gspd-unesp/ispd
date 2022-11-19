@@ -1,6 +1,6 @@
 package ispd.gui.iconico.grade;
 
-import ispd.policy.alocacaoVM.VmMaster;
+import ispd.policy.allocation.vm.VmMaster;
 
 import java.awt.Image;
 import java.util.ResourceBundle;
