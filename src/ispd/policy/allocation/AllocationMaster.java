@@ -1,4 +1,6 @@
 package ispd.policy.allocation;
 
-public interface AllocationMaster {
+import ispd.policy.PolicyMaster;
+
+public interface AllocationMaster extends PolicyMaster {
 }

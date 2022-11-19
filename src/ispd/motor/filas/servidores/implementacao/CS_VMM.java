@@ -80,7 +80,7 @@ public class CS_VMM extends CS_Processamento
                         this.alocDisponivel = false;
                         this.alocadorVM.addVM(vm);
                         this.escalonador.addEscravo(vm);
-                        this.executarAlocacao();
+                        this.executeAllocation();
                     } else {
                         this.alocadorVM.addVM(vm);
                         this.escalonador.addEscravo(vm);
@@ -174,7 +174,7 @@ public class CS_VMM extends CS_Processamento
             simulacao.addFutureEvent(evtFut);
             if (this.tipoAlocacao.contains(PolicyCondition.WHILE_MUST_DISTRIBUTE)) {
                 if (!this.alocadorVM.getMaquinasVirtuais().isEmpty()) {
-                    this.executarAlocacao();
+                    this.executeAllocation();
                 } else {
                     this.alocDisponivel = true;
                 }
@@ -491,7 +491,7 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void enviarVM(final CS_VirtualMac vm) {
+    public void sendVm(final CS_VirtualMac vm) {
         System.out.println("Enviar VM: alocando VM " + vm.getId());
         System.out.println("------------------------------------------");
         final TarefaVM tarefa = new TarefaVM(vm.getVmmResponsavel(), vm,
@@ -504,7 +504,7 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void executarAlocacao() {
+    public void executeAllocation() {
         final FutureEvent evtFut = new FutureEvent(this.simulacao.getTime(this),
                 FutureEvent.ALOCAR_VMS, this, null);
         // Event adicionado a lista de evntos futuros
@@ -512,38 +512,22 @@ public class CS_VMM extends CS_Processamento
     }
 
     @Override
-    public void enviarMensagemAlloc(final Tarefa tarefa,
-                                    final CS_Processamento maquina,
-                                    final int tipo) {
-        throw new UnsupportedOperationException("Not supported yet."); // To
-        // change body of generated methods, choose Tools
-        // | Templates.
-    }
-
-    @Override
-    public void atualizarAlloc(final CS_Processamento maquina) {
-        throw new UnsupportedOperationException("Not supported yet."); // To
-        // change body of generated methods, choose Tools
-        // | Templates.
-    }
-
-    @Override
-    public Set<PolicyCondition> getTipoAlocacao() {
+    public Set<PolicyCondition> getAllocationConditions() {
         return this.tipoAlocacao;
     }
 
     @Override
-    public void setTipoAlocacao(final Set<PolicyCondition> tipo) {
+    public void setAllocationConditions(final Set<PolicyCondition> tipo) {
         this.tipoAlocacao = tipo;
     }
 
     @Override
-    public Simulation getSimulacaoAlloc() {
+    public Simulation getSimulation() {
         return this.simulacao;
     }
 
     @Override
-    public void setSimulacaoAlloc(final Simulation simulacao) {
+    public void setSimulation(final Simulation simulacao) {
         this.simulacao = simulacao;
     }
 

@@ -84,7 +84,7 @@ public class SimulacaoSequencialCloud extends Simulation {
             MestreCloud aux = (MestreCloud) mst;
             //Cede acesso ao mestre a fila de eventos futuros
             aux.setSimulacao(this);
-            temp.setSimulacaoAlloc(this);
+            temp.setSimulation(this);
             //Encontra menor caminho entre o mestre e seus escravos
             System.out.println("Mestre " + mst.getId() + " encontrando seus escravos");
             mst.determinarCaminhos(); //mestre encontra caminho para seus escravos

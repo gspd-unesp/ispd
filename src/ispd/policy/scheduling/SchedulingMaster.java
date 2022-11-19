@@ -1,4 +1,4 @@
 package ispd.policy.scheduling;
 
-public interface SchedulingMaster {
+public interface SchedulingMaster extends ispd.policy.PolicyMaster {
 }

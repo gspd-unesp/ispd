@@ -1,8 +1,6 @@
 package ispd.policy.alocacaoVM;
 
 import ispd.motor.Simulation;
-import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.policy.PolicyCondition;
 import ispd.policy.allocation.AllocationMaster;
@@ -14,19 +12,15 @@ import java.util.Set;
  * these methods will be used by the schedulers.
  */
 public interface VMM extends AllocationMaster {
-    void enviarVM(CS_VirtualMac vm);
+    void executeAllocation();
 
-    void executarAlocacao();
+    void sendVm(CS_VirtualMac vm);
 
-    void enviarMensagemAlloc(Tarefa tarefa, CS_Processamento maquina, int tipo);
+    Set<PolicyCondition> getAllocationConditions();
 
-    void atualizarAlloc(CS_Processamento maquina);
+    void setAllocationConditions(Set<PolicyCondition> tipo);
 
-    Set<PolicyCondition> getTipoAlocacao();
+    Simulation getSimulation();
 
-    void setTipoAlocacao(Set<PolicyCondition> tipo);
-
-    Simulation getSimulacaoAlloc();
-
-    void setSimulacaoAlloc(Simulation simulacao);
+    void setSimulation(Simulation simulacao);
 }

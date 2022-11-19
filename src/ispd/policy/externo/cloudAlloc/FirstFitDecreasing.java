@@ -111,7 +111,7 @@ public class FirstFitDecreasing extends Alocacao {
                         //ArrayList<CentroServico> caminhoInter = new ArrayList<CentroServico>(escalonarRota(auxMaq));
                         //auxVM.addCaminhoIntermediario(index, caminhoInter);
                         System.out.println( auxVM.getId() + " enviada para " + auxMaq.getId());
-                        VMM.enviarVM(auxVM);
+                        VMM.sendVm(auxVM);
                         System.out.println("---------------------------------------");
                         break;
                     } else {
@@ -142,7 +142,7 @@ public class FirstFitDecreasing extends Alocacao {
                             auxVM.setMaquinaHospedeira((CS_MaquinaCloud) auxMaq);
                             auxVM.setCaminho(escalonarRota(auxMaq));
                             System.out.println( auxVM.getId() + " enviada para " + auxMaq.getId());
-                            VMM.enviarVM(auxVM);
+                            VMM.sendVm(auxVM);
                              System.out.println("---------------------------------------");
 
                             break;
