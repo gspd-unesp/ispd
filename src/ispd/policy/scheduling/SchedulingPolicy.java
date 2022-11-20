@@ -8,17 +8,13 @@ import ispd.policy.Policy;
 
 import java.util.List;
 
-public abstract class SchedulingPolicy <T extends SchedulingMaster> implements Policy<T> {
-    protected List<List> filaEscravo = null;
-    protected List<CS_Processamento> escravos = null;
+public abstract class SchedulingPolicy <T extends SchedulingMaster> extends Policy<T> {
     protected List<Tarefa> tarefas = null;
     protected MetricasUsuarios metricaUsuarios = null;
-    protected List<List> caminhoEscravo = null;
-    protected T mestre = null;
 
-    public void setMestre(final T mestre) {
-        this.mestre = mestre;
-    }
+    protected List<List> filaEscravo = null;
+    protected List<CS_Processamento> escravos = null;
+    protected List<List> caminhoEscravo = null;
 
     public abstract Tarefa escalonarTarefa();
 

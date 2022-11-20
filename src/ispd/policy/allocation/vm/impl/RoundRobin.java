@@ -124,7 +124,7 @@ public class RoundRobin extends Alocacao {
                 vm.setCaminho(this.escalonarRota(resource));
                 System.out.printf(
                         "%s enviada para %s%n", vm.getId(), resource.getId());
-                this.vmMaster.sendVm(vm);
+                this.mestre.sendVm(vm);
                 System.out.println("---------------------------------------");
 
                 return;
@@ -146,7 +146,7 @@ public class RoundRobin extends Alocacao {
                 "%s é um VMM, a VM será redirecionada%n", resource.getId());
         vm.setCaminho(this.escalonarRota(resource));
         System.out.printf("%s enviada para %s%n", vm.getId(), resource.getId());
-        this.vmMaster.sendVm(vm);
+        this.mestre.sendVm(vm);
         System.out.println("---------------------------------------");
     }
 }

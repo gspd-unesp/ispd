@@ -50,7 +50,7 @@ public class CS_VMM extends CS_Processamento
             final String allocationPolicyName) {
         super(id, owner, computationalPower, 1, loadFactor, 0);
         this.alocadorVM = CarregarAlloc.getNewAlocadorVM(allocationPolicyName);
-        Objects.requireNonNull(this.alocadorVM).setVMM(this);
+        Objects.requireNonNull(this.alocadorVM).setMestre(this);
         this.escalonador =
                 CarregarCloud.getNewEscalonadorCloud(schedulingPolicyName);
         Objects.requireNonNull(this.escalonador).setMestre(this);

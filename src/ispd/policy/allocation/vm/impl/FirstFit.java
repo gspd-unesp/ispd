@@ -72,7 +72,7 @@ public class FirstFit extends Alocacao {
                     auxVM.setCaminho(this.escalonarRota(auxMaq));
                     System.out.printf("%s enviada para %s\n",
                             auxVM.getId(), auxMaq.getId());
-                    this.vmMaster.sendVm(auxVM);
+                    this.mestre.sendVm(auxVM);
                     System.out.println(
                             "---------------------------------------");
                     break;
@@ -82,7 +82,7 @@ public class FirstFit extends Alocacao {
                         FirstFit.makeMachineHostVm(maq, auxVM);
                         auxVM.setCaminho(this.escalonarRota(auxMaq));
 
-                        this.vmMaster.sendVm(auxVM);
+                        this.mestre.sendVm(auxVM);
                         this.maqIndex = 0;
                         this.fit = true;
 

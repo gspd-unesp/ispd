@@ -88,7 +88,7 @@ public class Volume extends Alocacao {
                         //salvando uma lista de VMMs intermediarios no 
                         // caminho da vm e seus respectivos caminhos
                         System.out.println(auxVM.getId() + " enviada para " + auxMaq.getId());
-                        this.vmMaster.sendVm(auxVM);
+                        this.mestre.sendVm(auxVM);
                         System.out.println(
                                 "---------------------------------------");
                         break;
@@ -123,7 +123,7 @@ public class Volume extends Alocacao {
                             auxVM.setCaminho(this.escalonarRota(auxMaq));
                             System.out.println(auxVM.getId() + " enviada para" +
                                                " " + auxMaq.getId());
-                            this.vmMaster.sendVm(auxVM);
+                            this.mestre.sendVm(auxVM);
                             System.out.println(
                                     "---------------------------------------");
                             this.atualizarVolume();

@@ -6,11 +6,11 @@ import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import java.util.List;
 
 public abstract class Alocacao extends VmAllocationPolicy {
-    protected List<CS_Processamento> maquinasFisicas = null;
-    protected List<List> infoMaquinas = null;
     protected List<CS_VirtualMac> maquinasVirtuais = null;
-    protected VmMaster vmMaster = null;
     protected List<CS_VirtualMac> VMsRejeitadas = null;
+
+    protected List<List> infoMaquinas = null;
+    protected List<CS_Processamento> maquinasFisicas = null;
     protected List<List> caminhoMaquina = null;
 
     /**
@@ -34,14 +34,6 @@ public abstract class Alocacao extends VmAllocationPolicy {
 
     public List<CS_VirtualMac> getMaquinasVirtuais() {
         return this.maquinasVirtuais;
-    }
-
-    public VmMaster getVMM() {
-        return this.vmMaster;
-    }
-
-    public void setVMM(final VmMaster hypervisor) {
-        this.vmMaster = hypervisor;
     }
 
     public void setCaminhoMaquinas(final List<List> caminhoMaquinas) {
