@@ -1,7 +1,7 @@
 package ispd.policy.loaders;
 
 import ispd.gui.LogExceptions;
-import ispd.policy.scheduling.grid.Escalonador;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -30,11 +30,11 @@ public class Carregar {
      * @param name
      * @return Nova instancia do objeto Escalonador
      */
-    public static Escalonador getNewEscalonador(final String name) {
+    public static GridSchedulingPolicy getNewEscalonador(final String name) {
         try {
             final var clsName = Carregar.CLASS_PATH + name;
             final var cls = Carregar.loader.loadClass(clsName);
-            return (Escalonador) cls.getConstructor().newInstance();
+            return (GridSchedulingPolicy) cls.getConstructor().newInstance();
         } catch (final NoSuchMethodException |
                        InvocationTargetException | InstantiationException |
                        IllegalAccessException | ClassNotFoundException ex) {

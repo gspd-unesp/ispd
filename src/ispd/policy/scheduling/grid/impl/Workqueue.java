@@ -3,14 +3,14 @@ package ispd.policy.scheduling.grid.impl;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.policy.scheduling.grid.Escalonador;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class Workqueue extends Escalonador {
+public class Workqueue extends GridSchedulingPolicy {
     private final LinkedList<Tarefa> ultimaTarefaConcluida = new LinkedList<>();
     private List<Tarefa> tarefaEnviada = null;
 

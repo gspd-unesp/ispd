@@ -6,14 +6,14 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
-import ispd.policy.scheduling.grid.Escalonador;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class OSEP extends Escalonador {
+public class OSEP extends GridSchedulingPolicy {
     private final List<ControleEscravos> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
     private final List<ControlePreempcao> controlePreempcao = new ArrayList<>();

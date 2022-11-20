@@ -5,13 +5,13 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_Maquina;
-import ispd.policy.scheduling.grid.Escalonador;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class DynamicFPLTF extends Escalonador {
+public class DynamicFPLTF extends GridSchedulingPolicy {
     private List<Double> tempoTornaDisponivel = null;
     private Tarefa tarefaSelecionada = null;
 

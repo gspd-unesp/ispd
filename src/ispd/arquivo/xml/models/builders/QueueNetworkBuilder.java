@@ -4,7 +4,6 @@ import ispd.arquivo.xml.utils.SwitchConnection;
 import ispd.arquivo.xml.utils.UserPowerLimit;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.policy.scheduling.grid.Escalonador;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.servidores.CS_Comunicacao;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -15,6 +14,7 @@ import ispd.motor.filas.servidores.implementacao.CS_Maquina;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
 import ispd.motor.filas.servidores.implementacao.CS_Switch;
 import ispd.motor.filas.servidores.implementacao.Vertice;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -100,6 +100,44 @@ public class QueueNetworkBuilder {
     }
 
     /**
+     * Build and process the machine (more specifically, the
+     * {@link CS_Processamento} represented by the {@link WrappedElement}
+     * {@code e}. Since the machine may or may not be a master, it can be
+     * added to either the collection of {@link #masters} or {@link #machines}.
+     *
+     * @param e {@link WrappedElement} representing a {@link CS_Processamento}.
+     * @return the interpreted {@link CS_Processamento} from the given
+     * {@link WrappedElement}. May either be a {@link CS_Mestre} or a
+     * {@link CS_Maquina}.
+     */
+    protected CS_Processamento makeAndAddMachine(final WrappedElement e) {
+        final CS_Processamento machine;
+
+        if (e.hasMasterAttribute()) {
+            machine = ServiceCenterBuilder.aMaster(e);
+            this.masters.add(machine);
+        } else {
+            machine = ServiceCenterBuilder.aMachine(e);
+            this.machines.add((CS_Maquina) machine);
+        }
+
+        return machine;
+    }
+
+    /**
+     * Increase the power limit of the user with given id by the given amount.
+     *
+     * @param userId    id of the user whose power limit will be increased.
+     * @param increment amount to increment the power limit by. Should be
+     *                  <b>positive</b>.
+     */
+    protected void increaseUserPower(
+            final String userId, final double increment) {
+        final var oldValue = this.powerLimits.get(userId);
+        this.powerLimits.put(userId, oldValue + increment);
+    }
+
+    /**
      * Process a {@link WrappedElement} that is representing a cluster of
      * {@link CentroServico}s. The {@link CS_Mestre}, {@link CS_Maquina}s and
      * {@link CS_Link}s in the cluster are differentiated and all processed
@@ -179,55 +217,6 @@ public class QueueNetworkBuilder {
         this.links.add(link);
     }
 
-    private void addSlavesToMachine(final WrappedElement e) {
-        final var master =
-                (CS_Processamento) this.serviceCenters.get(e.globalIconId());
-
-        e.master().slaves()
-                .map(WrappedElement::id)
-                .map(Integer::parseInt)
-                .map(this.serviceCenters::get)
-                .forEach(sc -> this.addSlavesToProcessingCenter(master, sc));
-    }
-
-    /**
-     * Build and process the machine (more specifically, the
-     * {@link CS_Processamento} represented by the {@link WrappedElement}
-     * {@code e}. Since the machine may or may not be a master, it can be
-     * added to either the collection of {@link #masters} or {@link #machines}.
-     *
-     * @param e {@link WrappedElement} representing a {@link CS_Processamento}.
-     * @return the interpreted {@link CS_Processamento} from the given
-     * {@link WrappedElement}. May either be a {@link CS_Mestre} or a
-     * {@link CS_Maquina}.
-     */
-    protected CS_Processamento makeAndAddMachine(final WrappedElement e) {
-        final CS_Processamento machine;
-
-        if (e.hasMasterAttribute()) {
-            machine = ServiceCenterBuilder.aMaster(e);
-            this.masters.add(machine);
-        } else {
-            machine = ServiceCenterBuilder.aMachine(e);
-            this.machines.add((CS_Maquina) machine);
-        }
-
-        return machine;
-    }
-
-    /**
-     * Increase the power limit of the user with given id by the given amount.
-     *
-     * @param userId    id of the user whose power limit will be increased.
-     * @param increment amount to increment the power limit by. Should be
-     *                  <b>positive</b>.
-     */
-    protected void increaseUserPower(
-            final String userId, final double increment) {
-        final var oldValue = this.powerLimits.get(userId);
-        this.powerLimits.put(userId, oldValue + increment);
-    }
-
     private static void connectLinkAndVertices(
             final CS_Link link,
             final Vertice origination, final Vertice destination) {
@@ -239,6 +228,17 @@ public class QueueNetworkBuilder {
 
     private Vertice getVertex(final int e) {
         return (Vertice) this.serviceCenters.get(e);
+    }
+
+    private void addSlavesToMachine(final WrappedElement e) {
+        final var master =
+                (CS_Processamento) this.serviceCenters.get(e.globalIconId());
+
+        e.master().slaves()
+                .map(WrappedElement::id)
+                .map(Integer::parseInt)
+                .map(this.serviceCenters::get)
+                .forEach(sc -> this.addSlavesToProcessingCenter(master, sc));
     }
 
     /**
@@ -309,8 +309,8 @@ public class QueueNetworkBuilder {
 
     /**
      * For all {@link CS_Mestre}s parsed from the document, update its
-     * {@link Escalonador}'s user metrics with the obtained user power limit
-     * information.
+     * {@link GridSchedulingPolicy}'s user metrics with the obtained user
+     * power limit information.
      *
      * @param helper {@link UserPowerLimit} with the power limit information.
      */

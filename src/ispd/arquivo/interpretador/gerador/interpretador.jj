@@ -94,7 +94,7 @@ class Interpretador{
         //dados para costruir classe
         private String arquivoNome;
         private String pacote = "package ispd.policy.externo;\n\n";
-        private String imports = "import ispd.policy.scheduling.grid.Escalonador;\n"
+        private String imports = "import ispd.policy.scheduling.grid.GridSchedulingPolicy;\n"
                                 +"import ispd.motor.filas.Tarefa;\n"
                                 +"import ispd.motor.filas.servidores.CS_Processamento;\n"
                                 +"import ispd.motor.filas.servidores.CentroServico;\n"
@@ -172,7 +172,7 @@ class Interpretador{
 
         public void escreverNome(String text){
             arquivoNome = text;
-            declaracao = "public class "+text+" extends Escalonador{\n\n";
+            declaracao = "public class "+text+" extends GridSchedulingPolicy{\n\n";
             construtor = "public "+text+"() {\n"
                         +"    this.tarefas = new ArrayList<Tarefa>();\n"
                         +"    this.escravos = new ArrayList<CS_Processamento>();\n"

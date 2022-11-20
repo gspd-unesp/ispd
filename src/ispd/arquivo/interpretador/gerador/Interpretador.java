@@ -16,7 +16,7 @@ class Interpretador implements InterpretadorConstants {
     //dados para costruir classe
     private String arquivoNome;
     private String pacote = "package ispd.policy.externo;\u005cn\u005cn";
-    private String imports = "import ispd.policy.scheduling.grid.Escalonador;\u005cn"
+    private String imports = "import ispd.policy.scheduling.grid.GridSchedulingPolicy;\u005cn"
             + "import ispd.motor.filas.Tarefa;\u005cn"
             + "import ispd.motor.filas.servidores.CS_Processamento;\u005cn"
             + "import ispd.motor.filas.servidores.CentroServico;\u005cn"
@@ -94,7 +94,7 @@ class Interpretador implements InterpretadorConstants {
 
     public void escreverNome(String text) {
         arquivoNome = text;
-        declaracao = "public class " + text + " extends Escalonador{\u005cn\u005cn";
+        declaracao = "public class " + text + " extends GridSchedulingPolicy{\u005cn\u005cn";
         construtor = "public " + text + "() {\u005cn"
                 + "    this.tarefas = new ArrayList<Tarefa>();\u005cn"
                 + "    this.escravos = new ArrayList<CS_Processamento>();\u005cn"

@@ -1,8 +1,8 @@
 package ispd.arquivo.xml.utils;
 
 import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
-import ispd.policy.scheduling.grid.Escalonador;
 import ispd.motor.metricas.MetricasUsuarios;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class UserPowerLimit {
      *
      * @param scheduler scheduler to be set with new user metrics.
      */
-    public void setSchedulerUserMetrics(final Escalonador scheduler) {
+    public void setSchedulerUserMetrics(final GridSchedulingPolicy scheduler) {
         scheduler.setMetricaUsuarios(this.makeUserMetrics());
     }
 

@@ -4,13 +4,13 @@ import ispd.motor.Mensagens;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.policy.scheduling.grid.Escalonador;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class WQR extends Escalonador {
+public class WQR extends GridSchedulingPolicy {
     private Tarefa ultimaTarefaConcluida = null;
     private List<Tarefa> tarefaEnviada = null;
     private int servidoresOcupados = 0;

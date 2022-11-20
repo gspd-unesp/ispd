@@ -11,8 +11,8 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
 import ispd.policy.loaders.Carregar;
-import ispd.policy.scheduling.grid.Escalonador;
 import ispd.policy.scheduling.grid.GridMaster;
+import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class CS_Mestre extends CS_Processamento
         implements GridMaster, Mensagens, Vertice {
     private final List<CS_Comunicacao> conexoesEntrada;
     private final List<CS_Comunicacao> conexoesSaida;
-    private final Escalonador escalonador;
+    private final GridSchedulingPolicy escalonador;
     private final List<Tarefa> filaTarefas;
     private boolean maqDisponivel;
     private boolean escDisponivel;
@@ -489,7 +489,7 @@ public class CS_Mestre extends CS_Processamento
         this.simulacao.addFutureEvent(evtFut);
     }
 
-    public Escalonador getEscalonador() {
+    public GridSchedulingPolicy getEscalonador() {
         return this.escalonador;
     }
 
