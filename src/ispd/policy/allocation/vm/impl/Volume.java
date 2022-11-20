@@ -11,8 +11,8 @@ import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.policy.allocation.vm.Alocacao;
-import ispd.policy.alocacaoVM.ComparaRequisitos;
-import ispd.policy.alocacaoVM.ComparaVolume;
+import ispd.policy.allocation.vm.util.ComparaRequisitos;
+import ispd.policy.allocation.vm.util.ComparaVolume;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package ispd.policy.alocacaoVM;
+package ispd.policy.allocation.vm.util;
 
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 
