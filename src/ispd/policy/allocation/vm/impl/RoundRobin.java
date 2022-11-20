@@ -17,7 +17,7 @@ public class RoundRobin extends Alocacao {
 
     public RoundRobin() {
         this.maquinasVirtuais = new ArrayList<>(0);
-        this.maquinasFisicas = new LinkedList<>();
+        this.escravos = new LinkedList<>();
         this.VMsRejeitadas = new ArrayList<>(0);
     }
 
@@ -28,7 +28,7 @@ public class RoundRobin extends Alocacao {
 
         this.test(); // FIXME: Remove this
 
-        this.physicalMachine = this.maquinasFisicas.listIterator(0);
+        this.physicalMachine = this.escravos.listIterator(0);
 
         if (this.maquinasVirtuais.isEmpty()) {
             return;
@@ -55,15 +55,15 @@ public class RoundRobin extends Alocacao {
     @Override
     public CS_Processamento escalonarRecurso() {
         if (!this.physicalMachine.hasNext()) {
-            this.physicalMachine = this.maquinasFisicas.listIterator(0);
+            this.physicalMachine = this.escravos.listIterator(0);
         }
         return this.physicalMachine.next();
     }
 
     @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.maquinasFisicas.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoMaquina.get(index));
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
 
     @Override
@@ -75,7 +75,7 @@ public class RoundRobin extends Alocacao {
     }
 
     private void findMachineForTask(final CS_VirtualMac vm) {
-        int machines = this.maquinasFisicas.size();
+        int machines = this.escravos.size();
         while (machines >= 0) {
             if (machines == 0) {
                 this.rejectVm(vm);

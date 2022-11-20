@@ -22,7 +22,7 @@ public class FirstFitDecreasing extends Alocacao {
 
     public FirstFitDecreasing() {
         this.maquinasVirtuais = new ArrayList<>();
-        this.maquinasFisicas = new ArrayList<>();
+        this.escravos = new ArrayList<>();
         this.VMsRejeitadas = new ArrayList<>();
         this.comparaReq = new ComparaRequisitos();
     }
@@ -45,7 +45,7 @@ public class FirstFitDecreasing extends Alocacao {
         for (final CS_VirtualMac aux : this.VMsOrdenadas) {
             System.out.println(aux.getId());
         }
-        if (!this.maquinasFisicas.isEmpty() && !this.maquinasVirtuais.isEmpty()) {
+        if (!this.escravos.isEmpty() && !this.maquinasVirtuais.isEmpty()) {
             this.escalonar();
         }
     }
@@ -58,23 +58,23 @@ public class FirstFitDecreasing extends Alocacao {
     @Override
     public CS_Processamento escalonarRecurso() {
         if (this.fit) {
-            return this.maquinasFisicas.get(0);
+            return this.escravos.get(0);
         } else {
-            return this.maquinasFisicas.get(this.maqIndex);
+            return this.escravos.get(this.maqIndex);
         }
     }
 
     @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.maquinasFisicas.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoMaquina.get(index));
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
 
     @Override
     public void escalonar() {
         while (!(this.maquinasVirtuais.isEmpty())) {
             System.out.println("------------------------------------------");
-            int num_escravos = this.maquinasFisicas.size();
+            int num_escravos = this.escravos.size();
 
             final CS_VirtualMac auxVM = this.escalonarVM();
 

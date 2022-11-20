@@ -2,7 +2,6 @@ package ispd.policy.scheduling;
 
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
-import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.metricas.MetricasUsuarios;
 import ispd.policy.Policy;
 
@@ -11,20 +10,9 @@ import java.util.List;
 public abstract class SchedulingPolicy <T extends SchedulingMaster> extends Policy<T> {
     protected List<Tarefa> tarefas = null;
     protected MetricasUsuarios metricaUsuarios = null;
-
     protected List<List> filaEscravo = null;
-    protected List<CS_Processamento> escravos = null;
-    protected List<List> caminhoEscravo = null;
 
     public abstract Tarefa escalonarTarefa();
-
-    public List<CS_Processamento> getEscravos() {
-        return this.escravos;
-    }
-
-    public void addEscravo(final CS_Processamento newSlave) {
-        this.escravos.add(newSlave);
-    }
 
     public void addTarefaConcluida(final Tarefa tarefa) {
         if (tarefa.getOrigem().equals(this.mestre)) {
@@ -38,14 +26,6 @@ public abstract class SchedulingPolicy <T extends SchedulingMaster> extends Poli
 
     public void setMetricaUsuarios(final MetricasUsuarios metricaUsuarios) {
         this.metricaUsuarios = metricaUsuarios;
-    }
-
-    public List<List> getCaminhoEscravo() {
-        return this.caminhoEscravo;
-    }
-
-    public void setCaminhoEscravo(final List<List> caminhoEscravo) {
-        this.caminhoEscravo = caminhoEscravo;
     }
 
     public List<Tarefa> getFilaTarefas() {

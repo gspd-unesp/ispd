@@ -329,7 +329,7 @@ public class CS_VMM extends CS_Processamento
             // primeiro encontrar o caminho pra máquina onde a vm está alocada
 
             final int index =
-                    this.alocadorVM.getMaquinasFisicas().indexOf(auxMaq); //
+                    this.alocadorVM.getEscravos().indexOf(auxMaq); //
             // busca índice da maquina na lista de máquinas
             // físicas do vmm
             final ArrayList<CentroServico> caminho;
@@ -357,7 +357,7 @@ public class CS_VMM extends CS_Processamento
                                " caminho intermediário para " + auxVM.getId());
             if (this.escalonador.getEscravos().contains(auxVM)) {
                 final int index =
-                        this.alocadorVM.getMaquinasFisicas().indexOf(auxMaq);
+                        this.alocadorVM.getEscravos().indexOf(auxMaq);
                 final ArrayList<CentroServico> caminho;
                 if (index == -1) {
                     caminho =
@@ -558,7 +558,7 @@ public class CS_VMM extends CS_Processamento
     }
 
     public void addEscravo(final CS_Processamento maquina) {
-        this.alocadorVM.addMaquinaFisica(maquina);
+        this.alocadorVM.addEscravo(maquina);
 
     }
 
@@ -570,7 +570,7 @@ public class CS_VMM extends CS_Processamento
 
     @Override
     public void determinarCaminhos() throws LinkageError {
-        final var escravos = this.alocadorVM.getMaquinasFisicas();
+        final var escravos = this.alocadorVM.getEscravos();
         this.caminhoEscravo = new ArrayList<>(escravos.size());
         // Busca pelo melhor caminho
         for (int i = 0; i < escravos.size(); i++) {
@@ -584,7 +584,7 @@ public class CS_VMM extends CS_Processamento
             }
         }
 
-        this.alocadorVM.setCaminhoMaquinas(this.caminhoEscravo);
+        this.alocadorVM.setCaminhoEscravo(this.caminhoEscravo);
     }
 
     public void instanciarCaminhosVMs() {

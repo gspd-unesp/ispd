@@ -27,7 +27,7 @@ public class Volume extends Alocacao {
 
     public Volume() {
         this.maquinasVirtuais = new ArrayList<>();
-        this.maquinasFisicas = new ArrayList<>();
+        this.escravos = new ArrayList<>();
         this.VMsRejeitadas = new ArrayList<>();
     }
 
@@ -38,11 +38,11 @@ public class Volume extends Alocacao {
         this.VMsOrdenadas = new ArrayList<>(this.maquinasVirtuais);
         this.VMsOrdenadas.sort(this.comparaReq); //ordena vms
         Collections.reverse(this.VMsOrdenadas);//deixa a ordenação decrescente
-        this.MaqsOrdenadas = new ArrayList<>(this.maquinasFisicas);
+        this.MaqsOrdenadas = new ArrayList<>(this.escravos);
         this.MaqsOrdenadas.sort((Comparator) this.comparaRec);
         Collections.reverse(this.MaqsOrdenadas);
 
-        if (!this.maquinasFisicas.isEmpty() && !this.maquinasVirtuais.isEmpty()) {
+        if (!this.escravos.isEmpty() && !this.maquinasVirtuais.isEmpty()) {
             this.escalonar();
         }
     }
@@ -55,23 +55,23 @@ public class Volume extends Alocacao {
     @Override
     public CS_Processamento escalonarRecurso() {
         if (this.fit) {
-            return this.maquinasFisicas.get(0);
+            return this.escravos.get(0);
         } else {
-            return this.maquinasFisicas.get(this.maqIndex);
+            return this.escravos.get(this.maqIndex);
         }
     }
 
     @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.maquinasFisicas.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoMaquina.get(index));
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
 
     @Override
     public void escalonar() {
         while (!(this.maquinasVirtuais.isEmpty())) {
             System.out.println("------------------------------------------");
-            int num_escravos = this.maquinasFisicas.size();
+            int num_escravos = this.escravos.size();
 
             final CS_VirtualMac auxVM = this.escalonarVM();
 

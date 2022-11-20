@@ -17,7 +17,7 @@ public class FirstFit extends Alocacao {
 
     public FirstFit() {
         this.maquinasVirtuais = new ArrayList<>();
-        this.maquinasFisicas = new ArrayList<>();
+        this.escravos = new ArrayList<>();
         this.VMsRejeitadas = new ArrayList<>();
     }
 
@@ -26,7 +26,7 @@ public class FirstFit extends Alocacao {
         this.fit = true;
         this.maqIndex = 0;
 
-        if (!this.maquinasFisicas.isEmpty() && !this.maquinasVirtuais.isEmpty()) {
+        if (!this.escravos.isEmpty() && !this.maquinasVirtuais.isEmpty()) {
             this.escalonar();
         }
     }
@@ -38,19 +38,19 @@ public class FirstFit extends Alocacao {
 
     @Override
     public CS_Processamento escalonarRecurso() {
-        return this.maquinasFisicas.get(this.fit ? 0 : this.maqIndex);
+        return this.escravos.get(this.fit ? 0 : this.maqIndex);
     }
 
     @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.maquinasFisicas.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoMaquina.get(index));
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
 
     @Override
     public void escalonar() {
         while (!(this.maquinasVirtuais.isEmpty())) {
-            var slaveCount = this.maquinasFisicas.size();
+            var slaveCount = this.escravos.size();
             final var auxVM = this.escalonarVM();
 
             do {
