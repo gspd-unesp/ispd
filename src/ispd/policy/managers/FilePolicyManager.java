@@ -205,7 +205,7 @@ abstract class FilePolicyManager implements PolicyManager {
     }
 
     /**
-     * Reads the source file from the policy {@code alocador} and returns a
+     * Reads the source file from the policy {@code policy} and returns a
      * string with the file contents.
      *
      * @param policy Name of the policy which source file will be read
@@ -227,7 +227,7 @@ abstract class FilePolicyManager implements PolicyManager {
 
     /**
      * Attempts to remove .java and .class files with the name in {@code
-     * alocador} and, if successful, removes the policy from the inner list.
+     * policy} and, if successful, removes the policy from the inner list.
      *
      * @param policy Name of the policy which files will be removed
      * @return {@code true} if removal is successful

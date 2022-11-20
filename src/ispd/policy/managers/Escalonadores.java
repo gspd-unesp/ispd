@@ -46,26 +46,16 @@ public class Escalonadores extends FilePolicyManager {
         return """
                 package ispd.policy.externo;
                                 
-                import ispd.policy.escalonador.Escalonador;
                 import ispd.motor.filas.Tarefa;
                 import ispd.motor.filas.servidores.CS_Processamento;
                 import ispd.motor.filas.servidores.CentroServico;
+                import ispd.policy.scheduling.grid.GridSchedulingPolicy;
                                 
                 import java.util.List;
                                 
-                public class __POLICY_NAME__ extends Escalonador {
+                public class __POLICY_NAME__ extends GridSchedulingPolicy {
                     @Override
                     public void iniciar() {
-                        throw new UnsupportedOperationException("Not supported yet.");
-                    }
-                                
-                    @Override
-                    public Tarefa escalonarTarefa() {
-                        throw new UnsupportedOperationException("Not supported yet.");
-                    }
-                                
-                    @Override
-                    public CS_Processamento escalonarRecurso() {
                         throw new UnsupportedOperationException("Not supported yet.");
                     }
                                 
@@ -76,6 +66,16 @@ public class Escalonadores extends FilePolicyManager {
                                 
                     @Override
                     public void escalonar() {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+                                
+                    @Override
+                    public CS_Processamento escalonarRecurso() {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+                                
+                    @Override
+                    public Tarefa escalonarTarefa() {
                         throw new UnsupportedOperationException("Not supported yet.");
                     }
                 }

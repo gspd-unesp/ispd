@@ -5,7 +5,7 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import ispd.policy.allocation.vm.Alocacao;
+import ispd.policy.allocation.vm.VmAllocationPolicy;
 import ispd.policy.allocation.vm.util.ComparaRequisitos;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class FirstFitDecreasing extends Alocacao {
+public class FirstFitDecreasing extends VmAllocationPolicy {
     private final ComparaRequisitos comparaReq;
     private boolean fit = false;
     private int maqIndex = 0;

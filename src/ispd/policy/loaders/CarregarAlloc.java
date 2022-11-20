@@ -1,6 +1,6 @@
 package ispd.policy.loaders;
 
-import ispd.policy.allocation.vm.Alocacao;
+import ispd.policy.allocation.vm.VmAllocationPolicy;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -25,13 +25,13 @@ public class CarregarAlloc {
      * @param name Name of the scheduling algorithm desired.
      * @return New instance of a Scheduler object.
      */
-    public static Alocacao getNewAlocadorVM(final String name) {
+    public static VmAllocationPolicy getNewAlocadorVM(final String name) {
         CarregarAlloc.makeLoaderSingleton();
 
         try {
             final var clsName = CarregarAlloc.CLASS_PATH + name;
             final var cls = CarregarAlloc.loader.loadClass(clsName);
-            return (Alocacao) cls.getConstructor().newInstance();
+            return (VmAllocationPolicy) cls.getConstructor().newInstance();
         } catch (final NoSuchMethodException |
                        InvocationTargetException | InstantiationException |
                        IllegalAccessException | ClassNotFoundException ex) {

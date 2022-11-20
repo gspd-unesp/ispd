@@ -5,13 +5,13 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-import ispd.policy.allocation.vm.Alocacao;
+import ispd.policy.allocation.vm.VmAllocationPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class FirstFit extends Alocacao {
+public class FirstFit extends VmAllocationPolicy {
     private boolean fit;
     private int maqIndex;
 

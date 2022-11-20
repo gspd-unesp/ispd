@@ -11,7 +11,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
-import ispd.policy.allocation.vm.Alocacao;
+import ispd.policy.allocation.vm.VmAllocationPolicy;
 import ispd.policy.loaders.CarregarAlloc;
 import ispd.policy.allocation.vm.VmMaster;
 import ispd.policy.loaders.CarregarCloud;
@@ -28,7 +28,7 @@ public class CS_VMM extends CS_Processamento
     private final List<CS_Comunicacao> conexoesEntrada = new ArrayList<>();
     private final List<CS_Comunicacao> conexoesSaida = new ArrayList<>();
     private final CloudSchedulingPolicy escalonador;
-    private final Alocacao alocadorVM;
+    private final VmAllocationPolicy alocadorVM;
     private final List<Tarefa> filaTarefas = new ArrayList<>();
     private final List<CS_VirtualMac> maquinasVirtuais = new ArrayList<>();
     private boolean vmsAlocadas = false;
@@ -535,7 +535,7 @@ public class CS_VMM extends CS_Processamento
         return this.escalonador;
     }
 
-    public Alocacao getAlocadorVM() {
+    public VmAllocationPolicy getAlocadorVM() {
         return this.alocadorVM;
     }
 

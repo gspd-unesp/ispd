@@ -36,38 +36,37 @@ public class Alocadores extends FilePolicyManager {
         //language=JAVA
         return """
                 package ispd.policy.externo;
-                                
-                import ispd.policy.alocacaoVM.Alocacao;
+                
+                import ispd.policy.allocation.vm.VmAllocationPolicy;
                 import ispd.motor.filas.servidores.CentroServico;
                 import ispd.motor.filas.servidores.CS_Processamento;
                 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
-                                
+                
                 import java.util.List;
-                                
-                public class __POLICY_NAME__ extends Alocacao {
-                                
+                
+                public class __POLICY_NAME__ extends VmAllocationPolicy {
                     @Override
                     public void iniciar() {
                         throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
-                                
-                    @Override
-                    public CS_VirtualMac escalonarVM() {
-                        throw new UnsupportedOperationException("Not Implemented Yet.");
-                    }
-                                
-                    @Override
-                    public CS_Processamento escalonarRecurso() {
-                        throw new UnsupportedOperationException("Not Implemented Yet.");
-                    }
-                                
+                
                     @Override
                     public List<CentroServico> escalonarRota(final CentroServico destino) {
                         throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
-                                
+                
                     @Override
                     public void escalonar() {
+                        throw new UnsupportedOperationException("Not Implemented Yet.");
+                    }
+                
+                    @Override
+                    public CS_Processamento escalonarRecurso() {
+                        throw new UnsupportedOperationException("Not Implemented Yet.");
+                    }
+                
+                    @Override
+                    public CS_VirtualMac escalonarVM() {
                         throw new UnsupportedOperationException("Not Implemented Yet.");
                     }
                 }
