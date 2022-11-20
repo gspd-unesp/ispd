@@ -1,6 +1,6 @@
 package ispd.policy.scheduling.cloud.impl;
 
-import ispd.policy.scheduling.cloud.EscalonadorCloud;
+import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
@@ -15,7 +15,7 @@ import java.util.ListIterator;
  * Hands over the next task on the FIFO queue,
  * for the next resource in a circular queue of resources.
  */
-public class RoundRobin extends EscalonadorCloud {
+public class RoundRobin extends CloudSchedulingPolicy {
     private ListIterator<CS_Processamento> resources = null;
     private LinkedList<CS_Processamento> slavesUser = null;
 

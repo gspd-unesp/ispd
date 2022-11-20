@@ -1,6 +1,6 @@
 package ispd.policy.loaders;
 
-import ispd.policy.scheduling.cloud.EscalonadorCloud;
+import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -26,13 +26,13 @@ public class CarregarCloud {
      * @param name
      * @return Nova instancia do objeto Escalonador
      */
-    public static EscalonadorCloud getNewEscalonadorCloud(final String name) {
+    public static CloudSchedulingPolicy getNewEscalonadorCloud(final String name) {
         CarregarCloud.makeLoaderSingleton();
 
         try {
             final var clsName = CarregarCloud.CLASS_PATH + name;
             final var cls = CarregarCloud.loader.loadClass(clsName);
-            return (EscalonadorCloud) cls.getConstructor().newInstance();
+            return (CloudSchedulingPolicy) cls.getConstructor().newInstance();
         } catch (final InstantiationException | NoSuchMethodException |
                        InvocationTargetException |
                        IllegalAccessException | ClassNotFoundException ex) {

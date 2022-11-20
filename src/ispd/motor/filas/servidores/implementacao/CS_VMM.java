@@ -15,7 +15,7 @@ import ispd.policy.allocation.vm.Alocacao;
 import ispd.policy.loaders.CarregarAlloc;
 import ispd.policy.allocation.vm.VmMaster;
 import ispd.policy.loaders.CarregarCloud;
-import ispd.policy.scheduling.cloud.EscalonadorCloud;
+import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 import ispd.policy.scheduling.cloud.CloudMaster;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public class CS_VMM extends CS_Processamento
         implements VmMaster, CloudMaster, Mensagens, Vertice {
     private final List<CS_Comunicacao> conexoesEntrada = new ArrayList<>();
     private final List<CS_Comunicacao> conexoesSaida = new ArrayList<>();
-    private final EscalonadorCloud escalonador;
+    private final CloudSchedulingPolicy escalonador;
     private final Alocacao alocadorVM;
     private final List<Tarefa> filaTarefas = new ArrayList<>();
     private final List<CS_VirtualMac> maquinasVirtuais = new ArrayList<>();
@@ -531,7 +531,7 @@ public class CS_VMM extends CS_Processamento
         this.simulacao.addFutureEvent(evtFut);
     }
 
-    public EscalonadorCloud getEscalonador() {
+    public CloudSchedulingPolicy getEscalonador() {
         return this.escalonador;
     }
 
