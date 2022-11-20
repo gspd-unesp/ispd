@@ -5,7 +5,7 @@ import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 
 import java.util.List;
 
-public abstract class Alocacao implements VmAllocationPolicy {
+public abstract class Alocacao extends VmAllocationPolicy {
     protected List<CS_Processamento> maquinasFisicas = null;
     protected List<List> infoMaquinas = null;
     protected List<CS_VirtualMac> maquinasVirtuais = null;

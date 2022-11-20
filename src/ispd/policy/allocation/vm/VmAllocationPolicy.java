@@ -2,5 +2,5 @@ package ispd.policy.allocation.vm;
 
 import ispd.policy.allocation.AllocationPolicy;
 
-public interface VmAllocationPolicy extends AllocationPolicy<VmMaster> {
+public abstract class VmAllocationPolicy extends AllocationPolicy<VmMaster> {
 }

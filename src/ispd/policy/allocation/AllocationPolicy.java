@@ -2,5 +2,5 @@ package ispd.policy.allocation;
 
 import ispd.policy.Policy;
 
-public interface AllocationPolicy<T extends AllocationMaster> extends Policy<T> {
+public abstract class AllocationPolicy<T extends AllocationMaster> implements Policy<T> {
 }
