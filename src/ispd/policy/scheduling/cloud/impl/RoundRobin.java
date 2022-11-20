@@ -1,9 +1,9 @@
 package ispd.policy.scheduling.cloud.impl;
 
-import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
+import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -32,19 +32,6 @@ public class RoundRobin extends CloudSchedulingPolicy {
     }
 
     @Override
-    public Tarefa escalonarTarefa() {
-        return this.tarefas.remove(0);
-    }
-
-    @Override
-    public CS_Processamento escalonarRecurso() {
-        if (!this.resources.hasNext()) {
-            this.resources = this.slavesUser.listIterator(0);
-        }
-        return this.resources.next();
-    }
-
-    @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
         final var destination = (CS_Processamento) destino;
         final int index = this.escravos.indexOf(destination);
@@ -59,9 +46,8 @@ public class RoundRobin extends CloudSchedulingPolicy {
         System.out.println("---------------------------");
         final var task = this.escalonarTarefa();
         final var taskOwner = task.getProprietario();
-        this.slavesUser = 
-                (LinkedList<CS_Processamento>) this.getVMsAdequadas(
-                        taskOwner, this.escravos);
+        this.slavesUser = (LinkedList<CS_Processamento>)
+                this.getVMsAdequadas(taskOwner);
 
         if (this.slavesUser.isEmpty()) {
             this.noAllocatedVms(task);
@@ -70,6 +56,19 @@ public class RoundRobin extends CloudSchedulingPolicy {
         }
 
         System.out.println("---------------------------");
+    }
+
+    @Override
+    public Tarefa escalonarTarefa() {
+        return this.tarefas.remove(0);
+    }
+
+    @Override
+    public CS_Processamento escalonarRecurso() {
+        if (!this.resources.hasNext()) {
+            this.resources = this.slavesUser.listIterator(0);
+        }
+        return this.resources.next();
     }
 
     private void noAllocatedVms(final Tarefa task) {

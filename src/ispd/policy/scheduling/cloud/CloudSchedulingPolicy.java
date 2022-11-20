@@ -6,19 +6,14 @@ import ispd.policy.scheduling.SchedulingPolicy;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class CloudSchedulingPolicy extends SchedulingPolicy<CloudMaster> {
-    protected List<CS_Processamento> getVMsAdequadas(
-            final String usuario,
-            final List<? extends CS_Processamento> slaves) {
-        final var escravosUsuario = new LinkedList<CS_Processamento>();
-        for (final var slave : slaves) {
-            final var slaveVM = (CS_VirtualMac) slave;
-
-            if (slave.getProprietario().equals(usuario) && slaveVM.getStatus() == CS_VirtualMac.ALOCADA) {
-                escravosUsuario.add(slave);
-            }
-        }
-        return escravosUsuario;
+    protected List<CS_Processamento> getVMsAdequadas(final String user) {
+        return this.escravos.stream()
+                .filter(s -> s.getProprietario().equals(user))
+                .map(CS_VirtualMac.class::cast)
+                .filter(s -> s.getStatus() == CS_VirtualMac.ALOCADA)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 }
