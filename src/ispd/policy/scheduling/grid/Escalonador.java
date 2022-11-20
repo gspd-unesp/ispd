@@ -7,7 +7,7 @@ import ispd.motor.metricas.MetricasUsuarios;
 
 import java.util.List;
 
-public abstract class Escalonador implements GridSchedulingPolicy {
+public abstract class Escalonador extends GridSchedulingPolicy {
     protected List<CS_Processamento> escravos = null;
     protected List<List> filaEscravo = null;
     protected List<Tarefa> tarefas = null;
