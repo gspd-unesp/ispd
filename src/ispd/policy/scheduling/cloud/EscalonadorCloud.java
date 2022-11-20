@@ -3,7 +3,6 @@ package ispd.policy.scheduling.cloud;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
 import ispd.motor.metricas.MetricasUsuarios;
 
@@ -17,16 +16,6 @@ public abstract class EscalonadorCloud implements CloudSchedulingPolicy {
     protected MetricasUsuarios metricaUsuarios = null;
     protected CloudMaster mestre = null;
     protected List<List> caminhoEscravo = null;
-
-    public abstract void iniciar();
-
-    public abstract Tarefa escalonarTarefa();
-
-    public abstract CS_Processamento escalonarRecurso();
-
-    public abstract List<CentroServico> escalonarRota(CentroServico destino);
-
-    public abstract void escalonar();
 
     public void adicionarTarefa(final Tarefa tarefa) {
         if (tarefa.getOrigem().equals(this.mestre)) {
@@ -86,10 +75,6 @@ public abstract class EscalonadorCloud implements CloudSchedulingPolicy {
             }
         }
         return escravosUsuario;
-    }
-
-    public Double getTempoAtualizar() {
-        return null;
     }
 
     public void resultadoAtualizar(final Mensagem mensagem) {
