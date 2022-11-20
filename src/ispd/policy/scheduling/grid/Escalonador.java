@@ -8,13 +8,6 @@ import ispd.motor.metricas.MetricasUsuarios;
 import java.util.List;
 
 public abstract class Escalonador extends GridSchedulingPolicy {
-    protected List<CS_Processamento> escravos = null;
-    protected List<List> filaEscravo = null;
-    protected List<Tarefa> tarefas = null;
-    protected MetricasUsuarios metricaUsuarios = null;
-    protected GridMaster mestre = null;
-    protected List<List> caminhoEscravo = null;
-
     public void adicionarTarefa(final Tarefa tarefa) {
         if (tarefa.getOrigem().equals(this.mestre)) {
             this.metricaUsuarios.incTarefasSubmetidas(tarefa);
