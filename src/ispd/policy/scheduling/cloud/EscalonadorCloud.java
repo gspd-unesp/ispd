@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public abstract class EscalonadorCloud extends CloudSchedulingPolicy {
-    private final List<List> filaEscravo = null;
+    protected List<List> filaEscravo = null;
     protected List<CS_Processamento> escravos = null;
     protected List<Tarefa> tarefas = null;
     protected MetricasUsuarios metricaUsuarios = null;
