@@ -1,11 +1,11 @@
 package ispd.policy.allocation.vm.impl;
 
-import ispd.policy.allocation.vm.Alocacao;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
+import ispd.policy.allocation.vm.Alocacao;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -45,6 +45,33 @@ public class RoundRobin extends Alocacao {
         this.maquinasVirtuais.stream()
                 .map(CS_Processamento::getId)
                 .forEach(System.out::println);
+    }
+
+    @Override
+    public CS_VirtualMac escalonarVM() {
+        return this.maquinasVirtuais.remove(0);
+    }
+
+    @Override
+    public CS_Processamento escalonarRecurso() {
+        if (!this.physicalMachine.hasNext()) {
+            this.physicalMachine = this.maquinasFisicas.listIterator(0);
+        }
+        return this.physicalMachine.next();
+    }
+
+    @Override
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final int index = this.maquinasFisicas.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoMaquina.get(index));
+    }
+
+    @Override
+    public void escalonar() {
+        while (!(this.maquinasVirtuais.isEmpty())) {
+            System.out.println("------------------------------------------");
+            this.findMachineForTask(this.escalonarVM());
+        }
     }
 
     private void findMachineForTask(final CS_VirtualMac vm) {
@@ -114,8 +141,7 @@ public class RoundRobin extends Alocacao {
     }
 
     private void redirectVm(
-            final CS_VirtualMac vm,
-            final CS_Processamento resource) {
+            final CS_VirtualMac vm, final CS_Processamento resource) {
         System.out.printf(
                 "%s é um VMM, a VM será redirecionada%n", resource.getId());
         vm.setCaminho(this.escalonarRota(resource));
@@ -123,32 +149,4 @@ public class RoundRobin extends Alocacao {
         this.vmMaster.sendVm(vm);
         System.out.println("---------------------------------------");
     }
-
-    @Override
-    public CS_VirtualMac escalonarVM() {
-        return this.maquinasVirtuais.remove(0);
-    }
-
-    @Override
-    public CS_Processamento escalonarRecurso() {
-        if (!this.physicalMachine.hasNext()) {
-            this.physicalMachine = this.maquinasFisicas.listIterator(0);
-        }
-        return this.physicalMachine.next();
-    }
-
-    @Override
-    public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.maquinasFisicas.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoMaquina.get(index));
-    }
-
-    @Override
-    public void escalonar() {
-        while (!(this.maquinasVirtuais.isEmpty())) {
-            System.out.println("------------------------------------------");
-            this.findMachineForTask(this.escalonarVM());
-        }
-    }
-
 }
