@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 public class CarregarCloud {
     private static final String DIR = ".";
-    private static final String CLASS_PATH = "ispd.policy.externo.cloudSchedulers.";
+    private static final String CLASS_PATH = "ispd.policy.scheduling.cloud.impl.";
     private static URLClassLoader loader = null;
 
     /**
