@@ -3,7 +3,7 @@ package ispd.policy.loaders;
 import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 
 public class CloudSchedulingPolicyLoader extends
-        ClassPolicyLoader<CloudSchedulingPolicy> {
+        GenericPolicyLoader<CloudSchedulingPolicy> {
     private static final String CLASS_PATH =
             "ispd.policy.scheduling.cloud.impl.";
 
