@@ -19,7 +19,7 @@ public class CarregarAlloc {
      * @param name Name of the scheduling algorithm desired.
      * @return New instance of a Scheduler object.
      */
-    public static VmAllocationPolicy getNewAlocadorVM(final String name) {
+    public VmAllocationPolicy getNewAlocadorVM(final String name) {
         try {
             final var clsName = CarregarAlloc.CLASS_PATH + name;
             final var cls = PolicyLoader.classLoader.loadClass(clsName);

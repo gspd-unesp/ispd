@@ -21,7 +21,7 @@ public class CarregarCloud extends PolicyLoader {
      * @param name
      * @return Nova instancia do objeto Escalonador
      */
-    public static CloudSchedulingPolicy getNewEscalonadorCloud(final String name) {
+    public CloudSchedulingPolicy getNewEscalonadorCloud(final String name) {
         try {
             final var clsName = CarregarCloud.CLASS_PATH + name;
             final var cls = PolicyLoader.classLoader.loadClass(clsName);

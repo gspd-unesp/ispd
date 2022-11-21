@@ -23,7 +23,7 @@ public class Carregar extends PolicyLoader {
      * @param name
      * @return Nova instancia do objeto Escalonador
      */
-    public static GridSchedulingPolicy getNewEscalonador(final String name) {
+    public GridSchedulingPolicy getNewEscalonador(final String name) {
         try {
             final var clsName = Carregar.CLASS_PATH + name;
             final var cls = PolicyLoader.classLoader.loadClass(clsName);
