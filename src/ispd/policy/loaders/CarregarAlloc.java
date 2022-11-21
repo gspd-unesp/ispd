@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 /**
  * Loads Scheduler instances dynamically.
  */
-public class CarregarAlloc {
+public class CarregarAlloc extends PolicyLoader {
     private static final String CLASS_PATH = "ispd.policy.allocation.vm.impl.";
 
     /**
@@ -19,9 +19,9 @@ public class CarregarAlloc {
      * @param name Name of the scheduling algorithm desired.
      * @return New instance of a Scheduler object.
      */
-    public VmAllocationPolicy getNewAlocadorVM(final String name) {
+    public VmAllocationPolicy loadPolicy(final String name) {
         try {
-            final var clsName = CarregarAlloc.CLASS_PATH + name;
+            final var clsName = getClassPath() + name;
             final var cls = PolicyLoader.classLoader.loadClass(clsName);
             return (VmAllocationPolicy) cls.getConstructor().newInstance();
         } catch (final NoSuchMethodException |
@@ -31,5 +31,10 @@ public class CarregarAlloc {
                     .log(Level.SEVERE, null, ex);
             return null;
         }
+    }
+
+    @Override
+    protected String getClassPath() {
+        return CarregarAlloc.CLASS_PATH;
     }
 }

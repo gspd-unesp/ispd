@@ -15,6 +15,11 @@ public class Carregar extends PolicyLoader {
     private static final String CLASS_PATH =
             "ispd.policy.scheduling.grid.impl.";
 
+    @Override
+    protected String getClassPath() {
+        return Carregar.CLASS_PATH;
+    }
+
     /**
      * Recebe o nome de um algoritmo de escalonamento e retorna uma nova
      * instancia de um objeto com este nome ou null caso não encontre ou ocorra
@@ -23,9 +28,9 @@ public class Carregar extends PolicyLoader {
      * @param name
      * @return Nova instancia do objeto Escalonador
      */
-    public GridSchedulingPolicy getNewEscalonador(final String name) {
+    public GridSchedulingPolicy loadPolicy(final String name) {
         try {
-            final var clsName = Carregar.CLASS_PATH + name;
+            final var clsName = getClassPath() + name;
             final var cls = PolicyLoader.classLoader.loadClass(clsName);
             return (GridSchedulingPolicy) cls.getConstructor().newInstance();
         } catch (final NoSuchMethodException |

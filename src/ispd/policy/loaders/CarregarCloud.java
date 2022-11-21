@@ -21,9 +21,9 @@ public class CarregarCloud extends PolicyLoader {
      * @param name
      * @return Nova instancia do objeto Escalonador
      */
-    public CloudSchedulingPolicy getNewEscalonadorCloud(final String name) {
+    public CloudSchedulingPolicy loadPolicy(final String name) {
         try {
-            final var clsName = CarregarCloud.CLASS_PATH + name;
+            final var clsName = getClassPath() + name;
             final var cls = PolicyLoader.classLoader.loadClass(clsName);
             return (CloudSchedulingPolicy) cls.getConstructor().newInstance();
         } catch (final InstantiationException | NoSuchMethodException |
@@ -33,5 +33,9 @@ public class CarregarCloud extends PolicyLoader {
                     .log(Level.SEVERE, null, ex);
             return null;
         }
+    }
+
+    protected String getClassPath() {
+        return CarregarCloud.CLASS_PATH;
     }
 }

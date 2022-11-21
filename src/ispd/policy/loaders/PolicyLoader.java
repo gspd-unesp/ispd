@@ -8,7 +8,7 @@ import java.net.URLClassLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PolicyLoader {
+public abstract class PolicyLoader {
     protected static final URLClassLoader classLoader =
             PolicyLoader.makeLoaderSingleton();
 
@@ -24,4 +24,6 @@ public class PolicyLoader {
             throw new ExceptionInInitializerError(ex);
         }
     }
+
+    protected abstract String getClassPath();
 }
