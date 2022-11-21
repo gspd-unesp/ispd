@@ -1,12 +1,10 @@
 package ispd.policy.loaders;
 
-import ispd.gui.LogExceptions;
+import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.logging.Level;
@@ -18,7 +16,6 @@ import java.util.logging.Logger;
  * @author denison
  */
 public class Carregar {
-    public static final File DIRETORIO_ISPD = Carregar.loadIspdDirectory();
     private static final String CLASS_PATH = "ispd.policy.scheduling.grid.impl.";
     private static final URLClassLoader loader = Carregar.makeLoaderSingleton();
 
@@ -44,38 +41,10 @@ public class Carregar {
         }
     }
 
-    /**
-     * Localiza arquivo do programa iSPD
-     *
-     * @return diretório que fica o iSPD
-     */
-    private static File loadIspdDirectory() {
-        final var dir = Carregar.getDirectory();
-
-        if (dir.getName().endsWith(".jar")) {
-            return dir.getParentFile();
-        } else {
-            return new File(".");
-        }
-    }
-
-    private static File getDirectory() {
-        final var location = LogExceptions.class
-                .getProtectionDomain()
-                .getCodeSource()
-                .getLocation();
-
-        try {
-            return new File(location.toURI());
-        } catch (final URISyntaxException ex) {
-            return new File(location.getPath());
-        }
-    }
-
     private static URLClassLoader makeLoaderSingleton() {
         try {
             return URLClassLoader.newInstance(
-                    new URL[] { Carregar.DIRETORIO_ISPD.toURI().toURL(), },
+                    new URL[] { ConfiguracaoISPD.DIRETORIO_ISPD.toURI().toURL(), },
                     Carregar.class.getClassLoader()
             );
         } catch (final MalformedURLException ex) {

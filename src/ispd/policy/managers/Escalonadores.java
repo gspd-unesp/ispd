@@ -1,7 +1,7 @@
 package ispd.policy.managers;
 
+import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.policy.PolicyManager;
-import ispd.policy.loaders.Carregar;
 
 import java.io.File;
 
@@ -24,7 +24,7 @@ public class Escalonadores extends FilePolicyManager {
     };
     private static final String GRID_DIR_PATH = "ispd/externo";
     private static final File GRID_DIRECTORY =
-            new File(Carregar.DIRETORIO_ISPD, Escalonadores.GRID_DIR_PATH);
+            new File(ConfiguracaoISPD.DIRETORIO_ISPD, Escalonadores.GRID_DIR_PATH);
 
     @Override
     public File directory() {
