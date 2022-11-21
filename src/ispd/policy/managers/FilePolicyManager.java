@@ -1,6 +1,8 @@
 package ispd.policy.managers;
 
 import ispd.policy.PolicyManager;
+import ispd.policy.managers.util.CompilationHelper;
+import ispd.policy.managers.util.JarExtractor;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,8 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-/* package-private */
-abstract class FilePolicyManager implements PolicyManager {
+public abstract class FilePolicyManager implements PolicyManager {
     private static final String JAR_PREFIX = "jar:";
     private static final String POLICY_NAME_REPL = "__POLICY_NAME__";
     private final ArrayList<String> policies = new ArrayList<>();
@@ -66,7 +67,7 @@ abstract class FilePolicyManager implements PolicyManager {
     protected abstract String className();
 
     /* package-private */
-    static void createDirectory(final File dir) throws IOException {
+    public static void createDirectory(final File dir) throws IOException {
         if (!dir.mkdirs()) {
             throw new IOException("Failed to create directory " + dir);
         }
@@ -99,7 +100,7 @@ abstract class FilePolicyManager implements PolicyManager {
     protected abstract String packageName();
 
     /* package-private */
-    static void severeLog(final Throwable e) {
+    public static void severeLog(final Throwable e) {
         Logger.getLogger(FilePolicyManager.class.getName())
                 .log(Level.SEVERE, null, e);
     }

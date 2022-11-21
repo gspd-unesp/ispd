@@ -1,4 +1,6 @@
-package ispd.policy.managers;
+package ispd.policy.managers.util;
+
+import ispd.policy.managers.FilePolicyManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -7,21 +9,18 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/* package-private */
-class JarExtractor {
+public class JarExtractor {
     private static final String MOTOR_PKG_PATH = "motor";
     private final ZipFile jar = new JarFile(new File(
             System.getProperty("java.class.path")
     ));
     private final String targetPackage;
 
-    /* package-private */
-    JarExtractor(final String targetPackage) throws IOException {
+    public JarExtractor(final String targetPackage) throws IOException {
         this.targetPackage = targetPackage;
     }
 
-    /* package-private */
-    void extractDirsFromJar() throws IOException {
+    public void extractDirsFromJar() throws IOException {
         this.extractDirFromJar(this.targetPackage);
         this.extractDirFromJar(JarExtractor.MOTOR_PKG_PATH);
     }

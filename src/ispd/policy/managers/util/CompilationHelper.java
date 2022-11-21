@@ -1,4 +1,6 @@
-package ispd.policy.managers;
+package ispd.policy.managers.util;
+
+import ispd.policy.managers.FilePolicyManager;
 
 import javax.tools.Tool;
 import javax.tools.ToolProvider;
@@ -11,19 +13,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/* package-private */
-class CompilationHelper {
+public class CompilationHelper {
     private final Optional<Tool> compiler = Optional.ofNullable(
             ToolProvider.getSystemJavaCompiler());
     private final File target;
 
     /* package-private */
-    CompilationHelper(final File target) {
+    public CompilationHelper(final File target) {
         this.target = target;
     }
 
     /* package-private */
-    String compile() {
+    public String compile() {
         return this.compiler
                 .map(this::compileWithSystemTool)
                 .orElseGet(this::tryCompileWithJavac);
