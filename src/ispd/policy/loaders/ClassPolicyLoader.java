@@ -2,6 +2,7 @@ package ispd.policy.loaders;
 
 import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.policy.Policy;
+import ispd.policy.PolicyLoader;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -10,32 +11,35 @@ import java.net.URLClassLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class PolicyLoader <T extends Policy<?>> {
+/* package=private */
+abstract class ClassPolicyLoader <T extends Policy<?>>
+        implements PolicyLoader<T> {
     private static final URLClassLoader classLoader =
-            PolicyLoader.makeClassLoader();
+            ClassPolicyLoader.makeClassLoader();
 
     private static URLClassLoader makeClassLoader() {
         try {
             return URLClassLoader.newInstance(
                     new URL[] { ConfiguracaoISPD.DIRETORIO_ISPD.toURI().toURL(), },
-                    PolicyLoader.class.getClassLoader()
+                    ClassPolicyLoader.class.getClassLoader()
             );
         } catch (final MalformedURLException ex) {
-            Logger.getLogger(PolicyLoader.class.getName())
+            Logger.getLogger(ClassPolicyLoader.class.getName())
                     .log(Level.SEVERE, "Could not create the loader!", ex);
             throw new ExceptionInInitializerError(ex);
         }
     }
 
+    @Override
     public T loadPolicy(final String policyName) {
         final var clsName = this.getClassPath() + policyName;
         try {
-            final var cls = PolicyLoader.classLoader.loadClass(clsName);
+            final var cls = ClassPolicyLoader.classLoader.loadClass(clsName);
             return (T) cls.getConstructor().newInstance();
         } catch (final ClassNotFoundException | InvocationTargetException |
                        InstantiationException | IllegalAccessException |
                        NoSuchMethodException | ClassCastException e) {
-            Logger.getLogger(PolicyLoader.class.getName()).log(
+            Logger.getLogger(ClassPolicyLoader.class.getName()).log(
                     Level.SEVERE,
                     "Could not load policy '%s'!\n".formatted(policyName),
                     e
