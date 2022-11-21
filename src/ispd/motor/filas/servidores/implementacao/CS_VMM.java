@@ -13,8 +13,8 @@ import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
 import ispd.policy.allocation.vm.VmAllocationPolicy;
 import ispd.policy.allocation.vm.VmMaster;
-import ispd.policy.loaders.CarregarAlloc;
-import ispd.policy.loaders.CarregarCloud;
+import ispd.policy.loaders.VmAllocationPolicyLoader;
+import ispd.policy.loaders.CloudSchedulingPolicyLoader;
 import ispd.policy.scheduling.cloud.CloudMaster;
 import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 
@@ -50,10 +50,10 @@ public class CS_VMM extends CS_Processamento
             final String allocationPolicyName) {
         super(id, owner, computationalPower, 1, loadFactor, 0);
         this.alocadorVM =
-                new CarregarAlloc().loadPolicy(allocationPolicyName);
+                new VmAllocationPolicyLoader().loadPolicy(allocationPolicyName);
         Objects.requireNonNull(this.alocadorVM).setMestre(this);
         this.escalonador =
-                new CarregarCloud().loadPolicy(schedulingPolicyName);
+                new CloudSchedulingPolicyLoader().loadPolicy(schedulingPolicyName);
         Objects.requireNonNull(this.escalonador).setMestre(this);
     }
 
