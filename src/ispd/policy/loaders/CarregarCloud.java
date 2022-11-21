@@ -1,8 +1,8 @@
 package ispd.policy.loaders;
 
+import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -14,7 +14,6 @@ import java.util.logging.Logger;
  * Carrega as classes dos escalonadores dinamicamente
  */
 public class CarregarCloud {
-    private static final String DIR = ".";
     private static final String CLASS_PATH =
             "ispd.policy.scheduling.cloud.impl.";
     private static final URLClassLoader loader =
@@ -43,25 +42,15 @@ public class CarregarCloud {
     }
 
     private static URLClassLoader makeLoaderSingleton() {
-        final var dir = new File(CarregarCloud.DIR);
-
-        if (!dir.exists()) {
-            return null;
-        }
-
-        return CarregarCloud.getLoaderFromDir(dir);
-    }
-
-    private static URLClassLoader getLoaderFromDir(final File dir) {
         try {
             return URLClassLoader.newInstance(
-                    new URL[] { dir.toURI().toURL(), },
+                    new URL[] { ConfiguracaoISPD.DIRETORIO_ISPD.toURI().toURL(), },
                     CarregarCloud.class.getClassLoader()
             );
         } catch (final MalformedURLException ex) {
             Logger.getLogger(CarregarCloud.class.getName())
-                    .log(Level.SEVERE, null, ex);
-            throw new ExceptionInInitializerError("Can't create the Loader!");
+                    .log(Level.SEVERE, "Could not create the loader!", ex);
+            throw new ExceptionInInitializerError(ex);
         }
     }
 }
