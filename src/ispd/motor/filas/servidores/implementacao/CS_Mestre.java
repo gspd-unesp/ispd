@@ -35,8 +35,9 @@ public class CS_Mestre extends CS_Processamento
                      final double PoderComputacional, final double Ocupacao,
                      final String Escalonador, final Double energia) {
         super(id, proprietario, PoderComputacional, 1, Ocupacao, 0, energia);
-        this.escalonador = new GridSchedulingPolicyLoader().loadPolicy(Escalonador);
-        Objects.requireNonNull(this.escalonador).setMestre(this);
+        this.escalonador = new GridSchedulingPolicyLoader()
+                .loadPolicy(Escalonador);
+        this.escalonador.setMestre(this);
         this.filaTarefas = new ArrayList<>();
         this.maqDisponivel = true;
         this.escDisponivel = true;
