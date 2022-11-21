@@ -7,7 +7,7 @@ import java.io.File;
 /**
  * Manages storing, retrieving and compiling cloud scheduling policies
  */
-public class EscalonadoresCloud extends FilePolicyManager {
+public class CloudSchedulingPolicyManager extends FilePolicyManager {
     public static final String[] ESCALONADORES = {
             PolicyManager.NO_POLICY,
             "RoundRobin"
@@ -15,16 +15,16 @@ public class EscalonadoresCloud extends FilePolicyManager {
     private static final String CLOUD_DIR_PATH =
             "ispd.policy.externo.cloudSchedulers";
     private static final File CLOUD_DIRECTORY =
-            new File(EscalonadoresCloud.CLOUD_DIR_PATH);
+            new File(CloudSchedulingPolicyManager.CLOUD_DIR_PATH);
 
     @Override
     public File directory() {
-        return EscalonadoresCloud.CLOUD_DIRECTORY;
+        return CloudSchedulingPolicyManager.CLOUD_DIRECTORY;
     }
 
     @Override
     protected String className() {
-        return "EscalonadoresCloud.class";
+        return "CloudSchedulingPolicyManager.class";
     }
 
     @Override

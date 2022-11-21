@@ -8,7 +8,7 @@ import java.io.File;
 /**
  * Manages storing, retrieving and compiling scheduling policies
  */
-public class Escalonadores extends FilePolicyManager {
+public class GridSchedulingPolicyManager extends FilePolicyManager {
     /**
      * Scheduling policies available by default
      */
@@ -24,16 +24,17 @@ public class Escalonadores extends FilePolicyManager {
     };
     private static final String GRID_DIR_PATH = "ispd/externo";
     private static final File GRID_DIRECTORY =
-            new File(ConfiguracaoISPD.DIRETORIO_ISPD, Escalonadores.GRID_DIR_PATH);
+            new File(ConfiguracaoISPD.DIRETORIO_ISPD,
+                    GridSchedulingPolicyManager.GRID_DIR_PATH);
 
     @Override
     public File directory() {
-        return Escalonadores.GRID_DIRECTORY;
+        return GridSchedulingPolicyManager.GRID_DIRECTORY;
     }
 
     @Override
     protected String className() {
-        return "Escalonadores.class";
+        return "GridSchedulingPolicyManager.class";
     }
 
     @Override

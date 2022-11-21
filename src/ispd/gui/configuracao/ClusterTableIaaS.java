@@ -1,7 +1,7 @@
 package ispd.gui.configuracao;
 
-import ispd.policy.managers.Alocadores;
-import ispd.policy.managers.EscalonadoresCloud;
+import ispd.policy.managers.CloudSchedulingPolicyManager;
+import ispd.policy.managers.VmAllocationPolicyManager;
 import ispd.gui.iconico.grade.Cluster;
 
 import javax.swing.JComboBox;
@@ -17,14 +17,14 @@ public class ClusterTableIaaS extends AbstractTableModel {
     private static final int COLUMN_COUNT = 2;
     private static final String[] EMPTY_COMBO_BOX_LIST = {};
     private final JComboBox<Object> schedulers = ClusterTableIaaS.makeComboBox(
-            EscalonadoresCloud.ESCALONADORES,
+            CloudSchedulingPolicyManager.ESCALONADORES,
             "Select the task scheduling policy");
     private final JComboBox<Object> users = ClusterTableIaaS.makeComboBox(
             ClusterTableIaaS.EMPTY_COMBO_BOX_LIST,
             "Select the resource owner"
     );
     private final JComboBox<Object> vmmPolicies = ClusterTableIaaS.makeComboBox(
-            Alocadores.ALOCACAO,
+            VmAllocationPolicyManager.ALOCACAO,
             "Select the virtual machine allocation policy"
     );
     private Cluster cluster = null;

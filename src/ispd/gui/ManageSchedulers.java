@@ -3,7 +3,7 @@ package ispd.gui;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.policy.PolicyManager;
-import ispd.policy.managers.Escalonadores;
+import ispd.policy.managers.GridSchedulingPolicyManager;
 import ispd.utils.ValidaValores;
 
 import javax.swing.GroupLayout;
@@ -59,7 +59,7 @@ public class ManageSchedulers extends JFrame {
         final Locale locale = Locale.getDefault();
         this.palavras = ResourceBundle.getBundle("ispd.idioma.Idioma", locale);
         //Gerenciamento dos escalonadores
-        this.escalonadores = new Escalonadores();
+        this.escalonadores = new GridSchedulingPolicyManager();
         //Inicia o editor
         this.initComponents();
         //Define a linguagem do editor

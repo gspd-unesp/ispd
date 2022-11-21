@@ -1,6 +1,6 @@
 package ispd.gui.configuracao;
 
-import ispd.policy.managers.Escalonadores;
+import ispd.policy.managers.GridSchedulingPolicyManager;
 import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 
@@ -33,7 +33,7 @@ public class MachineTable extends AbstractTableModel {
     private static final int COLUMN_COUNT = 2;
     private final JButton slaves = this.setButton();
     private final JComboBox<?> schedulers =
-            new JComboBox<Object>(Escalonadores.ESCALONADORES);
+            new JComboBox<Object>(GridSchedulingPolicyManager.ESCALONADORES);
     private final JComboBox<String> users = new JComboBox<>();
     private final JList<GridItem> slaveList = new JList<>();
     private ResourceBundle words;

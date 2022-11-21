@@ -1,7 +1,7 @@
 package ispd.gui.configuracao;
 
-import ispd.policy.managers.Alocadores;
-import ispd.policy.managers.EscalonadoresCloud;
+import ispd.policy.managers.VmAllocationPolicyManager;
+import ispd.policy.managers.CloudSchedulingPolicyManager;
 import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 
@@ -39,7 +39,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     private final JButton slaves = this.setButton();
     private final JComboBox<?> schedulers =
             MachineTableIaaS.toolTippedComboBox(
-                    EscalonadoresCloud.ESCALONADORES,
+                    CloudSchedulingPolicyManager.ESCALONADORES,
                     "Select the task scheduling policy"
             );
     private final JComboBox<String> users = MachineTableIaaS.toolTippedComboBox(
@@ -48,7 +48,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     );
     private final JComboBox<String> vmm_policies =
             MachineTableIaaS.toolTippedComboBox(
-                    Alocadores.ALOCACAO,
+                    VmAllocationPolicyManager.ALOCACAO,
                     "Select the virtual machine allocation policy"
             );
     private final JList<GridItem> slaveList = new JList<>();

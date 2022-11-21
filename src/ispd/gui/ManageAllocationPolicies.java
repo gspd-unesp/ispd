@@ -5,7 +5,7 @@ import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.gui.utils.ButtonBuilder;
 import ispd.policy.PolicyManager;
-import ispd.policy.managers.Alocadores;
+import ispd.policy.managers.VmAllocationPolicyManager;
 import ispd.utils.ValidaValores;
 
 import javax.swing.BorderFactory;
@@ -57,7 +57,7 @@ import java.util.ResourceBundle;
 class ManageAllocationPolicies extends JFrame {
     private final NonThrowingUndoManager undoManager =
             new NonThrowingUndoManager();
-    private final PolicyManager policyManager = new Alocadores();
+    private final PolicyManager policyManager = new VmAllocationPolicyManager();
     private final ResourceBundle words =
             ResourceBundle.getBundle("ispd.idioma.Idioma", Locale.getDefault());
     private final JFileChooser fileChooser = this.configuredFileChooser();

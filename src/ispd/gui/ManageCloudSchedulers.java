@@ -3,7 +3,7 @@ package ispd.gui;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.policy.PolicyManager;
-import ispd.policy.managers.EscalonadoresCloud;
+import ispd.policy.managers.CloudSchedulingPolicyManager;
 import ispd.utils.ValidaValores;
 
 import javax.swing.AbstractButton;
@@ -79,7 +79,7 @@ public class ManageCloudSchedulers extends JFrame {
         // Evento verifica alterações
         doc.addDocumentListener(new SomeDocumentListener());
         //Gerenciamento dos escalonadores
-        this.escalonadores = new EscalonadoresCloud();
+        this.escalonadores = new CloudSchedulingPolicyManager();
         this.atualizarEscalonadores(this.escalonadores.listar());
         this.addWindowListener(new SomeWindowAdapter());
     }
