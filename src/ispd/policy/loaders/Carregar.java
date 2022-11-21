@@ -16,7 +16,8 @@ import java.util.logging.Logger;
  * @author denison
  */
 public class Carregar {
-    private static final String CLASS_PATH = "ispd.policy.scheduling.grid.impl.";
+    private static final String CLASS_PATH =
+            "ispd.policy.scheduling.grid.impl.";
     private static final URLClassLoader loader = Carregar.makeLoaderSingleton();
 
     /**
@@ -49,9 +50,8 @@ public class Carregar {
             );
         } catch (final MalformedURLException ex) {
             Logger.getLogger(Carregar.class.getName())
-                    .log(Level.SEVERE, null, ex);
-            // TODO: Use caught exception in new one
-            throw new ExceptionInInitializerError("Can't create the Loader!");
+                    .log(Level.SEVERE, "Could not create the loader!", ex);
+            throw new ExceptionInInitializerError(ex);
         }
     }
 }

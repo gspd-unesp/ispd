@@ -15,8 +15,10 @@ import java.util.logging.Logger;
  */
 public class CarregarCloud {
     private static final String DIR = ".";
-    private static final String CLASS_PATH = "ispd.policy.scheduling.cloud.impl.";
-    private static URLClassLoader loader = null;
+    private static final String CLASS_PATH =
+            "ispd.policy.scheduling.cloud.impl.";
+    private static final URLClassLoader loader =
+            CarregarCloud.makeLoaderSingleton();
 
     /**
      * Recebe o nome de um algoritmo de escalonamento e retorna uma nova
@@ -27,8 +29,6 @@ public class CarregarCloud {
      * @return Nova instancia do objeto Escalonador
      */
     public static CloudSchedulingPolicy getNewEscalonadorCloud(final String name) {
-        CarregarCloud.makeLoaderSingleton();
-
         try {
             final var clsName = CarregarCloud.CLASS_PATH + name;
             final var cls = CarregarCloud.loader.loadClass(clsName);
@@ -42,18 +42,14 @@ public class CarregarCloud {
         }
     }
 
-    private static void makeLoaderSingleton() {
-        if (CarregarCloud.loader != null) {
-            return;
-        }
-
+    private static URLClassLoader makeLoaderSingleton() {
         final var dir = new File(CarregarCloud.DIR);
 
         if (!dir.exists()) {
-            return;
+            return null;
         }
 
-        CarregarCloud.loader = CarregarCloud.getLoaderFromDir(dir);
+        return CarregarCloud.getLoaderFromDir(dir);
     }
 
     private static URLClassLoader getLoaderFromDir(final File dir) {
@@ -65,7 +61,7 @@ public class CarregarCloud {
         } catch (final MalformedURLException ex) {
             Logger.getLogger(CarregarCloud.class.getName())
                     .log(Level.SEVERE, null, ex);
-            return CarregarCloud.loader;
+            throw new ExceptionInInitializerError("Can't create the Loader!");
         }
     }
 }
