@@ -10,7 +10,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyCondition;
 import ispd.policy.PolicyConditions;
-import ispd.policy.loaders.Carregar;
+import ispd.policy.loaders.GridSchedulingPolicyLoader;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 
@@ -35,7 +35,7 @@ public class CS_Mestre extends CS_Processamento
                      final double PoderComputacional, final double Ocupacao,
                      final String Escalonador, final Double energia) {
         super(id, proprietario, PoderComputacional, 1, Ocupacao, 0, energia);
-        this.escalonador = new Carregar().loadPolicy(Escalonador);
+        this.escalonador = new GridSchedulingPolicyLoader().loadPolicy(Escalonador);
         Objects.requireNonNull(this.escalonador).setMestre(this);
         this.filaTarefas = new ArrayList<>();
         this.maqDisponivel = true;
