@@ -1,5 +1,6 @@
 package ispd.policy.managers;
 
+import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.policy.PolicyManager;
 
 import java.io.File;
@@ -18,9 +19,11 @@ public class VmAllocationPolicyManager extends FilePolicyManager {
             "FirstFitDecreasing",
             "Volume",
     };
-    private static final String VM_DIR_PATH = "ispd/externo/cloudAlloc";
+    private static final String VM_DIR_PATH =
+            String.join(File.separator, "policies", "allocation", "vm");
     private static final File VM_DIRECTORY =
-            new File(VmAllocationPolicyManager.VM_DIR_PATH);
+            new File(ConfiguracaoISPD.DIRETORIO_ISPD,
+                    VmAllocationPolicyManager.VM_DIR_PATH);
 
     @Override
     public File directory() {

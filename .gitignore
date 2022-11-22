@@ -5,8 +5,7 @@
 
 # iSPD
 /Erros/
-/ispd/
-/ispd.policy.externo.cloudSchedulers/
+/policies
 /modeloiconico
 /modelosimulavel
 /configuration.xml

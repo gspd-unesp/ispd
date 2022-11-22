@@ -22,7 +22,8 @@ public class GridSchedulingPolicyManager extends FilePolicyManager {
             "OSEP",
             "EHOSEP",
     };
-    private static final String GRID_DIR_PATH = "ispd/externo";
+    private static final String GRID_DIR_PATH =
+            String.join(File.separator, "policies", "scheduling", "grid");
     private static final File GRID_DIRECTORY =
             new File(ConfiguracaoISPD.DIRETORIO_ISPD,
                     GridSchedulingPolicyManager.GRID_DIR_PATH);
