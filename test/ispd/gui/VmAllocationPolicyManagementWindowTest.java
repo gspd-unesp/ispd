@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import javax.swing.WindowConstants;
 
-class ManageAllocationPoliciesTest {
+class VmAllocationPolicyManagementWindowTest {
     @Test
     public void testWindow_compareWithNonRefactored() {
-        final var window = new ManageAllocationPolicies();
+        final var window = new VmAllocationPolicyManagementWindow();
         window.setLocationRelativeTo(null);
         window.setVisible(true);
         window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

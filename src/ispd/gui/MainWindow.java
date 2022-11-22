@@ -97,8 +97,8 @@ public class MainWindow extends JFrame implements KeyListener {
     private final JFileChooser jFileChooser = new JFileChooser();
     private final ManageSchedulers jFrameManager =
             new ManageSchedulers();
-    private final ManageAllocationPolicies jFrameAllocManager =
-            new ManageAllocationPolicies();
+    private final VmAllocationPolicyManagementWindow jFrameAllocManager =
+            new VmAllocationPolicyManagementWindow();
     private final ManageCloudSchedulers jFrameCloudManager =
             new ManageCloudSchedulers();
     private final SimplePanel jPanelSimple = new SimplePanel();
@@ -325,7 +325,7 @@ public class MainWindow extends JFrame implements KeyListener {
         this.jPanelSettings = new JPanelConfigIcon();
         this.jPanelSettings.setEscalonadores(this.jFrameManager.getEscalonadores());
         this.jPanelSettings.setEscalonadoresCloud(this.jFrameCloudManager.getEscalonadores());
-        this.jPanelSettings.setAlocadores(this.jFrameAllocManager.getAlocadores());
+        this.jPanelSettings.setAlocadores(this.jFrameAllocManager.getManager());
 
         this.jPanelSimple.setText(this.translate("No icon selected."));
 
@@ -1306,8 +1306,8 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void generateSchedulerAlloc() {
         this.generateScheduler(
-                this.jFrameAllocManager.getAlocadores().directory().getAbsolutePath(),
-                (ge) -> ge.setAlocadores(this.jFrameAllocManager.getAlocadores()),
+                this.jFrameAllocManager.getManager().directory().getAbsolutePath(),
+                (ge) -> ge.setAlocadores(this.jFrameAllocManager.getManager()),
                 this.jFrameAllocManager::updatePolicyList
         );
     }

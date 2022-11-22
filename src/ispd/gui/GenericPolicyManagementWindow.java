@@ -5,7 +5,6 @@ import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.TextEditorStyle;
 import ispd.gui.utils.ButtonBuilder;
 import ispd.policy.PolicyManager;
-import ispd.policy.managers.VmAllocationPolicyManager;
 import ispd.utils.ValidaValores;
 
 import javax.swing.BorderFactory;
@@ -54,22 +53,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-class ManageAllocationPolicies extends JFrame {
+public abstract class GenericPolicyManagementWindow extends JFrame {
     private final NonThrowingUndoManager undoManager =
             new NonThrowingUndoManager();
-    private final PolicyManager policyManager = new VmAllocationPolicyManager();
+    private final PolicyManager manager;
     private final ResourceBundle words =
             ResourceBundle.getBundle("ispd.idioma.Idioma", Locale.getDefault());
     private final JFileChooser fileChooser = this.configuredFileChooser();
     private final JList<String> policyList = this.makePolicyList();
     private final JTextPane textPane =
-            ManageAllocationPolicies.disabledTextPane();
+            GenericPolicyManagementWindow.disabledTextPane();
     private final TextEditorStyle textEditor = new TextEditorStyle();
     private Optional<String> currentlyOpenFileName = Optional.empty();
     private boolean hasPendingChanges = false;
 
-    /* package-private */
-    ManageAllocationPolicies() {
+    protected GenericPolicyManagementWindow(final PolicyManager manager) {
         this.addWindowListener(new CancelableCloseWindowAdapter());
         this.setAlwaysOnTop(true);
         this.setFocusable(false);
@@ -83,6 +81,7 @@ class ManageAllocationPolicies extends JFrame {
         this.makeLayout();
         this.pack();
 
+        this.manager = manager;
         this.updateTitle();
         this.updatePolicyList();
     }
@@ -125,22 +124,22 @@ class ManageAllocationPolicies extends JFrame {
         return chooser;
     }
 
-    private String translate(final String cut) {
+    protected String translate(final String cut) {
         return this.words.getString(cut);
     }
 
     private void configureMenuBar() {
-        this.setJMenuBar(ManageAllocationPolicies.makeMenuBarWith(
+        this.setJMenuBar(GenericPolicyManagementWindow.makeMenuBarWith(
                 this.makeMenu("File",
                         this.makeMenuItem("New",
                                 "/ispd/gui/imagens/insert-object_1.png",
                                 this::onNew, KeyEvent.VK_N,
-                                "Creates a new scheduler"
+                                this.getButtonNewTooltip()
                         ),
                         this.makeMenuItem("Open",
                                 "/ispd/gui/imagens/document-open.png",
                                 evt1 -> this.runCancelableAction(this::openFile), KeyEvent.VK_O,
-                                "Opens an existing scheduler"
+                                this.getButtonOpenTooltip()
                         ),
                         this.makeMenuItem("Save",
                                 "/ispd/gui/imagens/document-save_1.png",
@@ -183,6 +182,14 @@ class ManageAllocationPolicies extends JFrame {
         ));
     }
 
+    protected String getButtonOpenTooltip() {
+        return "Opens an existing policy";
+    }
+
+    protected String getButtonNewTooltip() {
+        return "Creates a new policy";
+    }
+
     private JScrollPane makeEditorScrollPane() {
         final var scrollPane = new JScrollPane(this.textPane);
         scrollPane.setRowHeaderView(this.textEditor.getLinhas());
@@ -200,13 +207,17 @@ class ManageAllocationPolicies extends JFrame {
     private JList<String> makePolicyList() {
         final var list = new JList<String>();
         list.setBorder(BorderFactory.createTitledBorder(null,
-                this.translate("Scheduler"),
+                this.translate(this.getPolicyListTitle()),
                 TitledBorder.CENTER,
                 TitledBorder.DEFAULT_POSITION
         ));
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.addMouseListener(new PolicyListMouseAdapter());
         return list;
+    }
+
+    protected String getPolicyListTitle() {
+        return "Policies";
     }
 
     private void makeLayout() {
@@ -374,7 +385,7 @@ class ManageAllocationPolicies extends JFrame {
 
         tb.add(this.makeButton(
                 "/ispd/gui/imagens/insert-object.png",
-                "Creates a new scheduler", this::onNew));
+                this.getButtonNewTooltip(), this::onNew));
 
         tb.add(this.makeButton(
                 "/ispd/gui/imagens/document-save.png",
@@ -412,13 +423,13 @@ class ManageAllocationPolicies extends JFrame {
 
     private void makeNewPolicy() {
         final var options = Map.<String, Runnable>of(
-                "Edit java class", this::newPolicyFromCode,
-                "Generator schedulers", this::newPolicyFromGenerator
+                "Code Editing", this::newPolicyFromCode,
+                "Policy Generator", this::newPolicyFromGenerator
         );
 
         final var result = (String) JOptionPane.showInputDialog(
                 this,
-                "Creating the scheduler with:",
+                "Create the policy with:",
                 null,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
@@ -433,7 +444,7 @@ class ManageAllocationPolicies extends JFrame {
 
     private void newPolicyFromCode() {
         final var name = JOptionPane.showInputDialog(
-                this, "Enter the name of the scheduler"
+                this, "Enter the name of the policy"
         );
 
         Optional.ofNullable(name)
@@ -444,7 +455,7 @@ class ManageAllocationPolicies extends JFrame {
     private void openNewPolicyInEditor(final String name) {
         this.fillEditorWithCode(
                 name,
-                this.policyManager.getPolicyTemplate(name)
+                this.manager.getPolicyTemplate(name)
         );
         this.setAsPendingChanges();
     }
@@ -456,7 +467,7 @@ class ManageAllocationPolicies extends JFrame {
 
     private void saveAndCompileGeneratedPolicy(final InterpretadorGerador policy) {
         final var fileName = policy.getNome();
-        this.policyManager.escrever(fileName, policy.getCodigo());
+        this.manager.escrever(fileName, policy.getCodigo());
         this.tryCompileTarget(fileName);
     }
 
@@ -464,7 +475,7 @@ class ManageAllocationPolicies extends JFrame {
         final var dialog = new CreateSchedulerDialog(
                 this,
                 true,
-                this.policyManager.directory().getAbsolutePath(),
+                this.manager.directory().getAbsolutePath(),
                 this.words
         );
 
@@ -475,21 +486,21 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void tryCompileTarget(final String fileName) {
-        final var errors = this.policyManager.compilar(fileName);
+        final var errors = this.manager.compilar(fileName);
 
         if (errors != null) {
             JOptionPane.showMessageDialog(
                     this,
                     errors,
-                    "Erros encontrados",
+                    "Errors during compilation",
                     JOptionPane.ERROR_MESSAGE
             );
         } else {
             JOptionPane.showMessageDialog(
                     this,
                     """
-                            Alocador%s
-                            Compilador com sucesso""".formatted(this.currentlyOpenFileName.get())
+                            Policy %s
+                            Compiled Successfully""".formatted(this.currentlyOpenFileName.get())
             );
         }
 
@@ -498,7 +509,7 @@ class ManageAllocationPolicies extends JFrame {
 
     private void openSelectedPolicy() {
         final var name = (String) this.policyList.getSelectedValue();
-        final var code = this.policyManager.ler(name);
+        final var code = this.manager.ler(name);
         this.fillEditorWithCode(name, code);
     }
 
@@ -552,9 +563,7 @@ class ManageAllocationPolicies extends JFrame {
         ));
     }
 
-    private String getWindowTitle() {
-        return this.translate("Manage Schedulers");
-    }
+    protected abstract String getWindowTitle();
 
     private void onSave(final ActionEvent evt) {
         if (this.currentlyOpenFileName.isPresent() && this.hasPendingChanges) {
@@ -566,7 +575,7 @@ class ManageAllocationPolicies extends JFrame {
         if (this.policyList.isSelectionEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "A scheduler should be selected"
+                    "A policy should be selected"
             );
             return;
         }
@@ -576,7 +585,7 @@ class ManageAllocationPolicies extends JFrame {
         final int choice = JOptionPane.showConfirmDialog(
                 this,
                 """
-                        Are you sure want delete this scheduler:
+                        Are you sure want delete this policy:
                         %s""".formatted(selected),
                 null,
                 JOptionPane.YES_NO_OPTION,
@@ -587,10 +596,10 @@ class ManageAllocationPolicies extends JFrame {
             return;
         }
 
-        if (!this.policyManager.remover(selected)) {
+        if (!this.manager.remover(selected)) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Failed to remove %s".formatted(selected)
+                    "Failed to remove policy %s".formatted(selected)
             );
             return;
         }
@@ -629,15 +638,15 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void openFile() {
-        this.configureFileChooser(false, this.policyManager.directory());
+        this.configureFileChooser(false, this.manager.directory());
         this.getFileChoice()
                 .ifPresent(this::openChosenFile);
     }
 
     private void openChosenFile(final File file) {
         final var name =
-                ManageAllocationPolicies.policyNameFromFile(file);
-        final var code = this.policyManager.ler(name);
+                GenericPolicyManagementWindow.policyNameFromFile(file);
+        final var code = this.manager.ler(name);
         this.fillEditorWithCode(name, code);
     }
 
@@ -648,10 +657,10 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void importFile(final File f) {
-        if (!this.policyManager.importJavaPolicy(f)) {
+        if (!this.manager.importJavaPolicy(f)) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Falha na importação",
+                    "Could not import policy",
                     "Error!",
                     JOptionPane.ERROR_MESSAGE
             );
@@ -684,7 +693,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     void updatePolicyList() {
-        this.policyList.setListData(this.policyManager.listar().toArray(String[]::new));
+        this.policyList.setListData(this.manager.listar().toArray(String[]::new));
     }
 
     private int askAboutPendingChanges() {
@@ -704,7 +713,7 @@ class ManageAllocationPolicies extends JFrame {
     }
 
     private void savePendingChanges() {
-        this.policyManager.escrever(
+        this.manager.escrever(
                 this.currentlyOpenFileName.get(),
                 this.textPane.getText()
         );
@@ -726,9 +735,8 @@ class ManageAllocationPolicies extends JFrame {
         this.updateTitle();
     }
 
-    /* package-private */
-    PolicyManager getAlocadores() {
-        return this.policyManager;
+    public PolicyManager getManager() {
+        return this.manager;
     }
 
     private static class NonThrowingUndoManager extends UndoManager {
@@ -763,34 +771,34 @@ class ManageAllocationPolicies extends JFrame {
         }
 
         private void setAsPendingChanges() {
-            if (ManageAllocationPolicies.this.hasPendingChanges) {
+            if (GenericPolicyManagementWindow.this.hasPendingChanges) {
                 return;
             }
 
-            ManageAllocationPolicies.this.setAsPendingChanges();
+            GenericPolicyManagementWindow.this.setAsPendingChanges();
         }
     }
 
     private class CancelableCloseWindowAdapter extends WindowAdapter {
         @Override
         public void windowClosing(final WindowEvent e) {
-            ManageAllocationPolicies.this.runCancelableAction(this::closeWindow);
+            GenericPolicyManagementWindow.this.runCancelableAction(this::closeWindow);
         }
 
         private void closeWindow() {
-            ManageAllocationPolicies.this.setVisible(false);
+            GenericPolicyManagementWindow.this.setVisible(false);
         }
     }
 
     private class PolicyListMouseAdapter extends MouseAdapter {
         @Override
         public void mouseClicked(final MouseEvent evt) {
-            if (!PolicyListMouseAdapter.isDoubleClick(evt)) {
+            if (!GenericPolicyManagementWindow.PolicyListMouseAdapter.isDoubleClick(evt)) {
                 return;
             }
 
-            ManageAllocationPolicies.this.runCancelableAction(
-                    ManageAllocationPolicies.this::openSelectedPolicy);
+            GenericPolicyManagementWindow.this.runCancelableAction(
+                    GenericPolicyManagementWindow.this::openSelectedPolicy);
         }
 
         private static boolean isDoubleClick(final MouseEvent evt) {
