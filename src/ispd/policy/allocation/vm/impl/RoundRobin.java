@@ -1,5 +1,6 @@
 package ispd.policy.allocation.vm.impl;
 
+import ispd.annotations.Policy;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
@@ -12,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
+@Policy
 public class RoundRobin extends VmAllocationPolicy {
     private ListIterator<CS_Processamento> physicalMachine = null;
 

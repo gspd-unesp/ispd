@@ -1,5 +1,6 @@
 package ispd.policy.scheduling.grid.impl;
 
+import ispd.annotations.Policy;
 import ispd.motor.Mensagens;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -10,7 +11,7 @@ import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@Policy
 public class DynamicFPLTF extends GridSchedulingPolicy {
     private List<Double> tempoTornaDisponivel = null;
     private Tarefa tarefaSelecionada = null;

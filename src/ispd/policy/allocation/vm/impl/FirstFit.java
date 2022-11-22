@@ -1,5 +1,6 @@
 package ispd.policy.allocation.vm.impl;
 
+import ispd.annotations.Policy;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
@@ -10,7 +11,7 @@ import ispd.policy.allocation.vm.VmAllocationPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@Policy
 public class FirstFit extends VmAllocationPolicy {
     private boolean fit;
     private int maqIndex;

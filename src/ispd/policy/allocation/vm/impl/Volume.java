@@ -1,5 +1,6 @@
 package ispd.policy.allocation.vm.impl;
 
+import ispd.annotations.Policy;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
@@ -14,7 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@Policy
 public class Volume extends VmAllocationPolicy {
     private final Comparator<CS_VirtualMac> comparaReq =
             new ComparaRequisitos();

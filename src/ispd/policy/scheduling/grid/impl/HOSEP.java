@@ -1,5 +1,6 @@
 package ispd.policy.scheduling.grid.impl;
 
+import ispd.annotations.Policy;
 import ispd.motor.Mensagens;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@Policy
 public class HOSEP extends GridSchedulingPolicy {
     private final List<StatusUser> status;
     private final List<ControleEscravos> controleEscravos;
