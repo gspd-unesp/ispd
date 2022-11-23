@@ -47,7 +47,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-public class ManageCloudSchedulers extends JFrame {
+public class CloudSchedulingPolicyManagementWindow extends JFrame {
     private final AbstractUndoableEdit undo = new UndoManager();
     private final PolicyManager escalonadores;
     private final ResourceBundle palavras;
@@ -58,7 +58,7 @@ public class ManageCloudSchedulers extends JFrame {
     private boolean modificado;//indica se arquivo atual foi modificado
     private String escalonadorAberto;
 
-    ManageCloudSchedulers() {
+    CloudSchedulingPolicyManagementWindow() {
         final Locale locale = Locale.getDefault();
         this.palavras = ResourceBundle.getBundle("ispd.idioma.Idioma", locale);
         //Inicia o editor
@@ -676,15 +676,15 @@ public class ManageCloudSchedulers extends JFrame {
     private class SomeDocumentListener implements DocumentListener {
         @Override
         public void insertUpdate(final DocumentEvent e) {
-            if (!ManageCloudSchedulers.this.modificado) {
-                ManageCloudSchedulers.this.modificar();
+            if (!CloudSchedulingPolicyManagementWindow.this.modificado) {
+                CloudSchedulingPolicyManagementWindow.this.modificar();
             }
         }
 
         @Override
         public void removeUpdate(final DocumentEvent e) {
-            if (!ManageCloudSchedulers.this.modificado) {
-                ManageCloudSchedulers.this.modificar();
+            if (!CloudSchedulingPolicyManagementWindow.this.modificado) {
+                CloudSchedulingPolicyManagementWindow.this.modificar();
             }
         }
 
@@ -696,15 +696,15 @@ public class ManageCloudSchedulers extends JFrame {
     private class SomeWindowAdapter extends WindowAdapter {
         @Override
         public void windowClosing(final WindowEvent e) {
-            if (ManageCloudSchedulers.this.modificado) {
+            if (CloudSchedulingPolicyManagementWindow.this.modificado) {
                 final int escolha =
-                        ManageCloudSchedulers.this.savarAlteracao();
+                        CloudSchedulingPolicyManagementWindow.this.savarAlteracao();
                 if (escolha != JOptionPane.CANCEL_OPTION && escolha != JOptionPane.CLOSED_OPTION) {
-                    ManageCloudSchedulers.this.setVisible(false);//System
+                    CloudSchedulingPolicyManagementWindow.this.setVisible(false);//System
                     // .exit(0);
                 }
             } else {
-                ManageCloudSchedulers.this.setVisible(false);//System
+                CloudSchedulingPolicyManagementWindow.this.setVisible(false);//System
                 // .exit(0);
             }
         }
@@ -712,7 +712,7 @@ public class ManageCloudSchedulers extends JFrame {
 
     private class SomeMouseAdapter extends java.awt.event.MouseAdapter {
         public void mouseClicked(final MouseEvent evt) {
-            ManageCloudSchedulers.this.jListEscalonadoresMouseClicked(evt);
+            CloudSchedulingPolicyManagementWindow.this.jListEscalonadoresMouseClicked(evt);
         }
     }
 }

@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-public class ManageSchedulers extends JFrame {
+public class GridSchedulingPolicyManagementWindow extends JFrame {
     private final UndoableEdit undo = new UndoManager();
     private final PolicyManager escalonadores;
     private final ResourceBundle palavras;
@@ -55,7 +55,7 @@ public class ManageSchedulers extends JFrame {
     private boolean modificado;//indica se arquivo atual foi modificado
     private String escalonadorAberto;
 
-    ManageSchedulers() {
+    GridSchedulingPolicyManagementWindow() {
         final Locale locale = Locale.getDefault();
         this.palavras = ResourceBundle.getBundle("ispd.idioma.Idioma", locale);
         //Gerenciamento dos escalonadores
@@ -195,7 +195,7 @@ public class ManageSchedulers extends JFrame {
         this.jListEscalonadores.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         this.jListEscalonadores.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(final java.awt.event.MouseEvent evt) {
-                ManageSchedulers.this.jListEscalonadoresMouseClicked(evt);
+                GridSchedulingPolicyManagementWindow.this.jListEscalonadoresMouseClicked(evt);
             }
         });
         jScrollPane3.setViewportView(this.jListEscalonadores);
@@ -705,14 +705,14 @@ public class ManageSchedulers extends JFrame {
     private class SomeWindowAdapter extends WindowAdapter {
         @Override
         public void windowClosing(final WindowEvent e) {
-            if (ManageSchedulers.this.modificado) {
+            if (GridSchedulingPolicyManagementWindow.this.modificado) {
                 final int escolha =
-                        ManageSchedulers.this.savarAlteracao();
+                        GridSchedulingPolicyManagementWindow.this.savarAlteracao();
                 if (escolha != JOptionPane.CANCEL_OPTION && escolha != JOptionPane.CLOSED_OPTION) {
-                    ManageSchedulers.this.setVisible(false);
+                    GridSchedulingPolicyManagementWindow.this.setVisible(false);
                 }
             } else {
-                ManageSchedulers.this.setVisible(false);
+                GridSchedulingPolicyManagementWindow.this.setVisible(false);
             }
         }
     }
@@ -720,15 +720,15 @@ public class ManageSchedulers extends JFrame {
     private class SomeDocumentListener implements DocumentListener {
         @Override
         public void insertUpdate(final DocumentEvent e) {
-            if (!ManageSchedulers.this.modificado) {
-                ManageSchedulers.this.modificar();
+            if (!GridSchedulingPolicyManagementWindow.this.modificado) {
+                GridSchedulingPolicyManagementWindow.this.modificar();
             }
         }
 
         @Override
         public void removeUpdate(final DocumentEvent e) {
-            if (!ManageSchedulers.this.modificado) {
-                ManageSchedulers.this.modificar();
+            if (!GridSchedulingPolicyManagementWindow.this.modificado) {
+                GridSchedulingPolicyManagementWindow.this.modificar();
             }
         }
 

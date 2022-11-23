@@ -12,7 +12,7 @@ class VmAllocationPolicyManagementWindowTest {
         window.setVisible(true);
         window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        final var compar = new ManageSchedulers();
+        final var compar = new GridSchedulingPolicyManagementWindow();
         compar.setLocationRelativeTo(null);
         compar.setVisible(true);
         compar.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

@@ -95,12 +95,12 @@ public class MainWindow extends JFrame implements KeyListener {
     private static final int NOTIFICATION_AREA_ROWS = 5;
     private final ConfiguracaoISPD configure = new ConfiguracaoISPD();
     private final JFileChooser jFileChooser = new JFileChooser();
-    private final ManageSchedulers jFrameManager =
-            new ManageSchedulers();
+    private final GridSchedulingPolicyManagementWindow jFrameManager =
+            new GridSchedulingPolicyManagementWindow();
     private final VmAllocationPolicyManagementWindow jFrameAllocManager =
             new VmAllocationPolicyManagementWindow();
-    private final ManageCloudSchedulers jFrameCloudManager =
-            new ManageCloudSchedulers();
+    private final CloudSchedulingPolicyManagementWindow jFrameCloudManager =
+            new CloudSchedulingPolicyManagementWindow();
     private final SimplePanel jPanelSimple = new SimplePanel();
     private final JScrollPane jScrollPaneDrawingArea = new JScrollPane();
     private final JScrollPane jScrollPaneSideBar = new JScrollPane();
