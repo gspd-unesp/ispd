@@ -2,13 +2,29 @@ package ispd.gui;
 
 import ispd.policy.managers.VmAllocationPolicyManager;
 
-class VmAllocationPolicyManagementWindow extends GenericPolicyManagementWindow {
+public class VmAllocationPolicyManagementWindow
+        extends GenericPolicyManagementWindow {
     public VmAllocationPolicyManagementWindow() {
         super(new VmAllocationPolicyManager());
     }
 
     @Override
+    protected String getButtonOpenTooltip() {
+        return "Opens an existing policy";
+    }
+
+    @Override
+    protected String getButtonNewTooltip() {
+        return "Creates a new policy";
+    }
+
+    @Override
+    protected String getPolicyListTitle() {
+        return "Policies";
+    }
+
+    @Override
     protected String getWindowTitle() {
-        return this.translate("Manage Allocation Policies");
+        return "Manage Allocation Policies";
     }
 }

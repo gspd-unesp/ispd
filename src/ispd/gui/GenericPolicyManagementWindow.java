@@ -182,13 +182,9 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
         ));
     }
 
-    protected String getButtonOpenTooltip() {
-        return "Opens an existing policy";
-    }
+    protected abstract String getButtonOpenTooltip();
 
-    protected String getButtonNewTooltip() {
-        return "Creates a new policy";
-    }
+    protected abstract String getButtonNewTooltip();
 
     private JScrollPane makeEditorScrollPane() {
         final var scrollPane = new JScrollPane(this.textPane);
@@ -216,9 +212,7 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
         return list;
     }
 
-    protected String getPolicyListTitle() {
-        return "Policies";
-    }
+    protected abstract String getPolicyListTitle();
 
     private void makeLayout() {
         final var toolBar = this.makeToolBar();
@@ -549,7 +543,7 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
     }
 
     private void updateTitleWithNoFile() {
-        this.setTitle(this.getWindowTitle());
+        this.setTitle(this.getTranslatedWindowTitle());
     }
 
     private void updateTitleWithFileName(final String fileName) {
@@ -559,11 +553,13 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
 
         this.setTitle("%s.java%s- %s".formatted(
                 fileName, afterFileName,
-                this.getWindowTitle()
+                this.getTranslatedWindowTitle()
         ));
     }
 
-    protected abstract String getWindowTitle();
+    protected String getTranslatedWindowTitle() {
+        return this.translate(this.getWindowTitle());
+    }
 
     private void onSave(final ActionEvent evt) {
         if (this.currentlyOpenFileName.isPresent() && this.hasPendingChanges) {
@@ -738,6 +734,8 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
     public PolicyManager getManager() {
         return this.manager;
     }
+
+    protected abstract String getWindowTitle();
 
     private static class NonThrowingUndoManager extends UndoManager {
         private void undo(final ActionEvent evt) {
