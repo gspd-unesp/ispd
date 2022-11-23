@@ -1,9 +1,9 @@
 package ispd.gui.configuracao;
 
-import ispd.policy.managers.VmAllocationPolicyManager;
-import ispd.policy.managers.CloudSchedulingPolicyManager;
 import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
+import ispd.policy.managers.CloudSchedulingPolicyManager;
+import ispd.policy.managers.VmAllocationPolicyManager;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -37,18 +37,17 @@ public class MachineTableIaaS extends AbstractTableModel {
     private static final int COLUMN_COUNT = 2;
     private static final String[] NO_USERS = {};
     private final JButton slaves = this.setButton();
-    private final JComboBox<?> schedulers =
-            MachineTableIaaS.toolTippedComboBox(
-                    CloudSchedulingPolicyManager.NATIVE_POLICIES,
-                    "Select the task scheduling policy"
-            );
+    private final JComboBox<?> schedulers = MachineTableIaaS.toolTippedComboBox(
+            CloudSchedulingPolicyManager.NATIVE_POLICIES.toArray(String[]::new),
+            "Select the task scheduling policy"
+    );
     private final JComboBox<String> users = MachineTableIaaS.toolTippedComboBox(
             MachineTableIaaS.NO_USERS,
             "Select the resource owner"
     );
-    private final JComboBox<String> vmm_policies =
-            MachineTableIaaS.toolTippedComboBox(
-                    VmAllocationPolicyManager.NATIVE_POLICIES,
+    private final JComboBox<String> allocators = MachineTableIaaS
+            .toolTippedComboBox(
+                    VmAllocationPolicyManager.NATIVE_POLICIES.toArray(String[]::new),
                     "Select the virtual machine allocation policy"
             );
     private final JList<GridItem> slaveList = new JList<>();
@@ -63,7 +62,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     private static <T> JComboBox<T> toolTippedComboBox(
             final T[] items,
             final String text) {
-        final var box = new JComboBox<T>(items);
+        final var box = new JComboBox<>(items);
         box.setToolTipText(text);
         return box;
     }
@@ -78,8 +77,8 @@ public class MachineTableIaaS extends AbstractTableModel {
 
     void setMaquina(final Machine machine, final Iterable<String> users) {
         this.machine = machine;
-        this.vmm_policies.setSelectedItem(this.machine.getVmmAllocationPolicy());
-        
+        this.allocators.setSelectedItem(this.machine.getVmmAllocationPolicy());
+
         this.schedulers.setSelectedItem(this.machine.getSchedulingAlgorithm());
         this.users.removeAllItems();
         for (final var s : users) {
@@ -146,7 +145,7 @@ public class MachineTableIaaS extends AbstractTableModel {
                 case MachineTableIaaS.OWNER -> this.users;
                 case MachineTableIaaS.SCHEDULER -> this.schedulers;
                 case MachineTableIaaS.SLAVE -> this.slaves;
-                case MachineTableIaaS.VMM_POLICY -> this.vmm_policies;
+                case MachineTableIaaS.VMM_POLICY -> this.allocators;
                 default -> "null";
             };
         }
@@ -169,7 +168,7 @@ public class MachineTableIaaS extends AbstractTableModel {
                     this.machine.getCostPerMemory();
             case MachineTableIaaS.COST_PER_DISK ->
                     this.machine.getCostPerDisk();
-            case MachineTableIaaS.VMM_POLICY -> this.vmm_policies;
+            case MachineTableIaaS.VMM_POLICY -> this.allocators;
             default -> null;
         };
     }
@@ -228,7 +227,7 @@ public class MachineTableIaaS extends AbstractTableModel {
             case MachineTableIaaS.COST_PER_DISK ->
                     this.machine.setCostPerDisk(Double.valueOf(aValue.toString()));
             case MachineTableIaaS.VMM_POLICY ->
-                    this.machine.setVmmAllocationPolicy(this.vmm_policies.getSelectedItem().toString());
+                    this.machine.setVmmAllocationPolicy(this.allocators.getSelectedItem().toString());
         }
     }
 
@@ -237,7 +236,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     }
 
     JComboBox getAlocadores() {
-        return this.vmm_policies;
+        return this.allocators;
     }
 
     public void setPalavras(final ResourceBundle words) {
@@ -246,7 +245,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     }
 
     private class ButtonActionListener implements ActionListener {
-        
+
         @Override
         public void actionPerformed(final ActionEvent evt) {
             this.calculateThings();

@@ -4,6 +4,7 @@ import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.policy.PolicyManager;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Manages storing, retrieving and compiling allocation policies
@@ -12,13 +13,13 @@ public class VmAllocationPolicyManager extends FilePolicyManager {
     /**
      * Allocation policies available by default
      */
-    public static final String[] NATIVE_POLICIES = {
+    public static final List<String> NATIVE_POLICIES = List.of(
             PolicyManager.NO_POLICY,
             "RoundRobin",
             "FirstFit",
             "FirstFitDecreasing",
-            "Volume",
-    };
+            "Volume"
+    );
     private static final String VM_DIR_PATH =
             String.join(File.separator, "policies", "allocation", "vm");
     private static final File VM_DIRECTORY =

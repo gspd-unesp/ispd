@@ -28,8 +28,7 @@ public abstract class FilePolicyManager implements PolicyManager {
     private final List<String> addedPolicies = new ArrayList<>();
     private final List<String> removedPolicies = new ArrayList<>();
 
-    /* package-private */
-    FilePolicyManager() {
+    public FilePolicyManager() {
         this.initialize();
     }
 

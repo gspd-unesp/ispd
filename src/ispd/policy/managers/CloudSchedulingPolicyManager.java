@@ -4,15 +4,16 @@ import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.policy.PolicyManager;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Manages storing, retrieving and compiling cloud scheduling policies
  */
 public class CloudSchedulingPolicyManager extends FilePolicyManager {
-    public static final String[] NATIVE_POLICIES = {
+    public static final List<String> NATIVE_POLICIES = List.of(
             PolicyManager.NO_POLICY,
             "RoundRobin"
-    };
+    );
     private static final String CLOUD_DIR_PATH =
             String.join(File.separator, "policies", "scheduling", "cloud");
     private static final File CLOUD_DIRECTORY =

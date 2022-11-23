@@ -4,6 +4,7 @@ import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.policy.PolicyManager;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Manages storing, retrieving and compiling scheduling policies
@@ -12,7 +13,7 @@ public class GridSchedulingPolicyManager extends FilePolicyManager {
     /**
      * Scheduling policies available by default
      */
-    public static final String[] NATIVE_POLICIES = {
+    public static final List<String> NATIVE_POLICIES = List.of(
             PolicyManager.NO_POLICY,
             "RoundRobin",
             "Workqueue",
@@ -20,8 +21,8 @@ public class GridSchedulingPolicyManager extends FilePolicyManager {
             "DynamicFPLTF",
             "HOSEP",
             "OSEP",
-            "EHOSEP",
-    };
+            "EHOSEP"
+    );
     private static final String GRID_DIR_PATH =
             String.join(File.separator, "policies", "scheduling", "grid");
     private static final File GRID_DIRECTORY =
