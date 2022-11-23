@@ -12,7 +12,7 @@ public class VmAllocationPolicyManager extends FilePolicyManager {
     /**
      * Allocation policies available by default
      */
-    public static final String[] ALOCACAO = {
+    public static final String[] NATIVE_POLICIES = {
             PolicyManager.NO_POLICY,
             "RoundRobin",
             "FirstFit",

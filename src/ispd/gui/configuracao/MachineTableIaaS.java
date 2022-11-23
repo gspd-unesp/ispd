@@ -39,7 +39,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     private final JButton slaves = this.setButton();
     private final JComboBox<?> schedulers =
             MachineTableIaaS.toolTippedComboBox(
-                    CloudSchedulingPolicyManager.ESCALONADORES,
+                    CloudSchedulingPolicyManager.NATIVE_POLICIES,
                     "Select the task scheduling policy"
             );
     private final JComboBox<String> users = MachineTableIaaS.toolTippedComboBox(
@@ -48,7 +48,7 @@ public class MachineTableIaaS extends AbstractTableModel {
     );
     private final JComboBox<String> vmm_policies =
             MachineTableIaaS.toolTippedComboBox(
-                    VmAllocationPolicyManager.ALOCACAO,
+                    VmAllocationPolicyManager.NATIVE_POLICIES,
                     "Select the virtual machine allocation policy"
             );
     private final JList<GridItem> slaveList = new JList<>();

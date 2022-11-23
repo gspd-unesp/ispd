@@ -33,7 +33,7 @@ public class MachineTable extends AbstractTableModel {
     private static final int COLUMN_COUNT = 2;
     private final JButton slaves = this.setButton();
     private final JComboBox<?> schedulers =
-            new JComboBox<Object>(GridSchedulingPolicyManager.ESCALONADORES);
+            new JComboBox<Object>(GridSchedulingPolicyManager.NATIVE_POLICIES);
     private final JComboBox<String> users = new JComboBox<>();
     private final JList<GridItem> slaveList = new JList<>();
     private ResourceBundle words;

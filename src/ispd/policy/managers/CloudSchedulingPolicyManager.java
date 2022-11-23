@@ -9,7 +9,7 @@ import java.io.File;
  * Manages storing, retrieving and compiling cloud scheduling policies
  */
 public class CloudSchedulingPolicyManager extends FilePolicyManager {
-    public static final String[] ESCALONADORES = {
+    public static final String[] NATIVE_POLICIES = {
             PolicyManager.NO_POLICY,
             "RoundRobin"
     };

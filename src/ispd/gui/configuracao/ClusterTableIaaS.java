@@ -17,14 +17,14 @@ public class ClusterTableIaaS extends AbstractTableModel {
     private static final int COLUMN_COUNT = 2;
     private static final String[] EMPTY_COMBO_BOX_LIST = {};
     private final JComboBox<Object> schedulers = ClusterTableIaaS.makeComboBox(
-            CloudSchedulingPolicyManager.ESCALONADORES,
+            CloudSchedulingPolicyManager.NATIVE_POLICIES,
             "Select the task scheduling policy");
     private final JComboBox<Object> users = ClusterTableIaaS.makeComboBox(
             ClusterTableIaaS.EMPTY_COMBO_BOX_LIST,
             "Select the resource owner"
     );
     private final JComboBox<Object> vmmPolicies = ClusterTableIaaS.makeComboBox(
-            VmAllocationPolicyManager.ALOCACAO,
+            VmAllocationPolicyManager.NATIVE_POLICIES,
             "Select the virtual machine allocation policy"
     );
     private Cluster cluster = null;

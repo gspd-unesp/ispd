@@ -12,7 +12,7 @@ public class GridSchedulingPolicyManager extends FilePolicyManager {
     /**
      * Scheduling policies available by default
      */
-    public static final String[] ESCALONADORES = {
+    public static final String[] NATIVE_POLICIES = {
             PolicyManager.NO_POLICY,
             "RoundRobin",
             "Workqueue",
