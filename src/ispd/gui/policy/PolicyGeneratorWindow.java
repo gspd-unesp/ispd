@@ -44,7 +44,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class CreateSchedulerDialog extends JDialog {
+public class PolicyGeneratorWindow extends JDialog {
     private static final Font VERDANA_FONT_BOLD =
             new Font("Verdana", Font.BOLD, 11);
     private static final Dimension MAXIMUM_BUTTON_SIZE =
@@ -79,9 +79,9 @@ public class CreateSchedulerDialog extends JDialog {
     private String tOrdering = "Random";
     private String rOrdering = "Random";
     private LinkedList<String> formula = this.tFormula;
-    private int buttonType = CreateSchedulerDialog.START;
-    private int tButtonType = CreateSchedulerDialog.START;
-    private int rButtonType = CreateSchedulerDialog.START;
+    private int buttonType = PolicyGeneratorWindow.START;
+    private int tButtonType = PolicyGeneratorWindow.START;
+    private int rButtonType = PolicyGeneratorWindow.START;
     private int parentAccount = 0;
     private int tParentAccount = 0;
     private int rParentAccount = 0;
@@ -145,7 +145,7 @@ public class CreateSchedulerDialog extends JDialog {
     private JFormattedTextField jTextFieldP6Num;
     private JTextPane jTextPaneP7Gramatica;
 
-    public CreateSchedulerDialog(
+    public PolicyGeneratorWindow(
             final Frame parent,
             final boolean modal,
             final String path,
@@ -167,17 +167,17 @@ public class CreateSchedulerDialog extends JDialog {
         this.initStepThreeComponents();
 
         this.jPanelPasso4 = new JPanel();
-        this.jPanelPasso4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Advanced") + " - " + this.translate("Tasks distribution order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
-        this.jPanelPasso4.setPreferredSize(CreateSchedulerDialog.PANEL_PREFERRED_SIZE);
+        this.jPanelPasso4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PolicyGeneratorWindow.BLACK), this.translate("Advanced") + " - " + this.translate("Tasks distribution order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso4.setPreferredSize(PolicyGeneratorWindow.PANEL_PREFERRED_SIZE);
 
         final JLabel jLabelP4Formula = new JLabel();
-        jLabelP4Formula.setFont(CreateSchedulerDialog.COMIC_SANS_FONT);
+        jLabelP4Formula.setFont(PolicyGeneratorWindow.COMIC_SANS_FONT);
 
         jLabelP4Formula.setText(this.translate("Formula:"));
 
         this.jTextFieldP4Formula = new JTextField();
         this.jTextFieldP4Formula.setEditable(false);
-        this.jTextFieldP4Formula.setFont(CreateSchedulerDialog.VERDANA_FONT_BOLD);
+        this.jTextFieldP4Formula.setFont(PolicyGeneratorWindow.VERDANA_FONT_BOLD);
         this.jTextFieldP4Formula.setText("Random");
         this.jTextFieldP4Formula.addActionListener(this::jTextFieldP4FormulaActionPerformed);
 
@@ -190,35 +190,35 @@ public class CreateSchedulerDialog extends JDialog {
                 this::jButtonP4AddActionPerformed;
         final var button11 = ButtonBuilder.basicButton(text,
                 jButtonP4AddActionPerformed);
-        button11.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button11.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Add = button11;
-        jButtonP4Add.setMinimumSize(CreateSchedulerDialog.MINIMUM_BUTTON_SIZE);
+        jButtonP4Add.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
 
         final var button10 = ButtonBuilder.basicButton("-",
                 this::jButtonP4SubActionPerformed);
-        button10.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button10.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Sub = button10;
 
         final var button9 = ButtonBuilder.basicButton("(",
                 this::jButtonP4AbreParentActionPerformed);
-        button9.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button9.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4AbreParent = button9;
 
         final var button8 = ButtonBuilder.basicButton(")",
                 this::jButtonP4FechaParentActionPerformed);
-        button8.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button8.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4FechaParent = button8;
 
         final var button7 = ButtonBuilder.basicButton("/",
                 this::jButtonP4DivActionPerformed);
-        button7.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button7.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Div = button7;
 
         final var button6 = ButtonBuilder.basicButton("*",
                 this::jButtonP4MultActionPerformed);
-        button6.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button6.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Mult = button6;
-        jButtonP4Mult.setMinimumSize(CreateSchedulerDialog.MINIMUM_BUTTON_SIZE);
+        jButtonP4Mult.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
 
         final JButton jButtonP4Voltar = ButtonBuilder.basicButton("←",
                 this::jButtonP4VoltarActionPerformed);
@@ -548,18 +548,18 @@ public class CreateSchedulerDialog extends JDialog {
         );
 
         this.jPanelPasso5 = new JPanel();
-        this.jPanelPasso5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Advanced") + " - " + this.translate("Resource aloccation order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
-        this.jPanelPasso5.setPreferredSize(CreateSchedulerDialog.PANEL_PREFERRED_SIZE);
+        this.jPanelPasso5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PolicyGeneratorWindow.BLACK), this.translate("Advanced") + " - " + this.translate("Resource aloccation order"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso5.setPreferredSize(PolicyGeneratorWindow.PANEL_PREFERRED_SIZE);
 
         final JLabel jLabelP5Formula = new JLabel();
-        jLabelP5Formula.setFont(CreateSchedulerDialog.COMIC_SANS_FONT);
+        jLabelP5Formula.setFont(PolicyGeneratorWindow.COMIC_SANS_FONT);
 
         jLabelP5Formula.setText(this.translate("Formula:"));
 
 
         this.jTextFieldP5Formula = new JTextField();
         this.jTextFieldP5Formula.setEditable(false);
-        this.jTextFieldP5Formula.setFont(CreateSchedulerDialog.VERDANA_FONT_BOLD);
+        this.jTextFieldP5Formula.setFont(PolicyGeneratorWindow.VERDANA_FONT_BOLD);
         this.jTextFieldP5Formula.setText("Random");
         this.jTextFieldP5Formula.addActionListener(this::jTextFieldP5FormulaActionPerformed);
 
@@ -569,35 +569,35 @@ public class CreateSchedulerDialog extends JDialog {
 
         final var button5 = ButtonBuilder.basicButton("+",
                 this::jButtonP5AddActionPerformed);
-        button5.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button5.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Add = button5;
-        jButtonP5Add.setMinimumSize(CreateSchedulerDialog.MINIMUM_BUTTON_SIZE);
+        jButtonP5Add.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
 
         final var button4 = ButtonBuilder.basicButton("-",
                 this::jButtonP5SubActionPerformed);
-        button4.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button4.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Sub = button4;
 
         final var button3 = ButtonBuilder.basicButton("(",
                 this::jButtonP5AbreParentActionPerformed);
-        button3.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button3.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5AbreParent = button3;
 
         final var button2 = ButtonBuilder.basicButton(")",
                 this::jButtonP5FechaParentActionPerformed);
-        button2.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button2.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5FechaParent = button2;
 
         final var button1 = ButtonBuilder.basicButton("/",
          this::jButtonP5DivActionPerformed);
-        button1.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button1.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Div = button1;
 
         final var button = ButtonBuilder.basicButton("*",
          this::jButtonP5MultActionPerformed);
-        button.setMaximumSize(CreateSchedulerDialog.MAXIMUM_BUTTON_SIZE);
+        button.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Mult = button;
-        jButtonP5Mult.setMinimumSize(CreateSchedulerDialog.MINIMUM_BUTTON_SIZE);
+        jButtonP5Mult.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
 
         final String text1 = "←";
         final ActionListener jButtonP5VoltarActionPerformed =
@@ -914,10 +914,10 @@ public class CreateSchedulerDialog extends JDialog {
                                                                    "de recursos");
 
         this.jPanelPassoSimples = new JPanel();
-        this.jPanelPassoSimples.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Simple") + " - " + this.translate("Scheduling options"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
+        this.jPanelPassoSimples.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PolicyGeneratorWindow.BLACK), this.translate("Simple") + " - " + this.translate("Scheduling options"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD));
 
         final JPanel jPanel7 = new JPanel();
-        jPanel7.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(CreateSchedulerDialog.BLACK, 1, true), this.translate("Resource Scheduler")));
+        jPanel7.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(PolicyGeneratorWindow.BLACK, 1, true), this.translate("Resource Scheduler")));
 
         this.jListRecurso = new JList<>();
         this.jListRecurso.setBorder(BorderFactory.createTitledBorder(this.translate("Select the policy used:")));
@@ -952,7 +952,7 @@ public class CreateSchedulerDialog extends JDialog {
         );
 
         final JPanel jPanel8 = new JPanel();
-        jPanel8.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(CreateSchedulerDialog.BLACK, 1, true), this.translate("Task Scheduler")));
+        jPanel8.setBorder(BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(PolicyGeneratorWindow.BLACK, 1, true), this.translate("Task Scheduler")));
 
         this.jListTarefa = new JList<>();
         this.jListTarefa.setBorder(BorderFactory.createTitledBorder(this.translate("Select the policy used:")));
@@ -1019,10 +1019,10 @@ public class CreateSchedulerDialog extends JDialog {
         );
 
         this.jPanelPasso6 = new JPanel();
-        this.jPanelPasso6.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Restrictions"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso6.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PolicyGeneratorWindow.BLACK), this.translate("Restrictions"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD));
 
         final JSeparator jSeparatorP6 = new JSeparator();
-        jSeparatorP6.setForeground(CreateSchedulerDialog.BLACK);
+        jSeparatorP6.setForeground(PolicyGeneratorWindow.BLACK);
 
         this.jRadioButtonP6SemRestricao = new JRadioButton();
         this.jRadioButtonP6SemRestricao.setSelected(true);
@@ -1124,10 +1124,10 @@ public class CreateSchedulerDialog extends JDialog {
         );
 
         this.jPanelPasso7 = new JPanel();
-        this.jPanelPasso7.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Finish"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso7.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PolicyGeneratorWindow.BLACK), this.translate("Finish"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD));
 
         this.jTextPaneP7Gramatica = new JTextPane();
-        this.jTextPaneP7Gramatica.setFont(CreateSchedulerDialog.TAHOMA_FONT_BOLD);
+        this.jTextPaneP7Gramatica.setFont(PolicyGeneratorWindow.TAHOMA_FONT_BOLD);
 
         final JScrollPane jScrollPane3 = new JScrollPane();
         jScrollPane3.setViewportView(this.jTextPaneP7Gramatica);
@@ -1162,11 +1162,11 @@ public class CreateSchedulerDialog extends JDialog {
         this.setLocation(new Point(0, 0));
 
         final JPanel jPanelPassos = new JPanel();
-        jPanelPassos.setBackground(CreateSchedulerDialog.BACKGROUND_WHITE);
+        jPanelPassos.setBackground(PolicyGeneratorWindow.BACKGROUND_WHITE);
         jPanelPassos.setBorder(new javax.swing.border.MatteBorder(null));
 
         final JLabel jLabelPassos = new JLabel();
-        jLabelPassos.setFont(CreateSchedulerDialog.COMIC_SANS_FONT_BOLD);
+        jLabelPassos.setFont(PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD);
 
         jLabelPassos.setText("<html><b>" + this.translate("Steps") + "<br" +
                              ">----------------</b></html>");
@@ -1309,7 +1309,7 @@ public class CreateSchedulerDialog extends JDialog {
 
     private void initStepThreeComponents() {
         this.jPanelPasso3 = new JPanel();
-        this.jPanelPasso3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Generator type"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PolicyGeneratorWindow.BLACK), this.translate("Generator type"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD));
 
         this.jOpSimples = new JRadioButton();
         this.jOpSimples.setSelected(true);
@@ -1377,7 +1377,7 @@ public class CreateSchedulerDialog extends JDialog {
 
     private void initStepTwoComponents() {
         this.jPanelPasso2 = new JPanel();
-        this.jPanelPasso2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Enter the characteristics"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PolicyGeneratorWindow.BLACK), this.translate("Enter the characteristics"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD));
 
         final JLabel jLabelP2Informacao = new JLabel();
         jLabelP2Informacao.setText(this.translate("Search for " +
@@ -1529,10 +1529,10 @@ public class CreateSchedulerDialog extends JDialog {
 
     private void initStepOneComponents() {
         this.jPanelPasso1 = new JPanel();
-        this.jPanelPasso1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(CreateSchedulerDialog.BLACK), this.translate("Enter the name of the scheduler"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, CreateSchedulerDialog.COMIC_SANS_FONT_BOLD));
+        this.jPanelPasso1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(PolicyGeneratorWindow.BLACK), this.translate("Enter the name of the scheduler"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, PolicyGeneratorWindow.COMIC_SANS_FONT_BOLD));
 
         final JLabel jLabelP1NomeEsc = new JLabel();
-        jLabelP1NomeEsc.setFont(CreateSchedulerDialog.COMIC_SANS_FONT);
+        jLabelP1NomeEsc.setFont(PolicyGeneratorWindow.COMIC_SANS_FONT);
         jLabelP1NomeEsc.setText(this.translate("Scheduler name"));
 
         this.jTextFieldP1NomeEsc = new JTextField();
@@ -1540,7 +1540,7 @@ public class CreateSchedulerDialog extends JDialog {
         this.jTextFieldP1NomeEsc.addKeyListener(new SchedulerNameKeyAdapter());
 
         final JLabel jLabelP1LocalArq = new JLabel();
-        jLabelP1LocalArq.setFont(CreateSchedulerDialog.COMIC_SANS_FONT);
+        jLabelP1LocalArq.setFont(PolicyGeneratorWindow.COMIC_SANS_FONT);
         jLabelP1LocalArq.setText(this.translate("File"));
 
         this.jTextFieldP1LocalArq = new JTextField();
@@ -1548,10 +1548,10 @@ public class CreateSchedulerDialog extends JDialog {
         this.jTextFieldP1LocalArq.setText("%sNewScheduler.java".formatted(this.path));
 
         final JSeparator jSeparatorP1 = new JSeparator();
-        jSeparatorP1.setForeground(CreateSchedulerDialog.BLACK);
+        jSeparatorP1.setForeground(PolicyGeneratorWindow.BLACK);
 
         this.jLabelP1Informacao = new JLabel();
-        this.jLabelP1Informacao.setForeground(CreateSchedulerDialog.FOREGROUND_RED);
+        this.jLabelP1Informacao.setForeground(PolicyGeneratorWindow.FOREGROUND_RED);
 
         final GroupLayout jPanelPasso1Layout =
                 new GroupLayout(this.jPanelPasso1);
@@ -1865,26 +1865,26 @@ public class CreateSchedulerDialog extends JDialog {
 
         final String operador = "+ - / * ";
         if (!this.formula.isEmpty()) {
-            if (this.buttonType == CreateSchedulerDialog.OPEN_BRACKET) {
+            if (this.buttonType == PolicyGeneratorWindow.OPEN_BRACKET) {
                 this.parentAccount--;
-            } else if (this.buttonType == CreateSchedulerDialog.CLOSE_BRACKET) {
+            } else if (this.buttonType == PolicyGeneratorWindow.CLOSE_BRACKET) {
                 this.parentAccount++;
             }
             this.formula.removeLast();
             if (this.formula.isEmpty()) {
-                this.buttonType = CreateSchedulerDialog.START;
+                this.buttonType = PolicyGeneratorWindow.START;
                 this.parentAccount = 0;
             } else if (operador.contains(this.formula.getLast())) {
-                this.buttonType = CreateSchedulerDialog.OPERATOR;
+                this.buttonType = PolicyGeneratorWindow.OPERATOR;
             } else if (this.formula.getLast().contains("(")) {
-                this.buttonType = CreateSchedulerDialog.OPEN_BRACKET;
+                this.buttonType = PolicyGeneratorWindow.OPEN_BRACKET;
             } else if (this.formula.getLast().contains(")")) {
-                this.buttonType = CreateSchedulerDialog.CLOSE_BRACKET;
+                this.buttonType = PolicyGeneratorWindow.CLOSE_BRACKET;
             } else {
-                this.buttonType = CreateSchedulerDialog.VARIABLE;
+                this.buttonType = PolicyGeneratorWindow.VARIABLE;
             }
         } else {
-            this.buttonType = CreateSchedulerDialog.START;
+            this.buttonType = PolicyGeneratorWindow.START;
             this.parentAccount = 0;
         }
         this.escreverFormula();
@@ -1927,9 +1927,9 @@ public class CreateSchedulerDialog extends JDialog {
 
     private void jButtonP4AbreParentActionPerformed(final ActionEvent evt) {
 
-        if (this.buttonType == CreateSchedulerDialog.START || this.buttonType == CreateSchedulerDialog.OPERATOR || this.buttonType == CreateSchedulerDialog.OPEN_BRACKET) {
+        if (this.buttonType == PolicyGeneratorWindow.START || this.buttonType == PolicyGeneratorWindow.OPERATOR || this.buttonType == PolicyGeneratorWindow.OPEN_BRACKET) {
             this.parentAccount++;
-            this.buttonType = CreateSchedulerDialog.OPEN_BRACKET;
+            this.buttonType = PolicyGeneratorWindow.OPEN_BRACKET;
             this.formula.add("(");
         }
         this.escreverFormula();
@@ -1937,9 +1937,9 @@ public class CreateSchedulerDialog extends JDialog {
 
     private void jButtonP4FechaParentActionPerformed(final ActionEvent evt) {
 
-        if (this.parentAccount != 0 && (this.buttonType == CreateSchedulerDialog.VARIABLE || this.buttonType == CreateSchedulerDialog.CLOSE_BRACKET)) {
+        if (this.parentAccount != 0 && (this.buttonType == PolicyGeneratorWindow.VARIABLE || this.buttonType == PolicyGeneratorWindow.CLOSE_BRACKET)) {
             this.parentAccount--;
-            this.buttonType = CreateSchedulerDialog.CLOSE_BRACKET;
+            this.buttonType = PolicyGeneratorWindow.CLOSE_BRACKET;
             this.formula.add(")");
         }
         this.escreverFormula();
@@ -2135,7 +2135,7 @@ public class CreateSchedulerDialog extends JDialog {
 
         final String codigo = this.jTextPaneP7Gramatica.getText();
         this.parse = new InterpretadorGerador(codigo);
-        if (this.modelType == CreateSchedulerDialog.GRID) {
+        if (this.modelType == PolicyGeneratorWindow.GRID) {
             if (!this.parse.executarParse()) {
                 if (this.schedulerFiles != null) {
                     this.schedulerFiles.escrever(this.parse.getNome(),
@@ -2155,7 +2155,7 @@ public class CreateSchedulerDialog extends JDialog {
                     this.dispose();
                 }
             }
-        } else if (this.modelType == CreateSchedulerDialog.IAAS) {
+        } else if (this.modelType == PolicyGeneratorWindow.IAAS) {
             if (!this.parse.executarParse()) {
                 if (this.cloudSchedulerFiles != null) {
                     this.cloudSchedulerFiles.escrever(this.parse.getNome(),
@@ -2175,7 +2175,7 @@ public class CreateSchedulerDialog extends JDialog {
                     this.dispose();
                 }
             }
-        } else if (this.modelType == CreateSchedulerDialog.ALLOC) {
+        } else if (this.modelType == PolicyGeneratorWindow.ALLOC) {
             if (!this.parse.executarParse()) {
                 if (this.allocFiles != null) {
                     this.allocFiles.escrever(this.parse.getNome(),
@@ -2288,20 +2288,20 @@ public class CreateSchedulerDialog extends JDialog {
     }
 
     private void pressionarOperador(final String token) {
-        if (this.buttonType == CreateSchedulerDialog.VARIABLE || this.buttonType == CreateSchedulerDialog.CLOSE_BRACKET) {
-            this.buttonType = CreateSchedulerDialog.OPERATOR;
+        if (this.buttonType == PolicyGeneratorWindow.VARIABLE || this.buttonType == PolicyGeneratorWindow.CLOSE_BRACKET) {
+            this.buttonType = PolicyGeneratorWindow.OPERATOR;
             this.formula.add(token);
-        } else if (this.buttonType == CreateSchedulerDialog.OPERATOR) {
+        } else if (this.buttonType == PolicyGeneratorWindow.OPERATOR) {
             this.formula.set(this.formula.size() - 1, token);
         }
         this.escreverFormula();
     }
 
     private void pressionarVariavel(final String token) {
-        if (this.buttonType == CreateSchedulerDialog.START || this.buttonType == CreateSchedulerDialog.OPERATOR || this.buttonType == CreateSchedulerDialog.OPEN_BRACKET) {
-            this.buttonType = CreateSchedulerDialog.VARIABLE;
+        if (this.buttonType == PolicyGeneratorWindow.START || this.buttonType == PolicyGeneratorWindow.OPERATOR || this.buttonType == PolicyGeneratorWindow.OPEN_BRACKET) {
+            this.buttonType = PolicyGeneratorWindow.VARIABLE;
             this.formula.add(token);
-        } else if (this.buttonType == CreateSchedulerDialog.VARIABLE) {
+        } else if (this.buttonType == PolicyGeneratorWindow.VARIABLE) {
             this.formula.set(this.formula.size() - 1, token);
         }
         this.escreverFormula();
@@ -2440,26 +2440,26 @@ public class CreateSchedulerDialog extends JDialog {
             }
             doc.insertString(doc.getLength(), text, configuraCor);
         } catch (final BadLocationException ex) {
-            Logger.getLogger(CreateSchedulerDialog.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(PolicyGeneratorWindow.class.getName()).log(Level.SEVERE,
                     null, ex);
         }
     }
 
     public void setEscalonadores(final PolicyManager escalonadores) {
         this.schedulerFiles = escalonadores;
-        this.modelType = CreateSchedulerDialog.GRID;
+        this.modelType = PolicyGeneratorWindow.GRID;
 
     }
 
     public void setEscalonadoresCloud(final PolicyManager escalonadores) {
         this.cloudSchedulerFiles = escalonadores;
-        this.modelType = CreateSchedulerDialog.IAAS;
+        this.modelType = PolicyGeneratorWindow.IAAS;
 
     }
 
     public void setAlocadores(final PolicyManager alocadores) {
         this.allocFiles = alocadores;
-        this.modelType = CreateSchedulerDialog.ALLOC;
+        this.modelType = PolicyGeneratorWindow.ALLOC;
 
 
     }
@@ -2478,20 +2478,20 @@ public class CreateSchedulerDialog extends JDialog {
     }
 
     private class SimpleResourceModel extends AbstractListModel {
-        final String[] strings = { CreateSchedulerDialog.this.translate("Round" +
+        final String[] strings = { PolicyGeneratorWindow.this.translate("Round" +
                                                                         "-Robin " +
                                                                         "(circular" +
                                                                         " " +
                                                                         "queue)"),
-                CreateSchedulerDialog.this.translate("The " +
+                PolicyGeneratorWindow.this.translate("The " +
                                                      "most " +
                                                      "computational " +
                                                      "power resource"),
-                CreateSchedulerDialog.this.translate(
+                PolicyGeneratorWindow.this.translate(
                         "Resource with " +
                         "less " +
                         "workload"),
-                CreateSchedulerDialog.this.translate(
+                PolicyGeneratorWindow.this.translate(
                         "Resource with " +
                         "better " +
                         "communication link") };
@@ -2507,34 +2507,34 @@ public class CreateSchedulerDialog extends JDialog {
 
     private class SimpleTaskModel extends AbstractListModel {
         final String[] strings = {
-                CreateSchedulerDialog.this.translate("FIFO " +
+                PolicyGeneratorWindow.this.translate("FIFO " +
                                                      "(First " +
                                                      "In, " +
                                                      "First" +
                                                      " Out)"),
-                "%s %s".formatted(CreateSchedulerDialog.this.translate(
+                "%s %s".formatted(PolicyGeneratorWindow.this.translate(
                         "Largest" +
                         " Task " +
-                        "First"), CreateSchedulerDialog.this.translate(
+                        "First"), PolicyGeneratorWindow.this.translate(
                         "(Cost of Processing)")),
-                "%s %s".formatted(CreateSchedulerDialog.this.translate("Lowest" +
+                "%s %s".formatted(PolicyGeneratorWindow.this.translate("Lowest" +
                                                                        " " +
                                                                        "Task " +
                                                                        "First"),
-                        CreateSchedulerDialog.this.translate(
+                        PolicyGeneratorWindow.this.translate(
                                 "(Cost of Processing)")),
-                "%s %s".formatted(CreateSchedulerDialog.this.translate(
+                "%s %s".formatted(PolicyGeneratorWindow.this.translate(
                         "Largest" +
                         " Task " +
-                        "First"), CreateSchedulerDialog.this.translate(
+                        "First"), PolicyGeneratorWindow.this.translate(
                         "(Cost of Communication)")),
-                "%s %s".formatted(CreateSchedulerDialog.this.translate("Lowest" +
+                "%s %s".formatted(PolicyGeneratorWindow.this.translate("Lowest" +
                                                                        " " +
                                                                        "Task " +
                                                                        "First"),
-                        CreateSchedulerDialog.this.translate(
+                        PolicyGeneratorWindow.this.translate(
                                 "(Cost of Communication)")),
-                CreateSchedulerDialog.this.translate("User " +
+                PolicyGeneratorWindow.this.translate("User " +
                                                      "with Less " +
                                                      "Use of " +
                                                      "Grid " +
@@ -2552,7 +2552,7 @@ public class CreateSchedulerDialog extends JDialog {
 
     private class SchedulerNameKeyAdapter extends KeyAdapter {
         public void keyReleased(final KeyEvent evt) {
-            CreateSchedulerDialog.this.startStepOne();
+            PolicyGeneratorWindow.this.startStepOne();
         }
     }
 }

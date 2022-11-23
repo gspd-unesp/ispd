@@ -466,7 +466,7 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
     }
 
     private Optional<InterpretadorGerador> getGeneratedPolicy() {
-        final var dialog = new CreateSchedulerDialog(
+        final var dialog = new PolicyGeneratorWindow(
                 this,
                 true,
                 this.manager.directory().getAbsolutePath(),

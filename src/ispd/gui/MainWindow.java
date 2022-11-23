@@ -18,7 +18,7 @@ import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 import ispd.gui.iconico.grade.VirtualMachine;
 import ispd.gui.policy.CloudSchedulingPolicyManagementWindow;
-import ispd.gui.policy.CreateSchedulerDialog;
+import ispd.gui.policy.PolicyGeneratorWindow;
 import ispd.gui.policy.GenericPolicyManagementWindow;
 import ispd.gui.policy.GridSchedulingPolicyManagementWindow;
 import ispd.gui.policy.VmAllocationPolicyManagementWindow;
@@ -1277,7 +1277,7 @@ public class MainWindow extends JFrame implements KeyListener {
         if (this.modelType == PickModelTypeDialog.GRID) {
             this.generatePolicy(
                     this.jFrameManager,
-                    CreateSchedulerDialog::setEscalonadores
+                    PolicyGeneratorWindow::setEscalonadores
             );
             return;
         }
@@ -1285,11 +1285,11 @@ public class MainWindow extends JFrame implements KeyListener {
         if (this.modelType == PickModelTypeDialog.IAAS) {
             this.generatePolicy(
                     this.jFrameCloudManager,
-                    CreateSchedulerDialog::setEscalonadoresCloud
+                    PolicyGeneratorWindow::setEscalonadoresCloud
             );
             this.generatePolicy(
                     this.jFrameAllocManager,
-                    CreateSchedulerDialog::setAlocadores
+                    PolicyGeneratorWindow::setAlocadores
             );
         }
     }
@@ -1297,13 +1297,13 @@ public class MainWindow extends JFrame implements KeyListener {
     private void generatePolicy(
             final GenericPolicyManagementWindow window,
             final BiConsumer<
-                    ? super CreateSchedulerDialog,
+                    ? super PolicyGeneratorWindow,
                     ? super PolicyManager
                     > updateGenerator) {
         final var manager = window.getManager();
         final var path = manager.directory().getAbsolutePath();
 
-        final var policyGenerator = new CreateSchedulerDialog(
+        final var policyGenerator = new PolicyGeneratorWindow(
                 this, true, path, this.words);
 
         updateGenerator.accept(policyGenerator, manager);
