@@ -323,8 +323,8 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void initPanels() {
         this.jPanelSettings = new JPanelConfigIcon();
-        this.jPanelSettings.setEscalonadores(this.jFrameManager.getEscalonadores());
-        this.jPanelSettings.setEscalonadoresCloud(this.jFrameCloudManager.getEscalonadores());
+        this.jPanelSettings.setEscalonadores(this.jFrameManager.getManager());
+        this.jPanelSettings.setEscalonadoresCloud(this.jFrameCloudManager.getManager());
         this.jPanelSettings.setAlocadores(this.jFrameAllocManager.getManager());
 
         this.jPanelSimple.setText(this.translate("No icon selected."));
@@ -1290,17 +1290,17 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void generateSchedulerGrid() {
         this.generateScheduler(
-                this.jFrameManager.getEscalonadores().directory().getAbsolutePath(),
-                (ge) -> ge.setEscalonadores(this.jFrameManager.getEscalonadores()),
-                this.jFrameManager::atualizarEscalonadores
+                this.jFrameManager.getManager().directory().getAbsolutePath(),
+                (ge) -> ge.setEscalonadores(this.jFrameManager.getManager()),
+                this.jFrameManager::updatePolicyList
         );
     }
 
     private void generateSchedulerCloud() {
         this.generateScheduler(
-                this.jFrameCloudManager.getEscalonadores().directory().getAbsolutePath(),
-                (ge) -> ge.setEscalonadoresCloud(this.jFrameCloudManager.getEscalonadores()),
-                this.jFrameCloudManager::atualizarEscalonadores
+                this.jFrameCloudManager.getManager().directory().getAbsolutePath(),
+                (ge) -> ge.setEscalonadoresCloud(this.jFrameCloudManager.getManager()),
+                this.jFrameCloudManager::updatePolicyList
         );
     }
 
