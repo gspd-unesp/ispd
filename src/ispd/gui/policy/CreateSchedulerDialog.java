@@ -1,4 +1,4 @@
-package ispd.gui;
+package ispd.gui.policy;
 
 import ispd.policy.PolicyManager;
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
@@ -145,7 +145,7 @@ public class CreateSchedulerDialog extends JDialog {
     private JFormattedTextField jTextFieldP6Num;
     private JTextPane jTextPaneP7Gramatica;
 
-    CreateSchedulerDialog(
+    public CreateSchedulerDialog(
             final Frame parent,
             final boolean modal,
             final String path,
@@ -2445,19 +2445,19 @@ public class CreateSchedulerDialog extends JDialog {
         }
     }
 
-    void setEscalonadores(final PolicyManager escalonadores) {
+    public void setEscalonadores(final PolicyManager escalonadores) {
         this.schedulerFiles = escalonadores;
         this.modelType = CreateSchedulerDialog.GRID;
 
     }
 
-    void setEscalonadoresCloud(final PolicyManager escalonadores) {
+    public void setEscalonadoresCloud(final PolicyManager escalonadores) {
         this.cloudSchedulerFiles = escalonadores;
         this.modelType = CreateSchedulerDialog.IAAS;
 
     }
 
-    void setAlocadores(final PolicyManager alocadores) {
+    public void setAlocadores(final PolicyManager alocadores) {
         this.allocFiles = alocadores;
         this.modelType = CreateSchedulerDialog.ALLOC;
 

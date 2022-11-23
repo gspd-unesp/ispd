@@ -1,11 +1,11 @@
-package ispd.gui;
+package ispd.gui.policy;
 
-import ispd.policy.managers.VmAllocationPolicyManager;
+import ispd.policy.managers.GridSchedulingPolicyManager;
 
-public class VmAllocationPolicyManagementWindow
+public class GridSchedulingPolicyManagementWindow
         extends GenericPolicyManagementWindow {
-    public VmAllocationPolicyManagementWindow() {
-        super(new VmAllocationPolicyManager());
+    public GridSchedulingPolicyManagementWindow() {
+        super(new GridSchedulingPolicyManager());
     }
 
     @Override
@@ -25,6 +25,6 @@ public class VmAllocationPolicyManagementWindow
 
     @Override
     protected String getWindowTitle() {
-        return "Manage Allocation Policies";
+        return "Manage Grid Scheduling Policies";
     }
 }

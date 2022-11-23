@@ -1,4 +1,4 @@
-package ispd.gui;
+package ispd.gui.policy;
 
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.gui.auxiliar.MultipleExtensionFileFilter;
@@ -688,7 +688,7 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
         this.fileChooser.setCurrentDirectory(startDirectory);
     }
 
-    void updatePolicyList() {
+    public void updatePolicyList() {
         this.policyList.setListData(this.manager.listar().toArray(String[]::new));
     }
 

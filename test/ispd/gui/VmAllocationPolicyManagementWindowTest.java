@@ -1,5 +1,7 @@
 package ispd.gui;
 
+import ispd.gui.policy.GridSchedulingPolicyManagementWindow;
+import ispd.gui.policy.VmAllocationPolicyManagementWindow;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.WindowConstants;

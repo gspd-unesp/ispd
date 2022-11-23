@@ -1,11 +1,11 @@
-package ispd.gui;
+package ispd.gui.policy;
 
-import ispd.policy.managers.GridSchedulingPolicyManager;
+import ispd.policy.managers.CloudSchedulingPolicyManager;
 
-public class GridSchedulingPolicyManagementWindow
+public class CloudSchedulingPolicyManagementWindow
         extends GenericPolicyManagementWindow {
-    protected GridSchedulingPolicyManagementWindow() {
-        super(new GridSchedulingPolicyManager());
+    public CloudSchedulingPolicyManagementWindow() {
+        super(new CloudSchedulingPolicyManager());
     }
 
     @Override
@@ -25,6 +25,6 @@ public class GridSchedulingPolicyManagementWindow
 
     @Override
     protected String getWindowTitle() {
-        return "Manage Grid Scheduling Policies";
+        return "Manage Cloud Scheduling Policies";
     }
 }
