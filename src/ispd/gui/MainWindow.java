@@ -18,12 +18,11 @@ import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 import ispd.gui.iconico.grade.VirtualMachine;
 import ispd.gui.policy.CloudSchedulingPolicyManagementWindow;
-import ispd.gui.policy.PolicyGeneratorWindow;
 import ispd.gui.policy.GenericPolicyManagementWindow;
 import ispd.gui.policy.GridSchedulingPolicyManagementWindow;
+import ispd.gui.policy.PolicyGeneratorWindow;
 import ispd.gui.policy.VmAllocationPolicyManagementWindow;
 import ispd.gui.utils.ButtonBuilder;
-import ispd.policy.PolicyManager;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -80,7 +79,6 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1275,38 +1273,22 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void jMenuItemGenerateActionPerformed(final ActionEvent evt) {
         if (this.modelType == PickModelTypeDialog.GRID) {
-            this.generatePolicy(
-                    this.jFrameManager,
-                    PolicyGeneratorWindow::setEscalonadores
-            );
+            this.generatePolicy(this.jFrameManager);
             return;
         }
 
         if (this.modelType == PickModelTypeDialog.IAAS) {
-            this.generatePolicy(
-                    this.jFrameCloudManager,
-                    PolicyGeneratorWindow::setEscalonadoresCloud
-            );
-            this.generatePolicy(
-                    this.jFrameAllocManager,
-                    PolicyGeneratorWindow::setAlocadores
-            );
+            this.generatePolicy(this.jFrameCloudManager);
+            this.generatePolicy(this.jFrameAllocManager);
         }
     }
 
-    private void generatePolicy(
-            final GenericPolicyManagementWindow window,
-            final BiConsumer<
-                    ? super PolicyGeneratorWindow,
-                    ? super PolicyManager
-                    > updateGenerator) {
+    private void generatePolicy(final GenericPolicyManagementWindow window) {
         final var manager = window.getManager();
         final var path = manager.directory().getAbsolutePath();
 
         final var policyGenerator = new PolicyGeneratorWindow(
-                this, true, path, this.words);
-
-        updateGenerator.accept(policyGenerator, manager);
+                this, true, path, this.words, manager);
 
         this.showSubWindow(policyGenerator);
 

@@ -77,6 +77,7 @@ public class PolicyGeneratorWindow extends JDialog {
     private final LinkedList<String> rFormula = new SpacedPrintList();
     private final ResourceBundle translator;
     private final JScrollPane jScrollPanePrincipal = new JScrollPane();
+    private final PolicyManager manager;
     private int currentStep = 1;
     private String ordering = "Random";
     private String tOrdering = "Random";
@@ -88,9 +89,7 @@ public class PolicyGeneratorWindow extends JDialog {
     private int parentAccount = 0;
     private int tParentAccount = 0;
     private int rParentAccount = 0;
-    private PolicyManager manager = null;
     private InterpretadorGerador parse = null;
-    private WindowType modelType = WindowType.GRID;
     private JButton buttonFinish;
     private JButton buttonNext;
     private JButton buttonPrevious;
@@ -150,11 +149,13 @@ public class PolicyGeneratorWindow extends JDialog {
             final Frame parent,
             final boolean modal,
             final String path,
-            final ResourceBundle translator) {
+            final ResourceBundle translator,
+            final PolicyManager manager) {
         super(parent, modal);
         this.path = path;
         this.translator = translator;
         this.initComponents();
+        this.manager = manager;
         this.jScrollPanePrincipal.setViewportView(this.jPanelPasso1);
         this.startStepOne();
     }
@@ -651,13 +652,13 @@ public class PolicyGeneratorWindow extends JDialog {
                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(button3,
                                                         GroupLayout.PREFERRED_SIZE,
-                                                  GroupLayout.DEFAULT_SIZE,
+                                                        GroupLayout.DEFAULT_SIZE,
                                                         GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(button2,
                                                         GroupLayout.PREFERRED_SIZE,
-                                                  GroupLayout.DEFAULT_SIZE,
-                                                   GroupLayout.PREFERRED_SIZE)))
+                                                        GroupLayout.DEFAULT_SIZE,
+                                                        GroupLayout.PREFERRED_SIZE)))
                                 .addContainerGap(28, Short.MAX_VALUE))
         );
 
@@ -2351,29 +2352,8 @@ public class PolicyGeneratorWindow extends JDialog {
         }
     }
 
-    public void setEscalonadores(final PolicyManager escalonadores) {
-        this.manager = escalonadores;
-        this.modelType = WindowType.GRID;
-    }
-
-    public void setEscalonadoresCloud(final PolicyManager escalonadores) {
-        this.manager = escalonadores;
-        this.modelType = WindowType.IAAS;
-    }
-
-    public void setAlocadores(final PolicyManager alocadores) {
-        this.manager = alocadores;
-        this.modelType = WindowType.ALLOC;
-    }
-
     public InterpretadorGerador getParse() {
         return this.parse;
-    }
-
-    private enum WindowType {
-        GRID,
-        IAAS,
-        ALLOC,
     }
 
     private static class SpacedPrintList extends LinkedList<String> {

@@ -470,7 +470,8 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
                 this,
                 true,
                 this.manager.directory().getAbsolutePath(),
-                this.words
+                this.words,
+                this.manager
         );
 
         dialog.setLocationRelativeTo(this);
