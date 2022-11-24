@@ -1,8 +1,8 @@
 package ispd.gui.policy;
 
-import ispd.policy.PolicyManager;
 import ispd.arquivo.interpretador.gerador.InterpretadorGerador;
 import ispd.gui.utils.ButtonBuilder;
+import ispd.policy.PolicyManager;
 import ispd.utils.ValidaValores;
 
 import javax.swing.AbstractListModel;
@@ -39,6 +39,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -107,8 +108,8 @@ public class PolicyGeneratorWindow extends JDialog {
     private JLabel jLabelPasso5;
     private JLabel jLabelPasso6;
     private JLabel jLabelPasso7;
-    private JList<?> jListRecurso;
-    private JList<?> jListTarefa;
+    private JList<String> jListRecurso;
+    private JList<String> jListTarefa;
     private JRadioButton jOpAvancada;
     private JRadioButton jOpSimples;
     private JPanel jPanelPasso1;
@@ -589,12 +590,12 @@ public class PolicyGeneratorWindow extends JDialog {
         final JButton jButtonP5FechaParent = button2;
 
         final var button1 = ButtonBuilder.basicButton("/",
-         this::jButtonP5DivActionPerformed);
+                this::jButtonP5DivActionPerformed);
         button1.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Div = button1;
 
         final var button = ButtonBuilder.basicButton("*",
-         this::jButtonP5MultActionPerformed);
+                this::jButtonP5MultActionPerformed);
         button.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP5Mult = button;
         jButtonP5Mult.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
@@ -735,11 +736,11 @@ public class PolicyGeneratorWindow extends JDialog {
 
         final JButton jButtonP5MflopExec =
                 ButtonBuilder.basicButton(this.translate(
-                        "Running " +
-                        "Mflops") +
+                                "Running " +
+                                "Mflops") +
                                           " -" +
                                           " MFE",
-                                          this::jButtonP5MflopExecActionPerformed);
+                        this::jButtonP5MflopExecActionPerformed);
 
         final GroupLayout jPanel5Layout =
                 new GroupLayout(jPanel5);
@@ -1273,7 +1274,7 @@ public class PolicyGeneratorWindow extends JDialog {
 
         final JButton cancel =
                 ButtonBuilder.basicButton(this.translate("Cancel"),
-                 this::onCancelClick);
+                        this::onCancelClick);
 
         final GroupLayout jPanelControleLayout =
                 new GroupLayout(jPanelControle);
@@ -1612,8 +1613,8 @@ public class PolicyGeneratorWindow extends JDialog {
         );
     }
 
-    private void makeLayoutAndPack(final JPanel jPanelPassos,
-                                   final JPanel jPanelControle) {
+    private void makeLayoutAndPack(
+            final JPanel jPanelPassos, final JPanel jPanelControle) {
         final GroupLayout layout = new GroupLayout(this.getContentPane());
         this.getContentPane().setLayout(layout);
 
@@ -1658,37 +1659,38 @@ public class PolicyGeneratorWindow extends JDialog {
         this.pack();
     }
 
-    private void jTextFieldP1NomeEscKeyReleased(final KeyEvent evt) {
-        this.startStepOne();
-    }
-
     private void startStepOne() {
         if (this.jTextFieldP1NomeEsc.getText().isEmpty()) {
-            this.jLabelP1Informacao.setText(this.translate("Provide " +
-                                                           "a " +
-                                                           "valid " +
-                                                           "name " +
-                                                           "for a " +
-                                                           "Java " +
-                                                           "class"));
+            this.jLabelP1Informacao.setText(this.translate(
+                    "Provide a valid name for a Java class"));
             this.jTextFieldP1LocalArq.setText("");
             this.buttonNext.setEnabled(false);
         } else if (ValidaValores.isValidClassName(this.jTextFieldP1NomeEsc.getText())) {
             this.jLabelP1Informacao.setText("");
-            this.jTextFieldP1LocalArq.setText(this.path + "\\" + this.jTextFieldP1NomeEsc.getText() + ".java");
+
+            final var fileName = String.join(
+                    File.separator, this.path,
+                    this.jTextFieldP1NomeEsc.getText()
+            );
+
+            this.jTextFieldP1LocalArq.setText(fileName);
+
             this.buttonNext.setEnabled(true);
         } else {
-            this.jLabelP1Informacao.setText(this.translate("The " +
-                                                           "class " +
-                                                           "name is " +
-                                                           "invalid"));
+            this.jLabelP1Informacao.setText(this.translate(
+                    "The class name is invalid"));
             this.buttonNext.setEnabled(false);
         }
-        final File arq =
-                new File(this.path + "\\" + this.jTextFieldP1NomeEsc.getText() +
-                         ".java");
-        if (arq.exists()) {
-            this.jLabelP1Informacao.setText(this.jLabelP1Informacao.getText() + "\n" + this.translate("This scheduler name already exists"));
+        final var file = new File("%s%s%s.java".formatted(
+                this.path,
+                File.separator,
+                this.jTextFieldP1NomeEsc.getText()
+        ));
+        if (file.exists()) {
+            this.jLabelP1Informacao.setText("%s\n%s".formatted(
+                    this.jLabelP1Informacao.getText(),
+                    this.translate("This scheduler name already exists")
+            ));
         }
     }
 
@@ -2477,12 +2479,13 @@ public class PolicyGeneratorWindow extends JDialog {
         }
     }
 
-    private class SimpleResourceModel extends AbstractListModel {
-        final String[] strings = { PolicyGeneratorWindow.this.translate("Round" +
-                                                                        "-Robin " +
-                                                                        "(circular" +
-                                                                        " " +
-                                                                        "queue)"),
+    private class SimpleResourceModel extends AbstractListModel<String> {
+        private final String[] strings = { PolicyGeneratorWindow.this.translate(
+                "Round" +
+                "-Robin " +
+                "(circular" +
+                " " +
+                "queue)"),
                 PolicyGeneratorWindow.this.translate("The " +
                                                      "most " +
                                                      "computational " +
@@ -2500,12 +2503,12 @@ public class PolicyGeneratorWindow extends JDialog {
             return this.strings.length;
         }
 
-        public Object getElementAt(final int i) {
+        public String getElementAt(final int i) {
             return this.strings[i];
         }
     }
 
-    private class SimpleTaskModel extends AbstractListModel {
+    private class SimpleTaskModel extends AbstractListModel<String> {
         final String[] strings = {
                 PolicyGeneratorWindow.this.translate("FIFO " +
                                                      "(First " +
@@ -2517,10 +2520,11 @@ public class PolicyGeneratorWindow extends JDialog {
                         " Task " +
                         "First"), PolicyGeneratorWindow.this.translate(
                         "(Cost of Processing)")),
-                "%s %s".formatted(PolicyGeneratorWindow.this.translate("Lowest" +
-                                                                       " " +
-                                                                       "Task " +
-                                                                       "First"),
+                "%s %s".formatted(PolicyGeneratorWindow.this.translate(
+                                "Lowest" +
+                                " " +
+                                "Task " +
+                                "First"),
                         PolicyGeneratorWindow.this.translate(
                                 "(Cost of Processing)")),
                 "%s %s".formatted(PolicyGeneratorWindow.this.translate(
@@ -2528,10 +2532,11 @@ public class PolicyGeneratorWindow extends JDialog {
                         " Task " +
                         "First"), PolicyGeneratorWindow.this.translate(
                         "(Cost of Communication)")),
-                "%s %s".formatted(PolicyGeneratorWindow.this.translate("Lowest" +
-                                                                       " " +
-                                                                       "Task " +
-                                                                       "First"),
+                "%s %s".formatted(PolicyGeneratorWindow.this.translate(
+                                "Lowest" +
+                                " " +
+                                "Task " +
+                                "First"),
                         PolicyGeneratorWindow.this.translate(
                                 "(Cost of Communication)")),
                 PolicyGeneratorWindow.this.translate("User " +
@@ -2545,7 +2550,7 @@ public class PolicyGeneratorWindow extends JDialog {
             return this.strings.length;
         }
 
-        public Object getElementAt(final int i) {
+        public String getElementAt(final int i) {
             return this.strings[i];
         }
     }
