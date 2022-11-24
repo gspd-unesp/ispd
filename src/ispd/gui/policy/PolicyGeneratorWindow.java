@@ -23,7 +23,9 @@ import javax.swing.JTextPane;
 import javax.swing.LayoutStyle;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.Document;
+import javax.swing.text.NumberFormatter;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.Color;
@@ -46,6 +48,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ispd.gui.utils.ButtonBuilder.basicButton;
+
 public class PolicyGeneratorWindow extends JDialog {
     private static final Font VERDANA_FONT_BOLD =
             new Font("Verdana", Font.BOLD, 11);
@@ -54,9 +58,6 @@ public class PolicyGeneratorWindow extends JDialog {
     private static final Font COMIC_SANS_FONT =
             new Font("Comic Sans MS", Font.PLAIN, 11);
     private static final Color BLACK = new Color(0, 0, 0);
-    private static final int GRID = 0;
-    private static final int IAAS = 1;
-    private static final int ALLOC = 2;
     private static final int START = 0;
     private static final int VARIABLE = 1;
     private static final int OPERATOR = 2;
@@ -87,11 +88,9 @@ public class PolicyGeneratorWindow extends JDialog {
     private int parentAccount = 0;
     private int tParentAccount = 0;
     private int rParentAccount = 0;
-    private PolicyManager schedulerFiles = null;
-    private PolicyManager cloudSchedulerFiles = null;
-    private PolicyManager allocFiles = null;
+    private PolicyManager manager = null;
     private InterpretadorGerador parse = null;
-    private int modelType = 0;
+    private WindowType modelType = WindowType.GRID;
     private JButton buttonFinish;
     private JButton buttonNext;
     private JButton buttonPrevious;
@@ -181,7 +180,6 @@ public class PolicyGeneratorWindow extends JDialog {
         this.jTextFieldP4Formula.setEditable(false);
         this.jTextFieldP4Formula.setFont(PolicyGeneratorWindow.VERDANA_FONT_BOLD);
         this.jTextFieldP4Formula.setText("Random");
-        this.jTextFieldP4Formula.addActionListener(this::jTextFieldP4FormulaActionPerformed);
 
         final JPanel jPanel1 = new JPanel();
         jPanel1.setBorder(BorderFactory.createTitledBorder(this.translate(
@@ -190,39 +188,39 @@ public class PolicyGeneratorWindow extends JDialog {
         final String text = "+";
         final ActionListener jButtonP4AddActionPerformed =
                 this::jButtonP4AddActionPerformed;
-        final var button11 = ButtonBuilder.basicButton(text,
+        final var button11 = basicButton(text,
                 jButtonP4AddActionPerformed);
         button11.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Add = button11;
         jButtonP4Add.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
 
-        final var button10 = ButtonBuilder.basicButton("-",
+        final var button10 = basicButton("-",
                 this::jButtonP4SubActionPerformed);
         button10.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Sub = button10;
 
-        final var button9 = ButtonBuilder.basicButton("(",
+        final var button9 = basicButton("(",
                 this::jButtonP4AbreParentActionPerformed);
         button9.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4AbreParent = button9;
 
-        final var button8 = ButtonBuilder.basicButton(")",
+        final var button8 = basicButton(")",
                 this::jButtonP4FechaParentActionPerformed);
         button8.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4FechaParent = button8;
 
-        final var button7 = ButtonBuilder.basicButton("/",
+        final var button7 = basicButton("/",
                 this::jButtonP4DivActionPerformed);
         button7.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Div = button7;
 
-        final var button6 = ButtonBuilder.basicButton("*",
+        final var button6 = basicButton("*",
                 this::jButtonP4MultActionPerformed);
         button6.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
         final JButton jButtonP4Mult = button6;
         jButtonP4Mult.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
 
-        final JButton jButtonP4Voltar = ButtonBuilder.basicButton("←",
+        final JButton jButtonP4Voltar = basicButton("←",
                 this::jButtonP4VoltarActionPerformed);
 
         final GroupLayout jPanel1Layout =
@@ -363,9 +361,8 @@ public class PolicyGeneratorWindow extends JDialog {
                 .build();
 
         this.jFormattedTextP4DigitaConst = new JFormattedTextField();
-        this.jFormattedTextP4DigitaConst.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        this.jFormattedTextP4DigitaConst.setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter()));
         this.jFormattedTextP4DigitaConst.setText("1");
-        this.jFormattedTextP4DigitaConst.addActionListener(this::jFormattedTextP4DigitaConstActionPerformed);
 
         final JButton jButtonP4PTempoCriacao =
                 ButtonBuilder.aButton(this.translate("Task " +
@@ -563,49 +560,40 @@ public class PolicyGeneratorWindow extends JDialog {
         this.jTextFieldP5Formula.setEditable(false);
         this.jTextFieldP5Formula.setFont(PolicyGeneratorWindow.VERDANA_FONT_BOLD);
         this.jTextFieldP5Formula.setText("Random");
-        this.jTextFieldP5Formula.addActionListener(this::jTextFieldP5FormulaActionPerformed);
 
         final JPanel jPanel4 = new JPanel();
         jPanel4.setBorder(BorderFactory.createTitledBorder(this.translate(
                 "Operators and precedence")));
 
-        final var button5 = ButtonBuilder.basicButton("+",
+        final var button5 = basicButton("+",
                 this::jButtonP5AddActionPerformed);
         button5.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
-        final JButton jButtonP5Add = button5;
-        jButtonP5Add.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
+        button5.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
 
-        final var button4 = ButtonBuilder.basicButton("-",
+        final var button4 = basicButton("-",
                 this::jButtonP5SubActionPerformed);
         button4.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
-        final JButton jButtonP5Sub = button4;
 
-        final var button3 = ButtonBuilder.basicButton("(",
+        final var button3 = basicButton("(",
                 this::jButtonP5AbreParentActionPerformed);
         button3.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
-        final JButton jButtonP5AbreParent = button3;
 
-        final var button2 = ButtonBuilder.basicButton(")",
+        final var button2 = basicButton(")",
                 this::jButtonP5FechaParentActionPerformed);
         button2.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
-        final JButton jButtonP5FechaParent = button2;
 
-        final var button1 = ButtonBuilder.basicButton("/",
+        final var button1 = basicButton("/",
                 this::jButtonP5DivActionPerformed);
         button1.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
-        final JButton jButtonP5Div = button1;
 
-        final var button = ButtonBuilder.basicButton("*",
+        final var button = basicButton("*",
                 this::jButtonP5MultActionPerformed);
         button.setMaximumSize(PolicyGeneratorWindow.MAXIMUM_BUTTON_SIZE);
-        final JButton jButtonP5Mult = button;
-        jButtonP5Mult.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
+        button.setMinimumSize(PolicyGeneratorWindow.MINIMUM_BUTTON_SIZE);
 
         final String text1 = "←";
-        final ActionListener jButtonP5VoltarActionPerformed =
-                this::jButtonP5VoltarActionPerformed;
-        final JButton jButtonP5Voltar = ButtonBuilder.basicButton(text1,
-                jButtonP5VoltarActionPerformed);
+        final JButton jButtonP5Voltar = basicButton(text1,
+                this::jButtonP4VoltarActionPerformed);
 
         final GroupLayout jPanel4Layout =
                 new GroupLayout(jPanel4);
@@ -615,21 +603,21 @@ public class PolicyGeneratorWindow extends JDialog {
                         .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(jPanel4Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jButtonP5AbreParent,
+                                        .addComponent(button3,
                                                 GroupLayout.DEFAULT_SIZE
                                                 , 50, Short.MAX_VALUE)
                                         .addGroup(jPanel4Layout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
-                                                .addComponent(jButtonP5Sub,
+                                                .addComponent(button4,
                                                         GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(jButtonP5Add,
+                                                .addComponent(button5,
                                                         GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
-                                        .addComponent(jButtonP5Mult,
+                                        .addComponent(button,
                                                 GroupLayout.DEFAULT_SIZE
                                                 , 50, Short.MAX_VALUE)
-                                        .addComponent(jButtonP5Div,
+                                        .addComponent(button1,
                                                 GroupLayout.DEFAULT_SIZE
                                                 , 50, Short.MAX_VALUE)
-                                        .addComponent(jButtonP5FechaParent,
+                                        .addComponent(button2,
                                                 GroupLayout.DEFAULT_SIZE
                                                 , 50, Short.MAX_VALUE))
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -649,21 +637,27 @@ public class PolicyGeneratorWindow extends JDialog {
                                                 GroupLayout.DEFAULT_SIZE,
                                                 Short.MAX_VALUE)
                                         .addGroup(GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
-                                                .addComponent(jButtonP5Add,
+                                                .addComponent(button5,
                                                         GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButtonP5Sub,
+                                                .addComponent(button4,
                                                         GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButtonP5Mult,
+                                                .addComponent(button,
                                                         GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButtonP5Div,
+                                                .addComponent(button1,
                                                         GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButtonP5AbreParent, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(button3,
+                                                        GroupLayout.PREFERRED_SIZE,
+                                                  GroupLayout.DEFAULT_SIZE,
+                                                        GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButtonP5FechaParent, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                                                .addComponent(button2,
+                                                        GroupLayout.PREFERRED_SIZE,
+                                                  GroupLayout.DEFAULT_SIZE,
+                                                   GroupLayout.PREFERRED_SIZE)))
                                 .addContainerGap(28, Short.MAX_VALUE))
         );
 
@@ -731,16 +725,15 @@ public class PolicyGeneratorWindow extends JDialog {
                 .build();
 
         this.jFormattedTextP5DigitaConst = new JFormattedTextField();
-        this.jFormattedTextP5DigitaConst.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        this.jFormattedTextP5DigitaConst.setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter()));
         this.jFormattedTextP5DigitaConst.setText("1");
-        this.jFormattedTextP5DigitaConst.addActionListener(this::jFormattedTextP5DigitaConstActionPerformed);
 
         final JButton jButtonP5MflopExec =
-                ButtonBuilder.basicButton(this.translate(
+                basicButton(this.translate(
                                 "Running " +
                                 "Mflops") +
-                                          " -" +
-                                          " MFE",
+                            " -" +
+                            " MFE",
                         this::jButtonP5MflopExecActionPerformed);
 
         final GroupLayout jPanel5Layout =
@@ -1056,7 +1049,7 @@ public class PolicyGeneratorWindow extends JDialog {
         this.jLabelP6_1.setEnabled(false);
 
         this.jTextFieldP6Num = new JFormattedTextField();
-        this.jTextFieldP6Num.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        this.jTextFieldP6Num.setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
         this.jTextFieldP6Num.setText("1");
         this.jTextFieldP6Num.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
         this.jTextFieldP6Num.setEnabled(false);
@@ -1273,9 +1266,10 @@ public class PolicyGeneratorWindow extends JDialog {
                 .disabled()
                 .build();
 
-        final JButton cancel =
-                ButtonBuilder.basicButton(this.translate("Cancel"),
-                        this::onCancelClick);
+        final var cancel = basicButton(
+                this.translate("Cancel"),
+                this::onCancelClick
+        );
 
         final GroupLayout jPanelControleLayout =
                 new GroupLayout(jPanelControle);
@@ -1427,7 +1421,7 @@ public class PolicyGeneratorWindow extends JDialog {
         this.jRadioButtonP2Saida.addActionListener(this::jRadioButtonP2SaidaActionPerformed);
 
         this.jFormattedTextFieldP2Tempo = new JFormattedTextField();
-        this.jFormattedTextFieldP2Tempo.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        this.jFormattedTextFieldP2Tempo.setFormatterFactory(new DefaultFormatterFactory(new NumberFormatter()));
         this.jFormattedTextFieldP2Tempo.setText("1");
         this.jFormattedTextFieldP2Tempo.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
         this.jFormattedTextFieldP2Tempo.setEnabled(false);
@@ -1855,17 +1849,14 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jButtonP4TComputacaoActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[TCP]");
     }
 
     private void jButtonP4AddActionPerformed(final ActionEvent evt) {
-
         this.pressionarOperador("+");
     }
 
     private void jButtonP4VoltarActionPerformed(final ActionEvent evt) {
-
         final String operador = "+ - / * ";
         if (!this.formula.isEmpty()) {
             if (this.buttonType == PolicyGeneratorWindow.OPEN_BRACKET) {
@@ -1894,42 +1885,34 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jButtonP4NTSubmetidasActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[NTS]");
     }
 
     private void jButtonP4NTConcluidasActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[NTC]");
     }
 
     private void jButtonP4TComunicacaoActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[TC]");
     }
 
     private void jButtonP4PComputUserActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[PCU]");
     }
 
     private void jButtonP4SubActionPerformed(final ActionEvent evt) {
-
         this.pressionarOperador("-");
     }
 
     private void jButtonP4MultActionPerformed(final ActionEvent evt) {
-
         this.pressionarOperador("*");
     }
 
     private void jButtonP4DivActionPerformed(final ActionEvent evt) {
-
         this.pressionarOperador("/");
     }
 
     private void jButtonP4AbreParentActionPerformed(final ActionEvent evt) {
-
         if (this.buttonType == PolicyGeneratorWindow.START || this.buttonType == PolicyGeneratorWindow.OPERATOR || this.buttonType == PolicyGeneratorWindow.OPEN_BRACKET) {
             this.parentAccount++;
             this.buttonType = PolicyGeneratorWindow.OPEN_BRACKET;
@@ -1939,7 +1922,6 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jButtonP4FechaParentActionPerformed(final ActionEvent evt) {
-
         if (this.parentAccount != 0 && (this.buttonType == PolicyGeneratorWindow.VARIABLE || this.buttonType == PolicyGeneratorWindow.CLOSE_BRACKET)) {
             this.parentAccount--;
             this.buttonType = PolicyGeneratorWindow.CLOSE_BRACKET;
@@ -1949,72 +1931,58 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jButtonP4ConstActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[%s]".formatted(this.jFormattedTextP4DigitaConst.getText()));
     }
 
     private void jButtonP5AddActionPerformed(final ActionEvent evt) {
-
         this.pressionarOperador("+");
     }
 
     private void jButtonP5SubActionPerformed(final ActionEvent evt) {
-
         this.pressionarOperador("-");
     }
 
     private void jButtonP5AbreParentActionPerformed(final ActionEvent evt) {
-
         this.jButtonP4AbreParentActionPerformed(evt);
     }
 
     private void jButtonP5FechaParentActionPerformed(final ActionEvent evt) {
-
         this.jButtonP4FechaParentActionPerformed(evt);
     }
 
     private void jButtonP5DivActionPerformed(final ActionEvent evt) {
-
         this.pressionarOperador("/");
     }
 
     private void jButtonP5MultActionPerformed(final ActionEvent evt) {
-
         this.pressionarOperador("*");
     }
 
     private void jButtonP5PProcessamentoActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[PP]");
     }
 
     private void jButtonP5LinkComunicacaoActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[LC]");
     }
 
     private void jButtonP5TCompTarefaActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[TCT]");
     }
 
     private void jButtonP5NumTExecActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[NTE]");
     }
 
     private void jButtonP5TComunTarefaActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[TCMT]");
     }
 
     private void jButtonP5Const1ActionPerformed(final ActionEvent evt) {
-
         this.pressionarVariavel("[" + this.jFormattedTextP5DigitaConst.getText() + "]");
     }
 
     private void jRadioButtonP5CrescenteActionPerformed(final ActionEvent evt) {
-
         this.jRadioButtonP5FIFO.setSelected(false);
         this.jRadioButtonP5Random.setSelected(false);
         this.jRadioButtonP5Crescente.setSelected(true);
@@ -2024,7 +1992,6 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jRadioButtonP5DecrescenteActionPerformed(final ActionEvent evt) {
-
         this.jRadioButtonP5FIFO.setSelected(false);
         this.jRadioButtonP5Random.setSelected(false);
         this.jRadioButtonP5Crescente.setSelected(false);
@@ -2034,7 +2001,6 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jRadioButtonP5RandomActionPerformed(final ActionEvent evt) {
-
         this.jRadioButtonP5FIFO.setSelected(false);
         this.jRadioButtonP5Random.setSelected(true);
         this.jRadioButtonP5Crescente.setSelected(false);
@@ -2043,24 +2009,7 @@ public class PolicyGeneratorWindow extends JDialog {
         this.escreverFormula();
     }
 
-    private void jTextFieldP5FormulaActionPerformed(final ActionEvent evt) {
-
-    }
-
-    private void jTextFieldP4FormulaActionPerformed(final ActionEvent evt) {
-
-    }
-
-    private void jFormattedTextP5DigitaConstActionPerformed(final ActionEvent evt) {
-
-    }
-
-    private void jFormattedTextP4DigitaConstActionPerformed(final ActionEvent evt) {
-
-    }
-
     private void jOpSimplesActionPerformed(final ActionEvent evt) {
-
         if (this.jOpSimples.isSelected()) {
             this.jOpAvancada.setSelected(false);
             this.jOpSimples.setSelected(true);
@@ -2071,8 +2020,6 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jOpAvancadaActionPerformed(final ActionEvent evt) {
-
-
         if (this.jOpAvancada.isSelected()) {
             this.jOpSimples.setSelected(false);
             this.jOpAvancada.setSelected(true);
@@ -2083,7 +2030,6 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jRadioButtonP2EstaticaActionPerformed(final ActionEvent evt) {
-
         this.jRadioButtonP2Estatica.setSelected(true);
         this.jRadioButtonP2Dinamica.setSelected(false);
         this.setEnableDinamica(false);
@@ -2118,91 +2064,50 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jRadioButtonP2CentralizadaActionPerformed(final ActionEvent evt) {
-
         this.jRadioButtonP2Centralizada.setSelected(true);
         this.jRadioButtonP2Distribuida.setSelected(false);
     }
 
     private void jRadioButtonP2DistribuidaActionPerformed(final ActionEvent evt) {
-
         this.jRadioButtonP2Centralizada.setSelected(false);
         this.jRadioButtonP2Distribuida.setSelected(true);
     }
 
-    private void jButtonP5VoltarActionPerformed(final ActionEvent evt) {
-
-        this.jButtonP4VoltarActionPerformed(evt);
+    private void onFinishClick(final ActionEvent evt) {
+        final var code = this.jTextPaneP7Gramatica.getText();
+        this.parse = new InterpretadorGerador(code);
+        this.tryParseAndSaveResult();
     }
 
-    private void onFinishClick(final ActionEvent evt) {
+    private void tryParseAndSaveResult() {
+        if (this.parse.executarParse()) {
+            return;
+        }
 
-        final String codigo = this.jTextPaneP7Gramatica.getText();
-        this.parse = new InterpretadorGerador(codigo);
-        if (this.modelType == PolicyGeneratorWindow.GRID) {
-            if (!this.parse.executarParse()) {
-                if (this.schedulerFiles != null) {
-                    this.schedulerFiles.escrever(this.parse.getNome(),
-                            this.parse.getCodigo());
-                    final String result =
-                            this.schedulerFiles.compilar(this.parse.getNome());
-                    if (result != null) {
-                        JOptionPane.showMessageDialog(this, result, "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                    if (this.schedulerFiles.listar().contains(this.parse.getNome())) {
-                        this.dispose();
-                    } else {
-                        this.parse = null;
-                    }
-                } else {
-                    this.dispose();
-                }
-            }
-        } else if (this.modelType == PolicyGeneratorWindow.IAAS) {
-            if (!this.parse.executarParse()) {
-                if (this.cloudSchedulerFiles != null) {
-                    this.cloudSchedulerFiles.escrever(this.parse.getNome(),
-                            this.parse.getCodigo());
-                    final String result =
-                            this.cloudSchedulerFiles.compilar(this.parse.getNome());
-                    if (result != null) {
-                        JOptionPane.showMessageDialog(this, result, "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                    if (this.cloudSchedulerFiles.listar().contains(this.parse.getNome())) {
-                        this.dispose();
-                    } else {
-                        this.parse = null;
-                    }
-                } else {
-                    this.dispose();
-                }
-            }
-        } else if (this.modelType == PolicyGeneratorWindow.ALLOC) {
-            if (!this.parse.executarParse()) {
-                if (this.allocFiles != null) {
-                    this.allocFiles.escrever(this.parse.getNome(),
-                            this.parse.getCodigo());
-                    final String result =
-                            this.allocFiles.compilar(this.parse.getNome());
-                    if (result != null) {
-                        JOptionPane.showMessageDialog(this, result, "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                    if (this.allocFiles.listar().contains(this.parse.getNome())) {
-                        this.dispose();
-                    } else {
-                        this.parse = null;
-                    }
-                } else {
-                    this.dispose();
-                }
-            }
+        if (this.manager == null) {
+            this.dispose();
+            return;
+        }
+
+        this.manager.escrever(this.parse.getNome(), this.parse.getCodigo());
+        final var errors = this.manager.compilar(this.parse.getNome());
+        if (errors != null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    errors,
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+
+        if (this.manager.listar().contains(this.parse.getNome())) {
+            this.dispose();
+        } else {
+            this.parse = null;
         }
     }
 
     private void onCancelClick(final ActionEvent evt) {
-
         this.dispose();
     }
 
@@ -2222,7 +2127,6 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jRadioButtonP4FIFOActionPerformed(final ActionEvent evt) {
-
         this.jRadioButtonP4FIFO.setSelected(true);
         this.jRadioButtonP4Random.setSelected(false);
         this.jRadioButtonP4Crescente.setSelected(false);
@@ -2232,7 +2136,6 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private void jRadioButtonP5FIFOActionPerformed(final ActionEvent evt) {
-
         this.jRadioButtonP5FIFO.setSelected(true);
         this.jRadioButtonP5Random.setSelected(false);
         this.jRadioButtonP5Crescente.setSelected(false);
@@ -2449,26 +2352,28 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     public void setEscalonadores(final PolicyManager escalonadores) {
-        this.schedulerFiles = escalonadores;
-        this.modelType = PolicyGeneratorWindow.GRID;
-
+        this.manager = escalonadores;
+        this.modelType = WindowType.GRID;
     }
 
     public void setEscalonadoresCloud(final PolicyManager escalonadores) {
-        this.cloudSchedulerFiles = escalonadores;
-        this.modelType = PolicyGeneratorWindow.IAAS;
-
+        this.manager = escalonadores;
+        this.modelType = WindowType.IAAS;
     }
 
     public void setAlocadores(final PolicyManager alocadores) {
-        this.allocFiles = alocadores;
-        this.modelType = PolicyGeneratorWindow.ALLOC;
-
-
+        this.manager = alocadores;
+        this.modelType = WindowType.ALLOC;
     }
 
     public InterpretadorGerador getParse() {
         return this.parse;
+    }
+
+    private enum WindowType {
+        GRID,
+        IAAS,
+        ALLOC,
     }
 
     private static class SpacedPrintList extends LinkedList<String> {
