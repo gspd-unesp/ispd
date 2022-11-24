@@ -44,6 +44,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PolicyGeneratorWindow extends JDialog {
     private static final Font VERDANA_FONT_BOLD =
@@ -2480,78 +2481,61 @@ public class PolicyGeneratorWindow extends JDialog {
     }
 
     private class SimpleResourceModel extends AbstractListModel<String> {
-        private final String[] strings = { PolicyGeneratorWindow.this.translate(
-                "Round" +
-                "-Robin " +
-                "(circular" +
-                " " +
-                "queue)"),
-                PolicyGeneratorWindow.this.translate("The " +
-                                                     "most " +
-                                                     "computational " +
-                                                     "power resource"),
-                PolicyGeneratorWindow.this.translate(
-                        "Resource with " +
-                        "less " +
-                        "workload"),
-                PolicyGeneratorWindow.this.translate(
-                        "Resource with " +
-                        "better " +
-                        "communication link") };
+        private final List<String> ss = Stream.of(
+                        "Round-Robin (circular queue)",
+                        "The most computational power resource",
+                        "Resource with less workload",
+                        "Resource with better communication link"
+                ).map(PolicyGeneratorWindow.this::translate)
+                .toList();
 
         public int getSize() {
-            return this.strings.length;
+            return this.ss.size();
         }
 
         public String getElementAt(final int i) {
-            return this.strings[i];
+            return this.ss.get(i);
         }
     }
 
     private class SimpleTaskModel extends AbstractListModel<String> {
-        final String[] strings = {
-                PolicyGeneratorWindow.this.translate("FIFO " +
-                                                     "(First " +
-                                                     "In, " +
-                                                     "First" +
-                                                     " Out)"),
-                "%s %s".formatted(PolicyGeneratorWindow.this.translate(
-                        "Largest" +
-                        " Task " +
-                        "First"), PolicyGeneratorWindow.this.translate(
-                        "(Cost of Processing)")),
-                "%s %s".formatted(PolicyGeneratorWindow.this.translate(
-                                "Lowest" +
-                                " " +
-                                "Task " +
-                                "First"),
-                        PolicyGeneratorWindow.this.translate(
-                                "(Cost of Processing)")),
-                "%s %s".formatted(PolicyGeneratorWindow.this.translate(
-                        "Largest" +
-                        " Task " +
-                        "First"), PolicyGeneratorWindow.this.translate(
-                        "(Cost of Communication)")),
-                "%s %s".formatted(PolicyGeneratorWindow.this.translate(
-                                "Lowest" +
-                                " " +
-                                "Task " +
-                                "First"),
-                        PolicyGeneratorWindow.this.translate(
-                                "(Cost of Communication)")),
-                PolicyGeneratorWindow.this.translate("User " +
-                                                     "with Less " +
-                                                     "Use of " +
-                                                     "Grid " +
-                                                     "First"
-                ) };
+        private final List<String> strings = Stream.of(
+                PolicyGeneratorWindow.this.translate(
+                        "FIFO (First In, First Out)"),
+                this.translateAndMerge(
+                        "Largest Task First",
+                        "(Cost of Processing)"
+                ),
+                this.translateAndMerge(
+                        "Lowest Task First",
+                        "(Cost of Processing)"
+                ),
+                this.translateAndMerge(
+                        "Largest Task First",
+                        "(Cost of Communication)"
+                ),
+                this.translateAndMerge(
+                        "Lowest Task First",
+                        "(Cost of Communication)"
+                ),
+                PolicyGeneratorWindow.this.translate(
+                        "User with Less Use of Grid First"
+                )
+        ).toList();
+
+        private String translateAndMerge(final String s1, final String s2) {
+            return "%s %s".formatted(
+                    PolicyGeneratorWindow.this.translate(s1),
+                    PolicyGeneratorWindow.this.translate(s2)
+            );
+        }
 
         public int getSize() {
-            return this.strings.length;
+            return this.strings.size();
         }
 
         public String getElementAt(final int i) {
-            return this.strings[i];
+            return this.strings.get(i);
         }
     }
 
