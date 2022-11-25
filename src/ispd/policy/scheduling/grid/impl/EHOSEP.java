@@ -87,20 +87,6 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
     }
 
-    //Metodo necessario para implementar interface. Não é usado.
-    @Override
-    public Tarefa escalonarTarefa() {
-        throw new UnsupportedOperationException("Not supported yet."); //To
-        // change body of generated methods, choose Tools | Templates.
-    }
-
-    //Metodo necessario para implementar interface. Não é usado.
-    @Override
-    public CS_Processamento escalonarRecurso() {
-        throw new UnsupportedOperationException("Not supported yet."); //To
-        // change body of generated methods, choose Tools | Templates.
-    }
-
     @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
         final int index = this.escravos.indexOf(destino);
@@ -179,6 +165,20 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
     }
 
+    //Metodo necessario para implementar interface. Não é usado.
+    @Override
+    public CS_Processamento escalonarRecurso() {
+        throw new UnsupportedOperationException("Not supported yet."); //To
+        // change body of generated methods, choose Tools | Templates.
+    }
+
+    //Definir o intervalo de tempo, em segundos, em que as máquinas enviarão
+    // dados de atualização para o escalonador
+    @Override
+    public Double getTempoAtualizar() {
+        return 15.0;
+    }
+
     private int buscarTarefa(final EHOSEP_StatusUser usuario) {
 
         //Indice da tarefa na lista de tarefas
@@ -200,7 +200,8 @@ public class EHOSEP extends GridSchedulingPolicy {
         return trf;
     }
 
-    private int buscarRecurso(final EHOSEP_StatusUser cliente, final Tarefa TarAloc) {
+    private int buscarRecurso(final EHOSEP_StatusUser cliente,
+                              final Tarefa TarAloc) {
 
         /*++++++++++++++++++Buscando recurso livres++++++++++++++++++*/
 
@@ -369,82 +370,11 @@ public class EHOSEP extends GridSchedulingPolicy {
         return indexSelec;
     }
 
+    //Metodo necessario para implementar interface. Não é usado.
     @Override
-    //Receber nova tarefa submetida ou tarefa que sofreu preemoção
-    public void adicionarTarefa(final Tarefa tarefa) {
-
-        //Method herdado, obrigatório executar para obter métricas ao final
-        // da slimuação
-        super.adicionarTarefa(tarefa);
-
-        //Atualização da demanda do usuário proprietário da tarefa
-        for (int i = 0; i < this.status.size(); i++) {
-            if (this.status.get(i).getNome().equals(tarefa.getProprietario())) {
-                this.status.get(i).addDemanda();
-            }
-        }
-
-        //Em caso de preempção
-        if (tarefa.getLocalProcessamento() != null) {
-
-            //Localizar informações de estado de máquina que executou a
-            // tarefa (se houver)
-            final CS_Processamento maq =
-                    (CS_Processamento) tarefa.getLocalProcessamento();
-
-            //Localizar informações armazenadas sobre a preempção em particular
-
-            int indexControlePreemp = -1;
-            int indexStatusUserAlloc = -1;
-            int indexStatusUserPreemp = -1;
-
-            for (int j = 0; j < this.controlePreempcao.size(); j++) {
-                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
-                    indexControlePreemp = j;
-                    break;
-                }
-            }
-
-            for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
-                    indexStatusUserAlloc = k;
-                }
-            }
-
-            for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
-                    indexStatusUserPreemp = k;
-                }
-            }
-
-            //Localizar tarefa em espera deseignada para executar
-            for (int i = 0; i < this.esperaTarefas.size(); i++) {
-
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
-
-                    //Enviar tarefa para execução
-                    this.mestre.sendTask(this.esperaTarefas.remove(i));
-
-                    //Atualizar informações de estado do usuário cuja tarefa
-                    // será executada
-                    this.status.get(indexStatusUserAlloc).addServedNum();
-                    this.status.get(indexStatusUserAlloc).addServedPerf(maq.getPoderComputacional());
-                    this.status.get(indexStatusUserAlloc).addServedPower(maq.getConsumoEnergia());
-
-                    //Atualizar informações de estado do usuáro cuja tarefa
-                    // foi interrompida
-                    this.status.get(indexStatusUserPreemp).rmServedNum();
-                    this.status.get(indexStatusUserPreemp).rmServedPerf(maq.getPoderComputacional());
-                    this.status.get(indexStatusUserPreemp).rmServedPower(maq.getConsumoEnergia());
-
-                    //Com a preempção feita, os dados necessários para ela
-                    // são eliminados
-                    this.controlePreempcao.remove(indexControlePreemp);
-                    //Encerrar laço
-                    break;
-                }
-            }
-        }
+    public Tarefa escalonarTarefa() {
+        throw new UnsupportedOperationException("Not supported yet."); //To
+        // change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -534,13 +464,6 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
     }
 
-    //Definir o intervalo de tempo, em segundos, em que as máquinas enviarão
-    // dados de atualização para o escalonador
-    @Override
-    public Double getTempoAtualizar() {
-        return 15.0;
-    }
-
     @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
         //super.resultadoAtualizar(mensagem);
@@ -580,4 +503,81 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
     }
 
+    @Override
+    //Receber nova tarefa submetida ou tarefa que sofreu preemoção
+    public void adicionarTarefa(final Tarefa tarefa) {
+
+        //Method herdado, obrigatório executar para obter métricas ao final
+        // da slimuação
+        super.adicionarTarefa(tarefa);
+
+        //Atualização da demanda do usuário proprietário da tarefa
+        for (int i = 0; i < this.status.size(); i++) {
+            if (this.status.get(i).getNome().equals(tarefa.getProprietario())) {
+                this.status.get(i).addDemanda();
+            }
+        }
+
+        //Em caso de preempção
+        if (tarefa.getLocalProcessamento() != null) {
+
+            //Localizar informações de estado de máquina que executou a
+            // tarefa (se houver)
+            final CS_Processamento maq =
+                    (CS_Processamento) tarefa.getLocalProcessamento();
+
+            //Localizar informações armazenadas sobre a preempção em particular
+
+            int indexControlePreemp = -1;
+            int indexStatusUserAlloc = -1;
+            int indexStatusUserPreemp = -1;
+
+            for (int j = 0; j < this.controlePreempcao.size(); j++) {
+                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
+                    indexControlePreemp = j;
+                    break;
+                }
+            }
+
+            for (int k = 0; k < this.status.size(); k++) {
+                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
+                    indexStatusUserAlloc = k;
+                }
+            }
+
+            for (int k = 0; k < this.status.size(); k++) {
+                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
+                    indexStatusUserPreemp = k;
+                }
+            }
+
+            //Localizar tarefa em espera deseignada para executar
+            for (int i = 0; i < this.esperaTarefas.size(); i++) {
+
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
+
+                    //Enviar tarefa para execução
+                    this.mestre.sendTask(this.esperaTarefas.remove(i));
+
+                    //Atualizar informações de estado do usuário cuja tarefa
+                    // será executada
+                    this.status.get(indexStatusUserAlloc).addServedNum();
+                    this.status.get(indexStatusUserAlloc).addServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserAlloc).addServedPower(maq.getConsumoEnergia());
+
+                    //Atualizar informações de estado do usuáro cuja tarefa
+                    // foi interrompida
+                    this.status.get(indexStatusUserPreemp).rmServedNum();
+                    this.status.get(indexStatusUserPreemp).rmServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserPreemp).rmServedPower(maq.getConsumoEnergia());
+
+                    //Com a preempção feita, os dados necessários para ela
+                    // são eliminados
+                    this.controlePreempcao.remove(indexControlePreemp);
+                    //Encerrar laço
+                    break;
+                }
+            }
+        }
+    }
 }
