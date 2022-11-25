@@ -8,6 +8,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.OSEP_ControleEscravos;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Policy
 public class OSEP extends GridSchedulingPolicy {
-    private final List<ControleEscravos> controleEscravos = new ArrayList<>();
+    private final List<OSEP_ControleEscravos> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
     private final List<PreemptionControl> controlePreempcao =
             new ArrayList<>();
@@ -48,7 +49,7 @@ public class OSEP extends GridSchedulingPolicy {
 
         for (final CS_Processamento escravo : this.escravos) {//Contadores para
             // lidar com a dinamicidade dos dados
-            this.controleEscravos.add(new ControleEscravos(escravo.getId()));
+            this.controleEscravos.add(new OSEP_ControleEscravos(escravo.getId()));
             this.filaEscravo.add(new ArrayList<Tarefa>());
             this.processadorEscravos.add(new ArrayList<Tarefa>());
         }
@@ -338,41 +339,6 @@ public class OSEP extends GridSchedulingPolicy {
     @Override
     public Double getTempoAtualizar() {
         return 15.0;
-    }
-
-    private static class ControleEscravos {
-
-        private final String ID;//Id da máquina escravo
-        private String status;//Estado da máquina
-
-        private ControleEscravos(final String ID) {
-            this.status = "Livre";
-            this.ID = ID;
-        }
-
-        public String getID() {
-            return this.ID;
-        }
-
-        private String getStatus() {
-            return this.status;
-        }
-
-        private void setOcupado() {
-            this.status = "Ocupado";
-        }
-
-        private void setLivre() {
-            this.status = "Livre";
-        }
-
-        private void setBloqueado() {
-            this.status = "Bloqueado";
-        }
-
-        private void setIncerto() {
-            this.status = "Incerto";
-        }
     }
 
     private class StatusUser {
