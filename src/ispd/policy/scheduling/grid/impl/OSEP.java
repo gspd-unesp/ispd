@@ -8,6 +8,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.OSEP_ControlePreempcao;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import java.util.List;
 public class OSEP extends GridSchedulingPolicy {
     private final List<ControleEscravos> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
-    private final List<ControlePreempcao> controlePreempcao = new ArrayList<>();
+    private final List<OSEP_ControlePreempcao> controlePreempcao = new ArrayList<>();
     private final List<List> processadorEscravos = new ArrayList<>();
     private Tarefa tarefaSelec = null;
     private HashMap<String, StatusUser> status = null;
@@ -221,7 +222,7 @@ public class OSEP extends GridSchedulingPolicy {
                     if ("Ocupado".equals(this.controleEscravos.get(this.escravos.indexOf(rec)).getStatus())) {
                         final int index_rec = this.escravos.indexOf(rec);
                         this.esperaTarefas.add(trf);
-                        this.controlePreempcao.add(new ControlePreempcao(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador(), trf.getProprietario(), trf.getIdentificador()));
+                        this.controlePreempcao.add(new OSEP_ControlePreempcao(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador(), trf.getProprietario(), trf.getIdentificador()));
                         this.controleEscravos.get(this.escravos.indexOf(rec)).setBloqueado();
                     }
                 }
@@ -369,38 +370,6 @@ public class OSEP extends GridSchedulingPolicy {
 
         private void setIncerto() {
             this.status = "Incerto";
-        }
-    }
-
-    private static class ControlePreempcao {
-
-        private final String usuarioPreemp;
-        private final String usuarioAlloc;
-        private final int preempID;//ID da tarefa que sofreu preempção
-        private final int allocID;//ID da tarefa alocada
-
-        private ControlePreempcao(final String user1, final int pID,
-                                  final String user2, final int aID) {
-            this.usuarioPreemp = user1;
-            this.preempID = pID;
-            this.usuarioAlloc = user2;
-            this.allocID = aID;
-        }
-
-        private String getUsuarioPreemp() {
-            return this.usuarioPreemp;
-        }
-
-        private int getPreempID() {
-            return this.preempID;
-        }
-
-        private String getUsuarioAlloc() {
-            return this.usuarioAlloc;
-        }
-
-        private int getAllocID() {
-            return this.allocID;
         }
     }
 
