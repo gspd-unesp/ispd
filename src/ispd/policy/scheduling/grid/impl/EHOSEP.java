@@ -10,6 +10,7 @@ import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.EHOSEP_ControleEscravos;
+import ispd.policy.scheduling.grid.impl.util.EHOSEP_ControlePreempcao;
 import ispd.policy.scheduling.grid.impl.util.EHOSEP_StatusUser;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class EHOSEP extends GridSchedulingPolicy {
     private final ArrayList<EHOSEP_StatusUser> status;
     private final List<EHOSEP_ControleEscravos> controleEscravos;
     private final List<Tarefa> esperaTarefas;
-    private final List<ControlePreempcao> controlePreempcao;
+    private final List<EHOSEP_ControlePreempcao> controlePreempcao;
 
     public EHOSEP() {
         this.tarefas = new ArrayList<>();
@@ -163,7 +164,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                                 this.controleEscravos.get(indexEscravo).GetProcessador().get(0).getProprietario();
                         final int idTarefaPreemp =
                                 this.controleEscravos.get(indexEscravo).GetProcessador().get(0).getIdentificador();
-                        this.controlePreempcao.add(new ControlePreempcao(userPreemp, idTarefaPreemp, tar.getProprietario(), tar.getIdentificador()));
+                        this.controlePreempcao.add(new EHOSEP_ControlePreempcao(userPreemp, idTarefaPreemp, tar.getProprietario(), tar.getIdentificador()));
                         this.esperaTarefas.add(tar);
 
                         //Solicitação de retorno da tarefa em execução e
@@ -579,36 +580,4 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
     }
 
-    //Classe para armazenar dados sobre as preempções que ainda não terminaram
-    public static class ControlePreempcao {
-
-        private final String usuarioPreemp;
-        private final String usuarioAlloc;
-        private final int preempID;//ID da tarefa que sofreu preempção
-        private final int allocID;//ID da tarefa alocada
-
-        public ControlePreempcao(final String userP, final int pID,
-                                 final String userA, final int aID) {
-            this.usuarioPreemp = userP;
-            this.preempID = pID;
-            this.usuarioAlloc = userA;
-            this.allocID = aID;
-        }
-
-        public String getUsuarioPreemp() {
-            return this.usuarioPreemp;
-        }
-
-        public int getPreempID() {
-            return this.preempID;
-        }
-
-        public String getUsuarioAlloc() {
-            return this.usuarioAlloc;
-        }
-
-        public int getAllocID() {
-            return this.allocID;
-        }
-    }
 }
