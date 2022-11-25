@@ -5,20 +5,4 @@ public class M_OSEP_ControlePreempcao extends PreemptionControl {
                                     final String user2, final int aID) {
         super(user1, pID, user2, aID);
     }
-
-    public String getUsuarioPreemp() {
-        return this.usuarioPreemp;
-    }
-
-    public int getPreempID() {
-        return this.preempID;
-    }
-
-    public String getUsuarioAlloc() {
-        return this.usuarioAlloc;
-    }
-
-    public int getAllocID() {
-        return this.allocID;
-    }
 }
