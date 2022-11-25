@@ -10,8 +10,8 @@ import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.EHOSEP_ControleEscravos;
-import ispd.policy.scheduling.grid.impl.util.EHOSEP_ControlePreempcao;
 import ispd.policy.scheduling.grid.impl.util.EHOSEP_StatusUser;
+import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,7 +22,7 @@ public class EHOSEP extends GridSchedulingPolicy {
     private final ArrayList<EHOSEP_StatusUser> status;
     private final List<EHOSEP_ControleEscravos> controleEscravos;
     private final List<Tarefa> esperaTarefas;
-    private final List<EHOSEP_ControlePreempcao> controlePreempcao;
+    private final List<PreemptionControl> controlePreempcao;
 
     public EHOSEP() {
         this.tarefas = new ArrayList<>();
@@ -150,7 +150,11 @@ public class EHOSEP extends GridSchedulingPolicy {
                                 this.controleEscravos.get(indexEscravo).GetProcessador().get(0).getProprietario();
                         final int idTarefaPreemp =
                                 this.controleEscravos.get(indexEscravo).GetProcessador().get(0).getIdentificador();
-                        this.controlePreempcao.add(new EHOSEP_ControlePreempcao(userPreemp, idTarefaPreemp, tar.getProprietario(), tar.getIdentificador()));
+                        String user1 = userPreemp;
+                        int pID = idTarefaPreemp;
+                        String user2 = tar.getProprietario();
+                        int aID = tar.getIdentificador();
+                        this.controlePreempcao.add(new PreemptionControl(user1, pID, user2, aID));
                         this.esperaTarefas.add(tar);
 
                         //Solicitação de retorno da tarefa em execução e
