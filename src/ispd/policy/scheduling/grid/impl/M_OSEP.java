@@ -8,6 +8,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.M_OSEP_ControlePreempcao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.List;
 public class M_OSEP extends GridSchedulingPolicy {
     private final List<ControleEscravos> controleEscravos;
     private final List<Tarefa> esperaTarefas;
-    private final List<ControlePreempcao> controlePreempcao;
+    private final List<M_OSEP_ControlePreempcao> controlePreempcao;
     private final List<List> processadorEscravos;
     private Tarefa tarefaSelec = null;
     private List<StatusUser> status = null;
@@ -266,7 +267,7 @@ public class M_OSEP extends GridSchedulingPolicy {
                 } else {
                     final int index_rec = this.escravos.indexOf(rec);
                     this.esperaTarefas.add(trf);
-                    this.controlePreempcao.add(new ControlePreempcao(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador(), trf.getProprietario(), trf.getIdentificador()));
+                    this.controlePreempcao.add(new M_OSEP_ControlePreempcao(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador(), trf.getProprietario(), trf.getIdentificador()));
                     final int indexUser =
                             this.metricaUsuarios.getUsuarios().indexOf(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario());
                     this.status.get(indexUser).AtualizaUso(rec.getPoderComputacional(), 0);
@@ -423,38 +424,6 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         public void setPreemp() {
             this.contador = 3;
-        }
-    }
-
-    private static class ControlePreempcao {
-
-        private final String usuarioPreemp;
-        private final String usuarioAlloc;
-        private final int preempID;
-        private final int allocID;
-
-        private ControlePreempcao(final String user1, final int pID,
-                                  final String user2, final int aID) {
-            this.usuarioPreemp = user1;
-            this.preempID = pID;
-            this.usuarioAlloc = user2;
-            this.allocID = aID;
-        }
-
-        public String getUsuarioPreemp() {
-            return this.usuarioPreemp;
-        }
-
-        public int getPreempID() {
-            return this.preempID;
-        }
-
-        public String getUsuarioAlloc() {
-            return this.usuarioAlloc;
-        }
-
-        public int getAllocID() {
-            return this.allocID;
         }
     }
 
