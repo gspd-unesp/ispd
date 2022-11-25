@@ -1,13 +1,9 @@
 package ispd.policy.scheduling.grid.impl.util;
 
-public class OSEP_ControleEscravos {
-
-    private final String ID;//Id da máquina escravo
-    private String status;//Estado da máquina
+public class OSEP_ControleEscravos extends SlaveStatusControl {
 
     public OSEP_ControleEscravos(final String ID) {
-        this.status = "Livre";
-        this.ID = ID;
+        super(ID);
     }
 
     public String getID() {
