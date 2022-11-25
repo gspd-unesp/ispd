@@ -54,6 +54,9 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 
 public abstract class GenericPolicyManagementWindow extends JFrame {
+    private static final String ICON_IMAGE_PATH = String.join(
+            File.separator, "..", "imagens", "Logo_iSPD_25.png"
+    );
     private final NonThrowingUndoManager undoManager =
             new NonThrowingUndoManager();
     private final PolicyManager manager;
@@ -71,9 +74,9 @@ public abstract class GenericPolicyManagementWindow extends JFrame {
         this.addWindowListener(new CancelableCloseWindowAdapter());
         this.setAlwaysOnTop(true);
         this.setFocusable(false);
-        this.setIconImage(Toolkit.getDefaultToolkit().getImage(
-                this.getResource("imagens/Logo_iSPD_25.png"))
-        );
+        this.setIconImage(Toolkit.getDefaultToolkit().getImage(this.getResource(
+                GenericPolicyManagementWindow.ICON_IMAGE_PATH
+        )));
 
         this.configureMenuBar();
         this.configureTextEditor();
