@@ -8,7 +8,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
-import ispd.policy.scheduling.grid.impl.util.M_OSEP_ControlePreempcao;
+import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.List;
 public class M_OSEP extends GridSchedulingPolicy {
     private final List<ControleEscravos> controleEscravos;
     private final List<Tarefa> esperaTarefas;
-    private final List<M_OSEP_ControlePreempcao> controlePreempcao;
+    private final List<PreemptionControl> controlePreempcao;
     private final List<List> processadorEscravos;
     private Tarefa tarefaSelec = null;
     private List<StatusUser> status = null;
@@ -267,7 +267,12 @@ public class M_OSEP extends GridSchedulingPolicy {
                 } else {
                     final int index_rec = this.escravos.indexOf(rec);
                     this.esperaTarefas.add(trf);
-                    this.controlePreempcao.add(new M_OSEP_ControlePreempcao(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador(), trf.getProprietario(), trf.getIdentificador()));
+                    String user1 =
+                            ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario();
+                    int pID = ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador();
+                    String user2 = trf.getProprietario();
+                    int aID = trf.getIdentificador();
+                    this.controlePreempcao.add(new PreemptionControl(user1, pID, user2, aID));
                     final int indexUser =
                             this.metricaUsuarios.getUsuarios().indexOf(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario());
                     this.status.get(indexUser).AtualizaUso(rec.getPoderComputacional(), 0);
