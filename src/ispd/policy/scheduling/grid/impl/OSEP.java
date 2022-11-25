@@ -18,7 +18,8 @@ import java.util.List;
 public class OSEP extends GridSchedulingPolicy {
     private final List<ControleEscravos> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
-    private final List<OSEP_ControlePreempcao> controlePreempcao = new ArrayList<>();
+    private final List<OSEP_ControlePreempcao> controlePreempcao =
+            new ArrayList<>();
     private final List<List> processadorEscravos = new ArrayList<>();
     private Tarefa tarefaSelec = null;
     private HashMap<String, StatusUser> status = null;
@@ -32,7 +33,8 @@ public class OSEP extends GridSchedulingPolicy {
 
     @Override
     public void iniciar() {
-        this.mestre.setSchedulingConditions(PolicyConditions.ALL);//Escalonamento quando
+        this.mestre.setSchedulingConditions(PolicyConditions.ALL);
+        //Escalonamento quando
         // chegam tarefas e quando tarefas são concluídas
         this.status = new HashMap<>();
 
@@ -53,12 +55,66 @@ public class OSEP extends GridSchedulingPolicy {
     }
 
     @Override
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
+    }
+
+    @Override
+    public void escalonar() {
+        final Tarefa trf = this.escalonarTarefa();
+        if (trf != null) {
+            this.tarefaSelec = trf;
+            final StatusUser estado = this.status.get(trf.getProprietario());
+            final CS_Processamento rec = this.escalonarRecurso();
+            if (rec != null) {
+                trf.setLocalProcessamento(rec);
+                trf.setCaminho(this.escalonarRota(rec));
+                //Verifica se não é caso de preempção
+                if ("Livre".equals(this.controleEscravos.get(this.escravos.indexOf(rec)).getStatus())) {
+
+                    estado.rmDemanda();
+                    estado.addServedNum();
+
+                    this.controleEscravos.get(this.escravos.indexOf(rec)).setBloqueado();
+                    this.mestre.sendTask(trf);
+
+                } else {
+
+                    if ("Ocupado".equals(this.controleEscravos.get(this.escravos.indexOf(rec)).getStatus())) {
+                        final int index_rec = this.escravos.indexOf(rec);
+                        this.esperaTarefas.add(trf);
+                        this.controlePreempcao.add(new OSEP_ControlePreempcao(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador(), trf.getProprietario(), trf.getIdentificador()));
+                        this.controleEscravos.get(this.escravos.indexOf(rec)).setBloqueado();
+                    }
+                }
+
+                for (int i = 0; i < this.escravos.size(); i++) {
+                    if (this.processadorEscravos.get(i).size() > 1) {
+                        System.out.printf("Escravo %s executando %d\n",
+                                this.escravos.get(i).getId(),
+                                this.processadorEscravos.get(i).size());
+                        System.out.println("PROBLEMA1");
+                    }
+                    if (!this.filaEscravo.get(i).isEmpty()) {
+                        System.out.println("Tem Fila");
+                    }
+                }
+            } else {
+                this.tarefas.add(trf);
+                this.tarefaSelec = null;
+            }
+        }
+
+    }
+
+    @Override
     public Tarefa escalonarTarefa() {
         //Usuários com maior diferença entre uso e posse terão preferência
         int difUsuarioMinimo = -1;
         int indexUsuarioMinimo = -1;
         String user;
-        //Encontrar o usuário que está mais abaixo da sua propriedade 
+        //Encontrar o usuário que está mais abaixo da sua propriedade
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             user = this.metricaUsuarios.getUsuarios().get(i);
 
@@ -107,6 +163,93 @@ public class OSEP extends GridSchedulingPolicy {
             return null;
         }
 
+    }
+
+    @Override
+    public void addTarefaConcluida(final Tarefa tarefa) {
+        super.addTarefaConcluida(tarefa);
+        final CS_Processamento maq =
+                (CS_Processamento) tarefa.getLocalProcessamento();
+        final StatusUser estado = this.status.get(tarefa.getProprietario());
+
+        estado.rmServedNum();
+        final int index = this.escravos.indexOf(maq);
+        this.controleEscravos.get(index).setLivre();
+    }
+
+    @Override
+    public void resultadoAtualizar(final Mensagem mensagem) {
+        super.resultadoAtualizar(mensagem);
+        final int index = this.escravos.indexOf(mensagem.getOrigem());
+        this.processadorEscravos.set(index, mensagem.getProcessadorEscravo());
+        this.contadorEscravos++;
+        if (this.contadorEscravos == this.escravos.size()) {
+            boolean escalona = false;
+            for (int i = 0; i < this.escravos.size(); i++) {
+                if ("Bloqueado".equals(this.controleEscravos.get(i).getStatus())) {
+                    this.controleEscravos.get(i).setIncerto();
+                }
+                if ("Incerto".equals(this.controleEscravos.get(i).getStatus())) {
+                    if (this.processadorEscravos.get(i).isEmpty()) {
+                        this.controleEscravos.get(i).setLivre();
+                        escalona = true;
+                    }
+                    if (this.processadorEscravos.size() == 1) {
+                        this.controleEscravos.get(i).setOcupado();
+                    }
+                    if (this.processadorEscravos.size() > 1) {
+                        System.out.println("Houve Fila");
+                    }
+                }
+            }
+            this.contadorEscravos = 0;
+            if (!this.tarefas.isEmpty() && escalona) {
+                this.mestre.executeScheduling();
+            }
+        }
+    }
+
+    @Override
+    public void adicionarTarefa(final Tarefa tarefa) {
+        super.adicionarTarefa(tarefa);
+        final CS_Processamento maq =
+                (CS_Processamento) tarefa.getLocalProcessamento();
+        final StatusUser estadoUser = this.status.get(tarefa.getProprietario());
+        //Em caso de preempção, é procurada a tarefa correspondente para ser
+        // enviada ao escravo agora desocupado
+        if (tarefa.getLocalProcessamento() != null) {
+
+            int j;
+            int indexControle = -1;
+            for (j = 0; j < this.controlePreempcao.size(); j++) {
+                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
+                    indexControle = j;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < this.esperaTarefas.size(); i++) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).getAllocID()) {
+
+                    this.mestre.sendTask(this.esperaTarefas.get(i));
+
+                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioAlloc()).addServedNum();
+
+                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).addDemanda();
+                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).rmServedNum();
+
+                    this.controleEscravos.get(this.escravos.indexOf(maq)).setBloqueado();
+
+                    this.esperaTarefas.remove(i);
+                    this.controlePreempcao.remove(j);
+                    break;
+                }
+            }
+
+        } else {
+            this.mestre.executeScheduling();
+            estadoUser.addDemanda();
+        }
     }
 
     @Override
@@ -193,149 +336,8 @@ public class OSEP extends GridSchedulingPolicy {
     }
 
     @Override
-    public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.escravos.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
-    }
-
-    @Override
-    public void escalonar() {
-        final Tarefa trf = this.escalonarTarefa();
-        if (trf != null) {
-            this.tarefaSelec = trf;
-            final StatusUser estado = this.status.get(trf.getProprietario());
-            final CS_Processamento rec = this.escalonarRecurso();
-            if (rec != null) {
-                trf.setLocalProcessamento(rec);
-                trf.setCaminho(this.escalonarRota(rec));
-                //Verifica se não é caso de preempção
-                if ("Livre".equals(this.controleEscravos.get(this.escravos.indexOf(rec)).getStatus())) {
-
-                    estado.rmDemanda();
-                    estado.addServedNum();
-
-                    this.controleEscravos.get(this.escravos.indexOf(rec)).setBloqueado();
-                    this.mestre.sendTask(trf);
-
-                } else {
-
-                    if ("Ocupado".equals(this.controleEscravos.get(this.escravos.indexOf(rec)).getStatus())) {
-                        final int index_rec = this.escravos.indexOf(rec);
-                        this.esperaTarefas.add(trf);
-                        this.controlePreempcao.add(new OSEP_ControlePreempcao(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador(), trf.getProprietario(), trf.getIdentificador()));
-                        this.controleEscravos.get(this.escravos.indexOf(rec)).setBloqueado();
-                    }
-                }
-
-                for (int i = 0; i < this.escravos.size(); i++) {
-                    if (this.processadorEscravos.get(i).size() > 1) {
-                        System.out.printf("Escravo %s executando %d\n",
-                                this.escravos.get(i).getId(),
-                                this.processadorEscravos.get(i).size());
-                        System.out.println("PROBLEMA1");
-                    }
-                    if (!this.filaEscravo.get(i).isEmpty()) {
-                        System.out.println("Tem Fila");
-                    }
-                }
-            } else {
-                this.tarefas.add(trf);
-                this.tarefaSelec = null;
-            }
-        }
-
-    }
-
-    @Override
-    public void adicionarTarefa(final Tarefa tarefa) {
-        super.adicionarTarefa(tarefa);
-        final CS_Processamento maq =
-                (CS_Processamento) tarefa.getLocalProcessamento();
-        final StatusUser estadoUser = this.status.get(tarefa.getProprietario());
-        //Em caso de preempção, é procurada a tarefa correspondente para ser
-        // enviada ao escravo agora desocupado
-        if (tarefa.getLocalProcessamento() != null) {
-
-            int j;
-            int indexControle = -1;
-            for (j = 0; j < this.controlePreempcao.size(); j++) {
-                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
-                    indexControle = j;
-                    break;
-                }
-            }
-
-            for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).getAllocID()) {
-
-                    this.mestre.sendTask(this.esperaTarefas.get(i));
-
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioAlloc()).addServedNum();
-
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).addDemanda();
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).rmServedNum();
-
-                    this.controleEscravos.get(this.escravos.indexOf(maq)).setBloqueado();
-
-                    this.esperaTarefas.remove(i);
-                    this.controlePreempcao.remove(j);
-                    break;
-                }
-            }
-
-        } else {
-            this.mestre.executeScheduling();
-            estadoUser.addDemanda();
-        }
-    }
-
-    @Override
-    public void addTarefaConcluida(final Tarefa tarefa) {
-        super.addTarefaConcluida(tarefa);
-        final CS_Processamento maq =
-                (CS_Processamento) tarefa.getLocalProcessamento();
-        final StatusUser estado = this.status.get(tarefa.getProprietario());
-
-        estado.rmServedNum();
-        final int index = this.escravos.indexOf(maq);
-        this.controleEscravos.get(index).setLivre();
-    }
-
-    @Override
     public Double getTempoAtualizar() {
         return 15.0;
-    }
-
-    @Override
-    public void resultadoAtualizar(final Mensagem mensagem) {
-        super.resultadoAtualizar(mensagem);
-        final int index = this.escravos.indexOf(mensagem.getOrigem());
-        this.processadorEscravos.set(index, mensagem.getProcessadorEscravo());
-        this.contadorEscravos++;
-        if (this.contadorEscravos == this.escravos.size()) {
-            boolean escalona = false;
-            for (int i = 0; i < this.escravos.size(); i++) {
-                if ("Bloqueado".equals(this.controleEscravos.get(i).getStatus())) {
-                    this.controleEscravos.get(i).setIncerto();
-                }
-                if ("Incerto".equals(this.controleEscravos.get(i).getStatus())) {
-                    if (this.processadorEscravos.get(i).isEmpty()) {
-                        this.controleEscravos.get(i).setLivre();
-                        escalona = true;
-                    }
-                    if (this.processadorEscravos.size() == 1) {
-                        this.controleEscravos.get(i).setOcupado();
-                    }
-                    if (this.processadorEscravos.size() > 1) {
-                        System.out.println("Houve Fila");
-                    }
-                }
-            }
-            this.contadorEscravos = 0;
-            if (!this.tarefas.isEmpty() && escalona) {
-                this.mestre.executeScheduling();
-            }
-        }
     }
 
     private static class ControleEscravos {
