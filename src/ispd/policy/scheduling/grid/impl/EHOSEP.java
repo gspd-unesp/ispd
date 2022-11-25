@@ -9,7 +9,7 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
-import ispd.policy.scheduling.grid.impl.util.EHOSEP_ControleEscravos;
+import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.EHOSEP_StatusUser;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 
@@ -20,7 +20,7 @@ import java.util.List;
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
     private final ArrayList<EHOSEP_StatusUser> status;
-    private final List<EHOSEP_ControleEscravos> controleEscravos;
+    private final List<SlaveControl> controleEscravos;
     private final List<Tarefa> esperaTarefas;
     private final List<PreemptionControl> controlePreempcao;
 
@@ -82,7 +82,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         //Controle dos nós, com cópias das filas de cada um e da tarefa que
         // executa em cada um
         for (int i = 0; i < this.escravos.size(); i++) {
-            this.controleEscravos.add(new EHOSEP_ControleEscravos(this.escravos.get(i).getId()
+            this.controleEscravos.add(new SlaveControl(this.escravos.get(i).getId()
                     , i, new ArrayList<>(), new ArrayList<>()));
         }
     }

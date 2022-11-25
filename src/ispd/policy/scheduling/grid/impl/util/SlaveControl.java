@@ -6,17 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 //Classe para arnazenar o estado das máquinas no sistema
-public class EHOSEP_ControleEscravos {
+public class SlaveControl {
 
-    private final String ID;//Id da máquina escravo
-    private final int index;//Índice na lista de escravos
-    private String status;//Estado da máquina
-    private ArrayList<Tarefa> fila;
-    private ArrayList<Tarefa> processador;
+    protected final String ID;//Id da máquina escravo
+    protected final int index;//Índice na lista de escravos
+    protected String status;//Estado da máquina
+    protected ArrayList<Tarefa> fila;
+    protected ArrayList<Tarefa> processador;
 
-    public EHOSEP_ControleEscravos(final String Ident, final int ind,
-                                   final ArrayList<Tarefa> F,
-                                   final ArrayList<Tarefa> P) {
+    public SlaveControl(final String Ident, final int ind,
+                        final ArrayList<Tarefa> F,
+                        final ArrayList<Tarefa> P) {
         this.status = "Livre";
         this.ID = Ident;
         this.index = ind;
