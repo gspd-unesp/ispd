@@ -1,32 +1,35 @@
 package ispd.policy.scheduling.grid.impl.util;
 
 public class PreemptionControl {
-    private final String usuarioPreemp;
-    private final String usuarioAlloc;
-    private final int preempID;//ID da tarefa que sofreu preempção
-    private final int allocID;//ID da tarefa alocada
+    private final String preemptedTaskUser;
+    private final int preemptedTaskId;
+    private final String allocatedTaskUser;
+    private final int allocatedTaskId;
 
-    public PreemptionControl(final String user1, final int pID,
-                             final String user2, final int aID) {
-        this.usuarioPreemp = user1;
-        this.preempID = pID;
-        this.usuarioAlloc = user2;
-        this.allocID = aID;
+    public PreemptionControl(
+            final String preemptedTaskUser,
+            final int preemptedTaskId,
+            final String allocatedTaskUser,
+            final int allocatedTaskId) {
+        this.preemptedTaskUser = preemptedTaskUser;
+        this.preemptedTaskId = preemptedTaskId;
+        this.allocatedTaskUser = allocatedTaskUser;
+        this.allocatedTaskId = allocatedTaskId;
     }
 
     public String getUsuarioPreemp() {
-        return this.usuarioPreemp;
+        return this.preemptedTaskUser;
     }
 
     public int getPreempID() {
-        return this.preempID;
+        return this.preemptedTaskId;
     }
 
     public String getUsuarioAlloc() {
-        return this.usuarioAlloc;
+        return this.allocatedTaskUser;
     }
 
     public int getAllocID() {
-        return this.allocID;
+        return this.allocatedTaskId;
     }
 }
