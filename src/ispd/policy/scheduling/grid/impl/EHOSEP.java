@@ -9,6 +9,7 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.EHOSEP_ControleEscravos;
 import ispd.policy.scheduling.grid.impl.util.EHOSEP_StatusUser;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.List;
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
     private final ArrayList<EHOSEP_StatusUser> status;
-    private final List<ControleEscravos> controleEscravos;
+    private final List<EHOSEP_ControleEscravos> controleEscravos;
     private final List<Tarefa> esperaTarefas;
     private final List<ControlePreempcao> controlePreempcao;
 
@@ -80,7 +81,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         //Controle dos nós, com cópias das filas de cada um e da tarefa que
         // executa em cada um
         for (int i = 0; i < this.escravos.size(); i++) {
-            this.controleEscravos.add(new ControleEscravos(this.escravos.get(i).getId()
+            this.controleEscravos.add(new EHOSEP_ControleEscravos(this.escravos.get(i).getId()
                     , i, new ArrayList<>(), new ArrayList<>()));
         }
     }
@@ -575,70 +576,6 @@ public class EHOSEP extends GridSchedulingPolicy {
         //Se há fila de tarefa na máquina
         if (!this.controleEscravos.get(index).GetFila().isEmpty()) {
             System.out.println("Houve Fila");
-        }
-    }
-
-    //Classe para arnazenar o estado das máquinas no sistema
-    private static class ControleEscravos {
-
-        private final String ID;//Id da máquina escravo
-        private final int index;//Índice na lista de escravos
-        private String status;//Estado da máquina
-        private ArrayList<Tarefa> fila;
-        private ArrayList<Tarefa> processador;
-
-        public ControleEscravos(final String Ident, final int ind,
-                                final ArrayList<Tarefa> F,
-                                final ArrayList<Tarefa> P) {
-            this.status = "Livre";
-            this.ID = Ident;
-            this.index = ind;
-            this.fila = F;
-            this.processador = P;
-        }
-
-        public String getID() {
-            return this.ID;
-        }
-
-        public int GetIndex() {
-            return this.index;
-        }
-
-        public List<Tarefa> GetFila() {
-            return this.fila;
-        }
-
-        public ArrayList<Tarefa> GetProcessador() {
-            return this.processador;
-        }
-
-        public String getStatus() {
-            return this.status;
-        }
-
-        public void setFila(final ArrayList<Tarefa> F) {
-            this.fila = F;
-        }
-
-        public void setProcessador(final ArrayList<Tarefa> P) {
-            this.processador = P;
-        }
-
-        public void setOcupado() {
-            this.status = "Ocupado";
-        }
-
-        public void setLivre() {
-            this.status = "Livre";
-        }
-
-        public void setBloqueado() {
-            this.status = "Bloqueado";
-        }
-
-        public void setIncerto() {
-            this.status = "Incerto";
         }
     }
 
