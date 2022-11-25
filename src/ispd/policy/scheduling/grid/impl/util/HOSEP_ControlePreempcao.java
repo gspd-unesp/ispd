@@ -1,19 +1,11 @@
 package ispd.policy.scheduling.grid.impl.util;
 
 //Classe para armazenar dados sobre as preempções que ainda não terminaram
-public class HOSEP_ControlePreempcao {
-
-    private final String usuarioPreemp;
-    private final String usuarioAlloc;
-    private final int preempID;//ID da tarefa que sofreu preempção
-    private final int allocID;//ID da tarefa alocada
+public class HOSEP_ControlePreempcao extends PreemptionControl {
 
     public HOSEP_ControlePreempcao(final String user1, final int pID,
                                    final String user2, final int aID) {
-        this.usuarioPreemp = user1;
-        this.preempID = pID;
-        this.usuarioAlloc = user2;
-        this.allocID = aID;
+        super(user1, pID, user2, aID);
     }
 
     public String getUsuarioPreemp() {
