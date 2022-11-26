@@ -17,10 +17,6 @@ public class SlaveStatusControl {
         return this.ID;
     }
 
-    public String getStatus() {
-        return this.status;
-    }
-
     public boolean Ocupado() {
         return OCCUPIED.equals(this.status);
     }
