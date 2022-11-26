@@ -8,6 +8,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.M_OSEP_ControleEscravos;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @Policy
 public class M_OSEP extends GridSchedulingPolicy {
-    private final List<ControleEscravos> controleEscravos;
+    private final List<M_OSEP_ControleEscravos> controleEscravos;
     private final List<Tarefa> esperaTarefas;
     private final List<PreemptionControl> controlePreempcao;
     private final List<List> processadorEscravos;
@@ -46,7 +47,7 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.escravos.size(); i++) {//Contadores para
             // lidar com a dinamicidade dos dados
-            this.controleEscravos.add(new ControleEscravos());
+            this.controleEscravos.add(new M_OSEP_ControleEscravos());
             this.filaEscravo.add(new ArrayList<Tarefa>());
             this.processadorEscravos.add(new ArrayList<Tarefa>());
         }
@@ -389,47 +390,6 @@ public class M_OSEP extends GridSchedulingPolicy {
         }
 
 
-    }
-
-    private static class ControleEscravos {
-
-        private int contador;
-
-        private ControleEscravos() {
-            this.contador = 0;
-        }
-
-        public boolean Ocupado() {
-            return this.contador == 1;
-        }
-
-        public boolean Livre() {
-            return this.contador == 0;
-        }
-
-        public boolean Bloqueado() {
-            return this.contador == 2;
-        }
-
-        public boolean Preemp() {
-            return this.contador == 3;
-        }
-
-        public void SetOcupado() {
-            this.contador = 1;
-        }
-
-        public void SetLivre() {
-            this.contador = 0;
-        }
-
-        public void SetBloqueado() {
-            this.contador = 2;
-        }
-
-        public void setPreemp() {
-            this.contador = 3;
-        }
     }
 
     private class StatusUser {
