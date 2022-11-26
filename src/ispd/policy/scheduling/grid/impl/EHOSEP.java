@@ -118,7 +118,7 @@ public class EHOSEP extends GridSchedulingPolicy {
 
                     //Se não é caso de preempção, a tarefa é configurada e
                     // enviada
-                    if ("Livre".equals(this.controleEscravos.get(indexEscravo).getStatus())) {
+                    if (this.controleEscravos.get(indexEscravo).Livre()) {
 
                         final Tarefa tar = this.tarefas.remove(indexTarefa);
                         tar.setLocalProcessamento(this.escravos.get(indexEscravo));
@@ -138,7 +138,7 @@ public class EHOSEP extends GridSchedulingPolicy {
 
                     //Se é caso de preempção, a tarefa configurada e colocada
                     // em espera
-                    if ("Ocupado".equals(this.controleEscravos.get(indexEscravo).getStatus())) {
+                    if (this.controleEscravos.get(indexEscravo).Ocupado()) {
 
                         final Tarefa tar = this.tarefas.remove(indexTarefa);
                         tar.setLocalProcessamento(this.escravos.get(indexEscravo));
@@ -222,7 +222,7 @@ public class EHOSEP extends GridSchedulingPolicy {
             // fato livre e que não há nenhuma tarefa em trânsito para o
             // escravo. É escolhido o recurso que consumir menos energia pra
             // executar a tarefa alocada.
-            if ("Livre".equals(this.controleEscravos.get(i).getStatus()) && (this.escravos.get(i).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
+            if (this.controleEscravos.get(i).Livre() && (this.escravos.get(i).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
 
                 if (indexSelec == -1) {
 
@@ -315,7 +315,7 @@ public class EHOSEP extends GridSchedulingPolicy {
 
         for (int j = 0; j < this.escravos.size(); j++) {
             //Procurar recurso ocupado com tarefa do usuário que perderá máquina
-            if ("Ocupado".equals(this.controleEscravos.get(j).getStatus()) && (this.escravos.get(j).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
+            if (this.controleEscravos.get(j).Ocupado() && (this.escravos.get(j).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
 
                 final Tarefa tarPreemp =
                         this.controleEscravos.get(j).GetProcessador().get(0);
@@ -394,7 +394,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                 (CS_Processamento) tarefa.getLocalProcessamento();
         final int maqIndex = this.escravos.indexOf(maq);
 
-        if ("Ocupado".equals(this.controleEscravos.get(maqIndex).getStatus())) {
+        if (this.controleEscravos.get(maqIndex).Ocupado()) {
 
             int statusIndex = -1;
 
@@ -411,8 +411,7 @@ public class EHOSEP extends GridSchedulingPolicy {
             this.status.get(statusIndex).rmServedPower(maq.getConsumoEnergia());
 
             this.controleEscravos.get(maqIndex).setLivre();
-        } else if ("Bloqueado".equals(
-                this.controleEscravos.get(maqIndex).getStatus())) {
+        } else if (this.controleEscravos.get(maqIndex).Bloqueado()) {
 
             int indexControlePreemp = -1;
             int indexStatusUserAlloc = -1;
@@ -483,10 +482,10 @@ public class EHOSEP extends GridSchedulingPolicy {
         // para esacalonamento novamente
 
         //Primeiro ciclo
-        if ("Bloqueado".equals(this.controleEscravos.get(index).getStatus())) {
+        if (this.controleEscravos.get(index).Bloqueado()) {
             this.controleEscravos.get(index).setIncerto();
             //Segundo ciclo
-        } else if ("Incerto".equals(this.controleEscravos.get(index).getStatus())) {
+        } else if (this.controleEscravos.get(index).Incerto()) {
             //Se não está executando nada
             if (this.controleEscravos.get(index).GetProcessador().isEmpty()) {
 
