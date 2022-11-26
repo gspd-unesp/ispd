@@ -1,7 +1,6 @@
 package ispd.policy.scheduling.grid.impl.util;
 
 public class SlaveStatusControl {
-    private static final SlaveStatus PREEMPTED = SlaveStatus.PREEMPTED;
     private enum SlaveStatus {
         FREE,
         OCCUPIED,
@@ -9,44 +8,40 @@ public class SlaveStatusControl {
         UNCERTAIN,
         PREEMPTED,
     };
-    private static final SlaveStatus OCCUPIED = SlaveStatus.OCCUPIED;
-    private static final SlaveStatus FREE = SlaveStatus.FREE;
-    private static final SlaveStatus BLOCKED = SlaveStatus.BLOCKED;
-    private static final SlaveStatus UNCERTAIN = SlaveStatus.UNCERTAIN;
-    private SlaveStatus status = FREE;//Estado da máquina
+    private SlaveStatus status = SlaveStatus.FREE;//Estado da máquina
 
     public boolean Ocupado() {
-        return OCCUPIED.equals(this.status);
+        return SlaveStatus.OCCUPIED.equals(this.status);
     }
 
     public boolean Livre() {
-        return FREE.equals(this.status);
+        return SlaveStatus.FREE.equals(this.status);
     }
 
     public boolean Bloqueado() {
-        return BLOCKED.equals(this.status);
+        return SlaveStatus.BLOCKED.equals(this.status);
     }
 
     public boolean Incerto() {
-        return UNCERTAIN.equals(this.status);
+        return SlaveStatus.UNCERTAIN.equals(this.status);
     }
-    public boolean Preemp() {return PREEMPTED.equals(this.status);}
+    public boolean Preemp() {return SlaveStatus.PREEMPTED.equals(this.status);}
 
     public void setOcupado() {
-        this.status = OCCUPIED;
+        this.status = SlaveStatus.OCCUPIED;
     }
 
     public void setLivre() {
-        this.status = FREE;
+        this.status = SlaveStatus.FREE;
     }
 
     public void setBloqueado() {
-        this.status = BLOCKED;
+        this.status = SlaveStatus.BLOCKED;
     }
 
     public void setIncerto() {
-        this.status = UNCERTAIN;
+        this.status = SlaveStatus.UNCERTAIN;
     }
 
-    public void setPreemp() {this.status = PREEMPTED;}
+    public void setPreemp() {this.status = SlaveStatus.PREEMPTED;}
 }
