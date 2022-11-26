@@ -96,7 +96,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
                     //Se não é caso de preempção, a tarefa é configurada e
                     // enviada
-                    if ("Livre".equals(this.controleEscravos.get(indexEscravo).getStatus())) {
+                    if (this.controleEscravos.get(indexEscravo).Livre()) {
 
                         final Tarefa tar = this.tarefas.remove(indexTarefa);
                         tar.setLocalProcessamento(this.escravos.get(indexEscravo));
@@ -114,7 +114,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
                     //Se é caso de preempção, a tarefa configurada e colocada
                     // em espera
-                    if ("Ocupado".equals(this.controleEscravos.get(indexEscravo).getStatus())) {
+                    if (this.controleEscravos.get(indexEscravo).Ocupado()) {
 
                         final Tarefa tar = this.tarefas.remove(indexTarefa);
                         tar.setLocalProcessamento(this.escravos.get(indexEscravo));
@@ -189,7 +189,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.escravos.size(); i++) {
 
-            if ("Livre".equals(this.controleEscravos.get(i).getStatus())) {
+            if (this.controleEscravos.get(i).Livre()) {
                 if (indexSelec == -1) {
                     indexSelec = i;
                 } else if (this.escravos.get(i).getPoderComputacional() > this.escravos.get(indexSelec).getPoderComputacional()) {
@@ -208,7 +208,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             for (int i = 0; i < this.escravos.size(); i++) {
 
-                if ("Ocupado".equals(this.controleEscravos.get(i).getStatus())) {
+                if (this.controleEscravos.get(i).Ocupado()) {
                     if (this.controleEscravos.get(i).GetProcessador().get(0).getProprietario().equals(this.status.get(this.status.size() - 1).getNome())) {
 
                         if (indexSelec == -1) {
@@ -262,7 +262,7 @@ public class HOSEP extends GridSchedulingPolicy {
                 (CS_Processamento) tarefa.getLocalProcessamento();
         final int maqIndex = this.escravos.indexOf(maq);
 
-        if ("Ocupado".equals(this.controleEscravos.get(maqIndex).getStatus())) {
+        if (this.controleEscravos.get(maqIndex).Ocupado()) {
 
             int statusIndex = -1;
 
@@ -277,7 +277,7 @@ public class HOSEP extends GridSchedulingPolicy {
             this.status.get(statusIndex).rmServedPerf(maq.getPoderComputacional());
             this.controleEscravos.get(maqIndex).setLivre();
 
-        } else if ("Bloqueado".equals(this.controleEscravos.get(maqIndex).getStatus())) {
+        } else if (this.controleEscravos.get(maqIndex).Bloqueado()) {
 
             int indexControlePreemp = -1;
             int indexStatusUserAlloc = -1;
@@ -344,10 +344,10 @@ public class HOSEP extends GridSchedulingPolicy {
         // para esacalonamento novamente
 
         //Primeiro ciclo
-        if ("Bloqueado".equals(this.controleEscravos.get(index).getStatus())) {
+        if (this.controleEscravos.get(index).Bloqueado()) {
             this.controleEscravos.get(index).setIncerto();
             //Segundo ciclo
-        } else if ("Incerto".equals(this.controleEscravos.get(index).getStatus())) {
+        } else if (this.controleEscravos.get(index).Incerto()) {
             //Se não está executando nada
             if (this.controleEscravos.get(index).GetProcessador().isEmpty()) {
 
