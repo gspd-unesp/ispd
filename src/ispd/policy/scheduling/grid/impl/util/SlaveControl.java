@@ -13,12 +13,12 @@ public class SlaveControl extends SlaveStatusControl {
         return this.tasksOnHold;
     }
 
-    public ArrayList<Tarefa> getTasksInProcessing() {
-        return this.tasksInProcessing;
-    }
-
     public void setTasksOnHold(final List<Tarefa> tasksOnHold) {
         this.tasksOnHold = tasksOnHold;
+    }
+
+    public ArrayList<Tarefa> getTasksInProcessing() {
+        return this.tasksInProcessing;
     }
 
     public void setTasksInProcessing(final ArrayList<Tarefa> tasksInProcessing) {
