@@ -50,7 +50,7 @@ public class OSEP extends GridSchedulingPolicy {
         for (final CS_Processamento escravo : this.escravos) {//Contadores para
             // lidar com a dinamicidade dos dados
             String ID = escravo.getId();
-            this.controleEscravos.add(new SlaveStatusControl(ID));
+            this.controleEscravos.add(new SlaveStatusControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
             this.processadorEscravos.add(new ArrayList<Tarefa>());
         }

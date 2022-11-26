@@ -5,17 +5,7 @@ public class SlaveStatusControl {
     private static final String FREE = "Livre";
     private static final String BLOCKED = "Bloqueado";
     private static final String UNCERTAIN = "Incerto";
-    protected final String ID;//Id da máquina escravo
-    protected String status;//Estado da máquina
-
-    public SlaveStatusControl(final String Ident) {
-        this.ID = Ident;
-        this.status = FREE;
-    }
-
-    public String getID() {
-        return this.ID;
-    }
+    protected String status = FREE;//Estado da máquina
 
     public boolean Ocupado() {
         return OCCUPIED.equals(this.status);

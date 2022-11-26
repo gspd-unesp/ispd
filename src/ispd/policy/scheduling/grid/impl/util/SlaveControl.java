@@ -15,7 +15,6 @@ public class SlaveControl extends SlaveStatusControl {
     public SlaveControl(final String Ident, final int ind,
                         final ArrayList<Tarefa> F,
                         final ArrayList<Tarefa> P) {
-        super(Ident);
         this.index = ind;
         this.fila = F;
         this.processador = P;
