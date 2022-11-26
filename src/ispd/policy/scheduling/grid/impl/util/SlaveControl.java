@@ -9,19 +9,19 @@ public class SlaveControl extends SlaveStatusControl {
     private List<Tarefa> tasksOnHold = new ArrayList<>();
     private ArrayList<Tarefa> tasksInProcessing = new ArrayList<>();
 
-    public List<Tarefa> GetFila() {
+    public List<Tarefa> getTasksOnHold() {
         return this.tasksOnHold;
     }
 
-    public ArrayList<Tarefa> GetProcessador() {
+    public ArrayList<Tarefa> getTasksInProcessing() {
         return this.tasksInProcessing;
     }
 
-    public void setFila(final List<Tarefa> tasksOnHold) {
+    public void setTasksOnHold(final List<Tarefa> tasksOnHold) {
         this.tasksOnHold = tasksOnHold;
     }
 
-    public void setProcessador(final ArrayList<Tarefa> tasksInProcessing) {
+    public void setTasksInProcessing(final ArrayList<Tarefa> tasksInProcessing) {
         this.tasksInProcessing = tasksInProcessing;
     }
 }

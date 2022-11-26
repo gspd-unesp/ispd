@@ -146,9 +146,9 @@ public class EHOSEP extends GridSchedulingPolicy {
                         //Controle de preempção para enviar a nova tarefa no
                         // momento certo
                         final String userPreemp =
-                                this.controleEscravos.get(indexEscravo).GetProcessador().get(0).getProprietario();
+                                this.controleEscravos.get(indexEscravo).getTasksInProcessing().get(0).getProprietario();
                         final int idTarefaPreemp =
-                                this.controleEscravos.get(indexEscravo).GetProcessador().get(0).getIdentificador();
+                                this.controleEscravos.get(indexEscravo).getTasksInProcessing().get(0).getIdentificador();
                         String user1 = userPreemp;
                         int pID = idTarefaPreemp;
                         String user2 = tar.getProprietario();
@@ -158,7 +158,7 @@ public class EHOSEP extends GridSchedulingPolicy {
 
                         //Solicitação de retorno da tarefa em execução e
                         // atualização da demanda do usuário
-                        this.mestre.sendMessage(this.controleEscravos.get(indexEscravo).GetProcessador().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
+                        this.mestre.sendMessage(this.controleEscravos.get(indexEscravo).getTasksInProcessing().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
                         this.controleEscravos.get(indexEscravo).setAsBlocked();
                         cliente.rmDemanda();
                         return;
@@ -317,7 +317,7 @@ public class EHOSEP extends GridSchedulingPolicy {
             if (this.controleEscravos.get(j).isOccupied() && (this.escravos.get(j).getConsumoEnergia() + cliente.getServedPower()) <= cliente.getLimite()) {
 
                 final Tarefa tarPreemp =
-                        this.controleEscravos.get(j).GetProcessador().get(0);
+                        this.controleEscravos.get(j).getTasksInProcessing().get(0);
                 if (tarPreemp.getProprietario().equals(this.status.get(indexUserPreemp).getNome())) {
 
                     if (indexSelec == -1) {
@@ -473,8 +473,8 @@ public class EHOSEP extends GridSchedulingPolicy {
         final int index = this.escravos.indexOf(mensagem.getOrigem());
 
         //Atualizar listas de espera e processamento da máquina
-        this.controleEscravos.get(index).setProcessador((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
-        this.controleEscravos.get(index).setFila((ArrayList<Tarefa>) mensagem.getFilaEscravo());
+        this.controleEscravos.get(index).setTasksInProcessing((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
+        this.controleEscravos.get(index).setTasksOnHold((ArrayList<Tarefa>) mensagem.getFilaEscravo());
 
         //Tanto alocação para recurso livre como a preempção levam dois
         // ciclos de atualização para que a máquina possa ser considerada
@@ -486,21 +486,21 @@ public class EHOSEP extends GridSchedulingPolicy {
             //Segundo ciclo
         } else if (this.controleEscravos.get(index).isUncertain()) {
             //Se não está executando nada
-            if (this.controleEscravos.get(index).GetProcessador().isEmpty()) {
+            if (this.controleEscravos.get(index).getTasksInProcessing().isEmpty()) {
 
                 this.controleEscravos.get(index).setAsFree();
                 //Se está executando uma tarefa
-            } else if (this.controleEscravos.get(index).GetProcessador().size() == 1) {
+            } else if (this.controleEscravos.get(index).getTasksInProcessing().size() == 1) {
 
                 this.controleEscravos.get(index).setAsOccupied();
                 //Se há mais de uma tarefa e a máquina tem mais de um núcleo
-            } else if (this.controleEscravos.get(index).GetProcessador().size() > 1) {
+            } else if (this.controleEscravos.get(index).getTasksInProcessing().size() > 1) {
 
                 System.out.println("Houve Paralelismo");
             }
         }
         //Se há fila de tarefa na máquina
-        if (!this.controleEscravos.get(index).GetFila().isEmpty()) {
+        if (!this.controleEscravos.get(index).getTasksOnHold().isEmpty()) {
             System.out.println("Houve Fila");
         }
     }
