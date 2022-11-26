@@ -1,6 +1,6 @@
 package ispd.policy.scheduling.grid.impl.util;
 
-public class M_OSEP_ControleEscravos {
+public class M_OSEP_ControleEscravos extends SlaveStatusControl {
 
     private static final int OCCUPIED = 1;
     private static final int FREE = 0;
@@ -10,37 +10,5 @@ public class M_OSEP_ControleEscravos {
 
     public M_OSEP_ControleEscravos() {
         this.contador = FREE;
-    }
-
-    public boolean Ocupado() {
-        return this.contador == OCCUPIED;
-    }
-
-    public boolean Livre() {
-        return this.contador == FREE;
-    }
-
-    public boolean Bloqueado() {
-        return this.contador == BLOCKED;
-    }
-
-    public boolean Preemp() {
-        return this.contador == PREEMPTIVE;
-    }
-
-    public void setOcupado() {
-        this.contador = OCCUPIED;
-    }
-
-    public void setLivre() {
-        this.contador = FREE;
-    }
-
-    public void setBloqueado() {
-        this.contador = BLOCKED;
-    }
-
-    public void setPreemp() {
-        this.contador = PREEMPTIVE;
     }
 }
