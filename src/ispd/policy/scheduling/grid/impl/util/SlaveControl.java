@@ -7,10 +7,9 @@ import java.util.List;
 
 //Classe para arnazenar o estado das máquinas no sistema
 public class SlaveControl extends SlaveStatusControl {
-
-    protected final int index;//Índice na lista de escravos
-    protected ArrayList<Tarefa> fila;
-    protected ArrayList<Tarefa> processador;
+    private final int index;//Índice na lista de escravos
+    private ArrayList<Tarefa> fila;
+    private ArrayList<Tarefa> processador;
 
     public SlaveControl(final String Ident, final int ind,
                         final ArrayList<Tarefa> F,
@@ -18,10 +17,6 @@ public class SlaveControl extends SlaveStatusControl {
         this.index = ind;
         this.fila = F;
         this.processador = P;
-    }
-
-    public int GetIndex() {
-        return this.index;
     }
 
     public List<Tarefa> GetFila() {
