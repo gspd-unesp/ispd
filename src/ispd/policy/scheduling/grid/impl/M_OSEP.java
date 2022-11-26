@@ -145,7 +145,7 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         if (selec != null) {
 
-            this.controleEscravos.get(this.escravos.indexOf(selec)).SetBloqueado();//Inidcar que uma tarefa será enviada e que , portanto , este escravo deve ser bloqueada até a próxima atualização
+            this.controleEscravos.get(this.escravos.indexOf(selec)).setBloqueado();//Inidcar que uma tarefa será enviada e que , portanto , este escravo deve ser bloqueada até a próxima atualização
 
             return selec;
 
@@ -375,12 +375,12 @@ public class M_OSEP extends GridSchedulingPolicy {
             boolean escalona = false;
             for (int i = 0; i < this.escravos.size(); i++) {
                 if (this.processadorEscravos.get(i).size() == 1 && !this.controleEscravos.get(i).Preemp()) {
-                    this.controleEscravos.get(i).SetOcupado();
+                    this.controleEscravos.get(i).setOcupado();
                 } else if (this.processadorEscravos.get(i).isEmpty() && !this.controleEscravos.get(i).Preemp()) {
                     escalona = true;
-                    this.controleEscravos.get(i).SetLivre();
+                    this.controleEscravos.get(i).setLivre();
                 } else if (this.controleEscravos.get(i).Preemp()) {
-                    this.controleEscravos.get(i).SetBloqueado();
+                    this.controleEscravos.get(i).setBloqueado();
                 }
             }
             this.contadorEscravos = 0;

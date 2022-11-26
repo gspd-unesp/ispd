@@ -22,6 +22,7 @@ public class SlaveStatusControl {
     public boolean Incerto() {
         return UNCERTAIN.equals(this.status);
     }
+    public boolean Preemp() {return "Preemp".equals(this.status);}
 
     public void setOcupado() {
         this.status = OCCUPIED;
@@ -38,4 +39,6 @@ public class SlaveStatusControl {
     public void setIncerto() {
         this.status = UNCERTAIN;
     }
+
+    public void setPreemp() {this.status = "Preemp";}
 }

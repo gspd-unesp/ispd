@@ -28,15 +28,15 @@ public class M_OSEP_ControleEscravos {
         return this.contador == PREEMPTIVE;
     }
 
-    public void SetOcupado() {
+    public void setOcupado() {
         this.contador = OCCUPIED;
     }
 
-    public void SetLivre() {
+    public void setLivre() {
         this.contador = FREE;
     }
 
-    public void SetBloqueado() {
+    public void setBloqueado() {
         this.contador = BLOCKED;
     }
 
