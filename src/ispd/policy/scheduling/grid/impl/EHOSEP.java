@@ -82,8 +82,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         //Controle dos nós, com cópias das filas de cada um e da tarefa que
         // executa em cada um
         for (int i = 0; i < this.escravos.size(); i++) {
-            this.controleEscravos.add(new SlaveControl(this.escravos.get(i).getId()
-                    , i, new ArrayList<>(), new ArrayList<>()));
+            this.controleEscravos.add(new SlaveControl());
         }
     }
 

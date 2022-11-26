@@ -59,9 +59,7 @@ public class HOSEP extends GridSchedulingPolicy {
         for (int i = 0; i < this.escravos.size(); i++) {
             String Ident = this.escravos.get(i).getId();
             int ind = i;
-            ArrayList<Tarefa> F = new ArrayList<>();
-            ArrayList<Tarefa> P = new ArrayList<>();
-            this.controleEscravos.add(new SlaveControl(Ident, ind, F, P));
+            this.controleEscravos.add(new SlaveControl());
         }
     }
 
