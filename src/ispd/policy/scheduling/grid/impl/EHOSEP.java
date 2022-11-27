@@ -185,10 +185,13 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     private int findResourceBestSuitedFor(
             final UserControl uc, final double taskProcessingSize) {
-        int indexSelec = this.something(uc, taskProcessingSize);
+        final var suitedMachine = this.escravos.stream()
+                .filter(this::isSuitedForTask)
+                .filter(uc::canUseMachinePower)
+                .max(EHOSEP.bestConsumptionForTaskSize(taskProcessingSize));
 
-        if (indexSelec != -1) {
-            return indexSelec;
+        if (suitedMachine.isPresent()) {
+            return this.escravos.indexOf(suitedMachine.get());
         }
 
         //Se o usuário com maior valor de DifPoder não tem excesso de poder
@@ -209,6 +212,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         double desperdicioTestado;
         double desperdicioSelec = 0.0;
 
+        int indexSelec = -1;
         for (int j = 0; j < this.escravos.size(); j++) {
             //Procurar recurso ocupado com tarefa do usuário que perderá máquina
             final var machine = this.escravos.get(j);
@@ -314,58 +318,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         return this.userControls.get(this.userControls.size() - 1);
     }
 
-    private int something(
-            final UserControl uc, final double taskProcessingSize) {
-        final var x = this.escravos.stream()
-                .filter(this::isSuitedForTask)
-                .filter(uc::canUseMachinePower)
-                .max(EHOSEP.consumptionForTaskSizeComparator(taskProcessingSize));
-
-        int indexSelec = -1;
-        double consumoSelec = 0.0;
-
-        for (int i = 0; i < this.escravos.size(); i++) {
-
-            //Verificar o limite de consumo e garantir que o escravo está de
-            // fato livre e que não há nenhuma tarefa em trânsito para o
-            // escravo. É escolhido o recurso que consumir menos energia pra
-            // executar a tarefa alocada.
-            final var machine = this.escravos.get(i);
-
-            if (!(this.isSuitedForTask(machine) && uc.canUseMachinePower(machine))) {
-                continue;
-            }
-
-            if (indexSelec == -1) {
-                indexSelec = i;
-                consumoSelec =
-                        EHOSEP.machineConsumptionForTask(
-                                machine,
-                                taskProcessingSize
-                        );
-            } else {
-                final var consumoMaqTestada =
-                        EHOSEP.machineConsumptionForTask(
-                                machine,
-                                taskProcessingSize
-                        );
-
-                if (consumoMaqTestada < consumoSelec) {
-                    indexSelec = i;
-                    consumoSelec = consumoMaqTestada;
-                } else if (consumoMaqTestada == consumoSelec) {
-                    if (machine.getPoderComputacional() > this.escravos.get(indexSelec).getPoderComputacional()) {
-                        indexSelec = i;
-                        consumoSelec = consumoMaqTestada;
-                    }
-                }
-            }
-        }
-
-        return indexSelec;
-    }
-
-    private static Comparator<CS_Processamento> consumptionForTaskSizeComparator(final double taskProcessingSize) {
+    private static Comparator<CS_Processamento> bestConsumptionForTaskSize(final double taskProcessingSize) {
         final ToDoubleFunction<CS_Processamento> criterionFunction =
                 m -> EHOSEP.machineConsumptionForTask(m, taskProcessingSize);
 
