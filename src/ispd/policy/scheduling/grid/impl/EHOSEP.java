@@ -25,6 +25,7 @@ import java.util.stream.IntStream;
 
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
+    private static final double REFRESH_TIME = 15.0;
     private final List<UserControl> userControls = new ArrayList<>();
     private final List<SlaveControl> slaveControls = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
@@ -173,70 +174,20 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     @Override
     public Double getTempoAtualizar() {
-        return 15.0;
+        return EHOSEP.REFRESH_TIME;
     }
 
-    private int buscarRecurso(final UserControl cliente,
-                              final Tarefa TarAloc) {
-        //Índice da máquina escolhida, na lista de máquinas
-        int indexSelec = -1;
-        //Consumo da máquina escolhida e da máquina comparada com a escolhida
-        // previamente em passagem anterior do laço
-        double consumoSelec = 0.0;
-        double consumoMaqTestada;
-
-        for (int i = 0; i < this.escravos.size(); i++) {
-
-            //Verificar o limite de consumo e garantir que o escravo está de
-            // fato livre e que não há nenhuma tarefa em trânsito para o
-            // escravo. É escolhido o recurso que consumir menos energia pra
-            // executar a tarefa alocada.
-            if (this.slaveControls.get(i).isFree() && (this.escravos.get(i).getConsumoEnergia() + cliente.currentEnergyConsumption()) <= cliente.getEnergyConsumptionLimit()) {
-
-                if (indexSelec == -1) {
-
-                    indexSelec = i;
-                    //Tempo para processar
-                    consumoSelec =
-                            TarAloc.getTamProcessamento() / this.escravos.get(i).getPoderComputacional();
-                    //Consumo em Joule para processar
-                    consumoSelec =
-                            consumoSelec * this.escravos.get(i).getConsumoEnergia();
-
-                } else {
-                    //Tempo para processar
-                    consumoMaqTestada =
-                            TarAloc.getTamProcessamento() / this.escravos.get(i).getPoderComputacional();
-                    //Consumo em Joule para processar
-                    consumoMaqTestada =
-                            consumoMaqTestada * this.escravos.get(i).getConsumoEnergia();
-
-                    if (consumoSelec > consumoMaqTestada) {
-
-                        indexSelec = i;
-                        consumoSelec = consumoMaqTestada;
-                    } else if (consumoSelec == consumoMaqTestada) {
-
-                        if (this.escravos.get(i).getPoderComputacional() > this.escravos.get(indexSelec).getPoderComputacional()) {
-
-                            indexSelec = i;
-                            consumoSelec = consumoMaqTestada;
-                        }
-                    }
-                }
-            }
-        }
+    private int buscarRecurso(final UserControl uc, final Tarefa task) {
+        int indexSelec = this.something(uc, task);
 
         if (indexSelec != -1) {
             return indexSelec;
         }
 
-        /*+++++++++++++++++Busca por usuário para preempção+++++++++++++++++*/
-
         //Se o usuário com maior valor de DifPoder não tem excesso de poder
         // computacional, não há usuário que possa sofrer preempção. Além
         // disso, não ocorrerá preempção para atender usuário que tem excesso.
-        if (this.userControls.get(this.userControls.size() - 1).currentlyAvailableProcessingPower() <= this.userControls.get(this.userControls.size() - 1).getOwnedMachinesProcessingPower() || cliente.currentlyAvailableProcessingPower() >= cliente.getOwnedMachinesProcessingPower()) {
+        if (this.lastUserControl().canBePreempted() || uc.getOwnedMachinesProcessingPower() <= uc.currentlyAvailableProcessingPower()) {
             return -1;
         }
 
@@ -284,7 +235,8 @@ public class EHOSEP extends GridSchedulingPolicy {
 
         for (int j = 0; j < this.escravos.size(); j++) {
             //Procurar recurso ocupado com tarefa do usuário que perderá máquina
-            if (this.slaveControls.get(j).isOccupied() && (this.escravos.get(j).getConsumoEnergia() + cliente.currentEnergyConsumption()) <= cliente.getEnergyConsumptionLimit()) {
+            if (this.slaveControls.get(j).isOccupied() && uc.canUseMachinePower(
+                    this.escravos.get(j))) {
 
                 final var tarPreemp =
                         this.slaveControls.get(j).firstTaskInProcessing();
@@ -335,13 +287,70 @@ public class EHOSEP extends GridSchedulingPolicy {
 
         if (indexUserPreemp != -1 && indexSelec != -1) {
             if ((this.userControls.get(indexUserPreemp).currentlyAvailableProcessingPower() - this.escravos.get(indexSelec).getPoderComputacional()) < this.userControls.get(indexUserPreemp).getOwnedMachinesProcessingPower()) {
-                if (this.userControls.get(indexUserPreemp).getEnergyConsumptionLimit() <= cliente.getEnergyConsumptionLimit()) {
+                if (this.userControls.get(indexUserPreemp).getEnergyConsumptionLimit() <= uc.getEnergyConsumptionLimit()) {
                     indexSelec = -1;
                 }
             }
         }
 
         return indexSelec;
+    }
+
+    private UserControl lastUserControl() {
+        return this.userControls.get(this.userControls.size() - 1);
+    }
+
+    private int something(final UserControl uc, final Tarefa task) {
+        int indexSelec = -1;
+        double consumoSelec = 0.0;
+
+        for (int i = 0; i < this.escravos.size(); i++) {
+
+            //Verificar o limite de consumo e garantir que o escravo está de
+            // fato livre e que não há nenhuma tarefa em trânsito para o
+            // escravo. É escolhido o recurso que consumir menos energia pra
+            // executar a tarefa alocada.
+            final var machine = this.escravos.get(i);
+
+            if (!(this.slaveControls.get(i).isFree() && uc.canUseMachinePower(machine))) {
+                continue;
+            }
+
+            if (indexSelec == -1) {
+                indexSelec = i;
+                consumoSelec =
+                        EHOSEP.machineConsumptionForTask(
+                                machine,
+                                task.getTamProcessamento()
+                        );
+            } else {
+                final var consumoMaqTestada =
+                        EHOSEP.machineConsumptionForTask(
+                                machine,
+                                task.getTamProcessamento()
+                        );
+
+                if (consumoMaqTestada < consumoSelec) {
+                    indexSelec = i;
+                    consumoSelec = consumoMaqTestada;
+                } else if (consumoMaqTestada == consumoSelec) {
+                    if (machine.getPoderComputacional() > this.escravos.get(indexSelec).getPoderComputacional()) {
+                        indexSelec = i;
+                        consumoSelec = consumoMaqTestada;
+                    }
+                }
+            }
+        }
+
+        return indexSelec;
+    }
+
+    private static double machineConsumptionForTask(
+            final CS_Processamento machine,
+            final double taskProcessingSize) {
+        return taskProcessingSize
+               / machine.getPoderComputacional()
+               * machine.getConsumoEnergia();
     }
 
     /**

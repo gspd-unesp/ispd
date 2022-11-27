@@ -54,6 +54,11 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
     }
 
+    public boolean canUseMachinePower(final CS_Processamento machine) {
+        return this.currentEnergyConsumption + machine.getConsumoEnergia()
+               <= this.energyConsumptionLimit;
+    }
+
     public boolean isOwnerOf(final Tarefa task) {
         return this.userId.equals(task.getProprietario());
     }
@@ -162,10 +167,6 @@ public class UserControl implements Comparable<UserControl> {
         this.ownedMachinesEnergyConsumption = consumption;
     }
 
-    public double currentlyAvailableProcessingPower() {
-        return this.availableProcessingPower;
-    }
-
     public long getOwnedMachinesCount() {
         return this.ownedMachinesCount;
     }
@@ -174,5 +175,13 @@ public class UserControl implements Comparable<UserControl> {
         final var metricsLimit = metrics.getLimites().get(this.userId);
         this.energyConsumptionLimit =
                 this.ownedMachinesEnergyConsumption * metricsLimit / 100;
+    }
+
+    public boolean canBePreempted() {
+        return this.currentlyAvailableProcessingPower() <= this.ownedMachinesProcessingPower;
+    }
+
+    public double currentlyAvailableProcessingPower() {
+        return this.availableProcessingPower;
     }
 }
