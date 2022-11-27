@@ -23,10 +23,6 @@ public class OSEP_StatusUser extends EHOSEP_StatusUser {
         this.ownerShare = j;
     }
 
-    public String getUser() {
-        return this.user;
-    }
-
     public int getOwnerShare() {
         return this.ownerShare;
     }
