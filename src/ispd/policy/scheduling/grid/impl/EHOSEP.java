@@ -99,16 +99,16 @@ public class EHOSEP extends GridSchedulingPolicy {
 
             final var task = optTask.get();
 
-            final int resourceIndex = this.findIndexOfResourceBestSuitedFor(
+            final Optional<CS_Processamento> resourceIndex = this.findResourceBestSuitedFor(
                     userControl,
                     task.getTamProcessamento()
             );
 
-            if (resourceIndex == -1) {
+            if (resourceIndex.isEmpty()) {
                 continue;
             }
 
-            final var resource = this.escravos.get(resourceIndex);
+            final var resource = resourceIndex.get();
             final var control = this.slaveControls.get(resource);
 
             if (control.isFree()) {
@@ -183,7 +183,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         this.tarefas.remove(task);
     }
 
-    private int findIndexOfResourceBestSuitedFor(
+    private Optional<CS_Processamento> findResourceBestSuitedFor(
             final UserControl uc, final double taskSize) {
         // Attempts to find a machine that can host the task 'normally'
         final var availableMachine = this.escravos.stream()
@@ -192,7 +192,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .max(EHOSEP.bestConsumptionForTaskSize(taskSize));
 
         if (availableMachine.isPresent()) {
-            return this.escravos.indexOf(availableMachine.get());
+            return availableMachine;
         }
 
         // If no available machine is found, preemption may be used to force
@@ -201,7 +201,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         // However, if the task owner (user in uc) has excess processing
         // power, preemption will NOT be used to accommodate their tasks
         if (uc.hasExcessProcessingPower()) {
-            return -1;
+            return Optional.empty();
         }
 
         // Otherwise, we must find a user whose tasks should be preempted
@@ -210,13 +210,13 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .max(EHOSEP.bestConsumptionWeightedByEfficiency());
 
         if (optPreemptedUser.isEmpty()) {
-            return -1;
+            return Optional.empty();
         }
 
         final var preemptedUser = optPreemptedUser.get();
 
         if (preemptedUser.getEnergyConsumptionLimit() <= uc.getEnergyConsumptionLimit()) {
-            return -1;
+            return Optional.empty();
         }
 
         // And a machine that should be preempted
@@ -227,16 +227,16 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .min(this.leastWastedProcessingIfPreempted());
 
         if (optPreemptedMachine.isEmpty()) {
-            return -1;
+            return Optional.empty();
         }
 
         final var preemptedMachine = optPreemptedMachine.get();
 
         if (!preemptedUser.canFailyUsePreemptedMachine(preemptedMachine)) {
-            return -1;
+            return Optional.empty();
         }
 
-        return this.escravos.indexOf(preemptedMachine);
+        return optPreemptedMachine;
     }
 
     private static Comparator<UserControl> bestConsumptionWeightedByEfficiency() {
