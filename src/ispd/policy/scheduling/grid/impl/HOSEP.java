@@ -9,6 +9,7 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.HOSEP_StatusUser;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 
@@ -18,7 +19,7 @@ import java.util.List;
 
 @Policy
 public class HOSEP extends GridSchedulingPolicy {
-    private final List<StatusUser> status;
+    private final List<HOSEP_StatusUser> status;
     private final List<SlaveControl> controleEscravos;
     private final List<Tarefa> esperaTarefas;
     private final List<PreemptionControl> controlePreempcao;
@@ -51,7 +52,7 @@ public class HOSEP extends GridSchedulingPolicy {
                 }
             }
             //Adiciona dados do usuário corrente à lista 
-            this.status.add(new StatusUser(this.metricaUsuarios.getUsuarios().get(i), i, poderComp));
+            this.status.add(new HOSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i), i, poderComp));
         }
 
         //Controle dos nós, com cópias das filas de cada um e da tarefa que
@@ -74,12 +75,12 @@ public class HOSEP extends GridSchedulingPolicy {
 
         int indexTarefa;
         int indexEscravo;
-        StatusUser cliente;
+        HOSEP_StatusUser cliente;
 
         //Ordenar os usuários em ordem crescente de Poder Remanescente
         Collections.sort(this.status);
 
-        for (final StatusUser statusUser : this.status) {
+        for (final HOSEP_StatusUser statusUser : this.status) {
             cliente = statusUser;
 
             //Buscar tarefa para execucao
@@ -157,7 +158,7 @@ public class HOSEP extends GridSchedulingPolicy {
         return 15.0;
     }
 
-    private int buscarTarefa(final StatusUser usuario) {
+    private int buscarTarefa(final HOSEP_StatusUser usuario) {
 
         //Indice da tarefa na lista de tarefas
         int trf = -1;
@@ -178,7 +179,7 @@ public class HOSEP extends GridSchedulingPolicy {
         return trf;
     }
 
-    private int buscarRecurso(final StatusUser cliente) {
+    private int buscarRecurso(final HOSEP_StatusUser cliente) {
 
         /*++++++++++++++++++Buscando recurso livres++++++++++++++++++*/
 
@@ -376,7 +377,7 @@ public class HOSEP extends GridSchedulingPolicy {
         super.adicionarTarefa(tarefa);
 
         //Atualização da demanda do usuário proprietário da tarefa
-        for (final StatusUser statusUser : this.status) {
+        for (final HOSEP_StatusUser statusUser : this.status) {
             if (statusUser.getNome().equals(tarefa.getProprietario())) {
                 statusUser.addDemanda();
                 break;
@@ -441,140 +442,6 @@ public class HOSEP extends GridSchedulingPolicy {
                     break;
                 }
             }
-        }
-    }
-
-    //Classe para dados de estado dos usuários
-    private static class StatusUser implements Comparable<StatusUser> {
-
-        private final String user;//Nome do usuario;
-        private final int indexUser;//Índice do usuário;
-        private final double perfShare;//Desempenho total das máquinas do
-        private int demanda;//Número de tarefas na fila
-        // usuário
-        private double powerShare;//Consumo de energia total das máquinas do
-        // usuário
-        private int servedNum;//Número de máquinas que atendem ao usuário
-        private double servedPerf;//Desempenho total que atende ao usuário
-        private double servedPower;//Consumo de energia total que atende ao
-        // usuario
-        private double limiteConsumo;//Limite de consumo definido pelo usuario;
-        // decisão de preempção
-
-        private StatusUser(final String user, final int indexUser,
-                           final double perfShare) {
-            this.user = user;
-            this.indexUser = indexUser;
-            this.demanda = 0;
-            this.perfShare = perfShare;
-            this.powerShare = 0.0;
-            this.servedNum = 0;
-            this.servedPerf = 0.0;
-            this.servedPower = 0.0;
-            this.limiteConsumo = 0.0;
-        }
-
-        public static int getOwnerShare() {
-            //Número de máquinas do usuario
-            return 0;
-        }
-
-        public void calculaRelacaoEficienciaEficienciaSisPor(final Double poderSis, final Double consumoSis) {
-            //Nova métrica para
-            final double relacaoEficienciaSistemaPorcao =
-                    ((poderSis / consumoSis) / (this.perfShare / this.powerShare));
-        }
-
-        public void addDemanda() {
-            this.demanda++;
-        }
-
-        public void rmDemanda() {
-            this.demanda--;
-        }
-
-        public void addServedNum() {
-            this.servedNum++;
-        }
-
-        public void rmServedNum() {
-            this.servedNum--;
-        }
-
-        public void addServedPerf(final Double perf) {
-            this.servedPerf += perf;
-        }
-
-        public void rmServedPerf(final Double perf) {
-            this.servedPerf -= perf;
-        }
-
-        public void addServedPower(final Double power) {
-            this.servedPower += power;
-        }
-
-        public void rmServedPower(final Double power) {
-            this.servedPower -= power;
-        }
-
-        public String getNome() {
-            return this.user;
-        }
-
-        public int getIndexUser() {
-            return this.indexUser;
-        }
-
-        public int getDemanda() {
-            return this.demanda;
-        }
-
-        public Double getLimite() {
-            return this.limiteConsumo;
-        }
-
-        public void setLimite(final Double lim) {
-            this.limiteConsumo = lim;
-        }
-
-        public double getPowerShare() {
-            return this.powerShare;
-        }
-
-        public void setPowerShare(final Double power) {
-            this.powerShare = power;
-        }
-
-        public int getServedNum() {
-            return this.servedNum;
-        }
-
-        public double getServedPower() {
-            return this.servedPower;
-        }
-
-        //Comparador para ordenação
-        @Override
-        public int compareTo(final StatusUser o) {
-            if (((this.servedPerf - this.perfShare) / this.perfShare) < ((o.getServedPerf() - o.getPerfShare()) / o.getPerfShare())) {
-                return -1;
-            }
-            if (((this.servedPerf - this.perfShare) / this.perfShare) > ((o.getServedPerf() - o.getPerfShare()) / o.getPerfShare())) {
-                return 1;
-            }
-            if (this.perfShare >= o.getPerfShare()) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
-
-        public double getPerfShare() {
-            return this.perfShare;
-        }
-
-        public double getServedPerf() {
-            return this.servedPerf;
         }
     }
 
