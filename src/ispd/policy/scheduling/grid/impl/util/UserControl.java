@@ -54,6 +54,10 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
     }
 
+    public boolean canFailyUsePreemptedMachine(final CS_Processamento machine) {
+        return this.ownedMachinesProcessingPower + machine.getPoderComputacional() <= this.availableProcessingPower;
+    }
+
     public double excessProcessingPower() {
         return this.availableProcessingPower - this.ownedMachinesProcessingPower;
     }
@@ -62,7 +66,7 @@ public class UserControl implements Comparable<UserControl> {
         return this.currentEnergyConsumption * this.energyEfficiencyRatioAgainstSystem;
     }
 
-    public boolean canUseMachineWithoutExceedingLimit(final CS_Processamento machine) {
+    public boolean canUseMachineWithoutExceedingEnergyLimit(final CS_Processamento machine) {
         return this.currentEnergyConsumption + machine.getConsumoEnergia() <= this.energyConsumptionLimit;
     }
 
