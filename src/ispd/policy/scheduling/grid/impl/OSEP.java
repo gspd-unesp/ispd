@@ -8,6 +8,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.OSEP_StatusUser;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 import ispd.policy.scheduling.grid.impl.util.SlaveStatusControl;
 
@@ -23,7 +24,7 @@ public class OSEP extends GridSchedulingPolicy {
             new ArrayList<>();
     private final List<List> processadorEscravos = new ArrayList<>();
     private Tarefa tarefaSelec = null;
-    private HashMap<String, StatusUser> status = null;
+    private HashMap<String, OSEP_StatusUser> status = null;
     private int contadorEscravos = 0;
 
     public OSEP() {
@@ -42,7 +43,7 @@ public class OSEP extends GridSchedulingPolicy {
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             //Objetos de controle de uso e cota para cada um dos usuários
             this.status.put(this.metricaUsuarios.getUsuarios().get(i),
-                    new StatusUser(this.metricaUsuarios.getUsuarios().get(i),
+                    new OSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i),
                             i,
                             this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i)), OSEP.this.escravos));
         }
@@ -67,7 +68,7 @@ public class OSEP extends GridSchedulingPolicy {
         final Tarefa trf = this.escalonarTarefa();
         if (trf != null) {
             this.tarefaSelec = trf;
-            final StatusUser estado = this.status.get(trf.getProprietario());
+            final OSEP_StatusUser estado = this.status.get(trf.getProprietario());
             final CS_Processamento rec = this.escalonarRecurso();
             if (rec != null) {
                 trf.setLocalProcessamento(rec);
@@ -172,7 +173,7 @@ public class OSEP extends GridSchedulingPolicy {
         super.addTarefaConcluida(tarefa);
         final CS_Processamento maq =
                 (CS_Processamento) tarefa.getLocalProcessamento();
-        final StatusUser estado = this.status.get(tarefa.getProprietario());
+        final OSEP_StatusUser estado = this.status.get(tarefa.getProprietario());
 
         estado.rmServedNum();
         final int index = this.escravos.indexOf(maq);
@@ -216,7 +217,7 @@ public class OSEP extends GridSchedulingPolicy {
         super.adicionarTarefa(tarefa);
         final CS_Processamento maq =
                 (CS_Processamento) tarefa.getLocalProcessamento();
-        final StatusUser estadoUser = this.status.get(tarefa.getProprietario());
+        final OSEP_StatusUser estadoUser = this.status.get(tarefa.getProprietario());
         //Em caso de preempção, é procurada a tarefa correspondente para ser
         // enviada ao escravo agora desocupado
         if (tarefa.getLocalProcessamento() != null) {
@@ -342,144 +343,4 @@ public class OSEP extends GridSchedulingPolicy {
         return 15.0;
     }
 
-    private static class StatusUser {
-
-        private final String user;//Nome do usuario;
-        private final int indexUser;//Índice do usuário;
-        private final double perfShare;//Desempenho total das máquinas do
-        private final double servedPower;//Consumo de energia total que
-        private int demanda;//Número de tarefas na fila
-        private int indexTarefaMax;//Índice da maior tarefa na fila
-        private int indexTarefaMin;//Índice da menor tarefa na fila
-        private int ownerShare;//Número de máquinas do usuario
-        // usuário
-        private double powerShare;//Consumo de energia total das máquinas do
-        // usuário
-        private int servedNum;//Número de máquinas que atendem ao usuário
-        private double servedPerf;//Desempenho total que atende ao usuário
-        // atende ao usuario
-
-        private StatusUser(final String user, final int indexUser,
-                           final double perfShare,
-                           final List<CS_Processamento> slaves) {
-            this.user = user;
-            this.indexUser = indexUser;
-            this.demanda = 0;
-            this.indexTarefaMax = -1;
-            this.indexTarefaMin = -1;
-            this.ownerShare = 0;
-            this.perfShare = perfShare;
-            this.powerShare = 0.0;
-            this.servedNum = 0;
-            this.servedPerf = 0.0;
-            this.servedPower = 0.0;
-
-            int i;
-            int j = 0;
-            for (i = 0; i < slaves.size(); i++) {
-                if (slaves.get(i).getProprietario().equals(user)) {
-                    j++;
-                    //this.eficienciaMedia += escravos.get(i)
-                    // .getPoderComputacional()/escravos.get(i)
-                    // .getConsumoEnergia();
-                }
-            }
-            this.ownerShare = j;
-            //this.eficienciaMedia = this.eficienciaMedia/j;
-
-
-        }
-
-        private void addDemanda() {
-            this.demanda++;
-        }
-
-        private void rmDemanda() {
-            this.demanda--;
-        }
-
-        public void setTarefaMinima(final int index) {
-            this.indexTarefaMin = index;
-        }
-
-        public void setTarefaMaxima(final int index) {
-            this.indexTarefaMax = index;
-        }
-
-        public void addShare() {
-            this.ownerShare++;
-        }
-
-        public void addPowerShare(final Double power) {
-            this.powerShare += power;
-        }
-
-        private void addServedNum() {
-            this.servedNum++;
-        }
-
-        private void rmServedNum() {
-            this.servedNum--;
-        }
-
-        public void addServedPerf(final Double perf) {
-            this.servedPerf += perf;
-        }
-
-        public void rmServedPerf(final Double perf) {
-            this.servedPerf -= perf;
-        }
-
-        public void addServedPower(final Double power) {
-            this.servedPerf += power;
-        }
-
-        public void rmServedPower(final Double power) {
-            this.servedPerf -= power;
-        }
-
-        public String getUser() {
-            return this.user;
-        }
-
-        public int getIndexUser() {
-            return this.indexUser;
-        }
-
-        private int getDemanda() {
-            return this.demanda;
-        }
-
-        public int getIndexTarefaMax() {
-            return this.indexTarefaMax;
-        }
-
-        public int getIndexTarefaMin() {
-            return this.indexTarefaMin;
-        }
-
-        private int getOwnerShare() {
-            return this.ownerShare;
-        }
-
-        public double getPerfShare() {
-            return this.perfShare;
-        }
-
-        public double getPowerShare() {
-            return this.powerShare;
-        }
-
-        private int getServedNum() {
-            return this.servedNum;
-        }
-
-        public double getServedPerf() {
-            return this.servedPerf;
-        }
-
-        public double getServedPower() {
-            return this.servedPower;
-        }
-    }
 }
