@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 public class PolicyConditions {
+    // TODO: Document what "ALL" entails
     public static final Set<PolicyCondition> ALL =
             Collections.unmodifiableSet(EnumSet.allOf(PolicyCondition.class));
     public static final Set<PolicyCondition> WHILE_MUST_DISTRIBUTE =

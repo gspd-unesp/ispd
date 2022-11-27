@@ -17,41 +17,30 @@ import java.util.List;
 
 @Policy
 public class M_OSEP extends GridSchedulingPolicy {
-    private final List<SlaveControl> controleEscravos;
-    private final List<Tarefa> esperaTarefas;
-    private final List<PreemptionControl> controlePreempcao;
-    private final List<List> processadorEscravos;
+    private final List<SlaveControl> controleEscravos = new ArrayList<>();
+    private final List<Tarefa> esperaTarefas = new ArrayList<>();
+    private final List<PreemptionControl> controlePreempcao = new ArrayList<>();
+    private final List<List> processadorEscravos = new ArrayList<>();
+    private final List<UserControl> status = new ArrayList<>();
     private Tarefa tarefaSelec = null;
-    private List<UserControl> status = null;
     private int contadorEscravos = 0;
 
     public M_OSEP() {
         this.tarefas = new ArrayList<>();
         this.escravos = new ArrayList<>();
-        this.controleEscravos = new ArrayList<>();
-        this.esperaTarefas = new ArrayList<>();
-        this.controlePreempcao = new ArrayList<>();
         this.filaEscravo = new ArrayList<>();
-        this.processadorEscravos = new ArrayList<>();
     }
 
     @Override
     public void iniciar() {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
-        //Escalonamento quando
-        // chegam tarefas e quando tarefas são concluídas
-        this.status = new ArrayList<>();
 
-        for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
-            //Objetos de controle de uso e cota para cada um dos usuários
-            String user = this.metricaUsuarios.getUsuarios().get(i);
-            Double perfShare =
-                    this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i));
-            this.status.add(new UserControl(user, perfShare, escravos));
+        for (final var user : this.metricaUsuarios.getUsuarios()) {
+            final var comp = this.metricaUsuarios.getPoderComputacional(user);
+            this.status.add(new UserControl(user, comp, this.escravos));
         }
 
-        for (int i = 0; i < this.escravos.size(); i++) {//Contadores para
-            // lidar com a dinamicidade dos dados
+        for (int i = 0; i < this.escravos.size(); i++) {
             this.controleEscravos.add(new SlaveControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
             this.processadorEscravos.add(new ArrayList<Tarefa>());
@@ -66,56 +55,33 @@ public class M_OSEP extends GridSchedulingPolicy {
 
     @Override
     public void escalonar() {
-        final Tarefa trf = this.escalonarTarefa();
-        this.tarefaSelec = trf;
-        if (trf != null) {
-            final CS_Processamento rec = this.escalonarRecurso();
-            if (rec != null) {
-                trf.setLocalProcessamento(rec);
-                trf.setCaminho(this.escalonarRota(rec));
+        final var task = this.escalonarTarefa();
+        this.tarefaSelec = task;
+
+        if (task != null) {
+            final var resource = this.escalonarRecurso();
+            if (resource != null) {
+                task.setLocalProcessamento(resource);
+                task.setCaminho(this.escalonarRota(resource));
                 //Verifica se não é caso de preempção
-                if (!this.controleEscravos.get(this.escravos.indexOf(rec)).isPreempted()) {
-//                    numEscravosLivres--;
-                    UserControl m_osep_UserControl =
-                            this.status.get(this.metricaUsuarios.getUsuarios().indexOf(trf.getProprietario()));
-                    final Double poder = rec.getPoderComputacional();
-                    m_osep_UserControl.increaseAvailableProcessingPower(poder);
-                    //controleEscravos.get(escravos.indexOf(rec))
-                    // .SetBloqueado();
-                    this.mestre.sendTask(trf);
+                if (!this.controleEscravos.get(this.escravos.indexOf(resource)).isPreempted()) {
+                    this.status.get(this.metricaUsuarios.getUsuarios().indexOf(task.getProprietario()))
+                            .increaseAvailableProcessingPower(resource.getPoderComputacional());
+                    this.mestre.sendTask(task);
                 } else {
-                    final int index_rec = this.escravos.indexOf(rec);
-                    this.esperaTarefas.add(trf);
-                    String user1 =
-                            ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario();
-                    int pID =
-                            ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador();
-                    String user2 = trf.getProprietario();
-                    int aID = trf.getIdentificador();
-                    this.controlePreempcao.add(new PreemptionControl(user1,
-                            pID, user2, aID));
-                    final int indexUser =
-                            this.metricaUsuarios.getUsuarios().indexOf(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario());
-                    UserControl m_osep_UserControl = this.status.get(indexUser);
-                    final Double poder = rec.getPoderComputacional();
-                    m_osep_UserControl.decreaseAvailableProcessingPower(poder);
+                    final int resourceIndex = this.escravos.indexOf(resource);
+                    this.esperaTarefas.add(task);
+                    this.controlePreempcao.add(new PreemptionControl(
+                            ((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getProprietario(),
+                            ((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getIdentificador(),
+                            task.getProprietario(),
+                            task.getIdentificador()
+                    ));
+                    this.status.get(this.metricaUsuarios.getUsuarios().indexOf(((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getProprietario()))
+                            .decreaseAvailableProcessingPower(resource.getPoderComputacional());
                 }
-
-                for (int i = 0; i < this.escravos.size(); i++) {
-                    if (this.processadorEscravos.get(i).size() > 1) {
-                        System.out.printf("Escravo %s executando %d\n",
-                                this.escravos.get(i).getId(),
-                                this.processadorEscravos.get(i).size());
-                        System.out.println("PROBLEMA1");
-                    }
-                    if (!this.filaEscravo.get(i).isEmpty()) {
-                        System.out.println("Tem Fila");
-                    }
-                }
-
-
             } else {
-                this.tarefas.add(trf);
+                this.tarefas.add(task);
                 this.tarefaSelec = null;
             }
         }
@@ -192,13 +158,11 @@ public class M_OSEP extends GridSchedulingPolicy {
     @Override
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
-        final CS_Processamento maq =
-                (CS_Processamento) tarefa.getLocalProcessamento();
+        final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
         final int indexUser =
                 this.metricaUsuarios.getUsuarios().indexOf(tarefa.getProprietario());
-        UserControl m_osep_UserControl = this.status.get(indexUser);
-        final Double poder = maq.getPoderComputacional();
-        m_osep_UserControl.decreaseAvailableProcessingPower(poder);
+        this.status.get(indexUser)
+                .decreaseAvailableProcessingPower(maq.getPoderComputacional());
     }
 
     @Override
@@ -207,17 +171,6 @@ public class M_OSEP extends GridSchedulingPolicy {
         final int index = this.escravos.indexOf(mensagem.getOrigem());
         this.processadorEscravos.set(index, mensagem.getProcessadorEscravo());
         this.contadorEscravos++;
-        for (int i = 0; i < this.escravos.size(); i++) {
-            if (this.processadorEscravos.get(i).size() > 1) {
-                System.out.printf("Escravo %s executando %d\n",
-                        this.escravos.get(i).getId(),
-                        this.processadorEscravos.get(i).size());
-                System.out.println("PROBLEMA!");
-            }
-            if (!this.filaEscravo.get(i).isEmpty()) {
-                System.out.println("Tem Fila");
-            }
-        }
         if (this.contadorEscravos == this.escravos.size()) {
             boolean escalona = false;
             for (int i = 0; i < this.escravos.size(); i++) {
@@ -242,13 +195,10 @@ public class M_OSEP extends GridSchedulingPolicy {
     @Override
     public void adicionarTarefa(final Tarefa tarefa) {
         super.adicionarTarefa(tarefa);
-        final CS_Processamento maq =
-                (CS_Processamento) tarefa.getLocalProcessamento();
-        final int indexUser;
+        final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
         //Em caso de preempção, é procurada a tarefa correspondente para ser
         // enviada ao escravo agora desocupado
         if (tarefa.getLocalProcessamento() != null) {
-
             int j;
             int indexControle = -1;
             for (j = 0; j < this.controlePreempcao.size(); j++) {
@@ -260,15 +210,10 @@ public class M_OSEP extends GridSchedulingPolicy {
 
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
                 if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).allocatedTaskId()) {
-                    indexUser =
+                    final int indexUser =
                             this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).allocatedTaskUser());
-                    UserControl m_osep_UserControl = this.status.get(indexUser);
-                    final Double poder = maq.getPoderComputacional();
-                    m_osep_UserControl.increaseAvailableProcessingPower(poder);
+                    this.status.get(indexUser).increaseAvailableProcessingPower(maq.getPoderComputacional());
                     this.mestre.sendTask(this.esperaTarefas.get(i));
-                    final int index =
-                            this.escravos.indexOf(this.esperaTarefas.get(i).getLocalProcessamento());
-                    //controleEscravos.get(index).SetBloqueado();
                     this.esperaTarefas.remove(i);
                     this.controlePreempcao.remove(j);
                     break;
@@ -386,14 +331,6 @@ public class M_OSEP extends GridSchedulingPolicy {
             // das tarefas em execução e em espera não sejam a mesma pessoa ,
             // e , ainda, o escravo esteja executando apenas uma tarefa
             if (penalidaUserEscravoPosterior <= penalidaUserEsperaPosterior || (penalidaUserEscravoPosterior > 0 && penalidaUserEsperaPosterior < 0)) {
-
-                //System.out.println("Preempção: Tarefa " + ((Tarefa) selec
-                // .getInformacaoDinamicaProcessador().get(0))
-                // .getIdentificador() + " do user " + ((Tarefa) selec
-                // .getInformacaoDinamicaProcessador().get(0))
-                // .getProprietario() + " <=> " + tarefaSelec
-                // .getIdentificador() + " do user " + tarefaSelec
-                // .getProprietario());
                 index_selec = this.escravos.indexOf(selec);
                 this.controleEscravos.get(this.escravos.indexOf(selec)).setAsPreempted();
                 this.mestre.sendMessage((Tarefa) this.processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
