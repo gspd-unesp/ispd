@@ -44,7 +44,6 @@ public class OSEP extends GridSchedulingPolicy {
             //Objetos de controle de uso e cota para cada um dos usuários
             this.status.put(this.metricaUsuarios.getUsuarios().get(i),
                     new OSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i),
-                            i,
                             this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i)), OSEP.this.escravos));
         }
 

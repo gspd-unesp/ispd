@@ -6,7 +6,6 @@ import java.util.List;
 
 public class OSEP_StatusUser {
     private final String user;//Nome do usuario;
-    private final int indexUser;//Índice do usuário;
     private final double perfShare;//Desempenho total das máquinas do
     private final double servedPower;//Consumo de energia total que
     private int demanda;//Número de tarefas na fila
@@ -20,11 +19,10 @@ public class OSEP_StatusUser {
     private double servedPerf;//Desempenho total que atende ao usuário
     // atende ao usuario
 
-    public OSEP_StatusUser(final String user, final int indexUser,
+    public OSEP_StatusUser(final String user,
                            final double perfShare,
                            final List<CS_Processamento> slaves) {
         this.user = user;
-        this.indexUser = indexUser;
         this.demanda = 0;
         this.indexTarefaMax = -1;
         this.indexTarefaMin = -1;
@@ -101,10 +99,6 @@ public class OSEP_StatusUser {
 
     public String getUser() {
         return this.user;
-    }
-
-    public int getIndexUser() {
-        return this.indexUser;
     }
 
     public int getDemanda() {
