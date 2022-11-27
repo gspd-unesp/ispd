@@ -29,14 +29,14 @@ public class UserControl implements Comparable<UserControl> {
                 .filter(this::isOwnedByUser)
                 .count();
         this.energyEfficiencyRatioAgainstSystem =
-                this.calculateEnergyEfficiencyRatioAgainst(systemMachines);
+                this.energyEfficiencyRatioAgainst(systemMachines);
     }
 
     private boolean isOwnedByUser(final CS_Processamento machine) {
         return machine.getProprietario().equals(this.userId);
     }
 
-    private double calculateEnergyEfficiencyRatioAgainst(
+    private double energyEfficiencyRatioAgainst(
             final Collection<? extends CS_Processamento> machines) {
         final var sysCompPower = machines.stream()
                 .mapToDouble(CS_Processamento::getPoderComputacional)
@@ -52,6 +52,14 @@ public class UserControl implements Comparable<UserControl> {
 
     private double energyEfficiency() {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
+    }
+
+    public double excessProcessingPower() {
+        return this.availableProcessingPower - this.ownedMachinesProcessingPower;
+    }
+
+    public double currentConsumptionWeightedByEfficiency() {
+        return this.currentEnergyConsumption * this.energyEfficiencyRatioAgainstSystem;
     }
 
     public boolean canUseMachinePower(final CS_Processamento machine) {
@@ -130,14 +138,6 @@ public class UserControl implements Comparable<UserControl> {
         return this.availableMachineCount;
     }
 
-    public double currentEnergyConsumption() {
-        return this.currentEnergyConsumption;
-    }
-
-    public double calculatedEnergyEfficiencyRatio() {
-        return this.energyEfficiencyRatioAgainstSystem;
-    }
-
     @Override
     public int compareTo(final UserControl o) {
         // TODO: Document that comparison uses non-final fields
@@ -177,8 +177,8 @@ public class UserControl implements Comparable<UserControl> {
                 this.ownedMachinesEnergyConsumption * metricsLimit / 100;
     }
 
-    public boolean canBePreempted() {
-        return this.currentlyAvailableProcessingPower() <= this.ownedMachinesProcessingPower;
+    public boolean hasExcessProcessingPower() {
+        return this.ownedMachinesProcessingPower <= this.availableProcessingPower;
     }
 
     public double currentlyAvailableProcessingPower() {

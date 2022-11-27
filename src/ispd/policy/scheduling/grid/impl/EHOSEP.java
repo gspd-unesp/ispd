@@ -194,13 +194,9 @@ public class EHOSEP extends GridSchedulingPolicy {
             return this.escravos.indexOf(suitedMachine.get());
         }
 
-        //Se o usuário com maior valor de DifPoder não tem excesso de poder
-        // computacional, não há usuário que possa sofrer preempção. Além
-        // disso, não ocorrerá preempção para atender usuário que tem excesso.
-        if (this.lastUserControl().canBePreempted() || uc.getOwnedMachinesProcessingPower() <= uc.currentlyAvailableProcessingPower()) {
+        if (!this.bestUserControl().hasExcessProcessingPower() || uc.hasExcessProcessingPower()) {
             return -1;
         }
-
 
         final int indexUserPreemp = this.somethingElse();
 
@@ -286,27 +282,27 @@ public class EHOSEP extends GridSchedulingPolicy {
         for (int i = this.userControls.size() - 1; i >= 0; i--) {
             //Apenas usuários que tem excesso de poder computacional podem
             // sofrer preempção
-            if (this.userControls.get(i).currentlyAvailableProcessingPower() > this.userControls.get(i).getOwnedMachinesProcessingPower()) {
-                //Se ainda não foi escolhido
-                if (indexUserPreemp == -1) {
+            final var uc = this.userControls.get(i);
+
+            if (!uc.hasExcessProcessingPower()) {
+                continue;
+            }
+
+            if (indexUserPreemp == -1) {
+                indexUserPreemp = i;
+                consumoPonderadoSelec =
+                        uc.currentConsumptionWeightedByEfficiency();
+            } else {
+                final var cur = uc.currentConsumptionWeightedByEfficiency();
+                if (cur > consumoPonderadoSelec) {
                     indexUserPreemp = i;
-                    //Sofre preempção o usuário com maior métrica calculada
-                    consumoPonderadoSelec =
-                            (this.userControls.get(i).currentEnergyConsumption()) * this.userControls.get(i).calculatedEnergyEfficiencyRatio();
-                } else {
-
-                    final double consumoPonderadoCorrente =
-                            (this.userControls.get(i).currentEnergyConsumption()) * this.userControls.get(i).calculatedEnergyEfficiencyRatio();
-                    if (consumoPonderadoCorrente > consumoPonderadoSelec) {
-
+                    consumoPonderadoSelec = cur;
+                } else if (cur == consumoPonderadoSelec) {
+                    final var curUc =
+                            this.userControls.get(indexUserPreemp);
+                    if (uc.excessProcessingPower() > curUc.excessProcessingPower()) {
                         indexUserPreemp = i;
-                        consumoPonderadoSelec = consumoPonderadoCorrente;
-                    } else if (consumoPonderadoCorrente == consumoPonderadoSelec) {
-
-                        if ((this.userControls.get(i).currentlyAvailableProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower()) > (this.userControls.get(indexUserPreemp).currentlyAvailableProcessingPower() - this.userControls.get(indexUserPreemp).getOwnedMachinesProcessingPower())) {
-                            indexUserPreemp = i;
-                            consumoPonderadoSelec = consumoPonderadoCorrente;
-                        }
+                        consumoPonderadoSelec = cur;
                     }
                 }
             }
@@ -314,7 +310,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         return indexUserPreemp;
     }
 
-    private UserControl lastUserControl() {
+    private UserControl bestUserControl() {
         return this.userControls.get(this.userControls.size() - 1);
     }
 
