@@ -26,13 +26,13 @@ public class OSEP_StatusUser {
         this.demanda = 0;
         this.indexTarefaMax = -1;
         this.indexTarefaMin = -1;
-        this.ownerShare = 0;
         this.perfShare = perfShare;
         this.powerShare = 0.0;
         this.servedNum = 0;
         this.servedPerf = 0.0;
         this.servedPower = 0.0;
 
+        this.ownerShare = 0;
         int i;
         int j = 0;
         for (i = 0; i < slaves.size(); i++) {
@@ -87,14 +87,6 @@ public class OSEP_StatusUser {
 
     public void rmServedPerf(final Double perf) {
         this.servedPerf -= perf;
-    }
-
-    public void addServedPower(final Double power) {
-        this.servedPerf += power;
-    }
-
-    public void rmServedPower(final Double power) {
-        this.servedPerf -= power;
     }
 
     public String getUser() {
