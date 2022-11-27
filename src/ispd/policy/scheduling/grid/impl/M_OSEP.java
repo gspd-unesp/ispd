@@ -8,6 +8,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.M_OSEP_StatusUser;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 import ispd.policy.scheduling.grid.impl.util.SlaveStatusControl;
 
@@ -21,7 +22,7 @@ public class M_OSEP extends GridSchedulingPolicy {
     private final List<PreemptionControl> controlePreempcao;
     private final List<List> processadorEscravos;
     private Tarefa tarefaSelec = null;
-    private List<StatusUser> status = null;
+    private List<M_OSEP_StatusUser> status = null;
     private int contadorEscravos = 0;
 
     public M_OSEP() {
@@ -42,7 +43,7 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             //Objetos de controle de uso e cota para cada um dos usuários
-            this.status.add(new StatusUser(this.metricaUsuarios.getUsuarios().get(i), this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i)), M_OSEP.this.escravos));
+            this.status.add(new M_OSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i), this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i)), M_OSEP.this.escravos));
         }
 
         for (int i = 0; i < this.escravos.size(); i++) {//Contadores para
@@ -215,12 +216,12 @@ public class M_OSEP extends GridSchedulingPolicy {
             //Penalidade do usuário dono da tarefa em execução, caso a
             // preempção seja feita
             final double penalidaUserEscravoPosterior =
-                    (this.status.get(indexUserEscravo).GetUso() - selec.getPoderComputacional() - this.status.get(indexUserEscravo).GetCota()) / this.status.get(indexUserEscravo).Cota;
+                    (this.status.get(indexUserEscravo).GetUso() - selec.getPoderComputacional() - this.status.get(indexUserEscravo).GetCota()) / this.status.get(indexUserEscravo).GetCota();
 
             //Penalidade do usuário dono da tarefa slecionada para ser posta
             // em execução, caso a preempção seja feita
             final double penalidaUserEsperaPosterior =
-                    (this.status.get(indexUserEspera).GetUso() + selec.getPoderComputacional() - this.status.get(indexUserEspera).GetCota()) / this.status.get(indexUserEspera).Cota;
+                    (this.status.get(indexUserEspera).GetUso() + selec.getPoderComputacional() - this.status.get(indexUserEspera).GetCota()) / this.status.get(indexUserEspera).GetCota();
 
             //Caso o usuário em espera apresente menor penalidade e os donos
             // das tarefas em execução e em espera não sejam a mesma pessoa ,
@@ -392,53 +393,4 @@ public class M_OSEP extends GridSchedulingPolicy {
 
     }
 
-    private static class StatusUser {
-
-        private final Double Cota;
-        private Double PoderEmUso;
-        private int numCota;
-        private int numUso;
-
-        private StatusUser(final String usuario, final Double poder,
-                           final List<CS_Processamento> slaves) {
-            this.PoderEmUso = 0.0;
-            this.Cota = poder;
-            this.numCota = 0;
-            this.numUso = 0;
-
-            for (final CS_Processamento escravo : slaves) {
-                if (escravo.getProprietario().equals(usuario)) {
-                    this.numCota++;
-                }
-            }
-
-
-        }
-
-        public void AtualizaUso(final Double poder, final int opc) {
-            if (opc == 1) {
-                this.PoderEmUso = this.PoderEmUso + poder;
-                this.numUso++;
-            } else {
-                this.PoderEmUso = this.PoderEmUso - poder;
-                this.numUso--;
-            }
-        }
-
-        public Double GetCota() {
-            return this.Cota;
-        }
-
-        public Double GetUso() {
-            return this.PoderEmUso;
-        }
-
-        public int GetNumCota() {
-            return this.numCota;
-        }
-
-        public int GetNumUso() {
-            return this.numUso;
-        }
-    }
 }
