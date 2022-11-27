@@ -42,7 +42,7 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             //Objetos de controle de uso e cota para cada um dos usuários
-            this.status.add(new StatusUser(this.metricaUsuarios.getUsuarios().get(i), this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i))));
+            this.status.add(new StatusUser(this.metricaUsuarios.getUsuarios().get(i), this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i)), M_OSEP.this.escravos));
         }
 
         for (int i = 0; i < this.escravos.size(); i++) {//Contadores para
@@ -392,20 +392,21 @@ public class M_OSEP extends GridSchedulingPolicy {
 
     }
 
-    private class StatusUser {
+    private static class StatusUser {
 
         private final Double Cota;
         private Double PoderEmUso;
         private int numCota;
         private int numUso;
 
-        private StatusUser(final String usuario, final Double poder) {
+        private StatusUser(final String usuario, final Double poder,
+                           final List<CS_Processamento> slaves) {
             this.PoderEmUso = 0.0;
             this.Cota = poder;
             this.numCota = 0;
             this.numUso = 0;
 
-            for (final CS_Processamento escravo : M_OSEP.this.escravos) {
+            for (final CS_Processamento escravo : slaves) {
                 if (escravo.getProprietario().equals(usuario)) {
                     this.numCota++;
                 }
