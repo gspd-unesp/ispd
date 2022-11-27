@@ -262,7 +262,9 @@ public class M_OSEP extends GridSchedulingPolicy {
                 //Verifica se não é caso de preempção
                 if (!this.controleEscravos.get(this.escravos.indexOf(rec)).isPreempted()) {
 //                    numEscravosLivres--;
-                    this.status.get(this.metricaUsuarios.getUsuarios().indexOf(trf.getProprietario())).AtualizaUso(rec.getPoderComputacional(), 1);
+                    M_OSEP_StatusUser m_osep_statusUser = this.status.get(this.metricaUsuarios.getUsuarios().indexOf(trf.getProprietario()));
+                    final Double poder = rec.getPoderComputacional();
+                    m_osep_statusUser.addServedPerf(poder);
                     //controleEscravos.get(escravos.indexOf(rec))
                     // .SetBloqueado();
                     this.mestre.sendTask(trf);
@@ -277,7 +279,9 @@ public class M_OSEP extends GridSchedulingPolicy {
                     this.controlePreempcao.add(new PreemptionControl(user1, pID, user2, aID));
                     final int indexUser =
                             this.metricaUsuarios.getUsuarios().indexOf(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario());
-                    this.status.get(indexUser).AtualizaUso(rec.getPoderComputacional(), 0);
+                    M_OSEP_StatusUser m_osep_statusUser = this.status.get(indexUser);
+                    final Double poder = rec.getPoderComputacional();
+                    m_osep_statusUser.rmServedPerf(poder);
                 }
 
                 for (int i = 0; i < this.escravos.size(); i++) {
@@ -324,7 +328,9 @@ public class M_OSEP extends GridSchedulingPolicy {
                 if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).getAllocID()) {
                     indexUser =
                             this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).getUsuarioAlloc());
-                    this.status.get(indexUser).AtualizaUso(maq.getPoderComputacional(), 1);
+                    M_OSEP_StatusUser m_osep_statusUser = this.status.get(indexUser);
+                    final Double poder = maq.getPoderComputacional();
+                    m_osep_statusUser.addServedPerf(poder);
                     this.mestre.sendTask(this.esperaTarefas.get(i));
                     final int index =
                             this.escravos.indexOf(this.esperaTarefas.get(i).getLocalProcessamento());
@@ -347,7 +353,9 @@ public class M_OSEP extends GridSchedulingPolicy {
                 (CS_Processamento) tarefa.getLocalProcessamento();
         final int indexUser =
                 this.metricaUsuarios.getUsuarios().indexOf(tarefa.getProprietario());
-        this.status.get(indexUser).AtualizaUso(maq.getPoderComputacional(), 0);
+        M_OSEP_StatusUser m_osep_statusUser = this.status.get(indexUser);
+        final Double poder = maq.getPoderComputacional();
+        m_osep_statusUser.rmServedPerf(poder);
     }
 
     @Override

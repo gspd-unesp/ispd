@@ -5,11 +5,4 @@ public class M_OSEP_StatusUser extends EHOSEP_StatusUser {
         super(user, perfShare);
     }
 
-    public void AtualizaUso(final Double poder, final int opc) {
-        if (opc == 1) {
-            this.addServedPerf(poder);
-        } else {
-            this.rmServedPerf(poder);
-        }
-    }
 }
