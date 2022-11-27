@@ -54,7 +54,7 @@ public class HOSEP extends GridSchedulingPolicy {
             //Adiciona dados do usuário corrente à lista 
             String user = this.metricaUsuarios.getUsuarios().get(i);
             double perfShare = poderComp;
-            this.status.add(new UserStatus(user, perfShare));
+            this.status.add(new UserStatus(user, perfShare, escravos));
         }
 
         //Controle dos nós, com cópias das filas de cada um e da tarefa que

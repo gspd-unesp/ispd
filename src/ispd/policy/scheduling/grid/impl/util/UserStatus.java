@@ -1,5 +1,9 @@
 package ispd.policy.scheduling.grid.impl.util;
 
+import ispd.motor.filas.servidores.CS_Processamento;
+
+import java.util.Collection;
+
 public class UserStatus implements Comparable<UserStatus> {
     private final String user;//Nome do usuario;
     private final double perfShare;//Desempenho total das máquinas do
@@ -14,7 +18,8 @@ public class UserStatus implements Comparable<UserStatus> {
     private double relacaoEficienciaSistemaPorcao;//Nova métrica para
     // decisão de preempção
 
-    public UserStatus(final String user, final double perfShare) {
+    public UserStatus(final String user, final double perfShare, Collection<?
+            extends CS_Processamento> slaves) {
         this.user = user;
         this.demanda = 0;
         this.perfShare = perfShare;

@@ -46,7 +46,7 @@ public class M_OSEP extends GridSchedulingPolicy {
             String user = this.metricaUsuarios.getUsuarios().get(i);
             Double perfShare =
                     this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i));
-            this.status.add(new UserStatus(user, perfShare));
+            this.status.add(new UserStatus(user, perfShare, escravos));
         }
 
         for (int i = 0; i < this.escravos.size(); i++) {//Contadores para
