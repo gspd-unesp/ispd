@@ -44,7 +44,7 @@ public class OSEP extends GridSchedulingPolicy {
             this.status.put(this.metricaUsuarios.getUsuarios().get(i),
                     new StatusUser(this.metricaUsuarios.getUsuarios().get(i),
                             i,
-                            this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i))));
+                            this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i)), OSEP.this.escravos));
         }
 
         for (final CS_Processamento escravo : this.escravos) {//Contadores para
@@ -342,7 +342,7 @@ public class OSEP extends GridSchedulingPolicy {
         return 15.0;
     }
 
-    private class StatusUser {
+    private static class StatusUser {
 
         private final String user;//Nome do usuario;
         private final int indexUser;//Índice do usuário;
@@ -360,7 +360,8 @@ public class OSEP extends GridSchedulingPolicy {
         // atende ao usuario
 
         private StatusUser(final String user, final int indexUser,
-                           final double perfShare) {
+                           final double perfShare,
+                           final List<CS_Processamento> slaves) {
             this.user = user;
             this.indexUser = indexUser;
             this.demanda = 0;
@@ -375,8 +376,8 @@ public class OSEP extends GridSchedulingPolicy {
 
             int i;
             int j = 0;
-            for (i = 0; i < OSEP.this.escravos.size(); i++) {
-                if (OSEP.this.escravos.get(i).getProprietario().equals(user)) {
+            for (i = 0; i < slaves.size(); i++) {
+                if (slaves.get(i).getProprietario().equals(user)) {
                     j++;
                     //this.eficienciaMedia += escravos.get(i)
                     // .getPoderComputacional()/escravos.get(i)
