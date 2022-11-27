@@ -186,8 +186,8 @@ public class EHOSEP extends GridSchedulingPolicy {
     private int findResourceBestSuitedFor(
             final UserControl uc, final double taskProcessingSize) {
         final var suitedMachine = this.escravos.stream()
-                .filter(this::isSuitedForTask)
-                .filter(uc::canUseMachinePower)
+                .filter(this::isMachineAvailable)
+                .filter(uc::canUseMachineWithoutExceedingLimit)
                 .max(EHOSEP.bestConsumptionForTaskSize(taskProcessingSize));
 
         if (suitedMachine.isPresent()) {
@@ -198,11 +198,16 @@ public class EHOSEP extends GridSchedulingPolicy {
             return -1;
         }
 
-        final int indexUserPreemp = this.somethingElse();
+        final var preemptedUser = this.userControls.stream()
+                .filter(UserControl::hasExcessProcessingPower)
+                .max(EHOSEP.bestConsumptionWeightedByEfficiency());
 
-        if (indexUserPreemp == -1) {
+        if (preemptedUser.isEmpty()) {
             return -1;
         }
+
+        final int indexUserPreemp =
+                this.userControls.indexOf(preemptedUser.get());
 
         //Buscar recurso para preempção
         double desperdicioTestado;
@@ -214,7 +219,7 @@ public class EHOSEP extends GridSchedulingPolicy {
             final var machine = this.escravos.get(j);
             final var sc = this.slaveControls.get(machine);
 
-            if (sc.isOccupied() && uc.canUseMachinePower(machine)) {
+            if (sc.isOccupied() && uc.canUseMachineWithoutExceedingLimit(machine)) {
 
                 final var tarPreemp =
                         sc.firstTaskInProcessing();
@@ -274,50 +279,6 @@ public class EHOSEP extends GridSchedulingPolicy {
         return indexSelec;
     }
 
-    private int somethingElse() {
-
-        final var x = this.userControls.stream()
-                .filter(UserControl::hasExcessProcessingPower)
-                .max(EHOSEP.bestConsumptionWeightedByEfficiency());
-
-        final var y = this.userControls.indexOf(x.get());
-
-
-        //Métricas e índice do usuário que possivelmente perderá recurso
-        //Começando pelo usuário de maior excesso
-        double consumoPonderadoSelec = 0.0;
-        int indexUserPreemp = -1;
-        for (int i = this.userControls.size() - 1; i >= 0; i--) {
-            //Apenas usuários que tem excesso de poder computacional podem
-            // sofrer preempção
-            final var uc = this.userControls.get(i);
-
-            if (!uc.hasExcessProcessingPower()) {
-                continue;
-            }
-
-            if (indexUserPreemp == -1) {
-                indexUserPreemp = i;
-                consumoPonderadoSelec =
-                        uc.currentConsumptionWeightedByEfficiency();
-            } else {
-                final var cur = uc.currentConsumptionWeightedByEfficiency();
-                if (cur > consumoPonderadoSelec) {
-                    indexUserPreemp = i;
-                    consumoPonderadoSelec = cur;
-                } else if (cur == consumoPonderadoSelec) {
-                    final var curUc =
-                            this.userControls.get(indexUserPreemp);
-                    if (uc.excessProcessingPower() > curUc.excessProcessingPower()) {
-                        indexUserPreemp = i;
-                        consumoPonderadoSelec = cur;
-                    }
-                }
-            }
-        }
-        return indexUserPreemp;
-    }
-
     private static Comparator<UserControl> bestConsumptionWeightedByEfficiency() {
         return Comparator.comparingDouble(
                         UserControl::currentConsumptionWeightedByEfficiency)
@@ -345,7 +306,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                * machine.getConsumoEnergia();
     }
 
-    private boolean isSuitedForTask(final CS_Processamento machine) {
+    private boolean isMachineAvailable(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isFree();
     }
 

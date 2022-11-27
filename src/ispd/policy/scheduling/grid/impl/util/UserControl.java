@@ -62,9 +62,8 @@ public class UserControl implements Comparable<UserControl> {
         return this.currentEnergyConsumption * this.energyEfficiencyRatioAgainstSystem;
     }
 
-    public boolean canUseMachinePower(final CS_Processamento machine) {
-        return this.currentEnergyConsumption + machine.getConsumoEnergia()
-               <= this.energyConsumptionLimit;
+    public boolean canUseMachineWithoutExceedingLimit(final CS_Processamento machine) {
+        return this.currentEnergyConsumption + machine.getConsumoEnergia() <= this.energyConsumptionLimit;
     }
 
     public boolean isOwnerOf(final Tarefa task) {
