@@ -271,7 +271,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             int indexStatusUserAlloc = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).allocatedTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
@@ -287,7 +287,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             //Localizar tarefa em espera designada para executar
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionControls.get(indexControlePreemp).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionControls.get(indexControlePreemp).allocatedTaskId()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionControls.get(indexControlePreemp).scheduledTaskId()) {
 
                     //Enviar tarefa para execução
                     this.mestre.sendTask(this.esperaTarefas.remove(i));
@@ -374,7 +374,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             int indexStatusUserAlloc = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).allocatedTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
@@ -391,7 +391,7 @@ public class HOSEP extends GridSchedulingPolicy {
             //Localizar tarefa em espera deseignada para executar
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
 
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionControls.get(indexControlePreemp).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionControls.get(indexControlePreemp).allocatedTaskId()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionControls.get(indexControlePreemp).scheduledTaskId()) {
 
                     //Enviar tarefa para execução
                     this.mestre.sendTask(this.esperaTarefas.remove(i));

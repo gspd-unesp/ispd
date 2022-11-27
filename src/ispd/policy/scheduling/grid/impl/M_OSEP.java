@@ -209,9 +209,9 @@ public class M_OSEP extends GridSchedulingPolicy {
             }
 
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).allocatedTaskId()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).scheduledTaskId()) {
                     final int indexUser =
-                            this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).allocatedTaskUser());
+                            this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).scheduledTaskUser());
                     this.status.get(indexUser).increaseAvailableProcessingPower(maq.getPoderComputacional());
                     this.mestre.sendTask(this.esperaTarefas.get(i));
                     this.esperaTarefas.remove(i);

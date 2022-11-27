@@ -32,22 +32,6 @@ public class UserControl implements Comparable<UserControl> {
                 this.calculateEnergyEfficiencyRatioAgainst(systemMachines);
     }
 
-    public boolean isOwnerOf(final Tarefa task) {
-        return this.userId.equals(task.getProprietario());
-    }
-
-    public boolean isEligibleForTask() {
-        return !this.hasNoTaskDemand() && !this.hasExceededEnergyLimit();
-    }
-
-    public boolean hasExceededEnergyLimit() {
-        return this.currentEnergyConsumption >= this.energyConsumptionLimit;
-    }
-
-    public boolean hasNoTaskDemand() {
-        return this.currentTaskDemand() == 0;
-    }
-
     private boolean isOwnedByUser(final CS_Processamento machine) {
         return machine.getProprietario().equals(this.userId);
     }
@@ -68,6 +52,26 @@ public class UserControl implements Comparable<UserControl> {
 
     private double energyEfficiency() {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
+    }
+
+    public boolean isOwnerOf(final Tarefa task) {
+        return this.userId.equals(task.getProprietario());
+    }
+
+    public boolean isEligibleForTask() {
+        return !(this.hasNoTaskDemand() || this.hasExceededEnergyLimit());
+    }
+
+    private boolean hasExceededEnergyLimit() {
+        return this.currentEnergyConsumption >= this.energyConsumptionLimit;
+    }
+
+    private boolean hasNoTaskDemand() {
+        return this.currentTaskDemand() == 0;
+    }
+
+    public int currentTaskDemand() {
+        return this.taskDemand;
     }
 
     public void gotTaskFrom(final CS_Processamento resource) {
@@ -113,10 +117,6 @@ public class UserControl implements Comparable<UserControl> {
         return this.userId;
     }
 
-    public int currentTaskDemand() {
-        return this.taskDemand;
-    }
-
     public double getEnergyConsumptionLimit() {
         return this.energyConsumptionLimit;
     }
@@ -154,7 +154,7 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesProcessingPower;
     }
 
-    public double getOwnedMachinesEnergyConsumption() {
+    private double getOwnedMachinesEnergyConsumption() {
         return this.ownedMachinesEnergyConsumption;
     }
 

@@ -206,11 +206,11 @@ public class OSEP extends GridSchedulingPolicy {
             }
 
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).allocatedTaskId()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).scheduledTaskId()) {
 
                     this.mestre.sendTask(this.esperaTarefas.get(i));
 
-                    this.status.get(this.controlePreempcao.get(indexControle).allocatedTaskUser()).increaseAvailableMachines();
+                    this.status.get(this.controlePreempcao.get(indexControle).scheduledTaskUser()).increaseAvailableMachines();
 
                     this.status.get(this.controlePreempcao.get(indexControle).preemptedTaskUser()).increaseTaskDemand();
                     this.status.get(this.controlePreempcao.get(indexControle).preemptedTaskUser()).decreaseAvailableMachines();
