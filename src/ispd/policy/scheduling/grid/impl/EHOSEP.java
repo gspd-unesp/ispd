@@ -275,6 +275,14 @@ public class EHOSEP extends GridSchedulingPolicy {
     }
 
     private int somethingElse() {
+
+        final var x = this.userControls.stream()
+                .filter(UserControl::hasExcessProcessingPower)
+                .max(EHOSEP.bestConsumptionWeightedByEfficiency());
+
+        final var y = this.userControls.indexOf(x.get());
+
+
         //Métricas e índice do usuário que possivelmente perderá recurso
         //Começando pelo usuário de maior excesso
         double consumoPonderadoSelec = 0.0;
@@ -308,6 +316,12 @@ public class EHOSEP extends GridSchedulingPolicy {
             }
         }
         return indexUserPreemp;
+    }
+
+    private static Comparator<UserControl> bestConsumptionWeightedByEfficiency() {
+        return Comparator.comparingDouble(
+                        UserControl::currentConsumptionWeightedByEfficiency)
+                .thenComparing(UserControl::excessProcessingPower);
     }
 
     private UserControl bestUserControl() {
