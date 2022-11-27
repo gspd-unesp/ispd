@@ -45,7 +45,8 @@ public class OSEP extends GridSchedulingPolicy {
             String user = this.metricaUsuarios.getUsuarios().get(i);
             double perfShare =
                     this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i));
-            java.util.Collection<? extends CS_Processamento> slaves = OSEP.this.escravos;
+            java.util.Collection<? extends CS_Processamento> slaves =
+                    OSEP.this.escravos;
             this.status.put(this.metricaUsuarios.getUsuarios().get(i),
                     new UserControl(user, perfShare, slaves));
         }
@@ -219,7 +220,8 @@ public class OSEP extends GridSchedulingPolicy {
         super.adicionarTarefa(tarefa);
         final CS_Processamento maq =
                 (CS_Processamento) tarefa.getLocalProcessamento();
-        final UserControl estadoUser = this.status.get(tarefa.getProprietario());
+        final UserControl estadoUser =
+                this.status.get(tarefa.getProprietario());
         //Em caso de preempção, é procurada a tarefa correspondente para ser
         // enviada ao escravo agora desocupado
         if (tarefa.getLocalProcessamento() != null) {

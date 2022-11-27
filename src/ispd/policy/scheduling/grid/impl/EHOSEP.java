@@ -9,9 +9,9 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
+import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
-import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,7 +72,8 @@ public class EHOSEP extends GridSchedulingPolicy {
             this.status.get(i).setOwnedMachinesEnergyConsumption(consumoPorcao);
             //Calcular a relação entre a eficiência da porção e a eficiência
             // do sistema
-            this.status.get(i).calculateEnergyEfficiencyAgainst(poderTotal, consumoTotal);
+            this.status.get(i).calculateEnergyEfficiencyAgainst(poderTotal,
+                    consumoTotal);
             //Calcular o consumo máximo de energia de cada usuario
             final Double limite =
                     this.status.get(i).getOwnedMachinesEnergyConsumption() * ((this.metricaUsuarios.getLimites().get(this.status.get(i).getUserId()) / 100));
