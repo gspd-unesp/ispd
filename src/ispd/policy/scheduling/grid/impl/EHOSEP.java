@@ -18,16 +18,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
     private static final double REFRESH_TIME = 15.0;
     private final List<UserControl> userControls = new ArrayList<>();
-    private final List<SlaveControl> slaveControls = new ArrayList<>();
+    private final Map<CS_Processamento, SlaveControl> slaveControls =
+            new HashMap<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
     private final List<PreemptionControl> preemptionControls =
             new ArrayList<>();
@@ -55,9 +57,8 @@ public class EHOSEP extends GridSchedulingPolicy {
             this.userControls.add(uc);
         }
 
-        IntStream.range(0, this.escravos.size())
-                .mapToObj(i -> new SlaveControl())
-                .forEach(this.slaveControls::add);
+        for (final var s : this.escravos)
+            this.slaveControls.put(s, new SlaveControl());
     }
 
     private UserControl makeUserControlFor(
@@ -106,8 +107,8 @@ public class EHOSEP extends GridSchedulingPolicy {
                 continue;
             }
 
-            final var control = this.slaveControls.get(resourceIndex);
             final var resource = this.escravos.get(resourceIndex);
+            final var control = this.slaveControls.get(resource);
 
             if (control.isFree()) {
                 this.sendTaskToResource(task, resource);
@@ -209,11 +210,13 @@ public class EHOSEP extends GridSchedulingPolicy {
 
         for (int j = 0; j < this.escravos.size(); j++) {
             //Procurar recurso ocupado com tarefa do usuário que perderá máquina
-            if (this.slaveControls.get(j).isOccupied() && uc.canUseMachinePower(
-                    this.escravos.get(j))) {
+            final var machine = this.escravos.get(j);
+            final var sc = this.slaveControls.get(machine);
+
+            if (sc.isOccupied() && uc.canUseMachinePower(machine)) {
 
                 final var tarPreemp =
-                        this.slaveControls.get(j).firstTaskInProcessing();
+                        sc.firstTaskInProcessing();
 
                 if (this.userControls.get(indexUserPreemp).isOwnerOf(tarPreemp)) {
 
@@ -224,13 +227,13 @@ public class EHOSEP extends GridSchedulingPolicy {
                             // tarefa começou no recurso)*poder
                             // computacional)%bloco de checkpointing
                             desperdicioSelec =
-                                    ((this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
+                                    ((this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * machine.getPoderComputacional()) % tarPreemp.getCheckPoint();
                         } else {
                             //Se não há chekcpointin de tarefas, o
                             // desperdício é o tempo total executado para a
                             // tarefa na máquina corrente no laço
                             desperdicioSelec =
-                                    (this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional();
+                                    (this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * machine.getPoderComputacional();
                         }
                         indexSelec = j;
                     } else {
@@ -238,10 +241,10 @@ public class EHOSEP extends GridSchedulingPolicy {
                         if (tarPreemp.getCheckPoint() > 0.0) {
 
                             desperdicioTestado =
-                                    ((this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional()) % tarPreemp.getCheckPoint();
+                                    ((this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * machine.getPoderComputacional()) % tarPreemp.getCheckPoint();
                         } else {
                             desperdicioTestado =
-                                    (this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * this.escravos.get(j).getPoderComputacional();
+                                    (this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * machine.getPoderComputacional();
                         }
                         //É escolhida a máquina de menor desperdício
                         if (desperdicioTestado < desperdicioSelec) {
@@ -251,7 +254,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                         }
                         //Se o desperdício é igual, é escolhida a máquina com
                         // menor poder computacional
-                        else if (desperdicioTestado == desperdicioSelec && this.escravos.get(j).getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
+                        else if (desperdicioTestado == desperdicioSelec && machine.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
                             indexSelec = j;
                         }
                     }
@@ -322,8 +325,9 @@ public class EHOSEP extends GridSchedulingPolicy {
             // escravo. É escolhido o recurso que consumir menos energia pra
             // executar a tarefa alocada.
             final var machine = this.escravos.get(i);
+            final var sc = this.slaveControls.get(machine);
 
-            if (!(this.slaveControls.get(i).isFree() && uc.canUseMachinePower(machine))) {
+            if (!(sc.isFree() && uc.canUseMachinePower(machine))) {
                 continue;
             }
 
@@ -387,9 +391,9 @@ public class EHOSEP extends GridSchedulingPolicy {
         //Localizar informações sobre máquina que executou a tarefa e usuário
         // proprietário da tarefa
         final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
-        final int maqIndex = this.escravos.indexOf(maq);
+        final var sc = this.slaveControls.get(maq);
 
-        if (this.slaveControls.get(maqIndex).isOccupied()) {
+        if (sc.isOccupied()) {
 
             int statusIndex = -1;
 
@@ -405,8 +409,8 @@ public class EHOSEP extends GridSchedulingPolicy {
             this.userControls.get(statusIndex).decreaseAvailableProcessingPower(maq.getPoderComputacional());
             this.userControls.get(statusIndex).decreaseEnergyConsumption(maq.getConsumoEnergia());
 
-            this.slaveControls.get(maqIndex).setAsFree();
-        } else if (this.slaveControls.get(maqIndex).isBlocked()) {
+            sc.setAsFree();
+        } else if (sc.isBlocked()) {
 
             int indexControlePreemp = -1;
             for (int j = 0; j < this.preemptionControls.size(); j++) {
@@ -464,29 +468,31 @@ public class EHOSEP extends GridSchedulingPolicy {
     public void resultadoAtualizar(final Mensagem mensagem) {
         //super.resultadoAtualizar(mensagem);
         //Localizar máquina que enviou estado atualizado
-        final int index = this.escravos.indexOf(mensagem.getOrigem());
 
         //Atualizar listas de espera e processamento da máquina
-        this.slaveControls.get(index).setTasksInProcessing((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
-        this.slaveControls.get(index).setTasksOnHold(mensagem.getFilaEscravo());
+        final var sc =
+                this.slaveControls.get((CS_Processamento) mensagem.getOrigem());
+
+        sc.setTasksInProcessing((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
+        sc.setTasksOnHold(mensagem.getFilaEscravo());
 
         //Tanto alocação para recurso livre como a preempção levam dois
         // ciclos de atualização para que a máquina possa ser considerada
         // para esacalonamento novamente
 
         //Primeiro ciclo
-        if (this.slaveControls.get(index).isBlocked()) {
-            this.slaveControls.get(index).setAsUncertain();
+        if (sc.isBlocked()) {
+            sc.setAsUncertain();
             //Segundo ciclo
-        } else if (this.slaveControls.get(index).isUncertain()) {
+        } else if (sc.isUncertain()) {
             //Se não está executando nada
-            if (this.slaveControls.get(index).getTasksInProcessing().isEmpty()) {
+            if (sc.getTasksInProcessing().isEmpty()) {
 
-                this.slaveControls.get(index).setAsFree();
+                sc.setAsFree();
                 //Se está executando uma tarefa
-            } else if (this.slaveControls.get(index).getTasksInProcessing().size() == 1) {
+            } else if (sc.getTasksInProcessing().size() == 1) {
 
-                this.slaveControls.get(index).setAsOccupied();
+                sc.setAsOccupied();
                 //Se há mais de uma tarefa e a máquina tem mais de um núcleo
             }
         }
