@@ -73,16 +73,16 @@ public class M_OSEP extends GridSchedulingPolicy {
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
-            if ((this.status.get(i).GetUso() < this.status.get(i).GetCota()) && demanda) {
+            if ((this.status.get(i).getServedPerf() < this.status.get(i).getPerfShare()) && demanda) {
 
                 if (difUsuarioMinimo == (double) -1) {
                     difUsuarioMinimo =
-                            this.status.get(i).GetCota() - this.status.get(i).GetUso();
+                            this.status.get(i).getPerfShare() - this.status.get(i).getServedPerf();
                     indexUsuarioMinimo = i;
                 } else {
-                    if (difUsuarioMinimo < this.status.get(i).GetCota() - this.status.get(i).GetUso()) {
+                    if (difUsuarioMinimo < this.status.get(i).getPerfShare() - this.status.get(i).getServedPerf()) {
                         difUsuarioMinimo =
-                                this.status.get(i).GetCota() - this.status.get(i).GetUso();
+                                this.status.get(i).getPerfShare() - this.status.get(i).getServedPerf();
                         indexUsuarioMinimo = i;
                     }
 
@@ -157,19 +157,19 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
 
-            if (this.status.get(i).GetUso() > this.status.get(i).GetCota() && !this.metricaUsuarios.getUsuarios().get(i).equals(this.tarefaSelec.getProprietario())) {
+            if (this.status.get(i).getServedPerf() > this.status.get(i).getPerfShare() && !this.metricaUsuarios.getUsuarios().get(i).equals(this.tarefaSelec.getProprietario())) {
 
                 if (diff == (double) -1) {
 
                     usermax = this.metricaUsuarios.getUsuarios().get(i);
-                    diff = this.status.get(i).GetUso() - this.status.get(i).GetCota();
+                    diff = this.status.get(i).getServedPerf() - this.status.get(i).getPerfShare();
 
                 } else {
 
-                    if (this.status.get(i).GetUso() - this.status.get(i).GetCota() > diff) {
+                    if (this.status.get(i).getServedPerf() - this.status.get(i).getPerfShare() > diff) {
 
                         usermax = this.metricaUsuarios.getUsuarios().get(i);
-                        diff = this.status.get(i).GetUso() - this.status.get(i).GetCota();
+                        diff = this.status.get(i).getServedPerf() - this.status.get(i).getPerfShare();
 
                     }
 
@@ -216,12 +216,12 @@ public class M_OSEP extends GridSchedulingPolicy {
             //Penalidade do usuário dono da tarefa em execução, caso a
             // preempção seja feita
             final double penalidaUserEscravoPosterior =
-                    (this.status.get(indexUserEscravo).GetUso() - selec.getPoderComputacional() - this.status.get(indexUserEscravo).GetCota()) / this.status.get(indexUserEscravo).GetCota();
+                    (this.status.get(indexUserEscravo).getServedPerf() - selec.getPoderComputacional() - this.status.get(indexUserEscravo).getPerfShare()) / this.status.get(indexUserEscravo).getPerfShare();
 
             //Penalidade do usuário dono da tarefa slecionada para ser posta
             // em execução, caso a preempção seja feita
             final double penalidaUserEsperaPosterior =
-                    (this.status.get(indexUserEspera).GetUso() + selec.getPoderComputacional() - this.status.get(indexUserEspera).GetCota()) / this.status.get(indexUserEspera).GetCota();
+                    (this.status.get(indexUserEspera).getServedPerf() + selec.getPoderComputacional() - this.status.get(indexUserEspera).getPerfShare()) / this.status.get(indexUserEspera).getPerfShare();
 
             //Caso o usuário em espera apresente menor penalidade e os donos
             // das tarefas em execução e em espera não sejam a mesma pessoa ,

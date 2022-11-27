@@ -1,28 +1,27 @@
 package ispd.policy.scheduling.grid.impl.util;
 
 public class M_OSEP_StatusUser {
+    private final Double perfShare;
+    private Double servedPerf;
 
-    private final Double Cota;
-    private Double PoderEmUso;
-
-    public M_OSEP_StatusUser(final String usuario, final Double poder) {
-        this.PoderEmUso = 0.0;
-        this.Cota = poder;
+    public M_OSEP_StatusUser(final String user, final Double perfShare) {
+        this.servedPerf = 0.0;
+        this.perfShare = perfShare;
     }
 
     public void AtualizaUso(final Double poder, final int opc) {
         if (opc == 1) {
-            this.PoderEmUso = this.PoderEmUso + poder;
+            this.servedPerf = this.servedPerf + poder;
         } else {
-            this.PoderEmUso = this.PoderEmUso - poder;
+            this.servedPerf = this.servedPerf - poder;
         }
     }
 
-    public Double GetCota() {
-        return this.Cota;
+    public Double getPerfShare() {
+        return this.perfShare;
     }
 
-    public Double GetUso() {
-        return this.PoderEmUso;
+    public Double getServedPerf() {
+        return this.servedPerf;
     }
 }
