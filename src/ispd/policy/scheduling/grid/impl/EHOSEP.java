@@ -7,6 +7,7 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
+import ispd.policy.scheduling.SchedulingPolicy;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
@@ -19,37 +20,29 @@ import java.util.List;
 
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
-    private final ArrayList<UserControl> status;
-    private final List<SlaveControl> controleEscravos;
-    private final List<Tarefa> esperaTarefas;
-    private final List<PreemptionControl> controlePreempcao;
+    private final ArrayList<UserControl> status = new ArrayList();
+    private final List<SlaveControl> controleEscravos = new ArrayList<>();
+    private final List<Tarefa> esperaTarefas = new ArrayList<>();
+    private final List<PreemptionControl> controlePreempcao = new ArrayList<>();
 
     public EHOSEP() {
         this.tarefas = new ArrayList<>();
         this.escravos = new ArrayList<>();
-        this.controleEscravos = new ArrayList<>();
-        this.esperaTarefas = new ArrayList<>();
-        this.controlePreempcao = new ArrayList<>();
         this.filaEscravo = new ArrayList<>();
-        final List<List> processadorEscravos = new ArrayList<>();
-        this.status = new ArrayList();
     }
 
     @Override
     public void iniciar() {
-        //Escalonamento quando chegam tarefas e quando tarefas são concluídas
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
 
         //Calcular poder computacional total do sistema, e consumo total do
         // mesmo.
         double poderTotal = 0.0;
         Double consumoTotal = 0.0;
-        for (int i = 0; i < this.escravos.size(); i++) {
-            poderTotal += this.escravos.get(i).getPoderComputacional();
-            consumoTotal += this.escravos.get(i).getConsumoEnergia();
+        for (final var escravo : this.escravos) {
+            poderTotal += escravo.getPoderComputacional();
+            consumoTotal += escravo.getConsumoEnergia();
         }
-        //System.out.println(consumoTotal);
-        //System.out.println(poderTotal);
 
         //Objetos de controle de uso e cota para cada um dos usuários
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
@@ -67,7 +60,7 @@ public class EHOSEP extends GridSchedulingPolicy {
             }
             //Adiciona dados do usuário corrente à lista 
             this.status.add(new UserControl(this.metricaUsuarios.getUsuarios().get(i),
-                    poderComp, escravos));
+                    poderComp, this.escravos));
             //Inserir consumo da porção nos dados do usuário
             this.status.get(i).setOwnedMachinesEnergyConsumption(consumoPorcao);
             //Calcular a relação entre a eficiência da porção e a eficiência
@@ -75,7 +68,7 @@ public class EHOSEP extends GridSchedulingPolicy {
             this.status.get(i).calculateEnergyEfficiencyAgainst(poderTotal,
                     consumoTotal);
             //Calcular o consumo máximo de energia de cada usuario
-            final Double limite =
+            final var limite =
                     this.status.get(i).getOwnedMachinesEnergyConsumption() * ((this.metricaUsuarios.getLimites().get(this.status.get(i).getUserId()) / 100));
             this.status.get(i).setEnergyConsumptionLimit(limite);
         }
@@ -95,24 +88,17 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     @Override
     public void escalonar() {
-
-        int indexTarefa;
-        int indexEscravo;
-        UserControl cliente;
-
-        //Ordenar os usuários em ordem crescente de Poder Remanescente
         Collections.sort(this.status);
 
-
         for (int i = 0; i < this.status.size(); i++) {
-            cliente = this.status.get(i);
+            final var cliente = this.status.get(i);
 
             //Buscar tarefa para execucao
-            indexTarefa = this.buscarTarefa(cliente);
+            final int indexTarefa = this.buscarTarefa(cliente);
             if (indexTarefa != -1) {
 
                 //Buscar máquina para executar a tarefa definida
-                indexEscravo = this.buscarRecurso(cliente,
+                final int indexEscravo = this.buscarRecurso(cliente,
                         this.tarefas.get(indexTarefa));
                 if (indexEscravo != -1) {
 
@@ -146,15 +132,12 @@ public class EHOSEP extends GridSchedulingPolicy {
 
                         //Controle de preempção para enviar a nova tarefa no
                         // momento certo
-                        final String userPreemp =
-                                this.controleEscravos.get(indexEscravo).getTasksInProcessing().get(0).getProprietario();
-                        final int idTarefaPreemp =
-                                this.controleEscravos.get(indexEscravo).getTasksInProcessing().get(0).getIdentificador();
-                        String user1 = userPreemp;
-                        int pID = idTarefaPreemp;
-                        String user2 = tar.getProprietario();
-                        int aID = tar.getIdentificador();
-                        this.controlePreempcao.add(new PreemptionControl(user1, pID, user2, aID));
+                        this.controlePreempcao.add(new PreemptionControl(
+                                this.controleEscravos.get(indexEscravo).getTasksInProcessing().get(0).getProprietario(),
+                                this.controleEscravos.get(indexEscravo).getTasksInProcessing().get(0).getIdentificador(),
+                                tar.getProprietario(),
+                                tar.getIdentificador()
+                        ));
                         this.esperaTarefas.add(tar);
 
                         //Solicitação de retorno da tarefa em execução e
@@ -169,22 +152,27 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
     }
 
-    //Metodo necessario para implementar interface. Não é usado.
+    /**
+     * This algorithm's resource scheduling does not conform to the standard
+     * {@link SchedulingPolicy} interface.<br>
+     * Therefore, calling this method on instances of this algorithm will
+     * result in an {@link UnsupportedOperationException} being thrown.
+     *
+     * @return not applicable in this context, an exception is thrown instead.
+     * @throws UnsupportedOperationException whenever called.
+     */
     @Override
     public CS_Processamento escalonarRecurso() {
-        throw new UnsupportedOperationException("Not supported yet."); //To
-        // change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("""
+                Do not call method .escalonarRecurso() on instances of EHOSEP.""");
     }
 
-    //Definir o intervalo de tempo, em segundos, em que as máquinas enviarão
-    // dados de atualização para o escalonador
     @Override
     public Double getTempoAtualizar() {
         return 15.0;
     }
 
     private int buscarTarefa(final UserControl usuario) {
-
         //Indice da tarefa na lista de tarefas
         int trf = -1;
         //Se o usuario tem demanda nao atendida e seu consumo nao chegou ao
@@ -273,9 +261,9 @@ public class EHOSEP extends GridSchedulingPolicy {
 
 
         //Métricas e índice do usuário que possivelmente perderá recurso
+        //Começando pelo usuário de maior excesso
         double consumoPonderadoSelec = 0.0;
         int indexUserPreemp = -1;
-        //Começando pelo usuário de maior excesso
         for (int i = this.status.size() - 1; i >= 0; i--) {
             //Apenas usuários que tem excesso de poder computacional podem
             // sofrer preempção
@@ -317,8 +305,9 @@ public class EHOSEP extends GridSchedulingPolicy {
             //Procurar recurso ocupado com tarefa do usuário que perderá máquina
             if (this.controleEscravos.get(j).isOccupied() && (this.escravos.get(j).getConsumoEnergia() + cliente.currentEnergyConsumption()) <= cliente.getEnergyConsumptionLimit()) {
 
-                final Tarefa tarPreemp =
+                final var tarPreemp =
                         this.controleEscravos.get(j).getTasksInProcessing().get(0);
+
                 if (tarPreemp.getProprietario().equals(this.status.get(indexUserPreemp).getUserId())) {
 
                     if (indexSelec == -1) {
@@ -374,24 +363,29 @@ public class EHOSEP extends GridSchedulingPolicy {
         return indexSelec;
     }
 
-    //Metodo necessario para implementar interface. Não é usado.
+    /**
+     * This algorithm's task scheduling does not conform to the standard
+     * {@link SchedulingPolicy} interface.<br>
+     * Therefore, calling this method on instances of this algorithm will
+     * result in an {@link UnsupportedOperationException} being thrown.
+     *
+     * @return not applicable in this context, an exception is thrown instead.
+     * @throws UnsupportedOperationException whenever called.
+     */
     @Override
     public Tarefa escalonarTarefa() {
-        throw new UnsupportedOperationException("Not supported yet."); //To
-        // change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("""
+                Do not call method .escalonarTarefa() on instances of EHOSEP.""");
     }
 
     @Override
     //Chegada de tarefa concluida
     public void addTarefaConcluida(final Tarefa tarefa) {
-        //Method herdado, obrigatório executar para obter métricas ao final
-        // da simulação
         super.addTarefaConcluida(tarefa);
 
         //Localizar informações sobre máquina que executou a tarefa e usuário
         // proprietário da tarefa
-        final CS_Processamento maq =
-                (CS_Processamento) tarefa.getLocalProcessamento();
+        final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
         final int maqIndex = this.escravos.indexOf(maq);
 
         if (this.controleEscravos.get(maqIndex).isOccupied()) {
@@ -414,9 +408,6 @@ public class EHOSEP extends GridSchedulingPolicy {
         } else if (this.controleEscravos.get(maqIndex).isBlocked()) {
 
             int indexControlePreemp = -1;
-            int indexStatusUserAlloc = -1;
-            int indexStatusUserPreemp = -1;
-
             for (int j = 0; j < this.controlePreempcao.size(); j++) {
                 if (this.controlePreempcao.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.controlePreempcao.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                     indexControlePreemp = j;
@@ -424,6 +415,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                 }
             }
 
+            int indexStatusUserAlloc = -1;
             for (int k = 0; k < this.status.size(); k++) {
                 if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).allocatedTaskUser())) {
                     indexStatusUserAlloc = k;
@@ -431,6 +423,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                 }
             }
 
+            int indexStatusUserPreemp = -1;
             for (int k = 0; k < this.status.size(); k++) {
                 if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).preemptedTaskUser())) {
                     indexStatusUserPreemp = k;
@@ -460,7 +453,6 @@ public class EHOSEP extends GridSchedulingPolicy {
                     //Com a preempção feita, os dados necessários para ela
                     // são eliminados
                     this.controlePreempcao.remove(indexControlePreemp);
-                    //Encerrar laço
                     break;
                 }
             }
@@ -475,7 +467,7 @@ public class EHOSEP extends GridSchedulingPolicy {
 
         //Atualizar listas de espera e processamento da máquina
         this.controleEscravos.get(index).setTasksInProcessing((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
-        this.controleEscravos.get(index).setTasksOnHold((ArrayList<Tarefa>) mensagem.getFilaEscravo());
+        this.controleEscravos.get(index).setTasksOnHold(mensagem.getFilaEscravo());
 
         //Tanto alocação para recurso livre como a preempção levam dois
         // ciclos de atualização para que a máquina possa ser considerada
@@ -495,23 +487,13 @@ public class EHOSEP extends GridSchedulingPolicy {
 
                 this.controleEscravos.get(index).setAsOccupied();
                 //Se há mais de uma tarefa e a máquina tem mais de um núcleo
-            } else if (this.controleEscravos.get(index).getTasksInProcessing().size() > 1) {
-
-                System.out.println("Houve Paralelismo");
             }
-        }
-        //Se há fila de tarefa na máquina
-        if (!this.controleEscravos.get(index).getTasksOnHold().isEmpty()) {
-            System.out.println("Houve Fila");
         }
     }
 
     @Override
     //Receber nova tarefa submetida ou tarefa que sofreu preemoção
     public void adicionarTarefa(final Tarefa tarefa) {
-
-        //Method herdado, obrigatório executar para obter métricas ao final
-        // da slimuação
         super.adicionarTarefa(tarefa);
 
         //Atualização da demanda do usuário proprietário da tarefa
@@ -526,15 +508,11 @@ public class EHOSEP extends GridSchedulingPolicy {
 
             //Localizar informações de estado de máquina que executou a
             // tarefa (se houver)
-            final CS_Processamento maq =
-                    (CS_Processamento) tarefa.getLocalProcessamento();
+            final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
 
             //Localizar informações armazenadas sobre a preempção em particular
 
             int indexControlePreemp = -1;
-            int indexStatusUserAlloc = -1;
-            int indexStatusUserPreemp = -1;
-
             for (int j = 0; j < this.controlePreempcao.size(); j++) {
                 if (this.controlePreempcao.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.controlePreempcao.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                     indexControlePreemp = j;
@@ -542,12 +520,14 @@ public class EHOSEP extends GridSchedulingPolicy {
                 }
             }
 
+            int indexStatusUserAlloc = -1;
             for (int k = 0; k < this.status.size(); k++) {
                 if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).allocatedTaskUser())) {
                     indexStatusUserAlloc = k;
                 }
             }
 
+            int indexStatusUserPreemp = -1;
             for (int k = 0; k < this.status.size(); k++) {
                 if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).preemptedTaskUser())) {
                     indexStatusUserPreemp = k;
@@ -577,7 +557,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                     //Com a preempção feita, os dados necessários para ela
                     // são eliminados
                     this.controlePreempcao.remove(indexControlePreemp);
-                    //Encerrar laço
+
                     break;
                 }
             }
