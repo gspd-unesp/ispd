@@ -99,7 +99,7 @@ public class EHOSEP extends GridSchedulingPolicy {
 
             final var task = optTask.get();
 
-            final int resourceIndex = this.findResourceBestSuitedFor(
+            final int resourceIndex = this.findIndexOfResourceBestSuitedFor(
                     userControl,
                     task.getTamProcessamento()
             );
@@ -183,94 +183,44 @@ public class EHOSEP extends GridSchedulingPolicy {
         return EHOSEP.REFRESH_TIME;
     }
 
-    private int findResourceBestSuitedFor(
-            final UserControl uc, final double taskProcessingSize) {
-        final var suitedMachine = this.escravos.stream()
+    private int findIndexOfResourceBestSuitedFor(
+            final UserControl uc, final double taskSize) {
+        // Attempts to find a machine that can host the task 'normally'
+        final var availableMachine = this.escravos.stream()
                 .filter(this::isMachineAvailable)
                 .filter(uc::canUseMachineWithoutExceedingLimit)
-                .max(EHOSEP.bestConsumptionForTaskSize(taskProcessingSize));
+                .max(EHOSEP.bestConsumptionForTaskSize(taskSize));
 
-        if (suitedMachine.isPresent()) {
-            return this.escravos.indexOf(suitedMachine.get());
+        if (availableMachine.isPresent()) {
+            return this.escravos.indexOf(availableMachine.get());
         }
 
-        if (!this.bestUserControl().hasExcessProcessingPower() || uc.hasExcessProcessingPower()) {
+        // If no available machine is found, preemption may be used to force
+        // the task into one
+
+        // However, if the task owner (user in uc) has excess processing
+        // power, preemption will NOT be used to accommodate their tasks
+        if (uc.hasExcessProcessingPower()) {
             return -1;
         }
 
-        final var preemptedUser = this.userControls.stream()
+        // Otherwise, we must find a user whose tasks will be preempted
+        final var optPreemptedUser = this.userControls.stream()
                 .filter(UserControl::hasExcessProcessingPower)
                 .max(EHOSEP.bestConsumptionWeightedByEfficiency());
 
-        if (preemptedUser.isEmpty()) {
+        if (optPreemptedUser.isEmpty()) {
             return -1;
         }
 
-        final int indexUserPreemp =
-                this.userControls.indexOf(preemptedUser.get());
+        final var preemptedUser = optPreemptedUser.get();
 
-        //Buscar recurso para preempção
-        double desperdicioTestado;
-        double desperdicioSelec = 0.0;
 
-        int indexSelec = -1;
-        for (int j = 0; j < this.escravos.size(); j++) {
-            //Procurar recurso ocupado com tarefa do usuário que perderá máquina
-            final var machine = this.escravos.get(j);
-            final var sc = this.slaveControls.get(machine);
+        int indexSelec = this.getIndexSelec(uc, preemptedUser);
 
-            if (sc.isOccupied() && uc.canUseMachineWithoutExceedingLimit(machine)) {
-
-                final var tarPreemp =
-                        sc.firstTaskInProcessing();
-
-                if (this.userControls.get(indexUserPreemp).isOwnerOf(tarPreemp)) {
-
-                    if (indexSelec == -1) {
-                        //Se há checkpointing de tarefas
-                        if (tarPreemp.getCheckPoint() > 0.0) {
-                            //((tempo atual - tempo em que a execução da
-                            // tarefa começou no recurso)*poder
-                            // computacional)%bloco de checkpointing
-                            desperdicioSelec =
-                                    ((this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * machine.getPoderComputacional()) % tarPreemp.getCheckPoint();
-                        } else {
-                            //Se não há chekcpointin de tarefas, o
-                            // desperdício é o tempo total executado para a
-                            // tarefa na máquina corrente no laço
-                            desperdicioSelec =
-                                    (this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * machine.getPoderComputacional();
-                        }
-                        indexSelec = j;
-                    } else {
-
-                        if (tarPreemp.getCheckPoint() > 0.0) {
-
-                            desperdicioTestado =
-                                    ((this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * machine.getPoderComputacional()) % tarPreemp.getCheckPoint();
-                        } else {
-                            desperdicioTestado =
-                                    (this.mestre.getSimulation().getTime(this) - tarPreemp.getTempoInicial().get(tarPreemp.getTempoInicial().size() - 1)) * machine.getPoderComputacional();
-                        }
-                        //É escolhida a máquina de menor desperdício
-                        if (desperdicioTestado < desperdicioSelec) {
-
-                            desperdicioSelec = desperdicioTestado;
-                            indexSelec = j;
-                        }
-                        //Se o desperdício é igual, é escolhida a máquina com
-                        // menor poder computacional
-                        else if (desperdicioTestado == desperdicioSelec && machine.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
-                            indexSelec = j;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (indexUserPreemp != -1 && indexSelec != -1) {
-            if ((this.userControls.get(indexUserPreemp).currentlyAvailableProcessingPower() - this.escravos.get(indexSelec).getPoderComputacional()) < this.userControls.get(indexUserPreemp).getOwnedMachinesProcessingPower()) {
-                if (this.userControls.get(indexUserPreemp).getEnergyConsumptionLimit() <= uc.getEnergyConsumptionLimit()) {
+        if (indexSelec != -1) {
+            if ((preemptedUser.currentlyAvailableProcessingPower() - this.escravos.get(indexSelec).getPoderComputacional()) < preemptedUser.getOwnedMachinesProcessingPower()) {
+                if (preemptedUser.getEnergyConsumptionLimit() <= uc.getEnergyConsumptionLimit()) {
                     indexSelec = -1;
                 }
             }
@@ -279,14 +229,80 @@ public class EHOSEP extends GridSchedulingPolicy {
         return indexSelec;
     }
 
-    private static Comparator<UserControl> bestConsumptionWeightedByEfficiency() {
-        return Comparator.comparingDouble(
-                        UserControl::currentConsumptionWeightedByEfficiency)
-                .thenComparing(UserControl::excessProcessingPower);
+    private int getIndexSelec(
+            final UserControl userWithTask, final UserControl userToPreempt) {
+        //Buscar recurso para preempção
+        double desperdicioTestado;
+        double desperdicioSelec = 0.0;
+
+        int indexSelec = -1;
+        for (int j = 0; j < this.escravos.size(); j++) {
+            //Procurar recurso ocupado com tarefa do usuário que perderá máquina
+            final var machine = this.escravos.get(j);
+
+            if (!this.isMachineOccupied(machine) || !userWithTask.canUseMachineWithoutExceedingLimit(machine)) {
+                continue;
+            }
+
+            if (!userToPreempt.isOwnerOf(this.preemptedTask(machine))) {
+                continue;
+            }
+
+            if (indexSelec == -1) {
+                //Se há checkpointing de tarefas
+                desperdicioSelec = this.wastedProcessingIfPreempted(machine);
+                indexSelec = j;
+            } else {
+
+                desperdicioTestado = this.wastedProcessingIfPreempted(machine);
+                //É escolhida a máquina de menor desperdício
+                if (desperdicioTestado < desperdicioSelec) {
+
+                    desperdicioSelec = desperdicioTestado;
+                    indexSelec = j;
+                }
+                //Se o desperdício é igual, é escolhida a máquina com
+                // MENOR poder computacional
+                else if (desperdicioTestado == desperdicioSelec && machine.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
+                    indexSelec = j;
+                }
+            }
+        }
+
+        return indexSelec;
     }
 
-    private UserControl bestUserControl() {
-        return this.userControls.get(this.userControls.size() - 1);
+    private Tarefa preemptedTask(final CS_Processamento machine) {
+        return this.firstTaskInProcessing(machine);
+    }
+
+    private Tarefa firstTaskInProcessing(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).firstTaskInProcessing();
+    }
+
+    private boolean isMachineOccupied(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isOccupied();
+    }
+
+    private double wastedProcessingIfPreempted(final CS_Processamento machine) {
+        final var preemptedTask = this.preemptedTask(machine);
+        final var startTimeList = preemptedTask.getTempoInicial();
+        final var taskStartTime = startTimeList.get(startTimeList.size() - 1);
+        final var currTime = this.mestre.getSimulation().getTime(this);
+        final var processingSize =
+                (currTime - taskStartTime) * machine.getPoderComputacional();
+
+        if (preemptedTask.getCheckPoint() > 0.0) {
+            return processingSize % preemptedTask.getCheckPoint();
+        } else {
+            return processingSize;
+        }
+    }
+
+    private static Comparator<UserControl> bestConsumptionWeightedByEfficiency() {
+        return Comparator
+                .comparingDouble(UserControl::currentConsumptionWeightedByEfficiency)
+                .thenComparing(UserControl::excessProcessingPower);
     }
 
     private static Comparator<CS_Processamento> bestConsumptionForTaskSize(final double taskProcessingSize) {
@@ -308,6 +324,10 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     private boolean isMachineAvailable(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isFree();
+    }
+
+    private UserControl bestUserControl() {
+        return this.userControls.get(this.userControls.size() - 1);
     }
 
     /**
