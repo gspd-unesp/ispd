@@ -13,13 +13,8 @@ public class OSEP_StatusUser extends EHOSEP_StatusUser {
                            final double perfShare,
                            final List<CS_Processamento> slaves) {
         super(user, perfShare);
-        this.demanda = 0;
         this.indexTarefaMax = -1;
         this.indexTarefaMin = -1;
-        this.powerShare = 0.0;
-        this.servedNum = 0;
-        this.servedPerf = 0.0;
-        this.servedPower = 0.0;
 
         this.ownerShare = 0;
         int i;
@@ -27,15 +22,9 @@ public class OSEP_StatusUser extends EHOSEP_StatusUser {
         for (i = 0; i < slaves.size(); i++) {
             if (slaves.get(i).getProprietario().equals(user)) {
                 j++;
-                //this.eficienciaMedia += escravos.get(i)
-                // .getPoderComputacional()/escravos.get(i)
-                // .getConsumoEnergia();
             }
         }
         this.ownerShare = j;
-        //this.eficienciaMedia = this.eficienciaMedia/j;
-
-
     }
 
     public void setTarefaMinima(final int index) {
