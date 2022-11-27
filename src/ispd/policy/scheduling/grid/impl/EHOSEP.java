@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
 
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
@@ -315,6 +316,11 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     private int something(
             final UserControl uc, final double taskProcessingSize) {
+        final var x = this.escravos.stream()
+                .filter(this::isSuitedForTask)
+                .filter(uc::canUseMachinePower)
+                .max(EHOSEP.consumptionForTaskSizeComparator(taskProcessingSize));
+
         int indexSelec = -1;
         double consumoSelec = 0.0;
 
@@ -325,9 +331,8 @@ public class EHOSEP extends GridSchedulingPolicy {
             // escravo. É escolhido o recurso que consumir menos energia pra
             // executar a tarefa alocada.
             final var machine = this.escravos.get(i);
-            final var sc = this.slaveControls.get(machine);
 
-            if (!(sc.isFree() && uc.canUseMachinePower(machine))) {
+            if (!(this.isSuitedForTask(machine) && uc.canUseMachinePower(machine))) {
                 continue;
             }
 
@@ -360,12 +365,25 @@ public class EHOSEP extends GridSchedulingPolicy {
         return indexSelec;
     }
 
+    private static Comparator<CS_Processamento> consumptionForTaskSizeComparator(final double taskProcessingSize) {
+        final ToDoubleFunction<CS_Processamento> criterionFunction =
+                m -> EHOSEP.machineConsumptionForTask(m, taskProcessingSize);
+
+        return Comparator
+                .comparingDouble(criterionFunction)
+                .reversed()
+                .thenComparing(CS_Processamento::getPoderComputacional);
+    }
+
     private static double machineConsumptionForTask(
-            final CS_Processamento machine,
-            final double taskProcessingSize) {
+            final CS_Processamento machine, final double taskProcessingSize) {
         return taskProcessingSize
                / machine.getPoderComputacional()
                * machine.getConsumoEnergia();
+    }
+
+    private boolean isSuitedForTask(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isFree();
     }
 
     /**
