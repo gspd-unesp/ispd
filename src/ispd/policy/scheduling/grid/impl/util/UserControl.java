@@ -1,6 +1,7 @@
 package ispd.policy.scheduling.grid.impl.util;
 
 import ispd.motor.filas.servidores.CS_Processamento;
+import ispd.motor.metricas.MetricasUsuarios;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -9,34 +10,43 @@ public class UserControl implements Comparable<UserControl> {
     private final long ownedMachinesCount;
     private final String userId;
     private final double ownedMachinesProcessingPower;
+    private final double energyEfficiencyRatioAgainstSystem;
     private int taskDemand = 0;
     private double ownedMachinesEnergyConsumption = 0.0;
     private int availableMachineCount = 0;
     private double availableProcessingPower = 0.0;
     private double currentEnergyConsumption = 0.0;
     private double energyConsumptionLimit = 0.0;
-    private double energyEfficiencyRatioAgainstSystem = 0.0;
 
     public UserControl(
             final String userId, final double ownedProcPower,
-            final Collection<? extends CS_Processamento> machines) {
+            final Collection<? extends CS_Processamento> systemMachines) {
         this.userId = userId;
         // TODO: Warn if oPP is zero (ZDE in comparison)
         this.ownedMachinesProcessingPower = ownedProcPower;
-        this.ownedMachinesCount = machines.stream()
+        this.ownedMachinesCount = systemMachines.stream()
                 .filter(this::isOwnedByUser)
                 .count();
+        this.energyEfficiencyRatioAgainstSystem =
+                this.calculateEnergyEfficiencyRatioAgainst(systemMachines);
     }
 
     private boolean isOwnedByUser(final CS_Processamento machine) {
         return machine.getProprietario().equals(this.userId);
     }
 
-    public void calculateEnergyEfficiencyAgainst(
-            final double sysProcPower, final double sysEnergyConsumption) {
-        final var sysEnergyEfficiency = sysProcPower / sysEnergyConsumption;
-        this.energyEfficiencyRatioAgainstSystem =
-                sysEnergyEfficiency / this.energyEfficiency();
+    private double calculateEnergyEfficiencyRatioAgainst(
+            final Collection<? extends CS_Processamento> machines) {
+        final var sysCompPower = machines.stream()
+                .mapToDouble(CS_Processamento::getPoderComputacional)
+                .sum();
+
+        final var sysEnergyCons = machines.stream()
+                .mapToDouble(CS_Processamento::getConsumoEnergia)
+                .sum();
+
+        final var sysEnergyEfficiency = sysCompPower / sysEnergyCons;
+        return sysEnergyEfficiency / this.energyEfficiency();
     }
 
     private double energyEfficiency() {
@@ -87,10 +97,6 @@ public class UserControl implements Comparable<UserControl> {
         return this.energyConsumptionLimit;
     }
 
-    public void setEnergyConsumptionLimit(final double limit) {
-        this.energyConsumptionLimit = limit;
-    }
-
     public int currentlyAvailableMachineCount() {
         return this.availableMachineCount;
     }
@@ -138,5 +144,11 @@ public class UserControl implements Comparable<UserControl> {
 
     public long getOwnedMachinesCount() {
         return this.ownedMachinesCount;
+    }
+
+    public void calculateEnergyConsumptionLimit(final MetricasUsuarios metrics) {
+        final var metricsLimit = metrics.getLimites().get(this.userId);
+        this.energyConsumptionLimit =
+                this.ownedMachinesEnergyConsumption * metricsLimit / 100;
     }
 }
