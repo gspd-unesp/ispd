@@ -8,8 +8,6 @@ public class OSEP_StatusUser extends EHOSEP_StatusUser {
     private int indexTarefaMax;//Índice da maior tarefa na fila
     private int indexTarefaMin;//Índice da menor tarefa na fila
     private int ownerShare;//Número de máquinas do usuario
-    // usuário
-    // atende ao usuario
 
     public OSEP_StatusUser(final String user,
                            final double perfShare,
@@ -40,14 +38,6 @@ public class OSEP_StatusUser extends EHOSEP_StatusUser {
 
     }
 
-    public void addDemanda() {
-        this.demanda++;
-    }
-
-    public void rmDemanda() {
-        this.demanda--;
-    }
-
     public void setTarefaMinima(final int index) {
         this.indexTarefaMin = index;
     }
@@ -64,28 +54,8 @@ public class OSEP_StatusUser extends EHOSEP_StatusUser {
         this.powerShare += power;
     }
 
-    public void addServedNum() {
-        this.servedNum++;
-    }
-
-    public void rmServedNum() {
-        this.servedNum--;
-    }
-
-    public void addServedPerf(final Double perf) {
-        this.servedPerf += perf;
-    }
-
-    public void rmServedPerf(final Double perf) {
-        this.servedPerf -= perf;
-    }
-
     public String getUser() {
         return this.user;
-    }
-
-    public int getDemanda() {
-        return this.demanda;
     }
 
     public int getIndexTarefaMax() {
@@ -98,25 +68,5 @@ public class OSEP_StatusUser extends EHOSEP_StatusUser {
 
     public int getOwnerShare() {
         return this.ownerShare;
-    }
-
-    public double getPerfShare() {
-        return this.perfShare;
-    }
-
-    public double getPowerShare() {
-        return this.powerShare;
-    }
-
-    public int getServedNum() {
-        return this.servedNum;
-    }
-
-    public double getServedPerf() {
-        return this.servedPerf;
-    }
-
-    public double getServedPower() {
-        return this.servedPower;
     }
 }
