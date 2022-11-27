@@ -5,16 +5,12 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import java.util.List;
 
 public class OSEP_StatusUser extends EHOSEP_StatusUser {
-    private int indexTarefaMax;//Índice da maior tarefa na fila
-    private int indexTarefaMin;//Índice da menor tarefa na fila
     private int ownerShare;//Número de máquinas do usuario
 
     public OSEP_StatusUser(final String user,
                            final double perfShare,
                            final List<CS_Processamento> slaves) {
         super(user, perfShare);
-        this.indexTarefaMax = -1;
-        this.indexTarefaMin = -1;
 
         this.ownerShare = 0;
         int i;
@@ -27,32 +23,8 @@ public class OSEP_StatusUser extends EHOSEP_StatusUser {
         this.ownerShare = j;
     }
 
-    public void setTarefaMinima(final int index) {
-        this.indexTarefaMin = index;
-    }
-
-    public void setTarefaMaxima(final int index) {
-        this.indexTarefaMax = index;
-    }
-
-    public void addShare() {
-        this.ownerShare++;
-    }
-
-    public void addPowerShare(final Double power) {
-        this.powerShare += power;
-    }
-
     public String getUser() {
         return this.user;
-    }
-
-    public int getIndexTarefaMax() {
-        return this.indexTarefaMax;
-    }
-
-    public int getIndexTarefaMin() {
-        return this.indexTarefaMin;
     }
 
     public int getOwnerShare() {
