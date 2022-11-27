@@ -97,7 +97,11 @@ public class EHOSEP extends GridSchedulingPolicy {
 
             final var task = optTask.get();
 
-            final int resourceIndex = this.buscarRecurso(userControl, task);
+            final int resourceIndex = this.findResourceBestSuitedFor(
+                    userControl,
+                    task.getTamProcessamento()
+            );
+
             if (resourceIndex == -1) {
                 continue;
             }
@@ -177,8 +181,9 @@ public class EHOSEP extends GridSchedulingPolicy {
         return EHOSEP.REFRESH_TIME;
     }
 
-    private int buscarRecurso(final UserControl uc, final Tarefa task) {
-        int indexSelec = this.something(uc, task);
+    private int findResourceBestSuitedFor(
+            final UserControl uc, final double taskProcessingSize) {
+        int indexSelec = this.something(uc, taskProcessingSize);
 
         if (indexSelec != -1) {
             return indexSelec;
@@ -192,38 +197,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
 
 
-        //Métricas e índice do usuário que possivelmente perderá recurso
-        //Começando pelo usuário de maior excesso
-        double consumoPonderadoSelec = 0.0;
-        int indexUserPreemp = -1;
-        for (int i = this.userControls.size() - 1; i >= 0; i--) {
-            //Apenas usuários que tem excesso de poder computacional podem
-            // sofrer preempção
-            if (this.userControls.get(i).currentlyAvailableProcessingPower() > this.userControls.get(i).getOwnedMachinesProcessingPower()) {
-                //Se ainda não foi escolhido
-                if (indexUserPreemp == -1) {
-                    indexUserPreemp = i;
-                    //Sofre preempção o usuário com maior métrica calculada
-                    consumoPonderadoSelec =
-                            (this.userControls.get(i).currentEnergyConsumption()) * this.userControls.get(i).calculatedEnergyEfficiencyRatio();
-                } else {
-
-                    final double consumoPonderadoCorrente =
-                            (this.userControls.get(i).currentEnergyConsumption()) * this.userControls.get(i).calculatedEnergyEfficiencyRatio();
-                    if (consumoPonderadoCorrente > consumoPonderadoSelec) {
-
-                        indexUserPreemp = i;
-                        consumoPonderadoSelec = consumoPonderadoCorrente;
-                    } else if (consumoPonderadoCorrente == consumoPonderadoSelec) {
-
-                        if ((this.userControls.get(i).currentlyAvailableProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower()) > (this.userControls.get(indexUserPreemp).currentlyAvailableProcessingPower() - this.userControls.get(indexUserPreemp).getOwnedMachinesProcessingPower())) {
-                            indexUserPreemp = i;
-                            consumoPonderadoSelec = consumoPonderadoCorrente;
-                        }
-                    }
-                }
-            }
-        }
+        final int indexUserPreemp = this.somethingElse();
 
         if (indexUserPreemp == -1) {
             return -1;
@@ -296,11 +270,48 @@ public class EHOSEP extends GridSchedulingPolicy {
         return indexSelec;
     }
 
+    private int somethingElse() {
+        //Métricas e índice do usuário que possivelmente perderá recurso
+        //Começando pelo usuário de maior excesso
+        double consumoPonderadoSelec = 0.0;
+        int indexUserPreemp = -1;
+        for (int i = this.userControls.size() - 1; i >= 0; i--) {
+            //Apenas usuários que tem excesso de poder computacional podem
+            // sofrer preempção
+            if (this.userControls.get(i).currentlyAvailableProcessingPower() > this.userControls.get(i).getOwnedMachinesProcessingPower()) {
+                //Se ainda não foi escolhido
+                if (indexUserPreemp == -1) {
+                    indexUserPreemp = i;
+                    //Sofre preempção o usuário com maior métrica calculada
+                    consumoPonderadoSelec =
+                            (this.userControls.get(i).currentEnergyConsumption()) * this.userControls.get(i).calculatedEnergyEfficiencyRatio();
+                } else {
+
+                    final double consumoPonderadoCorrente =
+                            (this.userControls.get(i).currentEnergyConsumption()) * this.userControls.get(i).calculatedEnergyEfficiencyRatio();
+                    if (consumoPonderadoCorrente > consumoPonderadoSelec) {
+
+                        indexUserPreemp = i;
+                        consumoPonderadoSelec = consumoPonderadoCorrente;
+                    } else if (consumoPonderadoCorrente == consumoPonderadoSelec) {
+
+                        if ((this.userControls.get(i).currentlyAvailableProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower()) > (this.userControls.get(indexUserPreemp).currentlyAvailableProcessingPower() - this.userControls.get(indexUserPreemp).getOwnedMachinesProcessingPower())) {
+                            indexUserPreemp = i;
+                            consumoPonderadoSelec = consumoPonderadoCorrente;
+                        }
+                    }
+                }
+            }
+        }
+        return indexUserPreemp;
+    }
+
     private UserControl lastUserControl() {
         return this.userControls.get(this.userControls.size() - 1);
     }
 
-    private int something(final UserControl uc, final Tarefa task) {
+    private int something(
+            final UserControl uc, final double taskProcessingSize) {
         int indexSelec = -1;
         double consumoSelec = 0.0;
 
@@ -321,13 +332,13 @@ public class EHOSEP extends GridSchedulingPolicy {
                 consumoSelec =
                         EHOSEP.machineConsumptionForTask(
                                 machine,
-                                task.getTamProcessamento()
+                                taskProcessingSize
                         );
             } else {
                 final var consumoMaqTestada =
                         EHOSEP.machineConsumptionForTask(
                                 machine,
-                                task.getTamProcessamento()
+                                taskProcessingSize
                         );
 
                 if (consumoMaqTestada < consumoSelec) {
