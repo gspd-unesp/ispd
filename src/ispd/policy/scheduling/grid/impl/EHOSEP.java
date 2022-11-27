@@ -41,6 +41,29 @@ public class EHOSEP extends GridSchedulingPolicy {
         this.filaEscravo = new ArrayList<>();
     }
 
+    private static Comparator<UserControl> bestConsumptionWeightedByEfficiency() {
+        return Comparator
+                .comparingDouble(UserControl::currentConsumptionWeightedByEfficiency)
+                .thenComparing(UserControl::excessProcessingPower);
+    }
+
+    private static Comparator<CS_Processamento> bestConsumptionForTaskSize(final double taskProcessingSize) {
+        final ToDoubleFunction<CS_Processamento> criterionFunction =
+                m -> EHOSEP.machineConsumptionForTask(m, taskProcessingSize);
+
+        return Comparator
+                .comparingDouble(criterionFunction)
+                .reversed()
+                .thenComparing(CS_Processamento::getPoderComputacional);
+    }
+
+    private static double machineConsumptionForTask(
+            final CS_Processamento machine, final double taskProcessingSize) {
+        return taskProcessingSize
+               / machine.getPoderComputacional()
+               * machine.getConsumoEnergia();
+    }
+
     @Override
     public void iniciar() {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
@@ -146,23 +169,6 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
     }
 
-    private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
-        if (!uc.isEligibleForTask()) {
-            return Optional.empty();
-        }
-
-        return this.tarefas.stream()
-                .filter(uc::isOwnerOf)
-                .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
-    }
-
-    private void sendTaskToResource(
-            final Tarefa task, final CentroServico resource) {
-        task.setLocalProcessamento(resource);
-        task.setCaminho(this.escalonarRota(resource));
-        this.tarefas.remove(task);
-    }
-
     /**
      * This algorithm's resource scheduling does not conform to the standard
      * {@link SchedulingPolicy} interface.<br>
@@ -181,6 +187,23 @@ public class EHOSEP extends GridSchedulingPolicy {
     @Override
     public Double getTempoAtualizar() {
         return EHOSEP.REFRESH_TIME;
+    }
+
+    private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
+        if (!uc.isEligibleForTask()) {
+            return Optional.empty();
+        }
+
+        return this.tarefas.stream()
+                .filter(uc::isOwnerOf)
+                .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
+    }
+
+    private void sendTaskToResource(
+            final Tarefa task, final CentroServico resource) {
+        task.setLocalProcessamento(resource);
+        task.setCaminho(this.escalonarRota(resource));
+        this.tarefas.remove(task);
     }
 
     private int findIndexOfResourceBestSuitedFor(
@@ -231,6 +254,15 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     private int getIndexSelec(
             final UserControl userWithTask, final UserControl userToPreempt) {
+
+        final var x = this.escravos.stream()
+                .filter(this::isMachineOccupied)
+                .filter(userWithTask::canUseMachineWithoutExceedingLimit)
+                .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)))
+                .min(this.leastWastedProcessingIfPreempted());
+
+        final var y = this.escravos.indexOf(x.get());
+
         //Buscar recurso para preempção
         double desperdicioTestado;
         double desperdicioSelec = 0.0;
@@ -244,7 +276,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                 continue;
             }
 
-            if (!userToPreempt.isOwnerOf(this.preemptedTask(machine))) {
+            if (!userToPreempt.isOwnerOf(this.taskToPreemptIn(machine))) {
                 continue;
             }
 
@@ -272,11 +304,13 @@ public class EHOSEP extends GridSchedulingPolicy {
         return indexSelec;
     }
 
-    private Tarefa preemptedTask(final CS_Processamento machine) {
-        return this.firstTaskInProcessing(machine);
+    private Comparator<CS_Processamento> leastWastedProcessingIfPreempted() {
+        return Comparator
+                .comparingDouble(this::wastedProcessingIfPreempted)
+                .thenComparing(CS_Processamento::getPoderComputacional);
     }
 
-    private Tarefa firstTaskInProcessing(final CS_Processamento machine) {
+    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
         return this.slaveControls.get(machine).firstTaskInProcessing();
     }
 
@@ -285,7 +319,7 @@ public class EHOSEP extends GridSchedulingPolicy {
     }
 
     private double wastedProcessingIfPreempted(final CS_Processamento machine) {
-        final var preemptedTask = this.preemptedTask(machine);
+        final var preemptedTask = this.taskToPreemptIn(machine);
         final var startTimeList = preemptedTask.getTempoInicial();
         final var taskStartTime = startTimeList.get(startTimeList.size() - 1);
         final var currTime = this.mestre.getSimulation().getTime(this);
@@ -297,29 +331,6 @@ public class EHOSEP extends GridSchedulingPolicy {
         } else {
             return processingSize;
         }
-    }
-
-    private static Comparator<UserControl> bestConsumptionWeightedByEfficiency() {
-        return Comparator
-                .comparingDouble(UserControl::currentConsumptionWeightedByEfficiency)
-                .thenComparing(UserControl::excessProcessingPower);
-    }
-
-    private static Comparator<CS_Processamento> bestConsumptionForTaskSize(final double taskProcessingSize) {
-        final ToDoubleFunction<CS_Processamento> criterionFunction =
-                m -> EHOSEP.machineConsumptionForTask(m, taskProcessingSize);
-
-        return Comparator
-                .comparingDouble(criterionFunction)
-                .reversed()
-                .thenComparing(CS_Processamento::getPoderComputacional);
-    }
-
-    private static double machineConsumptionForTask(
-            final CS_Processamento machine, final double taskProcessingSize) {
-        return taskProcessingSize
-               / machine.getPoderComputacional()
-               * machine.getConsumoEnergia();
     }
 
     private boolean isMachineAvailable(final CS_Processamento machine) {
