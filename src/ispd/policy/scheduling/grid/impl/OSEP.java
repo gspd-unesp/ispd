@@ -23,8 +23,8 @@ public class OSEP extends GridSchedulingPolicy {
     private final List<PreemptionControl> controlePreempcao =
             new ArrayList<>();
     private final List<List> processadorEscravos = new ArrayList<>();
+    private final HashMap<String, UserControl> status = new HashMap<>();
     private Tarefa tarefaSelec = null;
-    private HashMap<String, UserControl> status = null;
     private int contadorEscravos = 0;
 
     public OSEP() {
@@ -36,24 +36,13 @@ public class OSEP extends GridSchedulingPolicy {
     @Override
     public void iniciar() {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
-        //Escalonamento quando
-        // chegam tarefas e quando tarefas são concluídas
-        this.status = new HashMap<>();
 
-        for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
-            //Objetos de controle de uso e cota para cada um dos usuários
-            String user = this.metricaUsuarios.getUsuarios().get(i);
-            double perfShare =
-                    this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i));
-            java.util.Collection<? extends CS_Processamento> slaves =
-                    OSEP.this.escravos;
-            this.status.put(this.metricaUsuarios.getUsuarios().get(i),
-                    new UserControl(user, perfShare, slaves));
+        for (final var user : this.metricaUsuarios.getUsuarios()) {
+            final var comp = this.metricaUsuarios.getPoderComputacional(user);
+            this.status.put(user, new UserControl(user, comp, this.escravos));
         }
 
-        for (final CS_Processamento escravo : this.escravos) {//Contadores para
-            // lidar com a dinamicidade dos dados
-            String ID = escravo.getId();
+        for (final var ignored : this.escravos) {
             this.controleEscravos.add(new SlaveControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
             this.processadorEscravos.add(new ArrayList<Tarefa>());
@@ -68,46 +57,36 @@ public class OSEP extends GridSchedulingPolicy {
 
     @Override
     public void escalonar() {
-        final Tarefa trf = this.escalonarTarefa();
-        if (trf != null) {
-            this.tarefaSelec = trf;
-            final UserControl estado = this.status.get(trf.getProprietario());
-            final CS_Processamento rec = this.escalonarRecurso();
-            if (rec != null) {
-                trf.setLocalProcessamento(rec);
-                trf.setCaminho(this.escalonarRota(rec));
+        final var task = this.escalonarTarefa();
+        if (task != null) {
+            this.tarefaSelec = task;
+            final var userStatus = this.status.get(task.getProprietario());
+            final var resource = this.escalonarRecurso();
+            if (resource != null) {
+                task.setLocalProcessamento(resource);
+                task.setCaminho(this.escalonarRota(resource));
+
                 //Verifica se não é caso de preempção
-                if (this.controleEscravos.get(this.escravos.indexOf(rec)).isFree()) {
+                if (this.controleEscravos.get(this.escravos.indexOf(resource)).isFree()) {
 
-                    estado.decreaseTaskDemand();
-                    estado.increaseAvailableMachines();
+                    userStatus.decreaseTaskDemand();
+                    userStatus.increaseAvailableMachines();
 
-                    this.controleEscravos.get(this.escravos.indexOf(rec)).setAsBlocked();
-                    this.mestre.sendTask(trf);
+                    this.controleEscravos.get(this.escravos.indexOf(resource)).setAsBlocked();
+                    this.mestre.sendTask(task);
 
                 } else {
 
-                    if (this.controleEscravos.get(this.escravos.indexOf(rec)).isOccupied()) {
-                        final int index_rec = this.escravos.indexOf(rec);
-                        this.esperaTarefas.add(trf);
-                        this.controlePreempcao.add(new PreemptionControl(((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(index_rec).get(0)).getIdentificador(), trf.getProprietario(), trf.getIdentificador()));
-                        this.controleEscravos.get(this.escravos.indexOf(rec)).setAsBlocked();
-                    }
-                }
-
-                for (int i = 0; i < this.escravos.size(); i++) {
-                    if (this.processadorEscravos.get(i).size() > 1) {
-                        System.out.printf("Escravo %s executando %d\n",
-                                this.escravos.get(i).getId(),
-                                this.processadorEscravos.get(i).size());
-                        System.out.println("PROBLEMA1");
-                    }
-                    if (!this.filaEscravo.get(i).isEmpty()) {
-                        System.out.println("Tem Fila");
+                    if (this.controleEscravos.get(this.escravos.indexOf(resource)).isOccupied()) {
+                        final int resourceIndex =
+                                this.escravos.indexOf(resource);
+                        this.esperaTarefas.add(task);
+                        this.controlePreempcao.add(new PreemptionControl(((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getIdentificador(), task.getProprietario(), task.getIdentificador()));
+                        this.controleEscravos.get(this.escravos.indexOf(resource)).setAsBlocked();
                     }
                 }
             } else {
-                this.tarefas.add(trf);
+                this.tarefas.add(task);
                 this.tarefaSelec = null;
             }
         }
@@ -119,10 +98,10 @@ public class OSEP extends GridSchedulingPolicy {
         //Usuários com maior diferença entre uso e posse terão preferência
         long difUsuarioMinimo = -1;
         int indexUsuarioMinimo = -1;
-        String user;
+
         //Encontrar o usuário que está mais abaixo da sua propriedade
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
-            user = this.metricaUsuarios.getUsuarios().get(i);
+            final var user = this.metricaUsuarios.getUsuarios().get(i);
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
@@ -138,11 +117,8 @@ public class OSEP extends GridSchedulingPolicy {
                                 this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyAvailableMachineCount();
                         indexUsuarioMinimo = i;
                     }
-
                 }
-
             }
-
         }
 
         if (indexUsuarioMinimo != -1) {
@@ -150,10 +126,8 @@ public class OSEP extends GridSchedulingPolicy {
 
             for (int i = 0; i < this.tarefas.size(); i++) {
                 if (this.tarefas.get(i).getProprietario().equals(this.metricaUsuarios.getUsuarios().get(indexUsuarioMinimo))) {
-                    if (indexTarefa == -1) {
-                        indexTarefa = i;
-                        break;
-                    }
+                    indexTarefa = i;
+                    break;
                 }
             }
 
@@ -174,11 +148,10 @@ public class OSEP extends GridSchedulingPolicy {
     @Override
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
-        final CS_Processamento maq =
-                (CS_Processamento) tarefa.getLocalProcessamento();
-        final UserControl estado = this.status.get(tarefa.getProprietario());
+        final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
+        final var uc = this.status.get(tarefa.getProprietario());
 
-        estado.decreaseAvailableMachines();
+        uc.decreaseAvailableMachines();
         final int index = this.escravos.indexOf(maq);
         this.controleEscravos.get(index).setAsFree();
     }
@@ -202,9 +175,6 @@ public class OSEP extends GridSchedulingPolicy {
                     }
                     if (this.processadorEscravos.size() == 1) {
                         this.controleEscravos.get(i).setAsOccupied();
-                    }
-                    if (this.processadorEscravos.size() > 1) {
-                        System.out.println("Houve Fila");
                     }
                 }
             }
@@ -270,12 +240,9 @@ public class OSEP extends GridSchedulingPolicy {
             if (this.controleEscravos.get(i).isFree()) {
                 //Garantir que o escravo está de fato livre e que não há
                 // nenhuma tarefa em trânsito para o escravo
-                if (selec == null) {
 
-                    selec = this.escravos.get(i);
-                    break;
-
-                }
+                selec = this.escravos.get(i);
+                break;
 
             }
 
@@ -283,7 +250,6 @@ public class OSEP extends GridSchedulingPolicy {
 
         if (selec != null) {
 
-            //controleEscravos.get(escravos.indexOf(selec)).setBloqueado();
             // Inidcar que uma tarefa será enviada e que , portanto , este
             // escravo deve ser bloqueada até a próxima atualização
 
@@ -335,7 +301,6 @@ public class OSEP extends GridSchedulingPolicy {
         if (index != -1) {
             selec = this.escravos.get(index);
             final int index_selec = this.escravos.indexOf(selec);
-            //controleEscravos.get(escravos.indexOf(selec)).setBloqueado();
             this.mestre.sendMessage((Tarefa) this.processadorEscravos.get(index_selec).get(0), selec, Mensagens.DEVOLVER_COM_PREEMPCAO);
             return selec;
         }
@@ -346,5 +311,4 @@ public class OSEP extends GridSchedulingPolicy {
     public Double getTempoAtualizar() {
         return 15.0;
     }
-
 }
