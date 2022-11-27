@@ -43,7 +43,7 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             //Objetos de controle de uso e cota para cada um dos usuários
-            this.status.add(new M_OSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i), this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i)), M_OSEP.this.escravos));
+            this.status.add(new M_OSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i), this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i))));
         }
 
         for (int i = 0; i < this.escravos.size(); i++) {//Contadores para
