@@ -8,9 +8,9 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
-import ispd.policy.scheduling.grid.impl.util.OSEP_StatusUser;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 import ispd.policy.scheduling.grid.impl.util.SlaveStatusControl;
+import ispd.policy.scheduling.grid.impl.util.UserStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class OSEP extends GridSchedulingPolicy {
             new ArrayList<>();
     private final List<List> processadorEscravos = new ArrayList<>();
     private Tarefa tarefaSelec = null;
-    private HashMap<String, OSEP_StatusUser> status = null;
+    private HashMap<String, UserStatus> status = null;
     private int contadorEscravos = 0;
 
     public OSEP() {
@@ -42,9 +42,12 @@ public class OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             //Objetos de controle de uso e cota para cada um dos usuários
+            String user = this.metricaUsuarios.getUsuarios().get(i);
+            double perfShare =
+                    this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i));
+            java.util.Collection<? extends CS_Processamento> slaves = OSEP.this.escravos;
             this.status.put(this.metricaUsuarios.getUsuarios().get(i),
-                    new OSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i),
-                            this.metricaUsuarios.getPoderComputacional(this.metricaUsuarios.getUsuarios().get(i)), OSEP.this.escravos));
+                    new UserStatus(user, perfShare, slaves));
         }
 
         for (final CS_Processamento escravo : this.escravos) {//Contadores para
@@ -67,7 +70,7 @@ public class OSEP extends GridSchedulingPolicy {
         final Tarefa trf = this.escalonarTarefa();
         if (trf != null) {
             this.tarefaSelec = trf;
-            final OSEP_StatusUser estado = this.status.get(trf.getProprietario());
+            final UserStatus estado = this.status.get(trf.getProprietario());
             final CS_Processamento rec = this.escalonarRecurso();
             if (rec != null) {
                 trf.setLocalProcessamento(rec);
@@ -172,7 +175,7 @@ public class OSEP extends GridSchedulingPolicy {
         super.addTarefaConcluida(tarefa);
         final CS_Processamento maq =
                 (CS_Processamento) tarefa.getLocalProcessamento();
-        final OSEP_StatusUser estado = this.status.get(tarefa.getProprietario());
+        final UserStatus estado = this.status.get(tarefa.getProprietario());
 
         estado.rmServedNum();
         final int index = this.escravos.indexOf(maq);
@@ -216,7 +219,7 @@ public class OSEP extends GridSchedulingPolicy {
         super.adicionarTarefa(tarefa);
         final CS_Processamento maq =
                 (CS_Processamento) tarefa.getLocalProcessamento();
-        final OSEP_StatusUser estadoUser = this.status.get(tarefa.getProprietario());
+        final UserStatus estadoUser = this.status.get(tarefa.getProprietario());
         //Em caso de preempção, é procurada a tarefa correspondente para ser
         // enviada ao escravo agora desocupado
         if (tarefa.getLocalProcessamento() != null) {
