@@ -66,8 +66,8 @@ public class EHOSEP extends GridSchedulingPolicy {
                 }
             }
             //Adiciona dados do usuário corrente à lista 
-            this.status.add(new EHOSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i), i
-                    , poderComp));
+            this.status.add(new EHOSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i),
+                    poderComp));
             //Inserir consumo da porção nos dados do usuário
             this.status.get(i).setPowerShare(consumoPorcao);
             //Calcular a relação entre a eficiência da porção e a eficiência

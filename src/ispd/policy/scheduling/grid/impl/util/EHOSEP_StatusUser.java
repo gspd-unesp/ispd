@@ -17,7 +17,7 @@ public class EHOSEP_StatusUser implements Comparable<EHOSEP_StatusUser> {
     private double relacaoEficienciaSistemaPorcao;//Nova métrica para
     // decisão de preempção
 
-    public EHOSEP_StatusUser(final String user, final int indexUser,
+    public EHOSEP_StatusUser(final String user,
                              final double perfShare) {
         this.user = user;
         this.demanda = 0;

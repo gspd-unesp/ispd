@@ -16,7 +16,7 @@ public class HOSEP_StatusUser implements Comparable<HOSEP_StatusUser> {
     private double limiteConsumo;//Limite de consumo definido pelo usuario;
     // decisão de preempção
 
-    public HOSEP_StatusUser(final String user, final int indexUser,
+    public HOSEP_StatusUser(final String user,
                             final double perfShare) {
         this.user = user;
         this.demanda = 0;

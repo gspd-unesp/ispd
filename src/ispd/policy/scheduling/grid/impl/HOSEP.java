@@ -52,7 +52,7 @@ public class HOSEP extends GridSchedulingPolicy {
                 }
             }
             //Adiciona dados do usuário corrente à lista 
-            this.status.add(new HOSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i), i, poderComp));
+            this.status.add(new HOSEP_StatusUser(this.metricaUsuarios.getUsuarios().get(i), poderComp));
         }
 
         //Controle dos nós, com cópias das filas de cada um e da tarefa que
