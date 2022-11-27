@@ -4,29 +4,20 @@ import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.util.List;
 
-public class OSEP_StatusUser {
-    private final String user;//Nome do usuario;
-    private final double perfShare;//Desempenho total das máquinas do
-    private final double servedPower;//Consumo de energia total que
-    private int demanda;//Número de tarefas na fila
+public class OSEP_StatusUser extends EHOSEP_StatusUser {
     private int indexTarefaMax;//Índice da maior tarefa na fila
     private int indexTarefaMin;//Índice da menor tarefa na fila
     private int ownerShare;//Número de máquinas do usuario
     // usuário
-    private double powerShare;//Consumo de energia total das máquinas do
-    // usuário
-    private int servedNum;//Número de máquinas que atendem ao usuário
-    private double servedPerf;//Desempenho total que atende ao usuário
     // atende ao usuario
 
     public OSEP_StatusUser(final String user,
                            final double perfShare,
                            final List<CS_Processamento> slaves) {
-        this.user = user;
+        super(user, perfShare);
         this.demanda = 0;
         this.indexTarefaMax = -1;
         this.indexTarefaMin = -1;
-        this.perfShare = perfShare;
         this.powerShare = 0.0;
         this.servedNum = 0;
         this.servedPerf = 0.0;
