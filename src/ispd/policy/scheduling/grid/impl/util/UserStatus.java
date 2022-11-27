@@ -5,6 +5,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import java.util.Collection;
 
 public class UserStatus implements Comparable<UserStatus> {
+    private final long userMachineCount;
     private final String user;//Nome do usuario;
     private final double perfShare;//Desempenho total das máquinas do
     private int demanda;//Número de tarefas na fila usuário
@@ -28,6 +29,10 @@ public class UserStatus implements Comparable<UserStatus> {
         this.servedPerf = 0.0;
         this.servedPower = 0.0;
         this.limiteConsumo = 0.0;
+
+        this.userMachineCount = slaves.stream()
+                .filter(s -> s.getProprietario().equals(user))
+                .count();
     }
 
     public void calculaRelacaoEficienciaEficienciaSisPor(
@@ -139,5 +144,9 @@ public class UserStatus implements Comparable<UserStatus> {
 
     public double getServedPerf() {
         return this.servedPerf;
+    }
+
+    public long getOwnerShare() {
+        return this.userMachineCount;
     }
 }
