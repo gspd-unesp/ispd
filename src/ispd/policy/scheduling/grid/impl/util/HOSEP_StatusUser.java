@@ -4,7 +4,6 @@ package ispd.policy.scheduling.grid.impl.util;
 public class HOSEP_StatusUser implements Comparable<HOSEP_StatusUser> {
 
     private final String user;//Nome do usuario;
-    private final int indexUser;//Índice do usuário;
     private final double perfShare;//Desempenho total das máquinas do
     private int demanda;//Número de tarefas na fila
     // usuário
@@ -20,7 +19,6 @@ public class HOSEP_StatusUser implements Comparable<HOSEP_StatusUser> {
     public HOSEP_StatusUser(final String user, final int indexUser,
                             final double perfShare) {
         this.user = user;
-        this.indexUser = indexUser;
         this.demanda = 0;
         this.perfShare = perfShare;
         this.powerShare = 0.0;
@@ -28,11 +26,6 @@ public class HOSEP_StatusUser implements Comparable<HOSEP_StatusUser> {
         this.servedPerf = 0.0;
         this.servedPower = 0.0;
         this.limiteConsumo = 0.0;
-    }
-
-    public static int getOwnerShare() {
-        //Número de máquinas do usuario
-        return 0;
     }
 
     public void calculaRelacaoEficienciaEficienciaSisPor(final Double poderSis, final Double consumoSis) {
@@ -75,10 +68,6 @@ public class HOSEP_StatusUser implements Comparable<HOSEP_StatusUser> {
 
     public String getNome() {
         return this.user;
-    }
-
-    public int getIndexUser() {
-        return this.indexUser;
     }
 
     public int getDemanda() {

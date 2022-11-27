@@ -4,10 +4,8 @@ package ispd.policy.scheduling.grid.impl.util;
 public class EHOSEP_StatusUser implements Comparable<EHOSEP_StatusUser> {
 
     private final String user;//Nome do usuario;
-    private final int indexUser;//Índice do usuário;
     private final double perfShare;//Desempenho total das máquinas do
     private int demanda;//Número de tarefas na fila
-    private int ownerShare;//Número de máquinas do usuario
     // usuário
     private double powerShare;//Consumo de energia total das máquinas do
     // usuário
@@ -22,7 +20,6 @@ public class EHOSEP_StatusUser implements Comparable<EHOSEP_StatusUser> {
     public EHOSEP_StatusUser(final String user, final int indexUser,
                              final double perfShare) {
         this.user = user;
-        this.indexUser = indexUser;
         this.demanda = 0;
         this.perfShare = perfShare;
         this.powerShare = 0.0;
@@ -74,10 +71,6 @@ public class EHOSEP_StatusUser implements Comparable<EHOSEP_StatusUser> {
         return this.user;
     }
 
-    public int getIndexUser() {
-        return this.indexUser;
-    }
-
     public int getDemanda() {
         return this.demanda;
     }
@@ -88,10 +81,6 @@ public class EHOSEP_StatusUser implements Comparable<EHOSEP_StatusUser> {
 
     public void setLimite(final Double lim) {
         this.limiteConsumo = lim;
-    }
-
-    public int getOwnerShare() {
-        return this.ownerShare;
     }
 
     public int getServedNum() {
