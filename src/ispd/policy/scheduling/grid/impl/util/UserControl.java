@@ -1,5 +1,6 @@
 package ispd.policy.scheduling.grid.impl.util;
 
+import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.metricas.MetricasUsuarios;
 
@@ -31,6 +32,22 @@ public class UserControl implements Comparable<UserControl> {
                 this.calculateEnergyEfficiencyRatioAgainst(systemMachines);
     }
 
+    public boolean isOwnerOf(final Tarefa task) {
+        return this.userId.equals(task.getProprietario());
+    }
+
+    public boolean isEligibleForTask() {
+        return !this.hasNoTaskDemand() && !this.hasExceededEnergyLimit();
+    }
+
+    public boolean hasExceededEnergyLimit() {
+        return this.currentEnergyConsumption >= this.energyConsumptionLimit;
+    }
+
+    public boolean hasNoTaskDemand() {
+        return this.currentTaskDemand() == 0;
+    }
+
     private boolean isOwnedByUser(final CS_Processamento machine) {
         return machine.getProprietario().equals(this.userId);
     }
@@ -53,8 +70,11 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
     }
 
-    public void increaseTaskDemand() {
-        this.taskDemand++;
+    public void gotTaskFrom(final CS_Processamento resource) {
+        this.decreaseTaskDemand();
+        this.increaseAvailableMachines();
+        this.increaseAvailableProcessingPower(resource.getPoderComputacional());
+        this.increaseEnergyConsumption(resource.getConsumoEnergia());
     }
 
     public void decreaseTaskDemand() {
@@ -65,20 +85,24 @@ public class UserControl implements Comparable<UserControl> {
         this.availableMachineCount++;
     }
 
-    public void decreaseAvailableMachines() {
-        this.availableMachineCount--;
-    }
-
     public void increaseAvailableProcessingPower(final double amount) {
         this.availableProcessingPower += amount;
     }
 
-    public void decreaseAvailableProcessingPower(final double amount) {
-        this.availableProcessingPower -= amount;
-    }
-
     public void increaseEnergyConsumption(final double amount) {
         this.currentEnergyConsumption += amount;
+    }
+
+    public void increaseTaskDemand() {
+        this.taskDemand++;
+    }
+
+    public void decreaseAvailableMachines() {
+        this.availableMachineCount--;
+    }
+
+    public void decreaseAvailableProcessingPower(final double amount) {
+        this.availableProcessingPower -= amount;
     }
 
     public void decreaseEnergyConsumption(final double amount) {

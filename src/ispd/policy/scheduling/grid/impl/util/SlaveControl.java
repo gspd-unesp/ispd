@@ -10,6 +10,10 @@ public class SlaveControl {
     private List<Tarefa> tasksOnHold = new ArrayList<>();
     private ArrayList<Tarefa> tasksInProcessing = new ArrayList<>();
 
+    public Tarefa firstTaskInProcessing() {
+        return this.tasksInProcessing.get(0);
+    }
+
     public boolean isOccupied() {
         return this.status == SlaveStatus.OCCUPIED;
     }

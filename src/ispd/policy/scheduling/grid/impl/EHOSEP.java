@@ -17,7 +17,9 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -84,66 +86,77 @@ public class EHOSEP extends GridSchedulingPolicy {
     public void escalonar() {
         Collections.sort(this.userControls);
 
-        for (int i = 0; i < this.userControls.size(); i++) {
-            final var cliente = this.userControls.get(i);
+        for (final var userControl : this.userControls) {
 
-            //Buscar tarefa para execucao
-            final int indexTarefa = this.buscarTarefa(cliente);
-            if (indexTarefa != -1) {
+            final var optTask = this.findTaskSuitableFor(userControl);
 
-                //Buscar máquina para executar a tarefa definida
-                final int indexEscravo = this.buscarRecurso(cliente,
-                        this.tarefas.get(indexTarefa));
-                if (indexEscravo != -1) {
+            if (optTask.isEmpty()) {
+                continue;
+            }
 
-                    //Se não é caso de preempção, a tarefa é configurada e
-                    // enviada
-                    if (this.slaveControls.get(indexEscravo).isFree()) {
+            final var task = optTask.get();
 
-                        final Tarefa tar = this.tarefas.remove(indexTarefa);
-                        tar.setLocalProcessamento(this.escravos.get(indexEscravo));
-                        tar.setCaminho(this.escalonarRota(this.escravos.get(indexEscravo)));
-                        this.mestre.sendTask(tar);
+            final int resourceIndex = this.buscarRecurso(userControl, task);
+            if (resourceIndex == -1) {
+                continue;
+            }
 
-                        //Atualização dos dados sobre o usuário
-                        cliente.decreaseTaskDemand();
-                        cliente.increaseAvailableMachines();
-                        cliente.increaseAvailableProcessingPower(this.escravos.get(indexEscravo).getPoderComputacional());
-                        cliente.increaseEnergyConsumption(this.escravos.get(indexEscravo).getConsumoEnergia());
+            final var control = this.slaveControls.get(resourceIndex);
+            final var resource = this.escravos.get(resourceIndex);
 
-                        //Controle das máquinas
-                        this.slaveControls.get(indexEscravo).setAsBlocked();
-                        return;
-                    }
+            if (control.isFree()) {
+                this.sendTaskToResource(task, resource);
+                this.mestre.sendTask(task);
 
-                    //Se é caso de preempção, a tarefa configurada e colocada
-                    // em espera
-                    if (this.slaveControls.get(indexEscravo).isOccupied()) {
+                userControl.gotTaskFrom(resource);
 
-                        final Tarefa tar = this.tarefas.remove(indexTarefa);
-                        tar.setLocalProcessamento(this.escravos.get(indexEscravo));
-                        tar.setCaminho(this.escalonarRota(this.escravos.get(indexEscravo)));
+                control.setAsBlocked();
+                return;
+            }
 
-                        //Controle de preempção para enviar a nova tarefa no
-                        // momento certo
-                        this.preemptionControls.add(new PreemptionControl(
-                                this.slaveControls.get(indexEscravo).getTasksInProcessing().get(0).getProprietario(),
-                                this.slaveControls.get(indexEscravo).getTasksInProcessing().get(0).getIdentificador(),
-                                tar.getProprietario(),
-                                tar.getIdentificador()
-                        ));
-                        this.esperaTarefas.add(tar);
+            if (control.isOccupied()) {
+                this.sendTaskToResource(task, resource);
 
-                        //Solicitação de retorno da tarefa em execução e
-                        // atualização da demanda do usuário
-                        this.mestre.sendMessage(this.slaveControls.get(indexEscravo).getTasksInProcessing().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
-                        this.slaveControls.get(indexEscravo).setAsBlocked();
-                        cliente.decreaseTaskDemand();
-                        return;
-                    }
-                }
+                final var preemptedTask = control.firstTaskInProcessing();
+
+                this.preemptionControls.add(new PreemptionControl(
+                        preemptedTask.getProprietario(),
+                        preemptedTask.getIdentificador(),
+                        task.getProprietario(),
+                        task.getIdentificador()
+                ));
+
+                this.esperaTarefas.add(task);
+
+                this.mestre.sendMessage(
+                        preemptedTask,
+                        resource,
+                        Mensagens.DEVOLVER_COM_PREEMPCAO
+                );
+
+                control.setAsBlocked();
+                userControl.decreaseTaskDemand();
+
+                return;
             }
         }
+    }
+
+    private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
+        if (!uc.isEligibleForTask()) {
+            return Optional.empty();
+        }
+
+        return this.tarefas.stream()
+                .filter(uc::isOwnerOf)
+                .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
+    }
+
+    private void sendTaskToResource(
+            final Tarefa task, final CentroServico resource) {
+        task.setLocalProcessamento(resource);
+        task.setCaminho(this.escalonarRota(resource));
+        this.tarefas.remove(task);
     }
 
     /**
@@ -166,31 +179,8 @@ public class EHOSEP extends GridSchedulingPolicy {
         return 15.0;
     }
 
-    private int buscarTarefa(final UserControl usuario) {
-        //Indice da tarefa na lista de tarefas
-        int trf = -1;
-        //Se o usuario tem demanda nao atendida e seu consumo nao chegou ao
-        // limite
-        if (usuario.currentTaskDemand() > 0 && usuario.currentEnergyConsumption() < usuario.getEnergyConsumptionLimit()) {
-            //Procura pela menor tarefa nao atendida do usuario.
-            for (int j = 0; j < this.tarefas.size(); j++) {
-                if (this.tarefas.get(j).getProprietario().equals(usuario.getUserId())) {
-                    if (trf == -1) {
-                        trf = j;
-                    } else if (this.tarefas.get(j).getTamProcessamento() < this.tarefas.get(trf).getTamProcessamento()) {//Escolher a tarefa de menor tamanho do usuario
-                        trf = j;
-                    }
-                }
-            }
-        }
-        return trf;
-    }
-
     private int buscarRecurso(final UserControl cliente,
                               final Tarefa TarAloc) {
-
-        /*++++++++++++++++++Buscando recurso livres++++++++++++++++++*/
-
         //Índice da máquina escolhida, na lista de máquinas
         int indexSelec = -1;
         //Consumo da máquina escolhida e da máquina comparada com a escolhida
@@ -300,9 +290,9 @@ public class EHOSEP extends GridSchedulingPolicy {
             if (this.slaveControls.get(j).isOccupied() && (this.escravos.get(j).getConsumoEnergia() + cliente.currentEnergyConsumption()) <= cliente.getEnergyConsumptionLimit()) {
 
                 final var tarPreemp =
-                        this.slaveControls.get(j).getTasksInProcessing().get(0);
+                        this.slaveControls.get(j).firstTaskInProcessing();
 
-                if (tarPreemp.getProprietario().equals(this.userControls.get(indexUserPreemp).getUserId())) {
+                if (this.userControls.get(indexUserPreemp).isOwnerOf(tarPreemp)) {
 
                     if (indexSelec == -1) {
                         //Se há checkpointing de tarefas
