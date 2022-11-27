@@ -10,7 +10,7 @@ import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
-import ispd.policy.scheduling.grid.impl.util.UserStatus;
+import ispd.policy.scheduling.grid.impl.util.UserControl;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.List;
 
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
-    private final ArrayList<UserStatus> status;
+    private final ArrayList<UserControl> status;
     private final List<SlaveControl> controleEscravos;
     private final List<Tarefa> esperaTarefas;
     private final List<PreemptionControl> controlePreempcao;
@@ -66,7 +66,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                 }
             }
             //Adiciona dados do usuário corrente à lista 
-            this.status.add(new UserStatus(this.metricaUsuarios.getUsuarios().get(i),
+            this.status.add(new UserControl(this.metricaUsuarios.getUsuarios().get(i),
                     poderComp, escravos));
             //Inserir consumo da porção nos dados do usuário
             this.status.get(i).setPowerShare(consumoPorcao);
@@ -97,7 +97,7 @@ public class EHOSEP extends GridSchedulingPolicy {
 
         int indexTarefa;
         int indexEscravo;
-        UserStatus cliente;
+        UserControl cliente;
 
         //Ordenar os usuários em ordem crescente de Poder Remanescente
         Collections.sort(this.status);
@@ -182,7 +182,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         return 15.0;
     }
 
-    private int buscarTarefa(final UserStatus usuario) {
+    private int buscarTarefa(final UserControl usuario) {
 
         //Indice da tarefa na lista de tarefas
         int trf = -1;
@@ -203,7 +203,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         return trf;
     }
 
-    private int buscarRecurso(final UserStatus cliente,
+    private int buscarRecurso(final UserControl cliente,
                               final Tarefa TarAloc) {
 
         /*++++++++++++++++++Buscando recurso livres++++++++++++++++++*/

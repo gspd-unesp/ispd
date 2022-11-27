@@ -4,7 +4,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.util.Collection;
 
-public class UserStatus implements Comparable<UserStatus> {
+public class UserControl implements Comparable<UserControl> {
     private final long userMachineCount;
     private final String user;//Nome do usuario;
     private final double perfShare;//Desempenho total das máquinas do
@@ -19,7 +19,7 @@ public class UserStatus implements Comparable<UserStatus> {
     private double relacaoEficienciaSistemaPorcao;//Nova métrica para
     // decisão de preempção
 
-    public UserStatus(final String user, final double perfShare, Collection<?
+    public UserControl(final String user, final double perfShare, Collection<?
             extends CS_Processamento> slaves) {
         this.user = user;
         this.demanda = 0;
@@ -103,7 +103,7 @@ public class UserStatus implements Comparable<UserStatus> {
 
     //Comparador para ordenação
     @Override
-    public int compareTo(final UserStatus o) {
+    public int compareTo(final UserControl o) {
 
         if (((this.servedPerf - this.perfShare) / this.perfShare) < ((o.getServedPerf() - o.getPerfShare()) / o.getPerfShare())) {
             return -1;
