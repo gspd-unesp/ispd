@@ -4,7 +4,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.util.List;
 
-public class OSEP_StatusUser extends EHOSEP_StatusUser {
+public class OSEP_StatusUser extends UserStatus {
     private int ownerShare;//Número de máquinas do usuario
 
     public OSEP_StatusUser(final String user,

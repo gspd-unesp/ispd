@@ -9,7 +9,7 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
-import ispd.policy.scheduling.grid.impl.util.EHOSEP_StatusUser;
+import ispd.policy.scheduling.grid.impl.util.UserStatus;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 
@@ -19,7 +19,7 @@ import java.util.List;
 
 @Policy
 public class HOSEP extends GridSchedulingPolicy {
-    private final List<EHOSEP_StatusUser> status;
+    private final List<UserStatus> status;
     private final List<SlaveControl> controleEscravos;
     private final List<Tarefa> esperaTarefas;
     private final List<PreemptionControl> controlePreempcao;
@@ -54,7 +54,7 @@ public class HOSEP extends GridSchedulingPolicy {
             //Adiciona dados do usuário corrente à lista 
             String user = this.metricaUsuarios.getUsuarios().get(i);
             double perfShare = poderComp;
-            this.status.add(new EHOSEP_StatusUser(user, perfShare));
+            this.status.add(new UserStatus(user, perfShare));
         }
 
         //Controle dos nós, com cópias das filas de cada um e da tarefa que
@@ -77,13 +77,13 @@ public class HOSEP extends GridSchedulingPolicy {
 
         int indexTarefa;
         int indexEscravo;
-        EHOSEP_StatusUser cliente;
+        UserStatus cliente;
 
         //Ordenar os usuários em ordem crescente de Poder Remanescente
         Collections.sort(this.status);
 
-        for (final EHOSEP_StatusUser statusUser : this.status) {
-            cliente = statusUser;
+        for (final UserStatus userStatus : this.status) {
+            cliente = userStatus;
 
             //Buscar tarefa para execucao
             indexTarefa = this.buscarTarefa(cliente);
@@ -160,7 +160,7 @@ public class HOSEP extends GridSchedulingPolicy {
         return 15.0;
     }
 
-    private int buscarTarefa(final EHOSEP_StatusUser usuario) {
+    private int buscarTarefa(final UserStatus usuario) {
 
         //Indice da tarefa na lista de tarefas
         int trf = -1;
@@ -181,7 +181,7 @@ public class HOSEP extends GridSchedulingPolicy {
         return trf;
     }
 
-    private int buscarRecurso(final EHOSEP_StatusUser cliente) {
+    private int buscarRecurso(final UserStatus cliente) {
 
         /*++++++++++++++++++Buscando recurso livres++++++++++++++++++*/
 
@@ -379,9 +379,9 @@ public class HOSEP extends GridSchedulingPolicy {
         super.adicionarTarefa(tarefa);
 
         //Atualização da demanda do usuário proprietário da tarefa
-        for (final EHOSEP_StatusUser statusUser : this.status) {
-            if (statusUser.getNome().equals(tarefa.getProprietario())) {
-                statusUser.addDemanda();
+        for (final UserStatus userStatus : this.status) {
+            if (userStatus.getNome().equals(tarefa.getProprietario())) {
+                userStatus.addDemanda();
                 break;
             }
         }

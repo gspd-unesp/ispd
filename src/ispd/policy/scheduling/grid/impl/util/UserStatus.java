@@ -1,23 +1,20 @@
 package ispd.policy.scheduling.grid.impl.util;
 
-//Classe para dados de estado dos usuários
-public class EHOSEP_StatusUser implements Comparable<EHOSEP_StatusUser> {
-
-    protected final String user;//Nome do usuario;
-    protected final double perfShare;//Desempenho total das máquinas do
-    protected int demanda;//Número de tarefas na fila
+public class UserStatus implements Comparable<UserStatus> {
+    private final String user;//Nome do usuario;
+    private final double perfShare;//Desempenho total das máquinas do
+    private int demanda;//Número de tarefas na fila usuário
+    private double powerShare;//Consumo de energia total das máquinas do
     // usuário
-    protected double powerShare;//Consumo de energia total das máquinas do
-    // usuário
-    protected int servedNum;//Número de máquinas que atendem ao usuário
-    protected double servedPerf;//Desempenho total que atende ao usuário
-    protected double servedPower;//Consumo de energia total que atende ao
+    private int servedNum;//Número de máquinas que atendem ao usuário
+    private double servedPerf;//Desempenho total que atende ao usuário
+    private double servedPower;//Consumo de energia total que atende ao
     // usuario
-    protected double limiteConsumo;//Limite de consumo definido pelo usuario;
-    protected double relacaoEficienciaSistemaPorcao;//Nova métrica para
+    private double limiteConsumo;//Limite de consumo definido pelo usuario;
+    private double relacaoEficienciaSistemaPorcao;//Nova métrica para
     // decisão de preempção
 
-    public EHOSEP_StatusUser(final String user, final double perfShare) {
+    public UserStatus(final String user, final double perfShare) {
         this.user = user;
         this.demanda = 0;
         this.perfShare = perfShare;
@@ -96,7 +93,7 @@ public class EHOSEP_StatusUser implements Comparable<EHOSEP_StatusUser> {
 
     //Comparador para ordenação
     @Override
-    public int compareTo(final EHOSEP_StatusUser o) {
+    public int compareTo(final UserStatus o) {
 
         if (((this.servedPerf - this.perfShare) / this.perfShare) < ((o.getServedPerf() - o.getPerfShare()) / o.getPerfShare())) {
             return -1;
