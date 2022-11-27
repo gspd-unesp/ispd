@@ -321,16 +321,16 @@ public class M_OSEP extends GridSchedulingPolicy {
             int j;
             int indexControle = -1;
             for (j = 0; j < this.controlePreempcao.size(); j++) {
-                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
+                if (this.controlePreempcao.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.controlePreempcao.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                     indexControle = j;
                     break;
                 }
             }
 
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).getAllocID()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).allocatedTaskId()) {
                     indexUser =
-                            this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).getUsuarioAlloc());
+                            this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).allocatedTaskUser());
                     UserControl m_osep_UserControl = this.status.get(indexUser);
                     final Double poder = maq.getPoderComputacional();
                     m_osep_UserControl.increaseAvailableProcessingPower(poder);

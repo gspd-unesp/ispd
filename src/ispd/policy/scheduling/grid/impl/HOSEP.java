@@ -285,21 +285,21 @@ public class HOSEP extends GridSchedulingPolicy {
             int indexStatusUserPreemp = -1;
 
             for (int j = 0; j < this.controlePreempcao.size(); j++) {
-                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
+                if (this.controlePreempcao.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.controlePreempcao.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                     indexControlePreemp = j;
                     break;
                 }
             }
 
             for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
+                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).allocatedTaskUser())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
             }
 
             for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
+                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).preemptedTaskUser())) {
                     indexStatusUserPreemp = k;
                     break;
                 }
@@ -307,7 +307,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             //Localizar tarefa em espera designada para executar
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).allocatedTaskId()) {
 
                     //Enviar tarefa para execução
                     this.mestre.sendTask(this.esperaTarefas.remove(i));
@@ -401,21 +401,21 @@ public class HOSEP extends GridSchedulingPolicy {
             int indexStatusUserPreemp = -1;
 
             for (int j = 0; j < this.controlePreempcao.size(); j++) {
-                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
+                if (this.controlePreempcao.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.controlePreempcao.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                     indexControlePreemp = j;
                     break;
                 }
             }
 
             for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
+                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).allocatedTaskUser())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
             }
 
             for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
+                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).preemptedTaskUser())) {
                     indexStatusUserPreemp = k;
                     break;
                 }
@@ -424,7 +424,7 @@ public class HOSEP extends GridSchedulingPolicy {
             //Localizar tarefa em espera deseignada para executar
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
 
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).getAllocID()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControlePreemp).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(indexControlePreemp).allocatedTaskId()) {
 
                     //Enviar tarefa para execução
                     this.mestre.sendTask(this.esperaTarefas.remove(i));

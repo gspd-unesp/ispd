@@ -227,21 +227,21 @@ public class OSEP extends GridSchedulingPolicy {
             int j;
             int indexControle = -1;
             for (j = 0; j < this.controlePreempcao.size(); j++) {
-                if (this.controlePreempcao.get(j).getPreempID() == tarefa.getIdentificador() && this.controlePreempcao.get(j).getUsuarioPreemp().equals(tarefa.getProprietario())) {
+                if (this.controlePreempcao.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.controlePreempcao.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                     indexControle = j;
                     break;
                 }
             }
 
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).getUsuarioAlloc()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).getAllocID()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).allocatedTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).allocatedTaskId()) {
 
                     this.mestre.sendTask(this.esperaTarefas.get(i));
 
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioAlloc()).increaseAvailableMachines();
+                    this.status.get(this.controlePreempcao.get(indexControle).allocatedTaskUser()).increaseAvailableMachines();
 
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).increaseTaskDemand();
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).decreaseAvailableMachines();
+                    this.status.get(this.controlePreempcao.get(indexControle).preemptedTaskUser()).increaseTaskDemand();
+                    this.status.get(this.controlePreempcao.get(indexControle).preemptedTaskUser()).decreaseAvailableMachines();
 
                     this.controleEscravos.get(this.escravos.indexOf(maq)).setAsBlocked();
 
