@@ -113,7 +113,7 @@ public class OSEP extends GridSchedulingPolicy {
     @Override
     public Tarefa escalonarTarefa() {
         //Usuários com maior diferença entre uso e posse terão preferência
-        int difUsuarioMinimo = -1;
+        long difUsuarioMinimo = -1;
         int indexUsuarioMinimo = -1;
         String user;
         //Encontrar o usuário que está mais abaixo da sua propriedade
@@ -287,7 +287,7 @@ public class OSEP extends GridSchedulingPolicy {
         }
 
         String usermax = null;
-        int diff = -1;
+        long diff = -1;
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             user = this.metricaUsuarios.getUsuarios().get(i);
