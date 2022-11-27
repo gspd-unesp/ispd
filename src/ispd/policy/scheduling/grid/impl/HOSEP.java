@@ -105,8 +105,8 @@ public class HOSEP extends GridSchedulingPolicy {
                         this.mestre.sendTask(tar);
 
                         //Atualização dos dados sobre o usuário
-                        cliente.rmDemanda();
-                        cliente.addServedPerf(this.escravos.get(indexEscravo).getPoderComputacional());
+                        cliente.decreaseTaskDemand();
+                        cliente.increaseAvailableProcessingPower(this.escravos.get(indexEscravo).getPoderComputacional());
 
                         //Controle das máquinas
                         this.controleEscravos.get(indexEscravo).setAsBlocked();
@@ -138,7 +138,7 @@ public class HOSEP extends GridSchedulingPolicy {
                         // atualização da demanda do usuário
                         this.mestre.sendMessage(this.controleEscravos.get(indexEscravo).getTasksInProcessing().get(0), this.escravos.get(indexEscravo), Mensagens.DEVOLVER_COM_PREEMPCAO);
                         this.controleEscravos.get(indexEscravo).setAsBlocked();
-                        cliente.rmDemanda();
+                        cliente.decreaseTaskDemand();
                         return;
                     }
                 }
@@ -166,10 +166,10 @@ public class HOSEP extends GridSchedulingPolicy {
         int trf = -1;
         //Se o usuario tem demanda nao atendida e seu consumo nao chegou ao
         // limite
-        if (usuario.getDemanda() > 0) {
+        if (usuario.currentTaskDemand() > 0) {
             //Procura pela menor tarefa nao atendida do usuario.
             for (int j = 0; j < this.tarefas.size(); j++) {
-                if (this.tarefas.get(j).getProprietario().equals(usuario.getNome())) {
+                if (this.tarefas.get(j).getProprietario().equals(usuario.getUserId())) {
                     if (trf == -1) {
                         trf = j;
                     } else if (this.tarefas.get(j).getTamProcessamento() < this.tarefas.get(trf).getTamProcessamento()) {//Escolher a tarefa de menor tamanho do usuario
@@ -205,12 +205,12 @@ public class HOSEP extends GridSchedulingPolicy {
 
         /*+++++++++++++++++Busca por usuário para preempção+++++++++++++++++*/
 
-        if (this.status.get(this.status.size() - 1).getServedPerf() > this.status.get(this.status.size() - 1).getPerfShare() && cliente.getServedPerf() < cliente.getPerfShare()) {
+        if (this.status.get(this.status.size() - 1).currentlyAvailableProcessingPower() > this.status.get(this.status.size() - 1).getOwnedMachinesProcessingPower() && cliente.currentlyAvailableProcessingPower() < cliente.getOwnedMachinesProcessingPower()) {
 
             for (int i = 0; i < this.escravos.size(); i++) {
 
                 if (this.controleEscravos.get(i).isOccupied()) {
-                    if (this.controleEscravos.get(i).getTasksInProcessing().get(0).getProprietario().equals(this.status.get(this.status.size() - 1).getNome())) {
+                    if (this.controleEscravos.get(i).getTasksInProcessing().get(0).getProprietario().equals(this.status.get(this.status.size() - 1).getUserId())) {
 
                         if (indexSelec == -1) {
 
@@ -229,9 +229,9 @@ public class HOSEP extends GridSchedulingPolicy {
             if (indexSelec != -1) {
 
                 final double penalidaUserEsperaPosterior =
-                        (cliente.getServedPerf() + this.escravos.get(indexSelec).getPoderComputacional() - cliente.getPerfShare()) / cliente.getPerfShare();
+                        (cliente.currentlyAvailableProcessingPower() + this.escravos.get(indexSelec).getPoderComputacional() - cliente.getOwnedMachinesProcessingPower()) / cliente.getOwnedMachinesProcessingPower();
                 final double penalidaUserEscravoPosterior =
-                        (this.status.get(this.status.size() - 1).getServedPerf() - this.escravos.get(indexSelec).getPoderComputacional() - this.status.get(this.status.size() - 1).getPerfShare()) / this.status.get(this.status.size() - 1).getPerfShare();
+                        (this.status.get(this.status.size() - 1).currentlyAvailableProcessingPower() - this.escravos.get(indexSelec).getPoderComputacional() - this.status.get(this.status.size() - 1).getOwnedMachinesProcessingPower()) / this.status.get(this.status.size() - 1).getOwnedMachinesProcessingPower();
 
                 if (penalidaUserEscravoPosterior >= penalidaUserEsperaPosterior || penalidaUserEscravoPosterior > 0) {
                     return indexSelec;
@@ -268,14 +268,14 @@ public class HOSEP extends GridSchedulingPolicy {
             int statusIndex = -1;
 
             for (int i = 0; i < this.status.size(); i++) {
-                if (this.status.get(i).getNome().equals(tarefa.getProprietario())) {
+                if (this.status.get(i).getUserId().equals(tarefa.getProprietario())) {
                     statusIndex = i;
                 }
             }
 
             //Atualização das informações de estado do proprietario da tarefa
             // terminada.
-            this.status.get(statusIndex).rmServedPerf(maq.getPoderComputacional());
+            this.status.get(statusIndex).decreaseAvailableProcessingPower(maq.getPoderComputacional());
             this.controleEscravos.get(maqIndex).setAsFree();
 
         } else if (this.controleEscravos.get(maqIndex).isBlocked()) {
@@ -292,14 +292,14 @@ public class HOSEP extends GridSchedulingPolicy {
             }
 
             for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
+                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
             }
 
             for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
+                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
                     indexStatusUserPreemp = k;
                     break;
                 }
@@ -314,11 +314,11 @@ public class HOSEP extends GridSchedulingPolicy {
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // será executada
-                    this.status.get(indexStatusUserAlloc).addServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserAlloc).increaseAvailableProcessingPower(maq.getPoderComputacional());
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // teve a execução interrompida
-                    this.status.get(indexStatusUserPreemp).rmServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserPreemp).decreaseAvailableProcessingPower(maq.getPoderComputacional());
 
                     //Com a preempção feita, os dados necessários para ela
                     // são eliminados
@@ -380,8 +380,8 @@ public class HOSEP extends GridSchedulingPolicy {
 
         //Atualização da demanda do usuário proprietário da tarefa
         for (final UserControl userControl : this.status) {
-            if (userControl.getNome().equals(tarefa.getProprietario())) {
-                userControl.addDemanda();
+            if (userControl.getUserId().equals(tarefa.getProprietario())) {
+                userControl.increaseTaskDemand();
                 break;
             }
         }
@@ -408,14 +408,14 @@ public class HOSEP extends GridSchedulingPolicy {
             }
 
             for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
+                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioAlloc())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
             }
 
             for (int k = 0; k < this.status.size(); k++) {
-                if (this.status.get(k).getNome().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
+                if (this.status.get(k).getUserId().equals(this.controlePreempcao.get(indexControlePreemp).getUsuarioPreemp())) {
                     indexStatusUserPreemp = k;
                     break;
                 }
@@ -431,11 +431,11 @@ public class HOSEP extends GridSchedulingPolicy {
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // será executada
-                    this.status.get(indexStatusUserAlloc).addServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserAlloc).increaseAvailableProcessingPower(maq.getPoderComputacional());
 
                     //Atualizar informações de estado do usuáro cuja tarefa
                     // foi interrompida
-                    this.status.get(indexStatusUserPreemp).rmServedPerf(maq.getPoderComputacional());
+                    this.status.get(indexStatusUserPreemp).decreaseAvailableProcessingPower(maq.getPoderComputacional());
 
                     //Com a preempção feita, os dados necessários para ela
                     // são eliminados

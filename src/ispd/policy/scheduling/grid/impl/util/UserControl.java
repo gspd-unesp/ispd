@@ -3,150 +3,140 @@ package ispd.policy.scheduling.grid.impl.util;
 import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 public class UserControl implements Comparable<UserControl> {
-    private final long userMachineCount;
-    private final String user;//Nome do usuario;
-    private final double perfShare;//Desempenho total das máquinas do
-    private int demanda;//Número de tarefas na fila usuário
-    private double powerShare;//Consumo de energia total das máquinas do
-    // usuário
-    private int servedNum;//Número de máquinas que atendem ao usuário
-    private double servedPerf;//Desempenho total que atende ao usuário
-    private double servedPower;//Consumo de energia total que atende ao
-    // usuario
-    private double limiteConsumo;//Limite de consumo definido pelo usuario;
-    private double relacaoEficienciaSistemaPorcao;//Nova métrica para
-    // decisão de preempção
+    private final long ownedMachinesCount;
+    private final String userId;
+    private final double ownedMachinesProcessingPower;
+    private int taskDemand = 0;
+    private double ownedMachinesEnergyConsumption = 0.0;
+    private int availableMachineCount = 0;
+    private double availableProcessingPower = 0.0;
+    private double currentEnergyConsumption = 0.0;
+    private double energyConsumptionLimit = 0.0;
+    private double energyEfficiencyRatioAgainstSystem = 0.0;
 
-    public UserControl(final String user, final double perfShare, Collection<?
-            extends CS_Processamento> slaves) {
-        this.user = user;
-        this.demanda = 0;
-        this.perfShare = perfShare;
-        this.powerShare = 0.0;
-        this.servedNum = 0;
-        this.servedPerf = 0.0;
-        this.servedPower = 0.0;
-        this.limiteConsumo = 0.0;
-
-        this.userMachineCount = slaves.stream()
-                .filter(s -> s.getProprietario().equals(user))
+    public UserControl(
+            final String userId, final double ownedProcPower,
+            final Collection<? extends CS_Processamento> machines) {
+        this.userId = userId;
+        // TODO: Warn if oPP is zero (ZDE in comparison)
+        this.ownedMachinesProcessingPower = ownedProcPower;
+        this.ownedMachinesCount = machines.stream()
+                .filter(this::isOwnedByUser)
                 .count();
     }
 
-    public void calculaRelacaoEficienciaEficienciaSisPor(
-            final Double poderSis, final Double consumoSis) {
-        this.relacaoEficienciaSistemaPorcao =
-                ((poderSis / consumoSis) / (this.perfShare / this.powerShare));
+    private boolean isOwnedByUser(final CS_Processamento machine) {
+        return machine.getProprietario().equals(this.userId);
     }
 
-    public void addDemanda() {
-        this.demanda++;
+    public void calculateEnergyEfficiencyAgainst(
+            final double sysProcPower, final double sysEnergyConsumption) {
+        final var sysEnergyEfficiency = sysProcPower / sysEnergyConsumption;
+        this.energyEfficiencyRatioAgainstSystem =
+                sysEnergyEfficiency / this.energyEfficiency();
     }
 
-    public void rmDemanda() {
-        this.demanda--;
+    private double energyEfficiency() {
+        return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
     }
 
-    public void addServedNum() {
-        this.servedNum++;
+    public void increaseTaskDemand() {
+        this.taskDemand++;
     }
 
-    public void rmServedNum() {
-        this.servedNum--;
+    public void decreaseTaskDemand() {
+        this.taskDemand--;
     }
 
-    public void addServedPerf(final Double perf) {
-        this.servedPerf += perf;
+    public void increaseAvailableMachines() {
+        this.availableMachineCount++;
     }
 
-    public void rmServedPerf(final Double perf) {
-        this.servedPerf -= perf;
+    public void decreaseAvailableMachines() {
+        this.availableMachineCount--;
     }
 
-    public void addServedPower(final Double power) {
-        this.servedPower += power;
+    public void increaseAvailableProcessingPower(final double amount) {
+        this.availableProcessingPower += amount;
     }
 
-    public void rmServedPower(final Double power) {
-        this.servedPower -= power;
+    public void decreaseAvailableProcessingPower(final double amount) {
+        this.availableProcessingPower -= amount;
     }
 
-    public String getNome() {
-        return this.user;
+    public void increaseEnergyConsumption(final double amount) {
+        this.currentEnergyConsumption += amount;
     }
 
-    public int getDemanda() {
-        return this.demanda;
+    public void decreaseEnergyConsumption(final double amount) {
+        this.currentEnergyConsumption -= amount;
     }
 
-    public Double getLimite() {
-        return this.limiteConsumo;
+    public String getUserId() {
+        return this.userId;
     }
 
-    public void setLimite(final Double lim) {
-        this.limiteConsumo = lim;
+    public int currentTaskDemand() {
+        return this.taskDemand;
     }
 
-    public int getServedNum() {
-        return this.servedNum;
+    public double getEnergyConsumptionLimit() {
+        return this.energyConsumptionLimit;
     }
 
-    public double getServedPower() {
-        return this.servedPower;
+    public void setEnergyConsumptionLimit(final double limit) {
+        this.energyConsumptionLimit = limit;
     }
 
-    public double getRelacaoEficienciSisPor() {
-        return this.relacaoEficienciaSistemaPorcao;
+    public int currentlyAvailableMachineCount() {
+        return this.availableMachineCount;
     }
 
-    //Comparador para ordenação
+    public double currentEnergyConsumption() {
+        return this.currentEnergyConsumption;
+    }
+
+    public double calculatedEnergyEfficiencyRatio() {
+        return this.energyEfficiencyRatioAgainstSystem;
+    }
+
     @Override
     public int compareTo(final UserControl o) {
-
-        if (((this.servedPerf - this.perfShare) / this.perfShare) < ((o.getServedPerf() - o.getPerfShare()) / o.getPerfShare())) {
-            return -1;
-        }
-
-        if (((this.servedPerf - this.perfShare) / this.perfShare) > ((o.getServedPerf() - o.getPerfShare()) / o.getPerfShare())) {
-            return 1;
-        }
-
-        //Se as defasagens/excessos relativos forem iguais, os ifs
-        // anteriores não são executados
-        if (this.perfShare > o.getPerfShare()) {
-            return -1;
-        } else {
-            if (this.perfShare < o.getPerfShare()) {
-                return 1;
-            } else {
-                if (this.powerShare >= o.getPowerShare()) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            }
-        }
+        // TODO: Document that comparison uses non-final fields
+        // TODO: Document ordering inconsistent with equals
+        return Comparator
+                .comparingDouble(UserControl::ratioOfProcessingPowerInUse)
+                .thenComparingDouble(UserControl::getOwnedMachinesProcessingPower)
+                .thenComparingDouble(UserControl::getOwnedMachinesEnergyConsumption)
+                .reversed()
+                .compare(this, o);
     }
 
-    public double getPerfShare() {
-        return this.perfShare;
+    private double ratioOfProcessingPowerInUse() {
+        return (this.availableProcessingPower - this.ownedMachinesProcessingPower)
+               / this.ownedMachinesProcessingPower;
     }
 
-    public double getPowerShare() {
-        return this.powerShare;
+    public double getOwnedMachinesProcessingPower() {
+        return this.ownedMachinesProcessingPower;
     }
 
-    public void setPowerShare(final Double power) {
-        this.powerShare = power;
+    public double getOwnedMachinesEnergyConsumption() {
+        return this.ownedMachinesEnergyConsumption;
     }
 
-    public double getServedPerf() {
-        return this.servedPerf;
+    public void setOwnedMachinesEnergyConsumption(final double consumption) {
+        this.ownedMachinesEnergyConsumption = consumption;
     }
 
-    public long getOwnerShare() {
-        return this.userMachineCount;
+    public double currentlyAvailableProcessingPower() {
+        return this.availableProcessingPower;
+    }
+
+    public long getOwnedMachinesCount() {
+        return this.ownedMachinesCount;
     }
 }

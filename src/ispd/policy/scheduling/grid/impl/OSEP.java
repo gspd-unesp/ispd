@@ -78,8 +78,8 @@ public class OSEP extends GridSchedulingPolicy {
                 //Verifica se não é caso de preempção
                 if (this.controleEscravos.get(this.escravos.indexOf(rec)).isFree()) {
 
-                    estado.rmDemanda();
-                    estado.addServedNum();
+                    estado.decreaseTaskDemand();
+                    estado.increaseAvailableMachines();
 
                     this.controleEscravos.get(this.escravos.indexOf(rec)).setAsBlocked();
                     this.mestre.sendTask(trf);
@@ -125,16 +125,16 @@ public class OSEP extends GridSchedulingPolicy {
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
-            if ((this.status.get(user).getServedNum() < this.status.get(user).getOwnerShare()) && this.status.get(user).getDemanda() > 0) {
+            if ((this.status.get(user).currentlyAvailableMachineCount() < this.status.get(user).getOwnedMachinesCount()) && this.status.get(user).currentTaskDemand() > 0) {
 
                 if (difUsuarioMinimo == -1) {
                     difUsuarioMinimo =
-                            this.status.get(user).getOwnerShare() - this.status.get(user).getServedNum();
+                            this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyAvailableMachineCount();
                     indexUsuarioMinimo = i;
                 } else {
-                    if (difUsuarioMinimo < this.status.get(user).getOwnerShare() - this.status.get(user).getServedNum()) {
+                    if (difUsuarioMinimo < this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyAvailableMachineCount()) {
                         difUsuarioMinimo =
-                                this.status.get(user).getOwnerShare() - this.status.get(user).getServedNum();
+                                this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyAvailableMachineCount();
                         indexUsuarioMinimo = i;
                     }
 
@@ -177,7 +177,7 @@ public class OSEP extends GridSchedulingPolicy {
                 (CS_Processamento) tarefa.getLocalProcessamento();
         final UserControl estado = this.status.get(tarefa.getProprietario());
 
-        estado.rmServedNum();
+        estado.decreaseAvailableMachines();
         final int index = this.escravos.indexOf(maq);
         this.controleEscravos.get(index).setAsFree();
     }
@@ -238,10 +238,10 @@ public class OSEP extends GridSchedulingPolicy {
 
                     this.mestre.sendTask(this.esperaTarefas.get(i));
 
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioAlloc()).addServedNum();
+                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioAlloc()).increaseAvailableMachines();
 
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).addDemanda();
-                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).rmServedNum();
+                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).increaseTaskDemand();
+                    this.status.get(this.controlePreempcao.get(indexControle).getUsuarioPreemp()).decreaseAvailableMachines();
 
                     this.controleEscravos.get(this.escravos.indexOf(maq)).setAsBlocked();
 
@@ -253,7 +253,7 @@ public class OSEP extends GridSchedulingPolicy {
 
         } else {
             this.mestre.executeScheduling();
-            estadoUser.addDemanda();
+            estadoUser.increaseTaskDemand();
         }
     }
 
@@ -294,19 +294,19 @@ public class OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             user = this.metricaUsuarios.getUsuarios().get(i);
-            if (this.status.get(user).getServedNum() > this.status.get(user).getOwnerShare() && !user.equals(this.tarefaSelec.getProprietario())) {
+            if (this.status.get(user).currentlyAvailableMachineCount() > this.status.get(user).getOwnedMachinesCount() && !user.equals(this.tarefaSelec.getProprietario())) {
 
                 if (diff == -1) {
 
                     usermax = this.metricaUsuarios.getUsuarios().get(i);
-                    diff = this.status.get(user).getServedNum() - this.status.get(user).getOwnerShare();
+                    diff = this.status.get(user).currentlyAvailableMachineCount() - this.status.get(user).getOwnedMachinesCount();
 
                 } else {
 
-                    if (this.status.get(user).getServedNum() - this.status.get(user).getOwnerShare() > diff) {
+                    if (this.status.get(user).currentlyAvailableMachineCount() - this.status.get(user).getOwnedMachinesCount() > diff) {
 
                         usermax = user;
-                        diff = this.status.get(user).getServedNum() - this.status.get(user).getOwnerShare();
+                        diff = this.status.get(user).currentlyAvailableMachineCount() - this.status.get(user).getOwnedMachinesCount();
 
                     }
 
