@@ -1,12 +1,9 @@
 package ispd.policy.scheduling.grid.impl.util;
 
-public class M_OSEP_StatusUser {
-    private final Double perfShare;
-    private Double servedPerf;
-
+public class M_OSEP_StatusUser extends EHOSEP_StatusUser {
     public M_OSEP_StatusUser(final String user, final Double perfShare) {
+        super(user, perfShare);
         this.servedPerf = 0.0;
-        this.perfShare = perfShare;
     }
 
     public void AtualizaUso(final Double poder, final int opc) {
@@ -17,11 +14,11 @@ public class M_OSEP_StatusUser {
         }
     }
 
-    public Double getPerfShare() {
+    public double getPerfShare() {
         return this.perfShare;
     }
 
-    public Double getServedPerf() {
+    public double getServedPerf() {
         return this.servedPerf;
     }
 }
