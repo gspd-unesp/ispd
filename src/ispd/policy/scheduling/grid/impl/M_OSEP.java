@@ -10,14 +10,14 @@ import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.UserStatus;
 import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
-import ispd.policy.scheduling.grid.impl.util.SlaveStatusControl;
+import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Policy
 public class M_OSEP extends GridSchedulingPolicy {
-    private final List<SlaveStatusControl> controleEscravos;
+    private final List<SlaveControl> controleEscravos;
     private final List<Tarefa> esperaTarefas;
     private final List<PreemptionControl> controlePreempcao;
     private final List<List> processadorEscravos;
@@ -51,7 +51,7 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.escravos.size(); i++) {//Contadores para
             // lidar com a dinamicidade dos dados
-            this.controleEscravos.add(new SlaveStatusControl());
+            this.controleEscravos.add(new SlaveControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
             this.processadorEscravos.add(new ArrayList<Tarefa>());
         }

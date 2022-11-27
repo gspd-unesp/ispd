@@ -5,7 +5,7 @@ import ispd.motor.filas.Tarefa;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SlaveStatusControl {
+public class SlaveControl {
     private SlaveStatus status = SlaveStatus.FREE;
     private List<Tarefa> tasksOnHold = new ArrayList<>();
     private ArrayList<Tarefa> tasksInProcessing = new ArrayList<>();
