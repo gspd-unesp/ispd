@@ -126,17 +126,21 @@ public class EHOSEP extends GridSchedulingPolicy {
      * @throws IllegalStateException
      */
     private void tryFindTaskAndResourceFor(final UserControl uc) {
-        final var task = this.findTaskSuitableFor(uc).orElseThrow();
+        final var task = this
+                .findTaskSuitableFor(uc)
+                .orElseThrow();
+
         final var machine = this
                 .findMachineBestSuitedFor(task, uc)
                 .orElseThrow();
+
         this.tryAcceptTask(machine, task, uc);
     }
 
     private void tryAcceptTask(
             final CS_Processamento machine, final Tarefa task,
             final UserControl taskOwner) {
-        if (!this.isMachineAvailable(machine) && !this.isMachineOccupied(machine)) {
+        if (!this.canAcceptSomeTask(machine)) {
             throw new IllegalStateException("""
                     Machine %s can not host task %s"""
                     .formatted(machine, task));
@@ -153,6 +157,11 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
 
         this.slaveControls.get(machine).setAsBlocked();
+    }
+
+    private boolean canAcceptSomeTask(final CS_Processamento machine) {
+        return this.isMachineAvailable(machine) ||
+               this.isMachineOccupied(machine);
     }
 
     private void hostTaskNormally(
@@ -199,24 +208,18 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     private Optional<CS_Processamento> findMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
+        return this
+                .findAvailableMachineBestSuitedFor(task, taskOwner)
+                .or(() -> this.findMachineBestSuitedWithPreemption(taskOwner));
+    }
+
+    private Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
+            final Tarefa task, final UserControl taskOwner) {
         // Attempts to find a machine that can host the task 'normally'
-        final var availableMachine = this.escravos.stream()
+        return this.escravos.stream()
                 .filter(this::isMachineAvailable)
                 .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit)
                 .max(EHOSEP.bestConsumptionForTaskSize(task));
-
-        if (availableMachine.isPresent()) {
-            return availableMachine;
-        }
-
-        // If no available machine is found, preemption may be used to force
-        // the task into one. However, if the task owner has excess
-        // processing power, preemption will NOT be used to accommodate them
-        if (taskOwner.hasExcessProcessingPower()) {
-            return Optional.empty();
-        }
-
-        return this.findMachineToPreemptFor(taskOwner);
     }
 
     private static Comparator<CS_Processamento> bestConsumptionForTaskSize(final Tarefa task) {
@@ -235,6 +238,21 @@ public class EHOSEP extends GridSchedulingPolicy {
         return task.getTamProcessamento()
                / machine.getPoderComputacional()
                * machine.getConsumoEnergia();
+    }
+
+    private boolean isMachineAvailable(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isFree();
+    }
+
+    private Optional<CS_Processamento> findMachineBestSuitedWithPreemption(final UserControl taskOwner) {
+        // If no available machine is found, preemption may be used to force
+        // the task into one. However, if the task owner has excess
+        // processing power, preemption will NOT be used to accommodate them
+        if (taskOwner.hasExcessProcessingPower()) {
+            return Optional.empty();
+        }
+
+        return this.findMachineToPreemptFor(taskOwner);
     }
 
     private Optional<CS_Processamento> findMachineToPreemptFor(final UserControl userWithTask) {
@@ -292,10 +310,6 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     private boolean isMachineOccupied(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isOccupied();
-    }
-
-    private boolean isMachineAvailable(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isFree();
     }
 
     /**
