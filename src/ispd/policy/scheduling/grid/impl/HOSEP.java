@@ -91,13 +91,14 @@ public class HOSEP extends GridSchedulingPolicy {
 
     private boolean canScheduleTaskFor(final UserControl uc) {
         try {
-            return this.tryFindTaskAndResourceFor(uc);
+            this.tryFindTaskAndResourceFor(uc);
+            return true;
         } catch (final NoSuchElementException | IllegalStateException ex) {
             return false;
         }
     }
 
-    private boolean tryFindTaskAndResourceFor(final UserControl uc) {
+    private void tryFindTaskAndResourceFor(final UserControl uc) {
         final var t = this
                 .findTaskSuitableFor(uc)
                 .orElseThrow();
@@ -144,8 +145,6 @@ public class HOSEP extends GridSchedulingPolicy {
         }
 
         sc.setAsBlocked();
-
-        return true;
     }
 
     private void sendTaskToResource(final Tarefa t,
@@ -183,39 +182,45 @@ public class HOSEP extends GridSchedulingPolicy {
             return indexSelec;
         }
 
-        if (this.userControls.get(this.userControls.size() - 1).currentlyAvailableProcessingPower() > this.userControls.get(this.userControls.size() - 1).getOwnedMachinesProcessingPower() && cliente.currentlyAvailableProcessingPower() < cliente.getOwnedMachinesProcessingPower()) {
+        if (!this.lastUc().hasExcessProcessingPower() || cliente.hasExcessProcessingPower()) {
+            return indexSelec;
+        }
 
-            for (int i = 0; i < this.escravos.size(); i++) {
-                final var s = this.escravos.get(i);
-                final var sc = this.slaveControls.get(s);
+        for (int i = 0; i < this.escravos.size(); i++) {
+            final var s = this.escravos.get(i);
+            final var sc = this.slaveControls.get(s);
 
-                if (sc.isOccupied()) {
-                    if (sc.getTasksInProcessing().get(0).getProprietario().equals(this.userControls.get(this.userControls.size() - 1).getUserId())) {
+            if (sc.isOccupied()) {
+                if (sc.getTasksInProcessing().get(0).getProprietario().equals(this.lastUc().getUserId())) {
 
-                        if (indexSelec == -1 || s.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
+                    if (indexSelec == -1 || s.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
 
-                            indexSelec = i;
+                        indexSelec = i;
 
-                        }
                     }
                 }
             }
-
-            if (indexSelec != -1) {
-
-                final double penalidaUserEsperaPosterior =
-                        (cliente.currentlyAvailableProcessingPower() + this.escravos.get(indexSelec).getPoderComputacional() - cliente.getOwnedMachinesProcessingPower()) / cliente.getOwnedMachinesProcessingPower();
-                final double penalidaUserEscravoPosterior =
-                        (this.userControls.get(this.userControls.size() - 1).currentlyAvailableProcessingPower() - this.escravos.get(indexSelec).getPoderComputacional() - this.userControls.get(this.userControls.size() - 1).getOwnedMachinesProcessingPower()) / this.userControls.get(this.userControls.size() - 1).getOwnedMachinesProcessingPower();
-
-                if (penalidaUserEscravoPosterior >= penalidaUserEsperaPosterior || penalidaUserEscravoPosterior > 0) {
-                    return indexSelec;
-                } else {
-                    return -1;
-                }
-            }
         }
-        return indexSelec;
+
+        if (indexSelec == -1) {
+            return -1;
+        }
+
+        final double penalidaUserEsperaPosterior =
+                (cliente.currentlyAvailableProcessingPower() + this.escravos.get(indexSelec).getPoderComputacional() - cliente.getOwnedMachinesProcessingPower()) / cliente.getOwnedMachinesProcessingPower();
+        final double penalidaUserEscravoPosterior =
+                (this.lastUc().currentlyAvailableProcessingPower() - this.escravos.get(indexSelec).getPoderComputacional() - this.lastUc().getOwnedMachinesProcessingPower()) / this.lastUc().getOwnedMachinesProcessingPower();
+
+        if (penalidaUserEscravoPosterior >= penalidaUserEsperaPosterior || penalidaUserEscravoPosterior > 0) {
+            return indexSelec;
+        } else {
+            return -1;
+        }
+
+    }
+
+    private UserControl lastUc() {
+        return this.userControls.get(this.userControls.size() - 1);
     }
 
     /**
@@ -277,7 +282,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
         } else if (this.slaveControls.get(maq).isBlocked()) {
 
-            somethingUseful(tarefa, maq);
+            this.processPreemptedTask(tarefa);
         }
     }
 
@@ -307,60 +312,49 @@ public class HOSEP extends GridSchedulingPolicy {
             return;
         }
 
-        //Localizar informações de estado de máquina que executou a
-        // tarefa (se houver)
-        final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
-
-        somethingUseful(tarefa, maq);
+        this.processPreemptedTask(tarefa);
     }
 
-    private void somethingUseful(Tarefa tarefa, CS_Processamento maq) {
-        int indexControlePreemp = -1;
-        for (int j = 0; j < this.preemptionEntries.size(); j++) {
-            if (this.preemptionEntries.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionEntries.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
-                indexControlePreemp = j;
-                break;
-            }
-        }
+    private void processPreemptedTask(final Tarefa task) {
+        final var pe = this.findEntryForPreemptedTask(task);
 
-        int indexStatusUserAlloc = -1;
-        for (int k = 0; k < this.userControls.size(); k++) {
-            if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser())) {
-                indexStatusUserAlloc = k;
-                break;
-            }
-        }
+        this.tasksToSchedule.stream()
+                .filter(pe::willScheduleTask)
+                .findFirst()
+                .ifPresent(t -> this
+                        .inserTaskIntoPreemptedTaskSlot(t, task));
+    }
 
-        int indexStatusUserPreemp = -1;
-        for (int k = 0; k < this.userControls.size(); k++) {
-            if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).preemptedTaskUser())) {
-                indexStatusUserPreemp = k;
-                break;
-            }
-        }
+    private void inserTaskIntoPreemptedTaskSlot(
+            final Tarefa scheduled, final Tarefa preempted) {
+        this.tasksToSchedule.remove(scheduled);
 
-        //Localizar tarefa em espera deseignada para executar
-        for (int i = 0; i < this.tasksToSchedule.size(); i++) {
+        final var mach = (CS_Processamento) preempted.getLocalProcessamento();
+        final var pe = this.findEntryForPreemptedTask(preempted);
 
-            if (this.tasksToSchedule.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.tasksToSchedule.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
 
-                //Enviar tarefa para execução
-                this.mestre.sendTask(this.tasksToSchedule.remove(i));
+        this.mestre.sendTask(scheduled);
 
-                //Atualizar informações de estado do usuário cuja tarefa
-                // será executada
-                this.userControls.get(indexStatusUserAlloc).increaseAvailableProcessingPower(maq.getPoderComputacional());
+        this.getUserOf(pe.scheduledTaskUser())
+                .increaseAvailableProcessingPower(mach.getPoderComputacional());
 
-                //Atualizar informações de estado do usuáro cuja tarefa
-                // foi interrompida
-                this.userControls.get(indexStatusUserPreemp).decreaseAvailableProcessingPower(maq.getPoderComputacional());
+        this.getUserOf(pe.preemptedTaskUser())
+                .decreaseAvailableProcessingPower(mach.getPoderComputacional());
 
-                //Com a preempção feita, os dados necessários para ela
-                // são eliminados
-                this.preemptionEntries.remove(indexControlePreemp);
+        this.preemptionEntries.remove(pe);
+    }
 
-                break;
-            }
-        }
+    private UserControl getUserOf(final String userId) {
+        return this.userControls.stream()
+                .filter(uc -> uc.getUserId().equals(userId))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private PreemptionEntry findEntryForPreemptedTask(final Tarefa preempted) {
+        return this.preemptionEntries.stream()
+                .filter(pe1 -> pe1.willPreemptTask(preempted))
+                .findFirst()
+                .orElseThrow();
     }
 }

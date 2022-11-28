@@ -450,14 +450,14 @@ public class EHOSEP extends GridSchedulingPolicy {
     }
 
     private void insertTaskIntoPreemptedTaskSlot(
-            final Tarefa toInsert, final Tarefa preempted) {
-        this.tasksToSchedule.remove(toInsert);
+            final Tarefa scheduled, final Tarefa preempted) {
+        this.tasksToSchedule.remove(scheduled);
 
         final var mach = (CS_Processamento) preempted.getLocalProcessamento();
         final var pe = this.findEntryForPreemptedTask(preempted);
 
         final var user = this.userControls.get(pe.scheduledTaskUser());
-        this.sendTaskFromUserToMachine(toInsert, user, mach);
+        this.sendTaskFromUserToMachine(scheduled, user, mach);
 
         this.userControls
                 .get(pe.preemptedTaskUser())
