@@ -32,7 +32,7 @@ public class EHOSEP extends GridSchedulingPolicy {
     private final List<UserControl> userControls = new ArrayList<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
-    private final List<Tarefa> esperaTarefas = new ArrayList<>();
+    private final List<Tarefa> tasksInWaiting = new ArrayList<>();
     private final List<PreemptionControl> preemptionControls =
             new ArrayList<>();
 
@@ -178,7 +178,7 @@ public class EHOSEP extends GridSchedulingPolicy {
 
         this.preemptionControls.add(new PreemptionControl(preemptedTask, task));
 
-        this.esperaTarefas.add(task);
+        this.tasksInWaiting.add(task);
 
         this.mestre.sendMessage(
                 preemptedTask,
@@ -328,45 +328,29 @@ public class EHOSEP extends GridSchedulingPolicy {
     }
 
     @Override
-    //Chegada de tarefa concluida
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
 
-        //Localizar informações sobre máquina que executou a tarefa e usuário
-        // proprietário da tarefa
         final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
         final var sc = this.slaveControls.get(maq);
 
         if (sc.isOccupied()) {
-
-            int statusIndex = -1;
-
-            for (int i = 0; i < this.userControls.size(); i++) {
-                if (this.userControls.get(i).getUserId().equals(tarefa.getProprietario())) {
-                    statusIndex = i;
-                }
-            }
-
-            //Atualização das informações de estado do proprietario da tarefa
-            // terminada.
-            this.userControls.get(statusIndex).decreaseAvailableMachines();
-            this.userControls.get(statusIndex).decreaseAvailableProcessingPower(maq.getPoderComputacional());
-            this.userControls.get(statusIndex).decreaseEnergyConsumption(maq.getConsumoEnergia());
+            this.userControls.stream()
+                    .filter(uc -> uc.isOwnerOf(tarefa))
+                    .findFirst()
+                    .orElseThrow()
+                    .stopTaskFrom(maq);
 
             sc.setAsFree();
         } else if (sc.isBlocked()) {
-
-            int indexControlePreemp = -1;
-            for (int j = 0; j < this.preemptionControls.size(); j++) {
-                if (this.preemptionControls.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionControls.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
-                    indexControlePreemp = j;
-                    break;
-                }
-            }
+            final var pc = this.preemptionControls.stream()
+                    .filter(pc1 -> pc1.hasPreemptedTask(tarefa))
+                    .findFirst()
+                    .orElseThrow();
 
             int indexStatusUserAlloc = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(pc.scheduledTaskUser())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
@@ -374,34 +358,24 @@ public class EHOSEP extends GridSchedulingPolicy {
 
             int indexStatusUserPreemp = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).preemptedTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(pc.preemptedTaskUser())) {
                     indexStatusUserPreemp = k;
                     break;
                 }
             }
 
             //Localizar tarefa em espera designada para executar
-            for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionControls.get(indexControlePreemp).scheduledTaskId()) {
+            for (int i = 0; i < this.tasksInWaiting.size(); i++) {
+                final var task = this.tasksInWaiting.get(i);
 
-                    //Enviar tarefa para execução
-                    this.mestre.sendTask(this.esperaTarefas.remove(i));
+                if (pc.hasScheduledTask(task)) {
 
-                    //Atualizar informações de estado do usuário cuja tarefa
-                    // será executada
-                    this.userControls.get(indexStatusUserAlloc).increaseAvailableMachines();
-                    this.userControls.get(indexStatusUserAlloc).increaseAvailableProcessingPower(maq.getPoderComputacional());
-                    this.userControls.get(indexStatusUserAlloc).increaseEnergyConsumption(maq.getConsumoEnergia());
+                    this.mestre.sendTask(this.tasksInWaiting.remove(i));
 
-                    //Atualizar informações de estado do usuário cuja tarefa
-                    // teve a execução interrompida
-                    this.userControls.get(indexStatusUserPreemp).decreaseAvailableMachines();
-                    this.userControls.get(indexStatusUserPreemp).decreaseAvailableProcessingPower(maq.getPoderComputacional());
-                    this.userControls.get(indexStatusUserPreemp).decreaseEnergyConsumption(maq.getConsumoEnergia());
+                    this.userControls.get(indexStatusUserAlloc).startTaskFrom(maq);
+                    this.userControls.get(indexStatusUserPreemp).stopTaskFrom(maq);
 
-                    //Com a preempção feita, os dados necessários para ela
-                    // são eliminados
-                    this.preemptionControls.remove(indexControlePreemp);
+                    this.preemptionControls.remove(pc);
                     break;
                 }
             }
@@ -410,7 +384,6 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
-        //super.resultadoAtualizar(mensagem);
         //Localizar máquina que enviou estado atualizado
 
         //Atualizar listas de espera e processamento da máquina
@@ -443,16 +416,12 @@ public class EHOSEP extends GridSchedulingPolicy {
     }
 
     @Override
-    //Receber nova tarefa submetida ou tarefa que sofreu preemoção
     public void adicionarTarefa(final Tarefa tarefa) {
         super.adicionarTarefa(tarefa);
 
-        //Atualização da demanda do usuário proprietário da tarefa
-        for (int i = 0; i < this.userControls.size(); i++) {
-            if (this.userControls.get(i).getUserId().equals(tarefa.getProprietario())) {
-                this.userControls.get(i).increaseTaskDemand();
-            }
-        }
+        this.userControls.stream()
+                .filter(uc -> uc.isOwnerOf(tarefa))
+                .forEach(UserControl::increaseTaskDemand);
 
         //Em caso de preempção
         if (tarefa.getLocalProcessamento() != null) {
@@ -463,51 +432,35 @@ public class EHOSEP extends GridSchedulingPolicy {
 
             //Localizar informações armazenadas sobre a preempção em particular
 
-            int indexControlePreemp = -1;
-            for (int j = 0; j < this.preemptionControls.size(); j++) {
-                if (this.preemptionControls.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionControls.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
-                    indexControlePreemp = j;
-                    break;
-                }
-            }
+            final PreemptionControl pc = this.preemptionControls.stream()
+                    .filter(pc1 -> pc1.hasPreemptedTask(tarefa))
+                    .findFirst()
+                    .orElseThrow();
 
             int indexStatusUserAlloc = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(pc.scheduledTaskUser())) {
                     indexStatusUserAlloc = k;
                 }
             }
 
             int indexStatusUserPreemp = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).preemptedTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(pc.preemptedTaskUser())) {
                     indexStatusUserPreemp = k;
                 }
             }
 
             //Localizar tarefa em espera deseignada para executar
-            for (int i = 0; i < this.esperaTarefas.size(); i++) {
+            for (int i = 0; i < this.tasksInWaiting.size(); i++) {
 
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionControls.get(indexControlePreemp).scheduledTaskId()) {
+                if (pc.hasScheduledTask(this.tasksInWaiting.get(i))) {
+                    this.mestre.sendTask(this.tasksInWaiting.remove(i));
 
-                    //Enviar tarefa para execução
-                    this.mestre.sendTask(this.esperaTarefas.remove(i));
+                    this.userControls.get(indexStatusUserAlloc).startTaskFrom(maq);
+                    this.userControls.get(indexStatusUserPreemp).stopTaskFrom(maq);
 
-                    //Atualizar informações de estado do usuário cuja tarefa
-                    // será executada
-                    this.userControls.get(indexStatusUserAlloc).increaseAvailableMachines();
-                    this.userControls.get(indexStatusUserAlloc).increaseAvailableProcessingPower(maq.getPoderComputacional());
-                    this.userControls.get(indexStatusUserAlloc).increaseEnergyConsumption(maq.getConsumoEnergia());
-
-                    //Atualizar informações de estado do usuáro cuja tarefa
-                    // foi interrompida
-                    this.userControls.get(indexStatusUserPreemp).decreaseAvailableMachines();
-                    this.userControls.get(indexStatusUserPreemp).decreaseAvailableProcessingPower(maq.getPoderComputacional());
-                    this.userControls.get(indexStatusUserPreemp).decreaseEnergyConsumption(maq.getConsumoEnergia());
-
-                    //Com a preempção feita, os dados necessários para ela
-                    // são eliminados
-                    this.preemptionControls.remove(indexControlePreemp);
+                    this.preemptionControls.remove(pc);
 
                     break;
                 }

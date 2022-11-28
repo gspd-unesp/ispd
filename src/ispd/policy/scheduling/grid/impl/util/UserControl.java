@@ -54,6 +54,42 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
     }
 
+    public void startTaskFrom(final CS_Processamento maq) {
+        this.increaseAvailableMachines();
+        this.increaseAvailableProcessingPower(maq.getPoderComputacional());
+        this.increaseEnergyConsumption(maq.getConsumoEnergia());
+    }
+
+    public void increaseAvailableMachines() {
+        this.availableMachineCount++;
+    }
+
+    public void increaseAvailableProcessingPower(final double amount) {
+        this.availableProcessingPower += amount;
+    }
+
+    public void increaseEnergyConsumption(final double amount) {
+        this.currentEnergyConsumption += amount;
+    }
+
+    public void stopTaskFrom(final CS_Processamento maq) {
+        this.decreaseAvailableMachines();
+        this.decreaseAvailableProcessingPower(maq.getPoderComputacional());
+        this.decreaseEnergyConsumption(maq.getConsumoEnergia());
+    }
+
+    public void decreaseAvailableMachines() {
+        this.availableMachineCount--;
+    }
+
+    public void decreaseAvailableProcessingPower(final double amount) {
+        this.availableProcessingPower -= amount;
+    }
+
+    public void decreaseEnergyConsumption(final double amount) {
+        this.currentEnergyConsumption -= amount;
+    }
+
     public boolean hasLessEnergyConsumptionThan(final UserControl other) {
         return this.energyConsumptionLimit <= other.energyConsumptionLimit;
     }
@@ -105,32 +141,8 @@ public class UserControl implements Comparable<UserControl> {
         this.taskDemand--;
     }
 
-    public void increaseAvailableMachines() {
-        this.availableMachineCount++;
-    }
-
-    public void increaseAvailableProcessingPower(final double amount) {
-        this.availableProcessingPower += amount;
-    }
-
-    public void increaseEnergyConsumption(final double amount) {
-        this.currentEnergyConsumption += amount;
-    }
-
     public void increaseTaskDemand() {
         this.taskDemand++;
-    }
-
-    public void decreaseAvailableMachines() {
-        this.availableMachineCount--;
-    }
-
-    public void decreaseAvailableProcessingPower(final double amount) {
-        this.availableProcessingPower -= amount;
-    }
-
-    public void decreaseEnergyConsumption(final double amount) {
-        this.currentEnergyConsumption -= amount;
     }
 
     public String getUserId() {
