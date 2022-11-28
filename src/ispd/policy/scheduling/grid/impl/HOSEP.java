@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Policy
 public class HOSEP extends GridSchedulingPolicy {
@@ -99,52 +100,82 @@ public class HOSEP extends GridSchedulingPolicy {
     }
 
     private void tryFindTaskAndResourceFor(final UserControl uc) {
-        final var t = this
+        final var task = this
                 .findTaskSuitableFor(uc)
                 .orElseThrow();
 
-        final int resourceIndex = this.buscarRecurso(uc);
-        if (resourceIndex == -1) {
-            throw new NoSuchElementException("");
-        }
+        final var machine = this
+                .findMachineBestSuitedFor(uc)
+                .orElseThrow();
 
-        final var machine = this.escravos.get(resourceIndex);
-        final var sc = this.slaveControls.get(machine);
+        this.tryHostTaskFromUserWithMachine(task, uc, machine);
+    }
 
-        if (!sc.canHostNewTask()) {
+    private void tryHostTaskFromUserWithMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+
+        if (!this.canMachineHostNewTask(machine)) {
             throw new IllegalStateException("""
                     Machine %s can not host task %s"""
-                    .formatted(machine, t));
+                    .formatted(machine, task));
         }
 
-        this.tarefas.remove(t);
-        this.sendTaskToResource(t, machine);
+        this.hostTaskFromUserInMachine(task, taskOwner, machine);
+    }
 
-        if (sc.isFree()) {
+    private void hostTaskFromUserInMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        this.sendTaskToResource(task, machine);
+        this.tarefas.remove(task);
 
-            this.mestre.sendTask(t);
-
-            uc.decreaseTaskDemand();
-            uc.increaseAvailableProcessingPower(machine.getPoderComputacional());
-
-        } else if (sc.isOccupied()) {
-
-            final var taskToPreempt = sc.firstTaskInProcessing();
-
-            this.preemptionEntries.add(new PreemptionEntry(taskToPreempt, t));
-
-            this.tasksToSchedule.add(t);
-
-            this.mestre.sendMessage(
-                    taskToPreempt,
-                    machine,
-                    Mensagens.DEVOLVER_COM_PREEMPCAO
-            );
-
-            uc.decreaseTaskDemand();
+        if (this.isMachineAvailable(machine)) {
+            this.hostTaskNormally(task, taskOwner, machine);
+        } else if (this.isMachineOccupied(machine)) {
+            this.hostTaskWithPreemption(task, taskOwner, machine);
         }
 
-        sc.setAsBlocked();
+        this.slaveControls.get(machine).setAsBlocked();
+    }
+
+    private void hostTaskNormally(
+            final Tarefa task, final UserControl uc,
+            final CS_Processamento machine) {
+        this.senTaskFromUserToMachine(task, uc, machine);
+        uc.decreaseTaskDemand();
+    }
+
+    private void senTaskFromUserToMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        this.mestre.sendTask(task);
+        // TODO: Inherit behavior
+        taskOwner.increaseAvailableProcessingPower(machine.getPoderComputacional());
+    }
+
+    private void hostTaskWithPreemption(
+            final Tarefa taskToSchedule, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        final var taskToPreempt = this.taskToPreemptIn(machine);
+
+        this.preemptionEntries.add(
+                new PreemptionEntry(taskToPreempt, taskToSchedule)
+        );
+
+        this.tasksToSchedule.add(taskToSchedule);
+
+        this.mestre.sendMessage(
+                taskToPreempt,
+                machine,
+                Mensagens.DEVOLVER_COM_PREEMPCAO
+        );
+
+        taskOwner.decreaseTaskDemand();
+    }
+
+    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).firstTaskInProcessing();
     }
 
     private void sendTaskToResource(
@@ -153,15 +184,35 @@ public class HOSEP extends GridSchedulingPolicy {
         t.setCaminho(this.escalonarRota(machine));
     }
 
+    private boolean isMachineOccupied(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isOccupied();
+    }
+
+    private boolean canMachineHostNewTask(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).canHostNewTask();
+    }
+
     private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
         // TODO: UC behaviour difference
         if (uc.currentTaskDemand() == 0) {
             return Optional.empty();
         }
 
-        return this.tarefas.stream()
-                .filter(uc::isOwnerOf)
+        return this.tasksOwnedBy(uc)
                 .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
+    }
+
+    private Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
+        return this.tarefas.stream().filter(uc::isOwnerOf);
+    }
+
+    private Optional<CS_Processamento> findMachineBestSuitedFor(final UserControl uc) {
+        final int resourceIndex = this.buscarRecurso(uc);
+        if (resourceIndex == -1) {
+            return Optional.empty();
+        }
+
+        return Optional.of(this.escravos.get(resourceIndex));
     }
 
     private int buscarRecurso(final UserControl uc) {
@@ -171,7 +222,7 @@ public class HOSEP extends GridSchedulingPolicy {
         for (int i = 0; i < this.escravos.size(); i++) {
             final var s = this.escravos.get(i);
 
-            if (this.slaveControls.get(s).isFree()) {
+            if (this.isMachineAvailable(s)) {
                 if (indexSelec == -1 || this.escravos.get(i).getPoderComputacional() > this.escravos.get(indexSelec).getPoderComputacional()) {
                     indexSelec = i;
                 }
@@ -219,6 +270,10 @@ public class HOSEP extends GridSchedulingPolicy {
             return -1;
         }
 
+    }
+
+    private boolean isMachineAvailable(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isFree();
     }
 
     private UserControl lastUc() {
@@ -322,10 +377,8 @@ public class HOSEP extends GridSchedulingPolicy {
         final var pe = this.findEntryForPreemptedTask(preempted);
 
 
-        this.mestre.sendTask(scheduled);
-
-        this.userControls.get(pe.scheduledTaskUser())
-                .increaseAvailableProcessingPower(mach.getPoderComputacional());
+        this.senTaskFromUserToMachine(scheduled,
+                this.userControls.get(pe.scheduledTaskUser()), mach);
 
         this.userControls.get(pe.preemptedTaskUser())
                 .decreaseAvailableProcessingPower(mach.getPoderComputacional());

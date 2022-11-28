@@ -187,12 +187,12 @@ public class EHOSEP extends GridSchedulingPolicy {
      * @throws IllegalStateException if the given {@link CS_Processamento
      *                               machine} is not in a suitable state for
      *                               hosting a new task
-     * @see #canHostNewTask(CS_Processamento) Machine Status Validation
+     * @see #canMachineHostNewTask(CS_Processamento) Machine Status Validation
      */
     private void tryHostTaskFromUserInMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
-        if (!this.canHostNewTask(machine)) {
+        if (!this.canMachineHostNewTask(machine)) {
             throw new IllegalStateException("""
                     Machine %s can not host task %s"""
                     .formatted(machine, task));
@@ -224,10 +224,10 @@ public class EHOSEP extends GridSchedulingPolicy {
     }
 
     private void sendTaskFromUserToMachine(
-            final Tarefa task, final UserControl userControl,
+            final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         this.mestre.sendTask(task);
-        userControl.startTaskFrom(machine);
+        taskOwner.startTaskFrom(machine);
     }
 
     private void hostTaskWithPreemption(
@@ -256,7 +256,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         task.setCaminho(this.escalonarRota(resource));
     }
 
-    private boolean canHostNewTask(final CS_Processamento machine) {
+    private boolean canMachineHostNewTask(final CS_Processamento machine) {
         return this.slaveControls.get(machine).canHostNewTask();
     }
 
