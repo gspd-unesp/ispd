@@ -54,6 +54,11 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
     }
 
+    public double penaltyWithProcessing(final double delta) {
+        return (this.availableProcessingPower + delta - this.ownedMachinesProcessingPower)
+               / this.ownedMachinesProcessingPower;
+    }
+
     public void stopTaskFrom(final CS_Processamento maq) {
         this.decreaseAvailableMachines();
         this.decreaseAvailableProcessingPower(maq.getPoderComputacional());
@@ -136,10 +141,6 @@ public class UserControl implements Comparable<UserControl> {
 
     public void increaseTaskDemand() {
         this.taskDemand++;
-    }
-
-    public String getUserId() {
-        return this.userId;
     }
 
     public int currentlyAvailableMachineCount() {

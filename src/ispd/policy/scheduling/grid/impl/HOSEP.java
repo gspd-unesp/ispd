@@ -174,10 +174,6 @@ public class HOSEP extends GridSchedulingPolicy {
         taskOwner.decreaseTaskDemand();
     }
 
-    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).firstTaskInProcessing();
-    }
-
     private void sendTaskToResource(
             final Tarefa t, final CS_Processamento machine) {
         t.setLocalProcessamento(machine);
@@ -202,56 +198,59 @@ public class HOSEP extends GridSchedulingPolicy {
         return this.tarefas.stream().filter(uc::isOwnerOf);
     }
 
-    private Optional<CS_Processamento> findMachineBestSuitedFor(final UserControl uc) {
+    private Optional<CS_Processamento> findMachineBestSuitedFor(final UserControl taskOwner) {
+        return this
+                .findAvailableMachineBestSuitedFor()
+                .or(() -> this.findOccupiedMachineBestSuitedFor(taskOwner));
+    }
 
-        final var x = this.escravos.stream()
-                .filter(this::isMachineAvailable)
-                .max(Comparator.comparingDouble(CS_Processamento::getPoderComputacional));
-
-        if (x.isPresent())
-            return x;
-
-        if (!this.lastUc().hasExcessProcessingPower() || uc.hasExcessProcessingPower()) {
+    private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
+        if (taskOwner.hasExcessProcessingPower() ||
+            !this.bestUser().hasExcessProcessingPower()) {
             return Optional.empty();
         }
 
+        final var userToPreempt = this.bestUser();
+
         return this.escravos.stream()
                 .filter(this::isMachineOccupied)
-                .filter(this::someFilter)
+                .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)))
                 .min(Comparator.comparingDouble(CS_Processamento::getPoderComputacional))
-                .filter(m -> this.theTest(m, uc));
+                .filter(m -> this.theTest(m, taskOwner, this.bestUser()));
     }
 
     private boolean isMachineOccupied(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isOccupied();
     }
 
-    private boolean someFilter(CS_Processamento s) {
-        return this.slaveControls.get(s).firstTaskInProcessing().getProprietario().equals(this.lastUc().getUserId());
+    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).firstTaskInProcessing();
     }
 
-    private boolean theTest(CS_Processamento selected, UserControl uc) {
-        final boolean shouldKeep;
-        final double penalidaUserEsperaPosterior =
-                (uc.currentlyAvailableProcessingPower() + selected.getPoderComputacional() - uc.getOwnedMachinesProcessingPower()) / uc.getOwnedMachinesProcessingPower();
-        final double penalidaUserEscravoPosterior =
-                (this.lastUc().currentlyAvailableProcessingPower() - selected.getPoderComputacional() - this.lastUc().getOwnedMachinesProcessingPower()) / this.lastUc().getOwnedMachinesProcessingPower();
-        if (penalidaUserEscravoPosterior >= penalidaUserEsperaPosterior || penalidaUserEscravoPosterior > 0) {
-            shouldKeep = true;
-        } else {
-            shouldKeep = false;
-        }
-        return shouldKeep;
+    private boolean theTest(
+            final CS_Processamento m,
+            final UserControl userWithTask, final UserControl userToPreempt) {
+        final double penalty1 =
+                userWithTask.penaltyWithProcessing(m.getPoderComputacional());
+        final double penalty2 =
+                userToPreempt.penaltyWithProcessing(-m.getPoderComputacional());
+        return penalty2 >= penalty1 || penalty2 > 0;
+    }
+
+    private UserControl bestUser() {
+        return this.userControls.values().stream()
+                .max(Comparator.naturalOrder())
+                .orElseThrow();
+    }
+
+    private Optional<CS_Processamento> findAvailableMachineBestSuitedFor() {
+        return this.escravos.stream()
+                .filter(this::isMachineAvailable)
+                .max(Comparator.comparingDouble(CS_Processamento::getPoderComputacional));
     }
 
     private boolean isMachineAvailable(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isFree();
-    }
-
-    private UserControl lastUc() {
-        return this.userControls.values().stream()
-                .max(Comparator.naturalOrder())
-                .orElseThrow();
     }
 
     /**

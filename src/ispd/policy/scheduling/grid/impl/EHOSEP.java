@@ -277,7 +277,7 @@ public class EHOSEP extends GridSchedulingPolicy {
             final Tarefa task, final UserControl taskOwner) {
         return this
                 .findAvailableMachineBestSuitedFor(task, taskOwner)
-                .or(() -> this.findMachineBestSuitedWithPreemption(taskOwner));
+                .or(() -> this.findOccupiedMachineBestSuitedFor(taskOwner));
     }
 
     private Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
@@ -311,7 +311,7 @@ public class EHOSEP extends GridSchedulingPolicy {
         return this.slaveControls.get(machine).isFree();
     }
 
-    private Optional<CS_Processamento> findMachineBestSuitedWithPreemption(final UserControl taskOwner) {
+    private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
         // If no available machine is found, preemption may be used to force
         // the task into one. However, if the task owner has excess
         // processing power, preemption will NOT be used to accommodate them
