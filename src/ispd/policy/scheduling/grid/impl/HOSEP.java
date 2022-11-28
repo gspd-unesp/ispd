@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 @Policy
 public class HOSEP extends GridSchedulingPolicy {
     private static final double REFRESH_TIME = 15.0;
-    private final List<UserControl> userControls = new ArrayList<>();
+    private final Map<String, UserControl> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
     private final List<Tarefa> tasksToSchedule = new ArrayList<>();
@@ -53,7 +53,7 @@ public class HOSEP extends GridSchedulingPolicy {
                     .toList();
 
             final var uc = this.makeUserControlFor(userId, userOwnedMachines);
-            this.userControls.add(uc);
+            this.userControls.put(userId, uc);
         }
 
         for (final var s : this.escravos)
@@ -78,7 +78,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
     @Override
     public void escalonar() {
-        final var sortedUserControls = this.userControls.stream()
+        final var sortedUserControls = this.userControls.values().stream()
                 .sorted()
                 .toList();
 
@@ -222,7 +222,7 @@ public class HOSEP extends GridSchedulingPolicy {
     }
 
     private UserControl lastUc() {
-        return this.userControls.stream()
+        return this.userControls.values().stream()
                 .max(Comparator.naturalOrder())
                 .orElseThrow();
     }
@@ -270,7 +270,7 @@ public class HOSEP extends GridSchedulingPolicy {
         final var sc = this.slaveControls.get(maq);
 
         if (sc.isOccupied()) {
-            this.getUserOf(tarefa.getProprietario())
+            this.userControls.get(tarefa.getProprietario())
                     .decreaseAvailableProcessingPower(maq.getPoderComputacional());
             sc.setAsFree();
         } else if (sc.isBlocked()) {
@@ -291,17 +291,17 @@ public class HOSEP extends GridSchedulingPolicy {
     public void adicionarTarefa(final Tarefa tarefa) {
         super.adicionarTarefa(tarefa);
 
-        this.userControls.stream()
-                .filter(uc -> uc.isOwnerOf(tarefa))
-                .findFirst()
-                .orElseThrow()
+        this.userControls
+                .get(tarefa.getProprietario())
                 .increaseTaskDemand();
 
-        if (tarefa.getLocalProcessamento() == null) {
-            return;
-        }
+        Optional.of(tarefa)
+                .filter(HOSEP::hasProcessingCenter)
+                .ifPresent(this::processPreemptedTask);
+    }
 
-        this.processPreemptedTask(tarefa);
+    private static boolean hasProcessingCenter(final Tarefa tarefa) {
+        return tarefa.getLocalProcessamento() != null;
     }
 
     private void processPreemptedTask(final Tarefa task) {
@@ -324,10 +324,10 @@ public class HOSEP extends GridSchedulingPolicy {
 
         this.mestre.sendTask(scheduled);
 
-        this.getUserOf(pe.scheduledTaskUser())
+        this.userControls.get(pe.scheduledTaskUser())
                 .increaseAvailableProcessingPower(mach.getPoderComputacional());
 
-        this.getUserOf(pe.preemptedTaskUser())
+        this.userControls.get(pe.preemptedTaskUser())
                 .decreaseAvailableProcessingPower(mach.getPoderComputacional());
 
         this.preemptionEntries.remove(pe);
@@ -336,13 +336,6 @@ public class HOSEP extends GridSchedulingPolicy {
     private PreemptionEntry findEntryForPreemptedTask(final Tarefa preempted) {
         return this.preemptionEntries.stream()
                 .filter(pe1 -> pe1.willPreemptTask(preempted))
-                .findFirst()
-                .orElseThrow();
-    }
-
-    private UserControl getUserOf(final String userId) {
-        return this.userControls.stream()
-                .filter(uc -> uc.getUserId().equals(userId))
                 .findFirst()
                 .orElseThrow();
     }
