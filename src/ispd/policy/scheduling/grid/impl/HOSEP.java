@@ -16,7 +16,10 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -86,22 +89,38 @@ public class HOSEP extends GridSchedulingPolicy {
     }
 
     private boolean canScheduleTaskFor(final UserControl uc) {
-        final Tarefa t = getTarefa(uc);
-        if (t == null) return false;
+        try {
+            return this.tryFindTaskAndResourceFor(uc);
+        } catch (final NoSuchElementException | IllegalStateException ex) {
+            return false;
+        }
+    }
+
+    private boolean tryFindTaskAndResourceFor(final UserControl uc) {
+        final var t = this
+                .findTaskSuitableFor(uc)
+                .orElseThrow();
 
         final int resourceIndex = this.buscarRecurso(uc);
         if (resourceIndex == -1) {
-            return false;
+            throw new NoSuchElementException("");
         }
 
         final var machine = this.escravos.get(resourceIndex);
         final var sc = this.slaveControls.get(resourceIndex);
 
+        if (!sc.canHostNewTask()) {
+            throw new IllegalStateException("""
+                    Machine %s can not host task %s"""
+                    .formatted(machine, t));
+        }
+
+        this.tarefas.remove(t);
+        sendTaskToResource(t, machine);
+
         if (sc.isFree()) {
 
-            this.tarefas.remove(t);
-            t.setLocalProcessamento(machine);
-            t.setCaminho(this.escalonarRota(machine));
+
             this.mestre.sendTask(t);
 
             //Atualização dos dados sobre o usuário
@@ -110,63 +129,47 @@ public class HOSEP extends GridSchedulingPolicy {
 
             //Controle das máquinas
             sc.setAsBlocked();
-            return true;
-        }
-
-        //Se é caso de preempção, a tarefa configurada e colocada
-        // em espera
-        if (sc.isOccupied()) {
-
-            this.tarefas.remove(t);
-            t.setLocalProcessamento(machine);
-            t.setCaminho(this.escalonarRota(machine));
+        } else if (sc.isOccupied()) {
 
             //Controle de preempção para enviar a nova tarefa no
             // momento certo
+            final var preemptedTask = sc.firstTaskInProcessing();
+
             this.preemptionEntries.add(new PreemptionEntry(
-                    sc.getTasksInProcessing().get(0).getProprietario(),
-                    sc.getTasksInProcessing().get(0).getIdentificador(),
+                    preemptedTask.getProprietario(),
+                    preemptedTask.getIdentificador(),
                     t.getProprietario(),
                     t.getIdentificador()
             ));
+
             this.tasksToSchedule.add(t);
 
             //Solicitação de retorno da tarefa em execução e
             // atualização da demanda do usuário
-            this.mestre.sendMessage(sc.getTasksInProcessing().get(0), machine
+            this.mestre.sendMessage(preemptedTask,
+                    machine
                     , Mensagens.DEVOLVER_COM_PREEMPCAO);
             sc.setAsBlocked();
             uc.decreaseTaskDemand();
-            return true;
         }
-        return false;
+
+        return true;
     }
 
-    private Tarefa getTarefa(UserControl uc) {
-        int trf = -1;
+    private void sendTaskToResource(Tarefa t, CS_Processamento machine) {
+        t.setLocalProcessamento(machine);
+        t.setCaminho(this.escalonarRota(machine));
+    }
 
-        if (uc.currentTaskDemand() <= 0) {
-            return null;
+    private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
+        // TODO: UC behaviour difference
+        if (uc.currentTaskDemand() == 0) {
+            return Optional.empty();
         }
 
-        //Procura pela menor tarefa nao atendida do usuario.
-        for (int j = 0; j < this.tarefas.size(); j++) {
-            if (this.tarefas.get(j).getProprietario().equals(uc.getUserId())) {
-                //Escolher a tarefa de menor tamanho do usuario
-                if (trf == -1 || this.tarefas.get(j).getTamProcessamento() < this.tarefas.get(trf).getTamProcessamento()) {
-                    trf = j;
-                }
-            }
-        }
-
-        final int taskIndex = trf;
-
-        if (taskIndex == -1) {
-            return null;
-        }
-
-        final var t = this.tarefas.get(taskIndex);
-        return t;
+        return this.tarefas.stream()
+                .filter(uc::isOwnerOf)
+                .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
     }
 
     private int buscarRecurso(final UserControl cliente) {
