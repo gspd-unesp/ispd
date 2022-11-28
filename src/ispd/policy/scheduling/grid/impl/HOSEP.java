@@ -17,17 +17,19 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
 @Policy
 public class HOSEP extends GridSchedulingPolicy {
     private static final double REFRESH_TIME = 15.0;
     private final List<UserControl> userControls = new ArrayList<>();
-    private final List<SlaveControl> slaveControls = new ArrayList<>();
+    private final Map<CS_Processamento, SlaveControl> slaveControls =
+            new HashMap<>();
     private final List<Tarefa> tasksToSchedule = new ArrayList<>();
     private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
 
@@ -54,9 +56,8 @@ public class HOSEP extends GridSchedulingPolicy {
             this.userControls.add(uc);
         }
 
-        IntStream.range(0, this.escravos.size())
-                .mapToObj(i -> new SlaveControl())
-                .forEach(this.slaveControls::add);
+        for (final var s : this.escravos)
+            this.slaveControls.put(s, new SlaveControl());
     }
 
     private UserControl makeUserControlFor(
@@ -107,7 +108,7 @@ public class HOSEP extends GridSchedulingPolicy {
         }
 
         final var machine = this.escravos.get(resourceIndex);
-        final var sc = this.slaveControls.get(resourceIndex);
+        final var sc = this.slaveControls.get(machine);
 
         if (!sc.canHostNewTask()) {
             throw new IllegalStateException("""
@@ -169,8 +170,9 @@ public class HOSEP extends GridSchedulingPolicy {
         int indexSelec = -1;
 
         for (int i = 0; i < this.escravos.size(); i++) {
+            final var s = this.escravos.get(i);
 
-            if (this.slaveControls.get(i).isFree()) {
+            if (this.slaveControls.get(s).isFree()) {
                 if (indexSelec == -1 || this.escravos.get(i).getPoderComputacional() > this.escravos.get(indexSelec).getPoderComputacional()) {
                     indexSelec = i;
                 }
@@ -184,11 +186,13 @@ public class HOSEP extends GridSchedulingPolicy {
         if (this.userControls.get(this.userControls.size() - 1).currentlyAvailableProcessingPower() > this.userControls.get(this.userControls.size() - 1).getOwnedMachinesProcessingPower() && cliente.currentlyAvailableProcessingPower() < cliente.getOwnedMachinesProcessingPower()) {
 
             for (int i = 0; i < this.escravos.size(); i++) {
+                final var s = this.escravos.get(i);
+                final var sc = this.slaveControls.get(s);
 
-                if (this.slaveControls.get(i).isOccupied()) {
-                    if (this.slaveControls.get(i).getTasksInProcessing().get(0).getProprietario().equals(this.userControls.get(this.userControls.size() - 1).getUserId())) {
+                if (sc.isOccupied()) {
+                    if (sc.getTasksInProcessing().get(0).getProprietario().equals(this.userControls.get(this.userControls.size() - 1).getUserId())) {
 
-                        if (indexSelec == -1 || this.escravos.get(i).getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
+                        if (indexSelec == -1 || s.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
 
                             indexSelec = i;
 
@@ -257,9 +261,8 @@ public class HOSEP extends GridSchedulingPolicy {
         //Localizar informações sobre máquina que executou a tarefa e usuário
         // proprietário da tarefa
         final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
-        final int maqIndex = this.escravos.indexOf(maq);
 
-        if (this.slaveControls.get(maqIndex).isOccupied()) {
+        if (this.slaveControls.get(maq).isOccupied()) {
 
             int statusIndex = -1;
 
@@ -270,9 +273,9 @@ public class HOSEP extends GridSchedulingPolicy {
             }
 
             this.userControls.get(statusIndex).decreaseAvailableProcessingPower(maq.getPoderComputacional());
-            this.slaveControls.get(maqIndex).setAsFree();
+            this.slaveControls.get(maq).setAsFree();
 
-        } else if (this.slaveControls.get(maqIndex).isBlocked()) {
+        } else if (this.slaveControls.get(maq).isBlocked()) {
 
             somethingUseful(tarefa, maq);
         }
@@ -280,13 +283,8 @@ public class HOSEP extends GridSchedulingPolicy {
 
     @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
-        //super.resultadoAtualizar(mensagem);
-        //Localizar máquina que enviou estado atualizado
-        final int index =
-                this.escravos.indexOf((CS_Processamento) mensagem.getOrigem());
-
-        //Atualizar listas de espera e processamento da máquina
-        final var sc = this.slaveControls.get(index);
+        final var sc = this.slaveControls
+                .get((CS_Processamento) mensagem.getOrigem());
 
         sc.setTasksInProcessing(mensagem.getProcessadorEscravo());
         sc.updateStatusIfNeeded();
