@@ -54,24 +54,6 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
     }
 
-    public void startTaskFrom(final CS_Processamento maq) {
-        this.increaseAvailableMachines();
-        this.increaseAvailableProcessingPower(maq.getPoderComputacional());
-        this.increaseEnergyConsumption(maq.getConsumoEnergia());
-    }
-
-    public void increaseAvailableMachines() {
-        this.availableMachineCount++;
-    }
-
-    public void increaseAvailableProcessingPower(final double amount) {
-        this.availableProcessingPower += amount;
-    }
-
-    public void increaseEnergyConsumption(final double amount) {
-        this.currentEnergyConsumption += amount;
-    }
-
     public void stopTaskFrom(final CS_Processamento maq) {
         this.decreaseAvailableMachines();
         this.decreaseAvailableProcessingPower(maq.getPoderComputacional());
@@ -132,9 +114,25 @@ public class UserControl implements Comparable<UserControl> {
 
     public void sentTaskTo(final CS_Processamento resource) {
         this.decreaseTaskDemand();
+        this.startTaskFrom(resource);
+    }
+
+    public void startTaskFrom(final CS_Processamento resource) {
         this.increaseAvailableMachines();
         this.increaseAvailableProcessingPower(resource.getPoderComputacional());
         this.increaseEnergyConsumption(resource.getConsumoEnergia());
+    }
+
+    public void increaseAvailableMachines() {
+        this.availableMachineCount++;
+    }
+
+    public void increaseAvailableProcessingPower(final double amount) {
+        this.availableProcessingPower += amount;
+    }
+
+    public void increaseEnergyConsumption(final double amount) {
+        this.currentEnergyConsumption += amount;
     }
 
     public void decreaseTaskDemand() {

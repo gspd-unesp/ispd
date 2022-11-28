@@ -356,8 +356,8 @@ public class EHOSEP extends GridSchedulingPolicy {
         this.tasksInWaiting.stream()
                 .filter(pe::hasScheduledTask)
                 .findFirst()
-                .ifPresent(t -> this
-                        .insertScheduledIntoPreemptedTask(t, task));
+                .ifPresent(sched -> this
+                        .insertScheduledIntoPreemptedTask(sched, task));
     }
 
     private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
