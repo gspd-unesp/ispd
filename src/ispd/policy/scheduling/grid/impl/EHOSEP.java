@@ -31,7 +31,7 @@ public class EHOSEP extends GridSchedulingPolicy {
     private final Map<String, UserControl> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
-    private final List<Tarefa> tasksInWaiting = new ArrayList<>();
+    private final List<Tarefa> tasksToSchedule = new ArrayList<>();
     private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
 
     public EHOSEP() {
@@ -119,54 +119,69 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .findMachineBestSuitedFor(task, uc)
                 .orElseThrow();
 
-        this.tryAcceptTask(machine, task, uc);
+        this.tryHostTaskFromUserInMachine(task, uc, machine);
     }
 
-    private void tryAcceptTask(
-            final CS_Processamento machine, final Tarefa task,
-            final UserControl taskOwner) {
-        if (!this.canAcceptSomeTask(machine)) {
+    /**
+     * @param task
+     * @param taskOwner
+     * @param machine
+     * @throws IllegalStateException
+     */
+    private void tryHostTaskFromUserInMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        if (!this.canHostNewTask(machine)) {
             throw new IllegalStateException("""
                     Machine %s can not host task %s"""
                     .formatted(machine, task));
         }
 
+        this.hostTaskFromUserInMachine(task, taskOwner, machine);
+    }
+
+    private void hostTaskFromUserInMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
         this.sendTaskToResource(task, machine);
+        this.tarefas.remove(task);
 
         if (this.isMachineAvailable(machine)) {
-            this.hostTaskNormally(machine, task, taskOwner);
-        }
-
-        if (this.isMachineOccupied(machine)) {
-            this.hostTaskWithPreemption(machine, task, taskOwner);
+            this.hostTaskNormally(task, taskOwner, machine);
+        } else if (this.isMachineOccupied(machine)) {
+            this.hostTaskWithPreemption(task, taskOwner, machine);
         }
 
         this.slaveControls.get(machine).setAsBlocked();
     }
 
-    private boolean canAcceptSomeTask(final CS_Processamento machine) {
-        return this.isMachineAvailable(machine) ||
-               this.isMachineOccupied(machine);
+    private void hostTaskNormally(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        this.sendTaskFromUserToMachine(task, taskOwner, machine);
+        taskOwner.decreaseTaskDemand();
     }
 
-    private void hostTaskNormally(
-            final CS_Processamento machine,
-            final Tarefa task, final UserControl taskOwner) {
+    private void sendTaskFromUserToMachine(
+            final Tarefa task, final UserControl userControl,
+            final CS_Processamento machine) {
         this.mestre.sendTask(task);
-        taskOwner.sentTaskTo(machine);
+        userControl.startTaskFrom(machine);
     }
 
     private void hostTaskWithPreemption(
-            final CS_Processamento machine,
-            final Tarefa task, final UserControl taskOwner) {
-        final var preemptedTask = this.taskToPreemptIn(machine);
+            final Tarefa taskToSchedule, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        final var taskToPreempt = this.taskToPreemptIn(machine);
 
-        this.preemptionEntries.add(new PreemptionEntry(preemptedTask, task));
+        this.preemptionEntries.add(
+                new PreemptionEntry(taskToPreempt, taskToSchedule)
+        );
 
-        this.tasksInWaiting.add(task);
+        this.tasksToSchedule.add(taskToSchedule);
 
         this.mestre.sendMessage(
-                preemptedTask,
+                taskToPreempt,
                 machine,
                 Mensagens.DEVOLVER_COM_PREEMPCAO
         );
@@ -178,7 +193,10 @@ public class EHOSEP extends GridSchedulingPolicy {
             final Tarefa task, final CentroServico resource) {
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
-        this.tarefas.remove(task);
+    }
+
+    private boolean canHostNewTask(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).canHostNewTask();
     }
 
     private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
@@ -353,35 +371,33 @@ public class EHOSEP extends GridSchedulingPolicy {
     private void processPreemptedTask(final Tarefa task) {
         final var pe = this.findEntryForPreemptedTask(task);
 
-        this.tasksInWaiting.stream()
-                .filter(pe::hasScheduledTask)
+        this.tasksToSchedule.stream()
+                .filter(pe::willScheduleTask)
                 .findFirst()
                 .ifPresent(sched -> this
-                        .insertScheduledIntoPreemptedTask(sched, task));
+                        .insertTaskIntoPreemptedTaskSlot(sched, task));
     }
 
     private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
         return this.preemptionEntries.stream()
-                .filter(pe -> pe.hasPreemptedTask(t))
+                .filter(pe -> pe.willPreemptTask(t))
                 .findFirst()
                 .orElseThrow();
     }
 
-    private void insertScheduledIntoPreemptedTask(
-            final Tarefa scheduled, final Tarefa preempted) {
-        this.tasksInWaiting.remove(scheduled);
-        this.mestre.sendTask(scheduled);
+    private void insertTaskIntoPreemptedTaskSlot(
+            final Tarefa toInsert, final Tarefa preempted) {
+        this.tasksToSchedule.remove(toInsert);
 
-        final var maq = (CS_Processamento) preempted.getLocalProcessamento();
+        final var mach = (CS_Processamento) preempted.getLocalProcessamento();
         final var pe = this.findEntryForPreemptedTask(preempted);
 
-        this.userControls
-                .get(pe.scheduledTaskUser())
-                .startTaskFrom(maq);
+        final var user = this.userControls.get(pe.scheduledTaskUser());
+        this.sendTaskFromUserToMachine(toInsert, user, mach);
 
         this.userControls
                 .get(pe.preemptedTaskUser())
-                .stopTaskFrom(maq);
+                .stopTaskFrom(mach);
 
         this.preemptionEntries.remove(pe);
     }

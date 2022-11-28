@@ -9,6 +9,13 @@ public class SlaveControl {
     private SlaveStatus status = SlaveStatus.FREE;
     private List<Tarefa> tasksInProcessing = new ArrayList<>();
 
+    public boolean canHostNewTask() {
+        return switch (this.status) {
+            case FREE, OCCUPIED -> true;
+            default -> false;
+        };
+    }
+
     public void updateStatusIfNeeded() {
         this.status = switch (this.status) {
             case BLOCKED -> SlaveStatus.UNCERTAIN;
