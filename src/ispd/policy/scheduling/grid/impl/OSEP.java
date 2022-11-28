@@ -8,7 +8,7 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
-import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
+import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
@@ -20,7 +20,7 @@ import java.util.List;
 public class OSEP extends GridSchedulingPolicy {
     private final List<SlaveControl> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
-    private final List<PreemptionControl> controlePreempcao =
+    private final List<PreemptionEntry> controlePreempcao =
             new ArrayList<>();
     private final List<List> processadorEscravos = new ArrayList<>();
     private final HashMap<String, UserControl> status = new HashMap<>();
@@ -81,7 +81,7 @@ public class OSEP extends GridSchedulingPolicy {
                         final int resourceIndex =
                                 this.escravos.indexOf(resource);
                         this.esperaTarefas.add(task);
-                        this.controlePreempcao.add(new PreemptionControl(((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getIdentificador(), task.getProprietario(), task.getIdentificador()));
+                        this.controlePreempcao.add(new PreemptionEntry(((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getProprietario(), ((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getIdentificador(), task.getProprietario(), task.getIdentificador()));
                         this.controleEscravos.get(this.escravos.indexOf(resource)).setAsBlocked();
                     }
                 }

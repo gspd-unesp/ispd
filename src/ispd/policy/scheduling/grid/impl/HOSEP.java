@@ -10,7 +10,7 @@ import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.SchedulingPolicy;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
-import ispd.policy.scheduling.grid.impl.util.PreemptionControl;
+import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
@@ -26,7 +26,7 @@ public class HOSEP extends GridSchedulingPolicy {
     private final List<UserControl> userControls = new ArrayList<>();
     private final List<SlaveControl> slaveControls = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
-    private final List<PreemptionControl> preemptionControls =
+    private final List<PreemptionEntry> preemptionEntries =
             new ArrayList<>();
 
     public HOSEP() {
@@ -112,7 +112,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
                         //Controle de preempção para enviar a nova tarefa no
                         // momento certo
-                        this.preemptionControls.add(new PreemptionControl(
+                        this.preemptionEntries.add(new PreemptionEntry(
                                 this.slaveControls.get(resourceIndex).getTasksInProcessing().get(0).getProprietario(),
                                 this.slaveControls.get(resourceIndex).getTasksInProcessing().get(0).getIdentificador(),
                                 task.getProprietario(),
@@ -262,8 +262,8 @@ public class HOSEP extends GridSchedulingPolicy {
         } else if (this.slaveControls.get(maqIndex).isBlocked()) {
 
             int indexControlePreemp = -1;
-            for (int j = 0; j < this.preemptionControls.size(); j++) {
-                if (this.preemptionControls.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionControls.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
+            for (int j = 0; j < this.preemptionEntries.size(); j++) {
+                if (this.preemptionEntries.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionEntries.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                     indexControlePreemp = j;
                     break;
                 }
@@ -271,7 +271,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             int indexStatusUserAlloc = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
@@ -279,7 +279,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             int indexStatusUserPreemp = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).preemptedTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).preemptedTaskUser())) {
                     indexStatusUserPreemp = k;
                     break;
                 }
@@ -287,7 +287,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             //Localizar tarefa em espera designada para executar
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionControls.get(indexControlePreemp).scheduledTaskId()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
 
                     //Enviar tarefa para execução
                     this.mestre.sendTask(this.esperaTarefas.remove(i));
@@ -302,7 +302,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
                     //Com a preempção feita, os dados necessários para ela
                     // são eliminados
-                    this.preemptionControls.remove(indexControlePreemp);
+                    this.preemptionEntries.remove(indexControlePreemp);
 
                     break;
                 }
@@ -364,8 +364,8 @@ public class HOSEP extends GridSchedulingPolicy {
             //Localizar informações armazenadas sobre a preempção em particular
 
             int indexControlePreemp = -1;
-            for (int j = 0; j < this.preemptionControls.size(); j++) {
-                if (this.preemptionControls.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionControls.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
+            for (int j = 0; j < this.preemptionEntries.size(); j++) {
+                if (this.preemptionEntries.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionEntries.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                     indexControlePreemp = j;
                     break;
                 }
@@ -373,7 +373,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             int indexStatusUserAlloc = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser())) {
                     indexStatusUserAlloc = k;
                     break;
                 }
@@ -381,7 +381,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
             int indexStatusUserPreemp = -1;
             for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionControls.get(indexControlePreemp).preemptedTaskUser())) {
+                if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).preemptedTaskUser())) {
                     indexStatusUserPreemp = k;
                     break;
                 }
@@ -390,7 +390,7 @@ public class HOSEP extends GridSchedulingPolicy {
             //Localizar tarefa em espera deseignada para executar
             for (int i = 0; i < this.esperaTarefas.size(); i++) {
 
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionControls.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionControls.get(indexControlePreemp).scheduledTaskId()) {
+                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
 
                     //Enviar tarefa para execução
                     this.mestre.sendTask(this.esperaTarefas.remove(i));
@@ -405,7 +405,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
                     //Com a preempção feita, os dados necessários para ela
                     // são eliminados
-                    this.preemptionControls.remove(indexControlePreemp);
+                    this.preemptionEntries.remove(indexControlePreemp);
 
                     break;
                 }
