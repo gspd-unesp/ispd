@@ -147,8 +147,8 @@ public class HOSEP extends GridSchedulingPolicy {
         sc.setAsBlocked();
     }
 
-    private void sendTaskToResource(final Tarefa t,
-                                    final CS_Processamento machine) {
+    private void sendTaskToResource(
+            final Tarefa t, final CS_Processamento machine) {
         t.setLocalProcessamento(machine);
         t.setCaminho(this.escalonarRota(machine));
     }
@@ -164,7 +164,7 @@ public class HOSEP extends GridSchedulingPolicy {
                 .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
     }
 
-    private int buscarRecurso(final UserControl cliente) {
+    private int buscarRecurso(final UserControl uc) {
         //Índice da máquina escolhida, na lista de máquinas
         int indexSelec = -1;
 
@@ -182,7 +182,7 @@ public class HOSEP extends GridSchedulingPolicy {
             return indexSelec;
         }
 
-        if (!this.lastUc().hasExcessProcessingPower() || cliente.hasExcessProcessingPower()) {
+        if (!this.lastUc().hasExcessProcessingPower() || uc.hasExcessProcessingPower()) {
             return indexSelec;
         }
 
@@ -190,15 +190,17 @@ public class HOSEP extends GridSchedulingPolicy {
             final var s = this.escravos.get(i);
             final var sc = this.slaveControls.get(s);
 
-            if (sc.isOccupied()) {
-                if (sc.getTasksInProcessing().get(0).getProprietario().equals(this.lastUc().getUserId())) {
+            if (!sc.isOccupied()) {
+                continue;
+            }
 
-                    if (indexSelec == -1 || s.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
+            if (!sc.firstTaskInProcessing().getProprietario().equals(this.lastUc().getUserId())) {
+                continue;
+            }
 
-                        indexSelec = i;
-
-                    }
-                }
+            if (indexSelec == -1 ||
+                s.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
+                indexSelec = i;
             }
         }
 
@@ -207,7 +209,7 @@ public class HOSEP extends GridSchedulingPolicy {
         }
 
         final double penalidaUserEsperaPosterior =
-                (cliente.currentlyAvailableProcessingPower() + this.escravos.get(indexSelec).getPoderComputacional() - cliente.getOwnedMachinesProcessingPower()) / cliente.getOwnedMachinesProcessingPower();
+                (uc.currentlyAvailableProcessingPower() + this.escravos.get(indexSelec).getPoderComputacional() - uc.getOwnedMachinesProcessingPower()) / uc.getOwnedMachinesProcessingPower();
         final double penalidaUserEscravoPosterior =
                 (this.lastUc().currentlyAvailableProcessingPower() - this.escravos.get(indexSelec).getPoderComputacional() - this.lastUc().getOwnedMachinesProcessingPower()) / this.lastUc().getOwnedMachinesProcessingPower();
 
@@ -220,7 +222,9 @@ public class HOSEP extends GridSchedulingPolicy {
     }
 
     private UserControl lastUc() {
-        return this.userControls.get(this.userControls.size() - 1);
+        return this.userControls.stream()
+                .max(Comparator.naturalOrder())
+                .orElseThrow();
     }
 
     /**
@@ -259,7 +263,6 @@ public class HOSEP extends GridSchedulingPolicy {
     }
 
     @Override
-    //Chegada de tarefa concluida
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
 
@@ -285,18 +288,15 @@ public class HOSEP extends GridSchedulingPolicy {
     }
 
     @Override
-    //Receber nova tarefa submetida ou tarefa que sofreu preemoção
     public void adicionarTarefa(final Tarefa tarefa) {
         super.adicionarTarefa(tarefa);
 
-        //Atualização da demanda do usuário proprietário da tarefa
         this.userControls.stream()
                 .filter(uc -> uc.isOwnerOf(tarefa))
                 .findFirst()
                 .orElseThrow()
                 .increaseTaskDemand();
 
-        //Em caso de preempção
         if (tarefa.getLocalProcessamento() == null) {
             return;
         }
