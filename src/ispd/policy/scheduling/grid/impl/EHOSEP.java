@@ -16,7 +16,6 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +28,7 @@ import java.util.function.ToDoubleFunction;
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
     private static final double REFRESH_TIME = 15.0;
-    private final List<UserControl> userControls = new ArrayList<>();
+    private final Map<String, UserControl> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
     private final List<Tarefa> tasksInWaiting = new ArrayList<>();
@@ -56,7 +55,7 @@ public class EHOSEP extends GridSchedulingPolicy {
                     .toList();
 
             final var uc = this.makeUserControlFor(userId, userOwnedMachines);
-            this.userControls.add(uc);
+            this.userControls.put(userId, uc);
         }
 
         for (final var s : this.escravos)
@@ -88,36 +87,23 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     @Override
     public void escalonar() {
-        Collections.sort(this.userControls);
+        final var sortedUserControls = this.userControls.values().stream()
+                .sorted()
+                .toList();
 
-        for (final var uc : this.userControls) {
-            try {
-                this.tryFindTaskAndResourceFor(uc);
+        for (final var uc : sortedUserControls) {
+            if (this.couldScheduleTaskFor(uc))
                 return;
-            } catch (final NoSuchElementException | IllegalStateException ex) {
-                // Try again with next user control
-            }
         }
     }
 
-    /**
-     * This algorithm's resource scheduling does not conform to the standard
-     * {@link SchedulingPolicy} interface.<br>
-     * Therefore, calling this method on instances of this algorithm will
-     * result in an {@link UnsupportedOperationException} being thrown.
-     *
-     * @return not applicable in this context, an exception is thrown instead.
-     * @throws UnsupportedOperationException whenever called.
-     */
-    @Override
-    public CS_Processamento escalonarRecurso() {
-        throw new UnsupportedOperationException("""
-                Do not call method .escalonarRecurso() on instances of EHOSEP.""");
-    }
-
-    @Override
-    public Double getTempoAtualizar() {
-        return EHOSEP.REFRESH_TIME;
+    private boolean couldScheduleTaskFor(final UserControl uc) {
+        try {
+            this.tryFindTaskAndResourceFor(uc);
+            return true;
+        } catch (final NoSuchElementException | IllegalStateException ex) {
+            return false;
+        }
     }
 
     /**
@@ -261,7 +247,7 @@ public class EHOSEP extends GridSchedulingPolicy {
     }
 
     private Optional<UserControl> findUserToPreemptFor(final UserControl userWithTask) {
-        return this.userControls.stream()
+        return this.userControls.values().stream()
                 .filter(UserControl::hasExcessProcessingPower)
                 .max(EHOSEP.bestConsumptionWeightedByEfficiency())
                 .filter(userWithTask::hasLessEnergyConsumptionThan);
@@ -313,6 +299,26 @@ public class EHOSEP extends GridSchedulingPolicy {
     }
 
     /**
+     * This algorithm's resource scheduling does not conform to the standard
+     * {@link SchedulingPolicy} interface.<br>
+     * Therefore, calling this method on instances of this algorithm will
+     * result in an {@link UnsupportedOperationException} being thrown.
+     *
+     * @return not applicable in this context, an exception is thrown instead.
+     * @throws UnsupportedOperationException whenever called.
+     */
+    @Override
+    public CS_Processamento escalonarRecurso() {
+        throw new UnsupportedOperationException("""
+                Do not call method .escalonarRecurso() on instances of EHOSEP.""");
+    }
+
+    @Override
+    public Double getTempoAtualizar() {
+        return EHOSEP.REFRESH_TIME;
+    }
+
+    /**
      * This algorithm's task scheduling does not conform to the standard
      * {@link SchedulingPolicy} interface.<br>
      * Therefore, calling this method on instances of this algorithm will
@@ -335,10 +341,8 @@ public class EHOSEP extends GridSchedulingPolicy {
         final var sc = this.slaveControls.get(maq);
 
         if (sc.isOccupied()) {
-            this.userControls.stream()
-                    .filter(uc -> uc.isOwnerOf(tarefa))
-                    .findFirst()
-                    .orElseThrow()
+            this.userControls
+                    .get(tarefa.getProprietario())
                     .stopTaskFrom(maq);
 
             sc.setAsFree();
@@ -359,23 +363,15 @@ public class EHOSEP extends GridSchedulingPolicy {
         final var maq = (CS_Processamento) t.getLocalProcessamento();
         final var pc = this.findControlForPreemptedTask(t);
 
-        this.userControls.stream()
-                .filter(EHOSEP.controlHasUser(pc.scheduledTaskUser()))
-                .findFirst()
-                .orElseThrow()
+        this.userControls
+                .get(pc.scheduledTaskUser())
                 .startTaskFrom(maq);
 
-        this.userControls.stream()
-                .filter(EHOSEP.controlHasUser(pc.preemptedTaskUser()))
-                .findFirst()
-                .orElseThrow()
+        this.userControls
+                .get(pc.preemptedTaskUser())
                 .stopTaskFrom(maq);
 
         this.preemptionControls.remove(pc);
-    }
-
-    private static Predicate<UserControl> controlHasUser(final String pc) {
-        return userControl -> userControl.hasUser(pc);
     }
 
     private PreemptionControl findControlForPreemptedTask(final Tarefa t) {
@@ -426,9 +422,9 @@ public class EHOSEP extends GridSchedulingPolicy {
     public void adicionarTarefa(final Tarefa tarefa) {
         super.adicionarTarefa(tarefa);
 
-        this.userControls.stream()
-                .filter(uc -> uc.isOwnerOf(tarefa))
-                .forEach(UserControl::increaseTaskDemand);
+        this.userControls
+                .get(tarefa.getProprietario())
+                .increaseTaskDemand();
 
         //Em caso de preempção
         if (tarefa.getLocalProcessamento() != null) {
@@ -442,28 +438,14 @@ public class EHOSEP extends GridSchedulingPolicy {
             final PreemptionControl pc =
                     this.findControlForPreemptedTask(tarefa);
 
-            int indexStatusUserAlloc = -1;
-            for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(pc.scheduledTaskUser())) {
-                    indexStatusUserAlloc = k;
-                }
-            }
-
-            int indexStatusUserPreemp = -1;
-            for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(pc.preemptedTaskUser())) {
-                    indexStatusUserPreemp = k;
-                }
-            }
-
             //Localizar tarefa em espera deseignada para executar
             for (int i = 0; i < this.tasksInWaiting.size(); i++) {
 
                 if (pc.hasScheduledTask(this.tasksInWaiting.get(i))) {
                     this.mestre.sendTask(this.tasksInWaiting.remove(i));
 
-                    this.userControls.get(indexStatusUserAlloc).startTaskFrom(maq);
-                    this.userControls.get(indexStatusUserPreemp).stopTaskFrom(maq);
+                    this.userControls.get(pc.scheduledTaskUser()).startTaskFrom(maq);
+                    this.userControls.get(pc.preemptedTaskUser()).stopTaskFrom(maq);
 
                     this.preemptionControls.remove(pc);
 

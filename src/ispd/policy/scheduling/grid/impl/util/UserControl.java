@@ -54,10 +54,6 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
     }
 
-    public boolean hasUser(final String userId) {
-        return this.userId.equals(userId);
-    }
-
     public void startTaskFrom(final CS_Processamento maq) {
         this.increaseAvailableMachines();
         this.increaseAvailableProcessingPower(maq.getPoderComputacional());
