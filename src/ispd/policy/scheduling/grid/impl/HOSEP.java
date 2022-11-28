@@ -230,11 +230,16 @@ public class HOSEP extends GridSchedulingPolicy {
     private boolean theTest(
             final CS_Processamento m,
             final UserControl userWithTask, final UserControl userToPreempt) {
+        if (userToPreempt.canConcedeProcessingPower(m)) {
+            return true;
+        }
+
         final double penalty1 =
                 userWithTask.penaltyWithProcessing(m.getPoderComputacional());
         final double penalty2 =
                 userToPreempt.penaltyWithProcessing(-m.getPoderComputacional());
-        return penalty2 >= penalty1 || penalty2 > 0;
+
+        return penalty2 >= penalty1;
     }
 
     private UserControl bestUser() {
