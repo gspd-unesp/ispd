@@ -116,47 +116,39 @@ public class HOSEP extends GridSchedulingPolicy {
         }
 
         this.tarefas.remove(t);
-        sendTaskToResource(t, machine);
+        this.sendTaskToResource(t, machine);
 
         if (sc.isFree()) {
 
-
             this.mestre.sendTask(t);
 
-            //Atualização dos dados sobre o usuário
             uc.decreaseTaskDemand();
             uc.increaseAvailableProcessingPower(machine.getPoderComputacional());
 
-            //Controle das máquinas
-            sc.setAsBlocked();
         } else if (sc.isOccupied()) {
 
-            //Controle de preempção para enviar a nova tarefa no
-            // momento certo
-            final var preemptedTask = sc.firstTaskInProcessing();
+            final var taskToPreempt = sc.firstTaskInProcessing();
 
-            this.preemptionEntries.add(new PreemptionEntry(
-                    preemptedTask.getProprietario(),
-                    preemptedTask.getIdentificador(),
-                    t.getProprietario(),
-                    t.getIdentificador()
-            ));
+            this.preemptionEntries.add(new PreemptionEntry(taskToPreempt, t));
 
             this.tasksToSchedule.add(t);
 
-            //Solicitação de retorno da tarefa em execução e
-            // atualização da demanda do usuário
-            this.mestre.sendMessage(preemptedTask,
-                    machine
-                    , Mensagens.DEVOLVER_COM_PREEMPCAO);
-            sc.setAsBlocked();
+            this.mestre.sendMessage(
+                    taskToPreempt,
+                    machine,
+                    Mensagens.DEVOLVER_COM_PREEMPCAO
+            );
+
             uc.decreaseTaskDemand();
         }
+
+        sc.setAsBlocked();
 
         return true;
     }
 
-    private void sendTaskToResource(Tarefa t, CS_Processamento machine) {
+    private void sendTaskToResource(final Tarefa t,
+                                    final CS_Processamento machine) {
         t.setLocalProcessamento(machine);
         t.setCaminho(this.escalonarRota(machine));
     }
@@ -282,52 +274,7 @@ public class HOSEP extends GridSchedulingPolicy {
 
         } else if (this.slaveControls.get(maqIndex).isBlocked()) {
 
-            int indexControlePreemp = -1;
-            for (int j = 0; j < this.preemptionEntries.size(); j++) {
-                if (this.preemptionEntries.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionEntries.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
-                    indexControlePreemp = j;
-                    break;
-                }
-            }
-
-            int indexStatusUserAlloc = -1;
-            for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser())) {
-                    indexStatusUserAlloc = k;
-                    break;
-                }
-            }
-
-            int indexStatusUserPreemp = -1;
-            for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).preemptedTaskUser())) {
-                    indexStatusUserPreemp = k;
-                    break;
-                }
-            }
-
-            //Localizar tarefa em espera designada para executar
-            for (int i = 0; i < this.tasksToSchedule.size(); i++) {
-                if (this.tasksToSchedule.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.tasksToSchedule.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
-
-                    //Enviar tarefa para execução
-                    this.mestre.sendTask(this.tasksToSchedule.remove(i));
-
-                    //Atualizar informações de estado do usuário cuja tarefa
-                    // será executada
-                    this.userControls.get(indexStatusUserAlloc).increaseAvailableProcessingPower(maq.getPoderComputacional());
-
-                    //Atualizar informações de estado do usuário cuja tarefa
-                    // teve a execução interrompida
-                    this.userControls.get(indexStatusUserPreemp).decreaseAvailableProcessingPower(maq.getPoderComputacional());
-
-                    //Com a preempção feita, os dados necessários para ela
-                    // são eliminados
-                    this.preemptionEntries.remove(indexControlePreemp);
-
-                    break;
-                }
-            }
+            somethingUseful(tarefa, maq);
         }
     }
 
@@ -335,31 +282,14 @@ public class HOSEP extends GridSchedulingPolicy {
     public void resultadoAtualizar(final Mensagem mensagem) {
         //super.resultadoAtualizar(mensagem);
         //Localizar máquina que enviou estado atualizado
-        final int index = this.escravos.indexOf(mensagem.getOrigem());
+        final int index =
+                this.escravos.indexOf((CS_Processamento) mensagem.getOrigem());
 
         //Atualizar listas de espera e processamento da máquina
-        this.slaveControls.get(index).setTasksInProcessing(mensagem.getProcessadorEscravo());
+        final var sc = this.slaveControls.get(index);
 
-        //Tanto alocação para recurso livre como a preempção levam dois
-        // ciclos de atualização para que a máquina possa ser considerada
-        // para esacalonamento novamente
-
-        //Primeiro ciclo
-        if (this.slaveControls.get(index).isBlocked()) {
-            this.slaveControls.get(index).setAsUncertain();
-            //Segundo ciclo
-        } else if (this.slaveControls.get(index).isUncertain()) {
-            //Se não está executando nada
-            if (this.slaveControls.get(index).getTasksInProcessing().isEmpty()) {
-
-                this.slaveControls.get(index).setAsFree();
-                //Se está executando uma tarefa
-            } else if (this.slaveControls.get(index).getTasksInProcessing().size() == 1) {
-
-                this.slaveControls.get(index).setAsOccupied();
-                //Se há mais de uma tarefa e a máquina tem mais de um núcleo
-            }
-        }
+        sc.setTasksInProcessing(mensagem.getProcessadorEscravo());
+        sc.updateStatusIfNeeded();
     }
 
     @Override
@@ -368,68 +298,70 @@ public class HOSEP extends GridSchedulingPolicy {
         super.adicionarTarefa(tarefa);
 
         //Atualização da demanda do usuário proprietário da tarefa
-        for (final var userControl : this.userControls) {
-            if (userControl.getUserId().equals(tarefa.getProprietario())) {
-                userControl.increaseTaskDemand();
+        this.userControls.stream()
+                .filter(uc -> uc.isOwnerOf(tarefa))
+                .findFirst()
+                .orElseThrow()
+                .increaseTaskDemand();
+
+        //Em caso de preempção
+        if (tarefa.getLocalProcessamento() == null) {
+            return;
+        }
+
+        //Localizar informações de estado de máquina que executou a
+        // tarefa (se houver)
+        final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
+
+        somethingUseful(tarefa, maq);
+    }
+
+    private void somethingUseful(Tarefa tarefa, CS_Processamento maq) {
+        int indexControlePreemp = -1;
+        for (int j = 0; j < this.preemptionEntries.size(); j++) {
+            if (this.preemptionEntries.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionEntries.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
+                indexControlePreemp = j;
                 break;
             }
         }
 
-        //Em caso de preempção
-        if (tarefa.getLocalProcessamento() != null) {
-
-            //Localizar informações de estado de máquina que executou a
-            // tarefa (se houver)
-            final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
-
-            //Localizar informações armazenadas sobre a preempção em particular
-
-            int indexControlePreemp = -1;
-            for (int j = 0; j < this.preemptionEntries.size(); j++) {
-                if (this.preemptionEntries.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionEntries.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
-                    indexControlePreemp = j;
-                    break;
-                }
+        int indexStatusUserAlloc = -1;
+        for (int k = 0; k < this.userControls.size(); k++) {
+            if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser())) {
+                indexStatusUserAlloc = k;
+                break;
             }
+        }
 
-            int indexStatusUserAlloc = -1;
-            for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser())) {
-                    indexStatusUserAlloc = k;
-                    break;
-                }
+        int indexStatusUserPreemp = -1;
+        for (int k = 0; k < this.userControls.size(); k++) {
+            if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).preemptedTaskUser())) {
+                indexStatusUserPreemp = k;
+                break;
             }
+        }
 
-            int indexStatusUserPreemp = -1;
-            for (int k = 0; k < this.userControls.size(); k++) {
-                if (this.userControls.get(k).getUserId().equals(this.preemptionEntries.get(indexControlePreemp).preemptedTaskUser())) {
-                    indexStatusUserPreemp = k;
-                    break;
-                }
-            }
+        //Localizar tarefa em espera deseignada para executar
+        for (int i = 0; i < this.tasksToSchedule.size(); i++) {
 
-            //Localizar tarefa em espera deseignada para executar
-            for (int i = 0; i < this.tasksToSchedule.size(); i++) {
+            if (this.tasksToSchedule.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.tasksToSchedule.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
 
-                if (this.tasksToSchedule.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.tasksToSchedule.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
+                //Enviar tarefa para execução
+                this.mestre.sendTask(this.tasksToSchedule.remove(i));
 
-                    //Enviar tarefa para execução
-                    this.mestre.sendTask(this.tasksToSchedule.remove(i));
+                //Atualizar informações de estado do usuário cuja tarefa
+                // será executada
+                this.userControls.get(indexStatusUserAlloc).increaseAvailableProcessingPower(maq.getPoderComputacional());
 
-                    //Atualizar informações de estado do usuário cuja tarefa
-                    // será executada
-                    this.userControls.get(indexStatusUserAlloc).increaseAvailableProcessingPower(maq.getPoderComputacional());
+                //Atualizar informações de estado do usuáro cuja tarefa
+                // foi interrompida
+                this.userControls.get(indexStatusUserPreemp).decreaseAvailableProcessingPower(maq.getPoderComputacional());
 
-                    //Atualizar informações de estado do usuáro cuja tarefa
-                    // foi interrompida
-                    this.userControls.get(indexStatusUserPreemp).decreaseAvailableProcessingPower(maq.getPoderComputacional());
+                //Com a preempção feita, os dados necessários para ela
+                // são eliminados
+                this.preemptionEntries.remove(indexControlePreemp);
 
-                    //Com a preempção feita, os dados necessários para ela
-                    // são eliminados
-                    this.preemptionEntries.remove(indexControlePreemp);
-
-                    break;
-                }
+                break;
             }
         }
     }
