@@ -396,7 +396,6 @@ public class EHOSEP extends GridSchedulingPolicy {
                 this.slaveControls.get((CS_Processamento) mensagem.getOrigem());
 
         sc.setTasksInProcessing((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
-        sc.setTasksOnHold(mensagem.getFilaEscravo());
 
         //Tanto alocação para recurso livre como a preempção levam dois
         // ciclos de atualização para que a máquina possa ser considerada

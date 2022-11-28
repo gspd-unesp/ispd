@@ -3,11 +3,9 @@ package ispd.policy.scheduling.grid.impl.util;
 import ispd.motor.filas.Tarefa;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SlaveControl {
     private SlaveStatus status = SlaveStatus.FREE;
-    private List<Tarefa> tasksOnHold = new ArrayList<>();
     private ArrayList<Tarefa> tasksInProcessing = new ArrayList<>();
 
     public Tarefa firstTaskInProcessing() {
@@ -52,14 +50,6 @@ public class SlaveControl {
 
     public void setAsPreempted() {
         this.status = SlaveStatus.PREEMPTED;
-    }
-
-    public List<Tarefa> getTasksOnHold() {
-        return this.tasksOnHold;
-    }
-
-    public void setTasksOnHold(final List<Tarefa> tasksOnHold) {
-        this.tasksOnHold = tasksOnHold;
     }
 
     public ArrayList<Tarefa> getTasksInProcessing() {

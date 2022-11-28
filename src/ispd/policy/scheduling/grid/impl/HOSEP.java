@@ -318,7 +318,6 @@ public class HOSEP extends GridSchedulingPolicy {
 
         //Atualizar listas de espera e processamento da máquina
         this.slaveControls.get(index).setTasksInProcessing((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
-        this.slaveControls.get(index).setTasksOnHold(mensagem.getFilaEscravo());
 
         //Tanto alocação para recurso livre como a preempção levam dois
         // ciclos de atualização para que a máquina possa ser considerada
