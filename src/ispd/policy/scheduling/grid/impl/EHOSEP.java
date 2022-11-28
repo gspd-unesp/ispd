@@ -418,7 +418,7 @@ public class EHOSEP extends GridSchedulingPolicy {
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
 
-        final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
+        final var maq = tarefa.getCSLProcessamento();
         final var sc = this.slaveControls.get(maq);
 
         if (sc.isOccupied()) {
@@ -453,7 +453,7 @@ public class EHOSEP extends GridSchedulingPolicy {
             final Tarefa scheduled, final Tarefa preempted) {
         this.tasksToSchedule.remove(scheduled);
 
-        final var mach = (CS_Processamento) preempted.getLocalProcessamento();
+        final var mach = preempted.getCSLProcessamento();
         final var pe = this.findEntryForPreemptedTask(preempted);
 
         final var user = this.userControls.get(pe.scheduledTaskUser());

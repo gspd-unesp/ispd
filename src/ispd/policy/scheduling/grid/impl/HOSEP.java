@@ -263,25 +263,14 @@ public class HOSEP extends GridSchedulingPolicy {
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
 
-        //Localizar informações sobre máquina que executou a tarefa e usuário
-        // proprietário da tarefa
-        final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
+        final var maq = tarefa.getCSLProcessamento();
+        final var sc = this.slaveControls.get(maq);
 
-        if (this.slaveControls.get(maq).isOccupied()) {
-
-            int statusIndex = -1;
-
-            for (int i = 0; i < this.userControls.size(); i++) {
-                if (this.userControls.get(i).getUserId().equals(tarefa.getProprietario())) {
-                    statusIndex = i;
-                }
-            }
-
-            this.userControls.get(statusIndex).decreaseAvailableProcessingPower(maq.getPoderComputacional());
-            this.slaveControls.get(maq).setAsFree();
-
-        } else if (this.slaveControls.get(maq).isBlocked()) {
-
+        if (sc.isOccupied()) {
+            this.getUserOf(tarefa.getProprietario())
+                    .decreaseAvailableProcessingPower(maq.getPoderComputacional());
+            sc.setAsFree();
+        } else if (sc.isBlocked()) {
             this.processPreemptedTask(tarefa);
         }
     }
@@ -329,7 +318,7 @@ public class HOSEP extends GridSchedulingPolicy {
             final Tarefa scheduled, final Tarefa preempted) {
         this.tasksToSchedule.remove(scheduled);
 
-        final var mach = (CS_Processamento) preempted.getLocalProcessamento();
+        final var mach = preempted.getCSLProcessamento();
         final var pe = this.findEntryForPreemptedTask(preempted);
 
 
@@ -344,16 +333,16 @@ public class HOSEP extends GridSchedulingPolicy {
         this.preemptionEntries.remove(pe);
     }
 
-    private UserControl getUserOf(final String userId) {
-        return this.userControls.stream()
-                .filter(uc -> uc.getUserId().equals(userId))
+    private PreemptionEntry findEntryForPreemptedTask(final Tarefa preempted) {
+        return this.preemptionEntries.stream()
+                .filter(pe1 -> pe1.willPreemptTask(preempted))
                 .findFirst()
                 .orElseThrow();
     }
 
-    private PreemptionEntry findEntryForPreemptedTask(final Tarefa preempted) {
-        return this.preemptionEntries.stream()
-                .filter(pe1 -> pe1.willPreemptTask(preempted))
+    private UserControl getUserOf(final String userId) {
+        return this.userControls.stream()
+                .filter(uc -> uc.getUserId().equals(userId))
                 .findFirst()
                 .orElseThrow();
     }
