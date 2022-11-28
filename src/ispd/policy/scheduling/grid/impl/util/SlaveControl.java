@@ -7,7 +7,7 @@ import java.util.List;
 
 public class SlaveControl {
     private SlaveStatus status = SlaveStatus.FREE;
-    private List<Tarefa> tasksInProcessing = new ArrayList<>();
+    private List<? extends Tarefa> tasksInProcessing = new ArrayList<>();
 
     public boolean canHostNewTask() {
         return switch (this.status) {
@@ -74,11 +74,7 @@ public class SlaveControl {
         this.status = SlaveStatus.PREEMPTED;
     }
 
-    public List<Tarefa> getTasksInProcessing() {
-        return this.tasksInProcessing;
-    }
-
-    public void setTasksInProcessing(final List<Tarefa> tasksInProcessing) {
+    public void setTasksInProcessing(final List<? extends Tarefa> tasksInProcessing) {
         this.tasksInProcessing = tasksInProcessing;
     }
 
