@@ -94,7 +94,7 @@ public class UserControl implements Comparable<UserControl> {
         return this.taskDemand;
     }
 
-    public void gotTaskFrom(final CS_Processamento resource) {
+    public void sentTaskTo(final CS_Processamento resource) {
         this.decreaseTaskDemand();
         this.increaseAvailableMachines();
         this.increaseAvailableProcessingPower(resource.getPoderComputacional());

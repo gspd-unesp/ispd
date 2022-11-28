@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
@@ -89,60 +90,12 @@ public class EHOSEP extends GridSchedulingPolicy {
     public void escalonar() {
         Collections.sort(this.userControls);
 
-        for (final var userControl : this.userControls) {
-
-            final var optTask = this.findTaskSuitableFor(userControl);
-
-            if (optTask.isEmpty()) {
-                continue;
-            }
-
-            final var task = optTask.get();
-
-            final Optional<CS_Processamento> resourceIndex =
-                    this.findMachineBestSuitedFor(
-                            userControl,
-                            task.getTamProcessamento()
-                    );
-
-            if (resourceIndex.isEmpty()) {
-                continue;
-            }
-
-            final var resource = resourceIndex.get();
-            final var control = this.slaveControls.get(resource);
-
-            if (control.isFree()) {
-                this.sendTaskToResource(task, resource);
-                this.mestre.sendTask(task);
-
-                userControl.gotTaskFrom(resource);
-
-                control.setAsBlocked();
+        for (final var uc : this.userControls) {
+            try {
+                this.tryFindTaskAndResourceFor(uc);
                 return;
-            }
-
-            if (control.isOccupied()) {
-                this.sendTaskToResource(task, resource);
-
-                final var preemptedTask = control.firstTaskInProcessing();
-
-                this.preemptionControls.add(
-                        new PreemptionControl(preemptedTask, task)
-                );
-
-                this.esperaTarefas.add(task);
-
-                this.mestre.sendMessage(
-                        preemptedTask,
-                        resource,
-                        Mensagens.DEVOLVER_COM_PREEMPCAO
-                );
-
-                control.setAsBlocked();
-                userControl.decreaseTaskDemand();
-
-                return;
+            } catch (final NoSuchElementException | IllegalStateException ex) {
+                // Try again with next user control
             }
         }
     }
@@ -167,6 +120,73 @@ public class EHOSEP extends GridSchedulingPolicy {
         return EHOSEP.REFRESH_TIME;
     }
 
+    /**
+     * @param uc
+     * @throws NoSuchElementException
+     * @throws IllegalStateException
+     */
+    private void tryFindTaskAndResourceFor(final UserControl uc) {
+        final var task = this.findTaskSuitableFor(uc).orElseThrow();
+        final var machine = this
+                .findMachineBestSuitedFor(task, uc)
+                .orElseThrow();
+        this.tryAcceptTask(machine, task, uc);
+    }
+
+    private void tryAcceptTask(
+            final CS_Processamento machine, final Tarefa task,
+            final UserControl taskOwner) {
+        if (!this.isMachineAvailable(machine) && !this.isMachineOccupied(machine)) {
+            throw new IllegalStateException("""
+                    Machine %s can not host task %s"""
+                    .formatted(machine, task));
+        }
+
+        this.sendTaskToResource(task, machine);
+
+        if (this.isMachineAvailable(machine)) {
+            this.hostTaskNormally(machine, task, taskOwner);
+        }
+
+        if (this.isMachineOccupied(machine)) {
+            this.hostTaskWithPreemption(machine, task, taskOwner);
+        }
+
+        this.slaveControls.get(machine).setAsBlocked();
+    }
+
+    private void hostTaskNormally(
+            final CS_Processamento machine,
+            final Tarefa task, final UserControl taskOwner) {
+        this.mestre.sendTask(task);
+        taskOwner.sentTaskTo(machine);
+    }
+
+    private void hostTaskWithPreemption(
+            final CS_Processamento machine,
+            final Tarefa task, final UserControl taskOwner) {
+        final var preemptedTask = this.taskToPreemptIn(machine);
+
+        this.preemptionControls.add(new PreemptionControl(preemptedTask, task));
+
+        this.esperaTarefas.add(task);
+
+        this.mestre.sendMessage(
+                preemptedTask,
+                machine,
+                Mensagens.DEVOLVER_COM_PREEMPCAO
+        );
+
+        taskOwner.decreaseTaskDemand();
+    }
+
+    private void sendTaskToResource(
+            final Tarefa task, final CentroServico resource) {
+        task.setLocalProcessamento(resource);
+        task.setCaminho(this.escalonarRota(resource));
+        this.tarefas.remove(task);
+    }
+
     private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
         if (!uc.isEligibleForTask()) {
             return Optional.empty();
@@ -177,20 +197,13 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
     }
 
-    private void sendTaskToResource(
-            final Tarefa task, final CentroServico resource) {
-        task.setLocalProcessamento(resource);
-        task.setCaminho(this.escalonarRota(resource));
-        this.tarefas.remove(task);
-    }
-
     private Optional<CS_Processamento> findMachineBestSuitedFor(
-            final UserControl taskOwner, final double taskSize) {
+            final Tarefa task, final UserControl taskOwner) {
         // Attempts to find a machine that can host the task 'normally'
         final var availableMachine = this.escravos.stream()
                 .filter(this::isMachineAvailable)
                 .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit)
-                .max(EHOSEP.bestConsumptionForTaskSize(taskSize));
+                .max(EHOSEP.bestConsumptionForTaskSize(task));
 
         if (availableMachine.isPresent()) {
             return availableMachine;
@@ -204,6 +217,24 @@ public class EHOSEP extends GridSchedulingPolicy {
         }
 
         return this.findMachineToPreemptFor(taskOwner);
+    }
+
+    private static Comparator<CS_Processamento> bestConsumptionForTaskSize(final Tarefa task) {
+        // Extracted as a variable to aid type inference
+        final ToDoubleFunction<CS_Processamento> criterionFunction =
+                m -> EHOSEP.calculateEnergyConsumptionForTask(m, task);
+
+        return Comparator
+                .comparingDouble(criterionFunction)
+                .reversed()
+                .thenComparing(CS_Processamento::getPoderComputacional);
+    }
+
+    private static double calculateEnergyConsumptionForTask(
+            final CS_Processamento machine, final Tarefa task) {
+        return task.getTamProcessamento()
+               / machine.getPoderComputacional()
+               * machine.getConsumoEnergia();
     }
 
     private Optional<CS_Processamento> findMachineToPreemptFor(final UserControl userWithTask) {
@@ -261,23 +292,6 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     private boolean isMachineOccupied(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isOccupied();
-    }
-
-    private static Comparator<CS_Processamento> bestConsumptionForTaskSize(final double taskProcessingSize) {
-        final ToDoubleFunction<CS_Processamento> criterionFunction =
-                m -> EHOSEP.machineConsumptionForTask(m, taskProcessingSize);
-
-        return Comparator
-                .comparingDouble(criterionFunction)
-                .reversed()
-                .thenComparing(CS_Processamento::getPoderComputacional);
-    }
-
-    private static double machineConsumptionForTask(
-            final CS_Processamento machine, final double taskProcessingSize) {
-        return taskProcessingSize
-               / machine.getPoderComputacional()
-               * machine.getConsumoEnergia();
     }
 
     private boolean isMachineAvailable(final CS_Processamento machine) {
