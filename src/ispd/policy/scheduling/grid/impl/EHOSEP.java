@@ -24,6 +24,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.Stream;
 
 @Policy
 public class EHOSEP extends GridSchedulingPolicy {
@@ -107,8 +108,9 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .toList();
 
         for (final var uc : sortedUserControls) {
-            if (this.canScheduleTaskFor(uc))
+            if (this.canScheduleTaskFor(uc)) {
                 return;
+            }
         }
     }
 
@@ -263,9 +265,12 @@ public class EHOSEP extends GridSchedulingPolicy {
             return Optional.empty();
         }
 
-        return this.tarefas.stream()
-                .filter(uc::isOwnerOf)
+        return this.tasksOwnedBy(uc)
                 .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
+    }
+
+    private Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
+        return this.tarefas.stream().filter(uc::isOwnerOf);
     }
 
     private Optional<CS_Processamento> findMachineBestSuitedFor(

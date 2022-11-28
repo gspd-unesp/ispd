@@ -16,18 +16,17 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 @Policy
 public class HOSEP extends GridSchedulingPolicy {
+    private static final double REFRESH_TIME = 15.0;
     private final List<UserControl> userControls = new ArrayList<>();
     private final List<SlaveControl> slaveControls = new ArrayList<>();
-    private final List<Tarefa> esperaTarefas = new ArrayList<>();
-    private final List<PreemptionEntry> preemptionEntries =
-            new ArrayList<>();
+    private final List<Tarefa> tasksToSchedule = new ArrayList<>();
+    private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
 
     public HOSEP() {
         this.tarefas = new ArrayList<>();
@@ -75,100 +74,99 @@ public class HOSEP extends GridSchedulingPolicy {
 
     @Override
     public void escalonar() {
-        Collections.sort(this.userControls);
+        final var sortedUserControls = this.userControls.stream()
+                .sorted()
+                .toList();
 
-        for (final var userControl : this.userControls) {
-            final int taskIndex = this.buscarTarefa(userControl);
-
-            if (taskIndex != -1) {
-                final int resourceIndex = this.buscarRecurso(userControl);
-                if (resourceIndex != -1) {
-
-                    //Se não é caso de preempção, a tarefa é configurada e
-                    // enviada
-                    if (this.slaveControls.get(resourceIndex).isFree()) {
-
-                        final var task = this.tarefas.remove(taskIndex);
-                        task.setLocalProcessamento(this.escravos.get(resourceIndex));
-                        task.setCaminho(this.escalonarRota(this.escravos.get(resourceIndex)));
-                        this.mestre.sendTask(task);
-
-                        //Atualização dos dados sobre o usuário
-                        userControl.decreaseTaskDemand();
-                        userControl.increaseAvailableProcessingPower(this.escravos.get(resourceIndex).getPoderComputacional());
-
-                        //Controle das máquinas
-                        this.slaveControls.get(resourceIndex).setAsBlocked();
-                        return;
-                    }
-
-                    //Se é caso de preempção, a tarefa configurada e colocada
-                    // em espera
-                    if (this.slaveControls.get(resourceIndex).isOccupied()) {
-
-                        final var task = this.tarefas.remove(taskIndex);
-                        task.setLocalProcessamento(this.escravos.get(resourceIndex));
-                        task.setCaminho(this.escalonarRota(this.escravos.get(resourceIndex)));
-
-                        //Controle de preempção para enviar a nova tarefa no
-                        // momento certo
-                        this.preemptionEntries.add(new PreemptionEntry(
-                                this.slaveControls.get(resourceIndex).getTasksInProcessing().get(0).getProprietario(),
-                                this.slaveControls.get(resourceIndex).getTasksInProcessing().get(0).getIdentificador(),
-                                task.getProprietario(),
-                                task.getIdentificador()
-                        ));
-                        this.esperaTarefas.add(task);
-
-                        //Solicitação de retorno da tarefa em execução e
-                        // atualização da demanda do usuário
-                        this.mestre.sendMessage(this.slaveControls.get(resourceIndex).getTasksInProcessing().get(0), this.escravos.get(resourceIndex), Mensagens.DEVOLVER_COM_PREEMPCAO);
-                        this.slaveControls.get(resourceIndex).setAsBlocked();
-                        userControl.decreaseTaskDemand();
-                        return;
-                    }
-                }
+        for (final var uc : sortedUserControls) {
+            if (this.canScheduleTaskFor(uc)) {
+                return;
             }
         }
     }
 
-    /**
-     * This algorithm's resource scheduling does not conform to the standard
-     * {@link SchedulingPolicy} interface.<br>
-     * Therefore, calling this method on instances of this algorithm will
-     * result in an {@link UnsupportedOperationException} being thrown.
-     *
-     * @return not applicable in this context, an exception is thrown instead.
-     * @throws UnsupportedOperationException whenever called.
-     */
-    @Override
-    public CS_Processamento escalonarRecurso() {
-        throw new UnsupportedOperationException("""
-                Do not call method .escalonarRecurso() on instances of HOSEP.""");
+    private boolean canScheduleTaskFor(final UserControl uc) {
+        final Tarefa t = getTarefa(uc);
+        if (t == null) return false;
+
+        final int resourceIndex = this.buscarRecurso(uc);
+        if (resourceIndex == -1) {
+            return false;
+        }
+
+        final var machine = this.escravos.get(resourceIndex);
+        final var sc = this.slaveControls.get(resourceIndex);
+
+        if (sc.isFree()) {
+
+            this.tarefas.remove(t);
+            t.setLocalProcessamento(machine);
+            t.setCaminho(this.escalonarRota(machine));
+            this.mestre.sendTask(t);
+
+            //Atualização dos dados sobre o usuário
+            uc.decreaseTaskDemand();
+            uc.increaseAvailableProcessingPower(machine.getPoderComputacional());
+
+            //Controle das máquinas
+            sc.setAsBlocked();
+            return true;
+        }
+
+        //Se é caso de preempção, a tarefa configurada e colocada
+        // em espera
+        if (sc.isOccupied()) {
+
+            this.tarefas.remove(t);
+            t.setLocalProcessamento(machine);
+            t.setCaminho(this.escalonarRota(machine));
+
+            //Controle de preempção para enviar a nova tarefa no
+            // momento certo
+            this.preemptionEntries.add(new PreemptionEntry(
+                    sc.getTasksInProcessing().get(0).getProprietario(),
+                    sc.getTasksInProcessing().get(0).getIdentificador(),
+                    t.getProprietario(),
+                    t.getIdentificador()
+            ));
+            this.tasksToSchedule.add(t);
+
+            //Solicitação de retorno da tarefa em execução e
+            // atualização da demanda do usuário
+            this.mestre.sendMessage(sc.getTasksInProcessing().get(0), machine
+                    , Mensagens.DEVOLVER_COM_PREEMPCAO);
+            sc.setAsBlocked();
+            uc.decreaseTaskDemand();
+            return true;
+        }
+        return false;
     }
 
-    @Override
-    public Double getTempoAtualizar() {
-        return 15.0;
-    }
-
-    private int buscarTarefa(final UserControl usuario) {
+    private Tarefa getTarefa(UserControl uc) {
         int trf = -1;
-        //Se o usuario tem demanda nao atendida e seu consumo nao chegou ao
-        // limite
-        if (usuario.currentTaskDemand() > 0) {
-            //Procura pela menor tarefa nao atendida do usuario.
-            for (int j = 0; j < this.tarefas.size(); j++) {
-                if (this.tarefas.get(j).getProprietario().equals(usuario.getUserId())) {
-                    //Escolher a tarefa de menor tamanho do usuario
-                    if (trf == -1 || this.tarefas.get(j).getTamProcessamento() < this.tarefas.get(trf).getTamProcessamento()) {
-                        trf = j;
-                    }
+
+        if (uc.currentTaskDemand() <= 0) {
+            return null;
+        }
+
+        //Procura pela menor tarefa nao atendida do usuario.
+        for (int j = 0; j < this.tarefas.size(); j++) {
+            if (this.tarefas.get(j).getProprietario().equals(uc.getUserId())) {
+                //Escolher a tarefa de menor tamanho do usuario
+                if (trf == -1 || this.tarefas.get(j).getTamProcessamento() < this.tarefas.get(trf).getTamProcessamento()) {
+                    trf = j;
                 }
             }
         }
 
-        return trf;
+        final int taskIndex = trf;
+
+        if (taskIndex == -1) {
+            return null;
+        }
+
+        final var t = this.tarefas.get(taskIndex);
+        return t;
     }
 
     private int buscarRecurso(final UserControl cliente) {
@@ -219,6 +217,26 @@ public class HOSEP extends GridSchedulingPolicy {
             }
         }
         return indexSelec;
+    }
+
+    /**
+     * This algorithm's resource scheduling does not conform to the standard
+     * {@link SchedulingPolicy} interface.<br>
+     * Therefore, calling this method on instances of this algorithm will
+     * result in an {@link UnsupportedOperationException} being thrown.
+     *
+     * @return not applicable in this context, an exception is thrown instead.
+     * @throws UnsupportedOperationException whenever called.
+     */
+    @Override
+    public CS_Processamento escalonarRecurso() {
+        throw new UnsupportedOperationException("""
+                Do not call method .escalonarRecurso() on instances of HOSEP.""");
+    }
+
+    @Override
+    public Double getTempoAtualizar() {
+        return HOSEP.REFRESH_TIME;
     }
 
     /**
@@ -286,11 +304,11 @@ public class HOSEP extends GridSchedulingPolicy {
             }
 
             //Localizar tarefa em espera designada para executar
-            for (int i = 0; i < this.esperaTarefas.size(); i++) {
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
+            for (int i = 0; i < this.tasksToSchedule.size(); i++) {
+                if (this.tasksToSchedule.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.tasksToSchedule.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
 
                     //Enviar tarefa para execução
-                    this.mestre.sendTask(this.esperaTarefas.remove(i));
+                    this.mestre.sendTask(this.tasksToSchedule.remove(i));
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // será executada
@@ -317,7 +335,7 @@ public class HOSEP extends GridSchedulingPolicy {
         final int index = this.escravos.indexOf(mensagem.getOrigem());
 
         //Atualizar listas de espera e processamento da máquina
-        this.slaveControls.get(index).setTasksInProcessing((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
+        this.slaveControls.get(index).setTasksInProcessing(mensagem.getProcessadorEscravo());
 
         //Tanto alocação para recurso livre como a preempção levam dois
         // ciclos de atualização para que a máquina possa ser considerada
@@ -388,12 +406,12 @@ public class HOSEP extends GridSchedulingPolicy {
             }
 
             //Localizar tarefa em espera deseignada para executar
-            for (int i = 0; i < this.esperaTarefas.size(); i++) {
+            for (int i = 0; i < this.tasksToSchedule.size(); i++) {
 
-                if (this.esperaTarefas.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
+                if (this.tasksToSchedule.get(i).getProprietario().equals(this.preemptionEntries.get(indexControlePreemp).scheduledTaskUser()) && this.tasksToSchedule.get(i).getIdentificador() == this.preemptionEntries.get(indexControlePreemp).scheduledTaskId()) {
 
                     //Enviar tarefa para execução
-                    this.mestre.sendTask(this.esperaTarefas.remove(i));
+                    this.mestre.sendTask(this.tasksToSchedule.remove(i));
 
                     //Atualizar informações de estado do usuário cuja tarefa
                     // será executada

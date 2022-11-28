@@ -97,15 +97,15 @@ public class UserControl implements Comparable<UserControl> {
     }
 
     public boolean isEligibleForTask() {
-        return !(this.hasNoTaskDemand() || this.hasExceededEnergyLimit());
+        return this.hasTaskDemand() && !this.hasExceededEnergyLimit();
     }
 
     private boolean hasExceededEnergyLimit() {
         return this.currentEnergyConsumption >= this.energyConsumptionLimit;
     }
 
-    private boolean hasNoTaskDemand() {
-        return this.currentTaskDemand() == 0;
+    private boolean hasTaskDemand() {
+        return this.currentTaskDemand() != 0;
     }
 
     public int currentTaskDemand() {
