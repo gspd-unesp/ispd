@@ -347,21 +347,34 @@ public class EHOSEP extends GridSchedulingPolicy {
 
             sc.setAsFree();
         } else if (sc.isBlocked()) {
-            final var pc = this.findControlForPreemptedTask(tarefa);
-
-            this.tasksInWaiting.stream()
-                    .filter(pc::hasScheduledTask)
-                    .findFirst()
-                    .ifPresent(this::doPreemptionForScheduledTask);
+            this.processPreemptedTask(tarefa);
         }
     }
 
-    private void doPreemptionForScheduledTask(final Tarefa t) {
-        this.tasksInWaiting.remove(t);
-        this.mestre.sendTask(t);
+    private void processPreemptedTask(final Tarefa task) {
+        final var pc = this.findControlForPreemptedTask(task);
 
-        final var maq = (CS_Processamento) t.getLocalProcessamento();
-        final var pc = this.findControlForPreemptedTask(t);
+        this.tasksInWaiting.stream()
+                .filter(pc::hasScheduledTask)
+                .findFirst()
+                .ifPresent(t -> this
+                        .insertScheduledIntoPreemptedTask(t, task));
+    }
+
+    private PreemptionControl findControlForPreemptedTask(final Tarefa t) {
+        return this.preemptionControls.stream()
+                .filter(pc -> pc.hasPreemptedTask(t))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private void insertScheduledIntoPreemptedTask(
+            final Tarefa scheduled, final Tarefa preempted) {
+        this.tasksInWaiting.remove(scheduled);
+        this.mestre.sendTask(scheduled);
+
+        final var maq = (CS_Processamento) preempted.getLocalProcessamento();
+        final var pc = this.findControlForPreemptedTask(preempted);
 
         this.userControls
                 .get(pc.scheduledTaskUser())
@@ -372,17 +385,6 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .stopTaskFrom(maq);
 
         this.preemptionControls.remove(pc);
-    }
-
-    private PreemptionControl findControlForPreemptedTask(final Tarefa t) {
-        return this.preemptionControls.stream()
-                .filter(EHOSEP.controlHasPreemptedTask(t))
-                .findFirst()
-                .orElseThrow();
-    }
-
-    private static Predicate<PreemptionControl> controlHasPreemptedTask(final Tarefa task) {
-        return preemptionControl -> preemptionControl.hasPreemptedTask(task);
     }
 
     @Override
@@ -426,32 +428,12 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .get(tarefa.getProprietario())
                 .increaseTaskDemand();
 
-        //Em caso de preempção
-        if (tarefa.getLocalProcessamento() != null) {
+        final var mac = (CS_Processamento) tarefa.getLocalProcessamento();
 
-            //Localizar informações de estado de máquina que executou a
-            // tarefa (se houver)
-            final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
-
-            //Localizar informações armazenadas sobre a preempção em particular
-
-            final PreemptionControl pc =
-                    this.findControlForPreemptedTask(tarefa);
-
-            //Localizar tarefa em espera deseignada para executar
-            for (int i = 0; i < this.tasksInWaiting.size(); i++) {
-
-                if (pc.hasScheduledTask(this.tasksInWaiting.get(i))) {
-                    this.mestre.sendTask(this.tasksInWaiting.remove(i));
-
-                    this.userControls.get(pc.scheduledTaskUser()).startTaskFrom(maq);
-                    this.userControls.get(pc.preemptedTaskUser()).stopTaskFrom(maq);
-
-                    this.preemptionControls.remove(pc);
-
-                    break;
-                }
-            }
+        if (mac == null) {
+            return;
         }
+
+        this.processPreemptedTask(tarefa);
     }
 }
