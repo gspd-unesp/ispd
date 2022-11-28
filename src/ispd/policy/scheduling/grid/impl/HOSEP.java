@@ -184,10 +184,6 @@ public class HOSEP extends GridSchedulingPolicy {
         t.setCaminho(this.escalonarRota(machine));
     }
 
-    private boolean isMachineOccupied(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isOccupied();
-    }
-
     private boolean canMachineHostNewTask(final CS_Processamento machine) {
         return this.slaveControls.get(machine).canHostNewTask();
     }
@@ -207,69 +203,45 @@ public class HOSEP extends GridSchedulingPolicy {
     }
 
     private Optional<CS_Processamento> findMachineBestSuitedFor(final UserControl uc) {
-        final int resourceIndex = this.buscarRecurso(uc);
-        if (resourceIndex == -1) {
+
+        final var x = this.escravos.stream()
+                .filter(this::isMachineAvailable)
+                .max(Comparator.comparingDouble(CS_Processamento::getPoderComputacional));
+
+        if (x.isPresent())
+            return x;
+
+        if (!this.lastUc().hasExcessProcessingPower() || uc.hasExcessProcessingPower()) {
             return Optional.empty();
         }
 
-        return Optional.of(this.escravos.get(resourceIndex));
+        return this.escravos.stream()
+                .filter(this::isMachineOccupied)
+                .filter(this::someFilter)
+                .min(Comparator.comparingDouble(CS_Processamento::getPoderComputacional))
+                .filter(m -> this.theTest(m, uc));
     }
 
-    private int buscarRecurso(final UserControl uc) {
-        //Índice da máquina escolhida, na lista de máquinas
-        int indexSelec = -1;
+    private boolean isMachineOccupied(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isOccupied();
+    }
 
-        for (int i = 0; i < this.escravos.size(); i++) {
-            final var s = this.escravos.get(i);
+    private boolean someFilter(CS_Processamento s) {
+        return this.slaveControls.get(s).firstTaskInProcessing().getProprietario().equals(this.lastUc().getUserId());
+    }
 
-            if (this.isMachineAvailable(s)) {
-                if (indexSelec == -1 || this.escravos.get(i).getPoderComputacional() > this.escravos.get(indexSelec).getPoderComputacional()) {
-                    indexSelec = i;
-                }
-            }
-        }
-
-        if (indexSelec != -1) {
-            return indexSelec;
-        }
-
-        if (!this.lastUc().hasExcessProcessingPower() || uc.hasExcessProcessingPower()) {
-            return indexSelec;
-        }
-
-        for (int i = 0; i < this.escravos.size(); i++) {
-            final var s = this.escravos.get(i);
-            final var sc = this.slaveControls.get(s);
-
-            if (!sc.isOccupied()) {
-                continue;
-            }
-
-            if (!sc.firstTaskInProcessing().getProprietario().equals(this.lastUc().getUserId())) {
-                continue;
-            }
-
-            if (indexSelec == -1 ||
-                s.getPoderComputacional() < this.escravos.get(indexSelec).getPoderComputacional()) {
-                indexSelec = i;
-            }
-        }
-
-        if (indexSelec == -1) {
-            return -1;
-        }
-
+    private boolean theTest(CS_Processamento selected, UserControl uc) {
+        final boolean shouldKeep;
         final double penalidaUserEsperaPosterior =
-                (uc.currentlyAvailableProcessingPower() + this.escravos.get(indexSelec).getPoderComputacional() - uc.getOwnedMachinesProcessingPower()) / uc.getOwnedMachinesProcessingPower();
+                (uc.currentlyAvailableProcessingPower() + selected.getPoderComputacional() - uc.getOwnedMachinesProcessingPower()) / uc.getOwnedMachinesProcessingPower();
         final double penalidaUserEscravoPosterior =
-                (this.lastUc().currentlyAvailableProcessingPower() - this.escravos.get(indexSelec).getPoderComputacional() - this.lastUc().getOwnedMachinesProcessingPower()) / this.lastUc().getOwnedMachinesProcessingPower();
-
+                (this.lastUc().currentlyAvailableProcessingPower() - selected.getPoderComputacional() - this.lastUc().getOwnedMachinesProcessingPower()) / this.lastUc().getOwnedMachinesProcessingPower();
         if (penalidaUserEscravoPosterior >= penalidaUserEsperaPosterior || penalidaUserEscravoPosterior > 0) {
-            return indexSelec;
+            shouldKeep = true;
         } else {
-            return -1;
+            shouldKeep = false;
         }
-
+        return shouldKeep;
     }
 
     private boolean isMachineAvailable(final CS_Processamento machine) {
