@@ -3,10 +3,25 @@ package ispd.policy.scheduling.grid.impl.util;
 import ispd.motor.filas.Tarefa;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SlaveControl {
     private SlaveStatus status = SlaveStatus.FREE;
-    private ArrayList<Tarefa> tasksInProcessing = new ArrayList<>();
+    private List<Tarefa> tasksInProcessing = new ArrayList<>();
+
+    public void updateStatusIfNeeded() {
+        this.status = switch (this.status) {
+            case BLOCKED -> SlaveStatus.UNCERTAIN;
+            case UNCERTAIN -> this.statusForProcessingQueue();
+            default -> this.status;
+        };
+    }
+
+    private SlaveStatus statusForProcessingQueue() {
+        return this.tasksInProcessing.isEmpty()
+                ? SlaveStatus.FREE
+                : SlaveStatus.OCCUPIED;
+    }
 
     public Tarefa firstTaskInProcessing() {
         return this.tasksInProcessing.get(0);
@@ -52,11 +67,11 @@ public class SlaveControl {
         this.status = SlaveStatus.PREEMPTED;
     }
 
-    public ArrayList<Tarefa> getTasksInProcessing() {
+    public List<Tarefa> getTasksInProcessing() {
         return this.tasksInProcessing;
     }
 
-    public void setTasksInProcessing(final ArrayList<Tarefa> tasksInProcessing) {
+    public void setTasksInProcessing(final List<Tarefa> tasksInProcessing) {
         this.tasksInProcessing = tasksInProcessing;
     }
 

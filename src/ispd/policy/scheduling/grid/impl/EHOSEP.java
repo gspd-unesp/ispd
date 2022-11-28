@@ -389,34 +389,11 @@ public class EHOSEP extends GridSchedulingPolicy {
 
     @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
-        //Localizar máquina que enviou estado atualizado
+        final var sc = this.slaveControls
+                .get((CS_Processamento) mensagem.getOrigem());
 
-        //Atualizar listas de espera e processamento da máquina
-        final var sc =
-                this.slaveControls.get((CS_Processamento) mensagem.getOrigem());
-
-        sc.setTasksInProcessing((ArrayList<Tarefa>) mensagem.getProcessadorEscravo());
-
-        //Tanto alocação para recurso livre como a preempção levam dois
-        // ciclos de atualização para que a máquina possa ser considerada
-        // para esacalonamento novamente
-
-        //Primeiro ciclo
-        if (sc.isBlocked()) {
-            sc.setAsUncertain();
-            //Segundo ciclo
-        } else if (sc.isUncertain()) {
-            //Se não está executando nada
-            if (sc.getTasksInProcessing().isEmpty()) {
-
-                sc.setAsFree();
-                //Se está executando uma tarefa
-            } else if (sc.getTasksInProcessing().size() == 1) {
-
-                sc.setAsOccupied();
-                //Se há mais de uma tarefa e a máquina tem mais de um núcleo
-            }
-        }
+        sc.setTasksInProcessing(mensagem.getProcessadorEscravo());
+        sc.updateStatusIfNeeded();
     }
 
     @Override
@@ -427,12 +404,12 @@ public class EHOSEP extends GridSchedulingPolicy {
                 .get(tarefa.getProprietario())
                 .increaseTaskDemand();
 
-        final var mac = (CS_Processamento) tarefa.getLocalProcessamento();
+        Optional.of(tarefa)
+                .filter(EHOSEP::hasProcessingCenter)
+                .ifPresent(this::processPreemptedTask);
+    }
 
-        if (mac == null) {
-            return;
-        }
-
-        this.processPreemptedTask(tarefa);
+    private static boolean hasProcessingCenter(final Tarefa t) {
+        return t.getLocalProcessamento() != null;
     }
 }
