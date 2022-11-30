@@ -1,7 +1,6 @@
 package ispd.policy.scheduling.grid.impl;
 
 import ispd.annotations.Policy;
-import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
@@ -16,26 +15,6 @@ public class HOSEP extends AbstractHOSEP {
         this.tarefas = new ArrayList<>();
         this.escravos = new ArrayList<>();
         this.filaEscravo = new ArrayList<>();
-    }
-
-    @Override
-    protected Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
-            final Tarefa task, final UserControl taskOwner) {
-        return this.availableMachinesFor(taskOwner)
-                .max(HOSEP.bestAvailableMachines(task));
-    }
-
-    private static Comparator<CS_Processamento> bestAvailableMachines(final Tarefa task) {
-        return HOSEP.bestComputationalPower();
-    }
-
-    private static Comparator<CS_Processamento> bestComputationalPower() {
-        return Comparator.comparingDouble(CS_Processamento::getPoderComputacional);
-    }
-
-    private Stream<CS_Processamento> availableMachinesFor(final UserControl taskOwner) {
-        return this.escravos.stream()
-                .filter(this::isMachineAvailable);
     }
 
     @Override
@@ -60,7 +39,7 @@ public class HOSEP extends AbstractHOSEP {
     private Optional<CS_Processamento> findMachineToTransferBetween(
             final UserControl userToPreempt, final UserControl taskOwner) {
         return this.machinesOccupiedBy(userToPreempt)
-                .min(HOSEP.bestComputationalPower())
+                .min(this.bestAvailableMachinesFor(null))
                 .filter(machine -> this.shouldTransferMachine(
                         machine, userToPreempt, taskOwner));
     }

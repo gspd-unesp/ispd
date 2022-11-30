@@ -268,20 +268,12 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         task.setCaminho(this.escalonarRota(resource));
     }
 
-    protected boolean isMachineAvailable(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isFree();
-    }
-
     protected boolean isMachineOccupied(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isOccupied();
     }
 
     private boolean canMachineHostNewTask(final CS_Processamento machine) {
         return this.slaveControls.get(machine).canHostNewTask();
-    }
-
-    protected boolean isUserEligibleForTask(final UserControl uc) {
-        return uc.hasTaskDemand();
     }
 
     protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
@@ -291,6 +283,10 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
 
         return this.tasksOwnedBy(uc)
                 .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
+    }
+
+    protected boolean isUserEligibleForTask(final UserControl uc) {
+        return uc.hasTaskDemand();
     }
 
     protected Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
@@ -303,6 +299,30 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
                 .findAvailableMachineBestSuitedFor(task, taskOwner)
                 .or(() -> this.findOccupiedMachineBestSuitedFor(taskOwner));
     }
+
+    protected Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
+            final Tarefa task, final UserControl taskOwner) {
+        return this.availableMachinesFor(taskOwner)
+                .max(this.bestAvailableMachinesFor(task));
+    }
+
+    protected Comparator<CS_Processamento> bestAvailableMachinesFor(final Tarefa task) {
+        return AbstractHOSEP.bestComputationalPower();
+    }
+
+    protected static Comparator<CS_Processamento> bestComputationalPower() {
+        return Comparator.comparingDouble(CS_Processamento::getPoderComputacional);
+    }
+
+    protected Stream<CS_Processamento> availableMachinesFor(final UserControl taskOwner) {
+        return this.escravos.stream().filter(this::isMachineAvailable);
+    }
+
+    protected boolean isMachineAvailable(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isFree();
+    }
+
+    protected abstract Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(UserControl taskOwner);
 
     /**
      * This algorithm's task scheduling does not conform to the standard
@@ -396,9 +416,4 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
     private static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
     }
-
-    protected abstract Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
-            Tarefa task, UserControl taskOwner);
-
-    protected abstract Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(UserControl taskOwner);
 }

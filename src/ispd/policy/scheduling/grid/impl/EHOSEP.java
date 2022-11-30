@@ -43,10 +43,11 @@ public class EHOSEP extends AbstractHOSEP {
     protected Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this.availableMachinesFor(taskOwner)
-                .max(EHOSEP.bestAvailableMachines(task));
+                .max(this.bestAvailableMachinesFor(task));
     }
 
-    private static Comparator<CS_Processamento> bestAvailableMachines(final Tarefa task) {
+    @Override
+    protected Comparator<CS_Processamento> bestAvailableMachinesFor(final Tarefa task) {
         // Extracted as a variable to aid type inference
         final ToDoubleFunction<CS_Processamento> energyConsumption =
                 m -> EHOSEP.calculateEnergyConsumptionForTask(m, task);
@@ -54,11 +55,7 @@ public class EHOSEP extends AbstractHOSEP {
         return Comparator
                 .comparingDouble(energyConsumption)
                 .reversed()
-                .thenComparing(EHOSEP.bestComputationalPower());
-    }
-
-    private static Comparator<CS_Processamento> bestComputationalPower() {
-        return Comparator.comparingDouble(CS_Processamento::getPoderComputacional);
+                .thenComparing(super.bestAvailableMachinesFor(task));
     }
 
     private static double calculateEnergyConsumptionForTask(
@@ -68,9 +65,8 @@ public class EHOSEP extends AbstractHOSEP {
                * machine.getConsumoEnergia();
     }
 
-    private Stream<CS_Processamento> availableMachinesFor(final UserControl taskOwner) {
-        return this.escravos.stream()
-                .filter(this::isMachineAvailable)
+    protected Stream<CS_Processamento> availableMachinesFor(final UserControl taskOwner) {
+        return super.availableMachinesFor(taskOwner)
                 .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit);
     }
 
