@@ -257,8 +257,11 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.slaveControls.get(machine).firstTaskInProcessing();
     }
 
-    protected abstract void sendTaskToResource(
-            Tarefa task, CentroServico resource);
+    protected void sendTaskToResource(
+            final Tarefa task, final CentroServico resource) {
+        task.setLocalProcessamento(resource);
+        task.setCaminho(this.escalonarRota(resource));
+    }
 
     protected abstract Optional<Tarefa> findTaskSuitableFor(UserControl uc);
 

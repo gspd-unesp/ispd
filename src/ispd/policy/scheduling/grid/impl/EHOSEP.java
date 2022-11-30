@@ -3,7 +3,6 @@ package ispd.policy.scheduling.grid.impl;
 import ispd.annotations.Policy;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
@@ -49,13 +48,6 @@ public class EHOSEP extends AbstractHOSEP {
         }
 
         this.slaveControls.get(machine).setAsBlocked();
-    }
-
-    @Override
-    protected void sendTaskToResource(
-            final Tarefa task, final CentroServico resource) {
-        task.setLocalProcessamento(resource);
-        task.setCaminho(this.escalonarRota(resource));
     }
 
     @Override
