@@ -114,7 +114,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return AbstractHOSEP.REFRESH_TIME;
     }
 
-    protected List<UserControl> sortedUserControls() {
+    private List<UserControl> sortedUserControls() {
         return this.userControls.values().stream()
                 .sorted()
                 .toList();
@@ -133,7 +133,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
      * successfully, and the task was sent to be executed in the resource
      * successfully; {@code false} otherwise
      */
-    protected boolean canScheduleTaskFor(final UserControl uc) {
+    private boolean canScheduleTaskFor(final UserControl uc) {
         try {
             this.tryFindTaskAndResourceFor(uc);
             return true;
@@ -162,7 +162,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
      * @throws IllegalStateException  if hosting the selected task in the
      *                                selected resource fails
      */
-    protected void tryFindTaskAndResourceFor(final UserControl uc) {
+    private void tryFindTaskAndResourceFor(final UserControl uc) {
         final var task = this
                 .findTaskSuitableFor(uc)
                 .orElseThrow();
@@ -195,7 +195,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
      *                               hosting a new task
      * @see #canMachineHostNewTask(CS_Processamento) Machine Status Validation
      */
-    protected void tryHostTaskFromUserInMachine(
+    private void tryHostTaskFromUserInMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         if (!this.canMachineHostNewTask(machine)) {
@@ -207,7 +207,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         this.hostTaskFromUserInMachine(task, taskOwner, machine);
     }
 
-    protected void hostTaskFromUserInMachine(
+    private void hostTaskFromUserInMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         this.sendTaskToResource(task, machine);
@@ -222,18 +222,21 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         this.slaveControls.get(machine).setAsBlocked();
     }
 
-    protected boolean canMachineHostNewTask(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).canHostNewTask();
-    }
-
-    protected void hostTaskNormally(
+    private void hostTaskNormally(
             final Tarefa task, final UserControl uc,
             final CS_Processamento machine) {
         this.sendTaskFromUserToMachine(task, uc, machine);
         uc.decreaseTaskDemand();
     }
 
-    protected void hostTaskWithPreemption(
+    private void sendTaskFromUserToMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        this.mestre.sendTask(task);
+        taskOwner.startTaskFrom(machine);
+    }
+
+    private void hostTaskWithPreemption(
             final Tarefa taskToSchedule, final UserControl taskOwner,
             final CS_Processamento machine) {
         final var taskToPreempt = this.taskToPreemptIn(machine);
@@ -257,10 +260,22 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.slaveControls.get(machine).firstTaskInProcessing();
     }
 
-    protected void sendTaskToResource(
+    private void sendTaskToResource(
             final Tarefa task, final CentroServico resource) {
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
+    }
+
+    protected boolean isMachineAvailable(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isFree();
+    }
+
+    protected boolean isMachineOccupied(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isOccupied();
+    }
+
+    private boolean canMachineHostNewTask(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).canHostNewTask();
     }
 
     protected abstract Optional<Tarefa> findTaskSuitableFor(UserControl uc);
@@ -301,7 +316,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         }
     }
 
-    protected void processPreemptedTask(final Tarefa task) {
+    private void processPreemptedTask(final Tarefa task) {
         final var pe = this.findEntryForPreemptedTask(task);
 
         this.tasksToSchedule.stream()
@@ -335,13 +350,6 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         this.preemptionEntries.remove(pe);
     }
 
-    protected void sendTaskFromUserToMachine(
-            final Tarefa task, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        this.mestre.sendTask(task);
-        taskOwner.startTaskFrom(machine);
-    }
-
     @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
         final var sc = this.slaveControls
@@ -366,13 +374,5 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
 
     private static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
-    }
-
-    protected boolean isMachineAvailable(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isFree();
-    }
-
-    protected boolean isMachineOccupied(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isOccupied();
     }
 }

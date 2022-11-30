@@ -35,22 +35,6 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
     @Override
-    protected void hostTaskFromUserInMachine(
-            final Tarefa task, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        this.sendTaskToResource(task, machine);
-        this.tarefas.remove(task);
-
-        if (this.isMachineAvailable(machine)) {
-            this.hostTaskNormally(task, taskOwner, machine);
-        } else if (this.isMachineOccupied(machine)) {
-            this.hostTaskWithPreemption(task, taskOwner, machine);
-        }
-
-        this.slaveControls.get(machine).setAsBlocked();
-    }
-
-    @Override
     protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
         if (!EHOSEP.isUserEligibleForTask(uc)) {
             return Optional.empty();
