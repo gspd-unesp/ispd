@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -32,8 +33,9 @@ public class EHOSEP extends GridSchedulingPolicy {
     private final Map<String, UserControl> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
-    private final List<Tarefa> tasksToSchedule = new ArrayList<>();
-    private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
+    private final Collection<Tarefa> tasksToSchedule = new HashSet<>();
+    private final Collection<PreemptionEntry> preemptionEntries =
+            new HashSet<>();
 
     public EHOSEP() {
         this.tarefas = new ArrayList<>();

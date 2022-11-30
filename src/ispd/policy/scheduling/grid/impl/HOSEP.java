@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -31,8 +32,9 @@ public class HOSEP extends GridSchedulingPolicy {
     private final Map<String, UserControl> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
-    private final List<Tarefa> tasksToSchedule = new ArrayList<>();
-    private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
+    private final Collection<Tarefa> tasksToSchedule = new HashSet<>();
+    private final Collection<PreemptionEntry> preemptionEntries =
+            new HashSet<>();
 
     public HOSEP() {
         this.tarefas = new ArrayList<>();
@@ -301,8 +303,10 @@ public class HOSEP extends GridSchedulingPolicy {
         final var sc = this.slaveControls.get(maq);
 
         if (sc.isOccupied()) {
-            this.userControls.get(tarefa.getProprietario())
+            this.userControls
+                    .get(tarefa.getProprietario())
                     .decreaseAvailableProcessingPower(maq.getPoderComputacional());
+
             sc.setAsFree();
         } else if (sc.isBlocked()) {
             this.processPreemptedTask(tarefa);
@@ -342,10 +346,10 @@ public class HOSEP extends GridSchedulingPolicy {
                 .filter(pe::willScheduleTask)
                 .findFirst()
                 .ifPresent(t -> this
-                        .inserTaskIntoPreemptedTaskSlot(t, task));
+                        .insertTaskIntoPreemptedTaskSlot(t, task));
     }
 
-    private void inserTaskIntoPreemptedTaskSlot(
+    private void insertTaskIntoPreemptedTaskSlot(
             final Tarefa scheduled, final Tarefa preempted) {
         this.tasksToSchedule.remove(scheduled);
 
@@ -362,9 +366,9 @@ public class HOSEP extends GridSchedulingPolicy {
         this.preemptionEntries.remove(pe);
     }
 
-    private PreemptionEntry findEntryForPreemptedTask(final Tarefa preempted) {
+    private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
         return this.preemptionEntries.stream()
-                .filter(pe1 -> pe1.willPreemptTask(preempted))
+                .filter(pe -> pe.willPreemptTask(t))
                 .findFirst()
                 .orElseThrow();
     }
