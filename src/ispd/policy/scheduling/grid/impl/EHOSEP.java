@@ -55,15 +55,6 @@ public class EHOSEP extends AbstractHOSEP {
 
 
     @Override
-    protected void hostTaskNormally(
-            final Tarefa task, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        this.sendTaskFromUserToMachine(task, taskOwner, machine);
-        taskOwner.decreaseTaskDemand();
-    }
-
-
-    @Override
     protected void hostTaskWithPreemption(
             final Tarefa taskToSchedule, final UserControl taskOwner,
             final CS_Processamento machine) {

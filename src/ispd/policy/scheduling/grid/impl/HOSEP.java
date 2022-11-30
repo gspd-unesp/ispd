@@ -21,14 +21,6 @@ public class HOSEP extends AbstractHOSEP {
         this.filaEscravo = new ArrayList<>();
     }
 
-    @Override
-    protected void hostTaskNormally(
-            final Tarefa task, final UserControl uc,
-            final CS_Processamento machine) {
-        this.sendTaskFromUserToMachine(task, uc, machine);
-        uc.decreaseTaskDemand();
-    }
-
 
     @Override
     protected void hostTaskWithPreemption(

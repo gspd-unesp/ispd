@@ -225,9 +225,12 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.slaveControls.get(machine).canHostNewTask();
     }
 
-    protected abstract void hostTaskNormally(
-            Tarefa task, UserControl uc,
-            CS_Processamento machine);
+    protected void hostTaskNormally(
+            final Tarefa task, final UserControl uc,
+            final CS_Processamento machine) {
+        this.sendTaskFromUserToMachine(task, uc, machine);
+        uc.decreaseTaskDemand();
+    }
 
     protected abstract void hostTaskWithPreemption(
             Tarefa taskToSchedule, UserControl taskOwner,
@@ -337,7 +340,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
                 .ifPresent(this::processPreemptedTask);
     }
 
-    protected static boolean hasProcessingCenter(final Tarefa t) {
+    private static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
     }
 
