@@ -118,6 +118,8 @@ public class UserControl implements Comparable<UserControl> {
     public void startTaskFrom(final CS_Processamento resource) {
         this.increaseAvailableMachines();
         this.increaseAvailableProcessingPower(resource.getPoderComputacional());
+
+        // TODO: Should not do this in HOSEP
         this.increaseEnergyConsumption(resource.getConsumoEnergia());
     }
 

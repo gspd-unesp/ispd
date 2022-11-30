@@ -42,48 +42,6 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
     @Override
-    protected void processPreemptedTask(final Tarefa task) {
-        final var pe = this.findEntryForPreemptedTask(task);
-
-        this.tasksToSchedule.stream()
-                .filter(pe::willScheduleTask)
-                .findFirst()
-                .ifPresent(sched -> this
-                        .insertTaskIntoPreemptedTaskSlot(sched, task));
-    }
-
-    private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
-        return this.preemptionEntries.stream()
-                .filter(pe -> pe.willPreemptTask(t))
-                .findFirst()
-                .orElseThrow();
-    }
-
-    private void insertTaskIntoPreemptedTaskSlot(
-            final Tarefa scheduled, final Tarefa preempted) {
-        this.tasksToSchedule.remove(scheduled);
-
-        final var mach = preempted.getCSLProcessamento();
-        final var pe = this.findEntryForPreemptedTask(preempted);
-
-        final var user = this.userControls.get(pe.scheduledTaskUser());
-        this.sendTaskFromUserToMachine(scheduled, user, mach);
-
-        this.userControls
-                .get(pe.preemptedTaskUser())
-                .stopTaskFrom(mach);
-
-        this.preemptionEntries.remove(pe);
-    }
-
-    private void sendTaskFromUserToMachine(
-            final Tarefa task, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        this.mestre.sendTask(task);
-        taskOwner.startTaskFrom(machine);
-    }
-
-    @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
         final var sc = this.slaveControls
                 .get((CS_Processamento) mensagem.getOrigem());

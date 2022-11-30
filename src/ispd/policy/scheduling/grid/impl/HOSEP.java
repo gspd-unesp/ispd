@@ -50,48 +50,6 @@ public class HOSEP extends AbstractHOSEP {
         return tarefa.getLocalProcessamento() != null;
     }
 
-    protected void processPreemptedTask(final Tarefa task) {
-        final var pe = this.findEntryForPreemptedTask(task);
-
-        this.tasksToSchedule.stream()
-                .filter(pe::willScheduleTask)
-                .findFirst()
-                .ifPresent(t -> this
-                        .insertTaskIntoPreemptedTaskSlot(t, task));
-    }
-
-    private void insertTaskIntoPreemptedTaskSlot(
-            final Tarefa scheduled, final Tarefa preempted) {
-        this.tasksToSchedule.remove(scheduled);
-
-        final var mach = preempted.getCSLProcessamento();
-        final var pe = this.findEntryForPreemptedTask(preempted);
-
-
-        this.senTaskFromUserToMachine(scheduled,
-                this.userControls.get(pe.scheduledTaskUser()), mach);
-
-        this.userControls.get(pe.preemptedTaskUser())
-                .decreaseAvailableProcessingPower(mach.getPoderComputacional());
-
-        this.preemptionEntries.remove(pe);
-    }
-
-    private void senTaskFromUserToMachine(
-            final Tarefa task, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        this.mestre.sendTask(task);
-        // TODO: Inherit behavior
-        taskOwner.increaseAvailableProcessingPower(machine.getPoderComputacional());
-    }
-
-    private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
-        return this.preemptionEntries.stream()
-                .filter(pe -> pe.willPreemptTask(t))
-                .findFirst()
-                .orElseThrow();
-    }
-
     @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
         final int index = this.escravos.indexOf(destino);
@@ -169,7 +127,7 @@ public class HOSEP extends AbstractHOSEP {
     private void hostTaskNormally(
             final Tarefa task, final UserControl uc,
             final CS_Processamento machine) {
-        this.senTaskFromUserToMachine(task, uc, machine);
+        this.sendTaskFromUserToMachine(task, uc, machine);
         uc.decreaseTaskDemand();
     }
 

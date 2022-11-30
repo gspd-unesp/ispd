@@ -109,5 +109,44 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         }
     }
 
-    protected abstract void processPreemptedTask(Tarefa task);
+    protected void processPreemptedTask(final Tarefa task) {
+        final var pe = this.findEntryForPreemptedTask(task);
+
+        this.tasksToSchedule.stream()
+                .filter(pe::willScheduleTask)
+                .findFirst()
+                .ifPresent(t -> this
+                        .insertTaskIntoPreemptedTaskSlot(t, task));
+    }
+
+    private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
+        return this.preemptionEntries.stream()
+                .filter(pe -> pe.willPreemptTask(t))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private void insertTaskIntoPreemptedTaskSlot(
+            final Tarefa scheduled, final Tarefa preempted) {
+        this.tasksToSchedule.remove(scheduled);
+
+        final var mach = preempted.getCSLProcessamento();
+        final var pe = this.findEntryForPreemptedTask(preempted);
+
+        final var user = this.userControls.get(pe.scheduledTaskUser());
+        this.sendTaskFromUserToMachine(scheduled, user, mach);
+
+        this.userControls
+                .get(pe.preemptedTaskUser())
+                .stopTaskFrom(mach);
+
+        this.preemptionEntries.remove(pe);
+    }
+
+    protected void sendTaskFromUserToMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        this.mestre.sendTask(task);
+        taskOwner.startTaskFrom(machine);
+    }
 }
