@@ -9,7 +9,6 @@ import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.SchedulingPolicy;
 import ispd.policy.scheduling.grid.GridMaster;
-import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
@@ -27,7 +26,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Policy
-public class HOSEP extends GridSchedulingPolicy {
+public class HOSEP extends AbstractHOSEP {
     private static final double REFRESH_TIME = 15.0;
     private final Map<String, UserControl> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
