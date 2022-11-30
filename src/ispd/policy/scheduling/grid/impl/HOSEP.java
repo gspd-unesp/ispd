@@ -24,23 +24,6 @@ public class HOSEP extends AbstractHOSEP {
     }
 
     @Override
-    public void adicionarTarefa(final Tarefa tarefa) {
-        super.adicionarTarefa(tarefa);
-
-        this.userControls
-                .get(tarefa.getProprietario())
-                .increaseTaskDemand();
-
-        Optional.of(tarefa)
-                .filter(HOSEP::hasProcessingCenter)
-                .ifPresent(this::processPreemptedTask);
-    }
-
-    private static boolean hasProcessingCenter(final Tarefa tarefa) {
-        return tarefa.getLocalProcessamento() != null;
-    }
-
-    @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
         final int index = this.escravos.indexOf(destino);
         return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public abstract class AbstractHOSEP extends GridSchedulingPolicy {
@@ -158,5 +159,22 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
 
         sc.setTasksInProcessing(mensagem.getProcessadorEscravo());
         sc.updateStatusIfNeeded();
+    }
+
+    @Override
+    public void adicionarTarefa(final Tarefa tarefa) {
+        super.adicionarTarefa(tarefa);
+
+        this.userControls
+                .get(tarefa.getProprietario())
+                .increaseTaskDemand();
+
+        Optional.of(tarefa)
+                .filter(AbstractHOSEP::hasProcessingCenter)
+                .ifPresent(this::processPreemptedTask);
+    }
+
+    protected static boolean hasProcessingCenter(final Tarefa t) {
+        return t.getLocalProcessamento() != null;
     }
 }
