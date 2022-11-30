@@ -206,13 +206,35 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         this.hostTaskFromUserInMachine(task, taskOwner, machine);
     }
 
-    protected abstract void hostTaskFromUserInMachine(
-            Tarefa task, UserControl taskOwner,
-            CS_Processamento machine);
+    protected void hostTaskFromUserInMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        this.sendTaskToResource(task, machine);
+        this.tarefas.remove(task);
+
+        if (this.isMachineAvailable(machine)) {
+            this.hostTaskNormally(task, taskOwner, machine);
+        } else if (this.isMachineOccupied(machine)) {
+            this.hostTaskWithPreemption(task, taskOwner, machine);
+        }
+
+        this.slaveControls.get(machine).setAsBlocked();
+    }
 
     protected boolean canMachineHostNewTask(final CS_Processamento machine) {
         return this.slaveControls.get(machine).canHostNewTask();
     }
+
+    protected abstract void hostTaskNormally(
+            Tarefa task, UserControl uc,
+            CS_Processamento machine);
+
+    protected abstract void hostTaskWithPreemption(
+            Tarefa taskToSchedule, UserControl taskOwner,
+            CS_Processamento machine);
+
+    protected abstract void sendTaskToResource(
+            Tarefa task, CentroServico resource);
 
     protected abstract Optional<Tarefa> findTaskSuitableFor(UserControl uc);
 
@@ -317,5 +339,13 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
 
     protected static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
+    }
+
+    protected boolean isMachineAvailable(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isFree();
+    }
+
+    protected boolean isMachineOccupied(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isOccupied();
     }
 }

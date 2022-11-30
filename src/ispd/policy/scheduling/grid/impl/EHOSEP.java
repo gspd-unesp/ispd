@@ -54,7 +54,8 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
 
-    private void hostTaskNormally(
+    @Override
+    protected void hostTaskNormally(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         this.sendTaskFromUserToMachine(task, taskOwner, machine);
@@ -62,7 +63,8 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
 
-    private void hostTaskWithPreemption(
+    @Override
+    protected void hostTaskWithPreemption(
             final Tarefa taskToSchedule, final UserControl taskOwner,
             final CS_Processamento machine) {
         final var taskToPreempt = this.taskToPreemptIn(machine);
@@ -86,18 +88,11 @@ public class EHOSEP extends AbstractHOSEP {
         return this.slaveControls.get(machine).firstTaskInProcessing();
     }
 
-    private void sendTaskToResource(
+    @Override
+    protected void sendTaskToResource(
             final Tarefa task, final CentroServico resource) {
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
-    }
-
-    private boolean isMachineAvailable(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isFree();
-    }
-
-    private boolean isMachineOccupied(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isOccupied();
     }
 
     @Override
