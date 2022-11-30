@@ -19,14 +19,7 @@ public class HOSEP extends AbstractHOSEP {
     }
 
     @Override
-    protected Optional<CS_Processamento> findMachineBestSuitedFor(
-            final Tarefa task, final UserControl taskOwner) {
-        return this
-                .findAvailableMachineBestSuitedFor(task, taskOwner)
-                .or(() -> this.findOccupiedMachineBestSuitedFor(taskOwner));
-    }
-
-    private Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
+    protected Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this.availableMachinesFor(taskOwner)
                 .max(HOSEP.bestAvailableMachines(task));
@@ -45,7 +38,8 @@ public class HOSEP extends AbstractHOSEP {
                 .filter(this::isMachineAvailable);
     }
 
-    private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
+    @Override
+    protected Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
         if (taskOwner.hasExcessProcessingPower() ||
             !this.bestUser().hasExcessProcessingPower()) {
             return Optional.empty();

@@ -297,8 +297,12 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.tarefas.stream().filter(uc::isOwnerOf);
     }
 
-    protected abstract Optional<CS_Processamento> findMachineBestSuitedFor(
-            Tarefa task, UserControl taskOwner);
+    protected Optional<CS_Processamento> findMachineBestSuitedFor(
+            final Tarefa task, final UserControl taskOwner) {
+        return this
+                .findAvailableMachineBestSuitedFor(task, taskOwner)
+                .or(() -> this.findOccupiedMachineBestSuitedFor(taskOwner));
+    }
 
     /**
      * This algorithm's task scheduling does not conform to the standard
@@ -392,4 +396,9 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
     private static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
     }
+
+    protected abstract Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
+            Tarefa task, UserControl taskOwner);
+
+    protected abstract Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(UserControl taskOwner);
 }

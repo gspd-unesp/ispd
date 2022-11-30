@@ -40,14 +40,7 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
     @Override
-    protected Optional<CS_Processamento> findMachineBestSuitedFor(
-            final Tarefa task, final UserControl taskOwner) {
-        return this
-                .findAvailableMachineBestSuitedFor(task, taskOwner)
-                .or(() -> this.findOccupiedMachineBestSuitedFor(taskOwner));
-    }
-
-    private Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
+    protected Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this.availableMachinesFor(taskOwner)
                 .max(EHOSEP.bestAvailableMachines(task));
@@ -81,7 +74,8 @@ public class EHOSEP extends AbstractHOSEP {
                 .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit);
     }
 
-    private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
+    @Override
+    protected Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
         // If no available machine is found, preemption may be used to force
         // the task into one. However, if the task owner has excess
         // processing power, preemption will NOT be used to accommodate them
