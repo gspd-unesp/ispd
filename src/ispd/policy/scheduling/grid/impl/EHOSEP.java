@@ -12,7 +12,6 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
@@ -41,40 +40,6 @@ public class EHOSEP extends AbstractHOSEP {
 
 
     /**
-     * Attempts to find a task and a resource for the user represented in
-     * {@code uc}, and initiate the process of hosting the selected task in
-     * the selected resource.<br>
-     * If it fails in finding either an appropriate task or a suitable
-     * resource for the selected task, will throw a
-     * {@link NoSuchElementException}.<br>
-     * If hosting the selected task in the selected resource fails, will echo
-     * the exception thrown in the process. Namely,
-     * {@link IllegalStateException}.<br>
-     *
-     * @param uc {@link UserControl} representing the user whose tasks may
-     *           need scheduling
-     * @throws NoSuchElementException if it cannot select either an
-     *                                appropriate task or a suitable resource
-     *                                for a selected task, for the
-     *                                given {@link UserControl}
-     * @throws IllegalStateException  if hosting the selected task in the
-     *                                selected resource fails
-     */
-    @Override
-    protected void tryFindTaskAndResourceFor(final UserControl uc) {
-        final var task = this
-                .findTaskSuitableFor(uc)
-                .orElseThrow();
-
-        final var machine = this
-                .findMachineBestSuitedFor(task, uc)
-                .orElseThrow();
-
-        this.tryHostTaskFromUserInMachine(task, uc, machine);
-    }
-
-
-    /**
      * Attempts to initiate the execution (host) of the given {@link Tarefa
      * task} in the given {@link CS_Processamento processing center}.<br>
      * If it is determined that the given {@code machine}'s <i>status</i>
@@ -95,7 +60,8 @@ public class EHOSEP extends AbstractHOSEP {
      *                               hosting a new task
      * @see #canMachineHostNewTask(CS_Processamento) Machine Status Validation
      */
-    private void tryHostTaskFromUserInMachine(
+    @Override
+    protected void tryHostTaskFromUserInMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         if (!this.canMachineHostNewTask(machine)) {
@@ -152,17 +118,30 @@ public class EHOSEP extends AbstractHOSEP {
         taskOwner.decreaseTaskDemand();
     }
 
+    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).firstTaskInProcessing();
+    }
+
     private void sendTaskToResource(
             final Tarefa task, final CentroServico resource) {
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
     }
 
+    private boolean isMachineAvailable(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isFree();
+    }
+
+    private boolean isMachineOccupied(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isOccupied();
+    }
+
     private boolean canMachineHostNewTask(final CS_Processamento machine) {
         return this.slaveControls.get(machine).canHostNewTask();
     }
 
-    private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
+    @Override
+    protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
         if (!EHOSEP.isUserEligibleForTask(uc)) {
             return Optional.empty();
         }
@@ -179,7 +158,8 @@ public class EHOSEP extends AbstractHOSEP {
         return this.tarefas.stream().filter(uc::isOwnerOf);
     }
 
-    private Optional<CS_Processamento> findMachineBestSuitedFor(
+    @Override
+    protected Optional<CS_Processamento> findMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this
                 .findAvailableMachineBestSuitedFor(task, taskOwner)
@@ -218,10 +198,6 @@ public class EHOSEP extends AbstractHOSEP {
         return this.escravos.stream()
                 .filter(this::isMachineAvailable)
                 .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit);
-    }
-
-    private boolean isMachineAvailable(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isFree();
     }
 
     private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
@@ -272,14 +248,6 @@ public class EHOSEP extends AbstractHOSEP {
         return this.escravos.stream()
                 .filter(this::isMachineOccupied)
                 .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)));
-    }
-
-    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).firstTaskInProcessing();
-    }
-
-    private boolean isMachineOccupied(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isOccupied();
     }
 
     private Comparator<CS_Processamento> leastWastedProcessingIfPreempted() {

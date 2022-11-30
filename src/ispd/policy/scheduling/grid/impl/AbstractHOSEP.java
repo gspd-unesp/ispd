@@ -62,6 +62,37 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return new UserControl(userId, compPower, this.escravos);
     }
 
+    @Override
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
+    }
+
+    /**
+     * Attempts to schedule a task and a suitable machine for one of the
+     * users, giving preference to users "first" in a sorted list according
+     * to the {@link UserControl#compareTo(UserControl) comparison criteria} of
+     * {@link UserControl}.<br>
+     * <p>
+     * The method stops immediately upon any successful scheduling of a task
+     * in a resource, be it 'normally' or through preemption.
+     * </p>
+     * For details on scheduling criteria, see:
+     * <ul>
+     * <li>{@link #findTaskSuitableFor(UserControl) Task selection}</li>
+     * <li>{@link #findMachineBestSuitedFor(Tarefa, UserControl) Machine
+     * selection}</li>
+     * </ul>
+     */
+    @Override
+    public void escalonar() {
+        for (final var uc : this.sortedUserControls()) {
+            if (this.canScheduleTaskFor(uc)) {
+                return;
+            }
+        }
+    }
+
     /**
      * This algorithm's resource scheduling does not conform to the standard
      * {@link SchedulingPolicy} interface.<br>
@@ -81,6 +112,96 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
     public Double getTempoAtualizar() {
         return AbstractHOSEP.REFRESH_TIME;
     }
+
+    protected List<UserControl> sortedUserControls() {
+        return this.userControls.values().stream()
+                .sorted()
+                .toList();
+    }
+
+    /**
+     * Attempts to find a task and a resource to execute such task, for the
+     * user represented in {@code uc}. If successful, will initiate the
+     * execution of the selected task in the selected resource and return
+     * {@code true} if such procedure succeeds; otherwise, won't do anything
+     * and will return {@code false}.<br>
+     *
+     * @param uc {@link UserControl} for the user whose tasks may need
+     *           scheduling
+     * @return {@code true} if a task and resource were selected
+     * successfully, and the task was sent to be executed in the resource
+     * successfully; {@code false} otherwise
+     */
+    protected boolean canScheduleTaskFor(final UserControl uc) {
+        try {
+            this.tryFindTaskAndResourceFor(uc);
+            return true;
+        } catch (final NoSuchElementException | IllegalStateException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Attempts to find a task and a resource for the user represented in
+     * {@code uc}, and initiate the process of hosting the selected task in
+     * the selected resource.<br>
+     * If it fails in finding either an appropriate task or a suitable
+     * resource for the selected task, will throw a
+     * {@link NoSuchElementException}.<br>
+     * If hosting the selected task in the selected resource fails, will echo
+     * the exception thrown in the process. Namely,
+     * {@link IllegalStateException}.<br>
+     *
+     * @param uc {@link UserControl} representing the user whose tasks may
+     *           need scheduling
+     * @throws NoSuchElementException if it cannot select either an
+     *                                appropriate task or a suitable resource
+     *                                for a selected task, for the
+     *                                given {@link UserControl}
+     * @throws IllegalStateException  if hosting the selected task in the
+     *                                selected resource fails
+     */
+    protected void tryFindTaskAndResourceFor(final UserControl uc) {
+        final var task = this
+                .findTaskSuitableFor(uc)
+                .orElseThrow();
+
+        final var machine = this
+                .findMachineBestSuitedFor(task, uc)
+                .orElseThrow();
+
+        this.tryHostTaskFromUserInMachine(task, uc, machine);
+    }
+
+    /**
+     * Attempts to initiate the execution (host) of the given {@link Tarefa
+     * task} in the given {@link CS_Processamento processing center}.<br>
+     * If it is determined that the given {@code machine}'s <i>status</i>
+     * {@link SlaveControl#canHostNewTask() is not suited} for hosting a new
+     * task, an {@link IllegalStateException} is thrown; otherwise, will
+     * host the task in the given machine.<br>
+     * Once it is determined that the machine is suitable for receiving a new
+     * task, the hosting process is <i>guaranteed to succeed</i>.<br>
+     *
+     * @param task      {@link Tarefa task} to host in the given
+     *                  {@link CS_Processamento machine}
+     * @param taskOwner {@link UserControl} representing the owner of the
+     *                  given {@link Tarefa task}
+     * @param machine   {@link CS_Processamento processing center} that may
+     *                  host the task; it must be in a valid state to do so
+     * @throws IllegalStateException if the given {@link CS_Processamento
+     *                               machine} is not in a suitable state for
+     *                               hosting a new task
+     * @see #canMachineHostNewTask(CS_Processamento) Machine Status Validation
+     */
+    protected abstract void tryHostTaskFromUserInMachine(
+            Tarefa task, UserControl taskOwner,
+            CS_Processamento machine);
+
+    protected abstract Optional<Tarefa> findTaskSuitableFor(UserControl uc);
+
+    protected abstract Optional<CS_Processamento> findMachineBestSuitedFor(
+            Tarefa task, UserControl taskOwner);
 
     /**
      * This algorithm's task scheduling does not conform to the standard
@@ -181,85 +302,4 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
     protected static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
     }
-
-    @Override
-    public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.escravos.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
-    }
-
-    /**
-     * Attempts to schedule a task and a suitable machine for one of the
-     * users, giving preference to users "first" in a sorted list according
-     * to the {@link UserControl#compareTo(UserControl) comparison criteria} of
-     * {@link UserControl}.<br>
-     * <p>
-     * The method stops immediately upon any successful scheduling of a task
-     * in a resource, be it 'normally' or through preemption.
-     * </p>
-     * For details on scheduling criteria, see:
-     * <ul>
-     * <li>{@link #findTaskSuitableFor(UserControl) Task selection}</li>
-     * <li>{@link #findMachineBestSuitedFor(Tarefa, UserControl) Machine
-     * selection}</li>
-     * </ul>
-     */
-    @Override
-    public void escalonar() {
-        for (final var uc : this.sortedUserControls()) {
-            if (this.canScheduleTaskFor(uc)) {
-                return;
-            }
-        }
-    }
-
-    protected List<UserControl> sortedUserControls() {
-        return this.userControls.values().stream()
-                .sorted()
-                .toList();
-    }
-
-    /**
-     * Attempts to find a task and a resource to execute such task, for the
-     * user represented in {@code uc}. If successful, will initiate the
-     * execution of the selected task in the selected resource and return
-     * {@code true} if such procedure succeeds; otherwise, won't do anything
-     * and will return {@code false}.<br>
-     *
-     * @param uc {@link UserControl} for the user whose tasks may need
-     *           scheduling
-     * @return {@code true} if a task and resource were selected
-     * successfully, and the task was sent to be executed in the resource
-     * successfully; {@code false} otherwise
-     */
-    protected boolean canScheduleTaskFor(final UserControl uc) {
-        try {
-            this.tryFindTaskAndResourceFor(uc);
-            return true;
-        } catch (final NoSuchElementException | IllegalStateException ex) {
-            return false;
-        }
-    }
-
-    /**
-     * Attempts to find a task and a resource for the user represented in
-     * {@code uc}, and initiate the process of hosting the selected task in
-     * the selected resource.<br>
-     * If it fails in finding either an appropriate task or a suitable
-     * resource for the selected task, will throw a
-     * {@link NoSuchElementException}.<br>
-     * If hosting the selected task in the selected resource fails, will echo
-     * the exception thrown in the process. Namely,
-     * {@link IllegalStateException}.<br>
-     *
-     * @param uc {@link UserControl} representing the user whose tasks may
-     *           need scheduling
-     * @throws NoSuchElementException if it cannot select either an
-     *                                appropriate task or a suitable resource
-     *                                for a selected task, for the
-     *                                given {@link UserControl}
-     * @throws IllegalStateException  if hosting the selected task in the
-     *                                selected resource fails
-     */
-    protected abstract void tryFindTaskAndResourceFor(UserControl uc);
 }

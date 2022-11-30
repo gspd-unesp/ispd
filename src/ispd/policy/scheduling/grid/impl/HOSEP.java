@@ -10,7 +10,6 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -22,16 +21,6 @@ public class HOSEP extends AbstractHOSEP {
         this.filaEscravo = new ArrayList<>();
     }
 
-    protected boolean canScheduleTaskFor(final UserControl uc) {
-        try {
-            this.tryFindTaskAndResourceFor(uc);
-            return true;
-        } catch (final NoSuchElementException | IllegalStateException ex) {
-            return false;
-        }
-    }
-
-
     protected void tryFindTaskAndResourceFor(final UserControl uc) {
         final var task = this
                 .findTaskSuitableFor(uc)
@@ -41,11 +30,11 @@ public class HOSEP extends AbstractHOSEP {
                 .findMachineBestSuitedFor(task, uc)
                 .orElseThrow();
 
-        this.tryHostTaskFromUserWithMachine(task, uc, machine);
+        this.tryHostTaskFromUserInMachine(task, uc, machine);
     }
 
 
-    private void tryHostTaskFromUserWithMachine(
+    protected void tryHostTaskFromUserInMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         if (!this.canMachineHostNewTask(machine)) {
@@ -110,7 +99,7 @@ public class HOSEP extends AbstractHOSEP {
         return this.slaveControls.get(machine).canHostNewTask();
     }
 
-    private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
+    protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
         if (!HOSEP.isUserEligibleForTask(uc)) {
             return Optional.empty();
         }
@@ -127,7 +116,7 @@ public class HOSEP extends AbstractHOSEP {
         return this.tarefas.stream().filter(uc::isOwnerOf);
     }
 
-    private Optional<CS_Processamento> findMachineBestSuitedFor(
+    protected Optional<CS_Processamento> findMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this
                 .findAvailableMachineBestSuitedFor(task, taskOwner)
