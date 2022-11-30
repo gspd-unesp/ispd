@@ -101,15 +101,11 @@ public class UserControl implements Comparable<UserControl> {
         return this.userId.equals(task.getProprietario());
     }
 
-    public boolean isEligibleForTask() {
-        return this.hasTaskDemand() && !this.hasExceededEnergyLimit();
-    }
-
-    private boolean hasExceededEnergyLimit() {
+    public boolean hasExceededEnergyLimit() {
         return this.currentEnergyConsumption >= this.energyConsumptionLimit;
     }
 
-    private boolean hasTaskDemand() {
+    public boolean hasTaskDemand() {
         return this.currentTaskDemand() != 0;
     }
 
