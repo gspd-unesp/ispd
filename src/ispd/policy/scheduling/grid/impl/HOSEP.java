@@ -19,24 +19,6 @@ public class HOSEP extends AbstractHOSEP {
     }
 
     @Override
-    protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
-        if (!HOSEP.isUserEligibleForTask(uc)) {
-            return Optional.empty();
-        }
-
-        return this.tasksOwnedBy(uc)
-                .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
-    }
-
-    private static boolean isUserEligibleForTask(final UserControl uc) {
-        return uc.hasTaskDemand();
-    }
-
-    private Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
-        return this.tarefas.stream().filter(uc::isOwnerOf);
-    }
-
-    @Override
     protected Optional<CS_Processamento> findMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this

@@ -35,21 +35,8 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
     @Override
-    protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
-        if (!EHOSEP.isUserEligibleForTask(uc)) {
-            return Optional.empty();
-        }
-
-        return this.tasksOwnedBy(uc)
-                .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
-    }
-
-    private static boolean isUserEligibleForTask(final UserControl uc) {
-        return uc.hasTaskDemand() && !uc.hasExceededEnergyLimit();
-    }
-
-    private Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
-        return this.tarefas.stream().filter(uc::isOwnerOf);
+    protected boolean isUserEligibleForTask(final UserControl uc) {
+        return super.isUserEligibleForTask(uc) && !uc.hasExceededEnergyLimit();
     }
 
     @Override

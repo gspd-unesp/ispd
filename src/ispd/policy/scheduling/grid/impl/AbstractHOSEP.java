@@ -15,6 +15,7 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public abstract class AbstractHOSEP extends GridSchedulingPolicy {
     protected static final double REFRESH_TIME = 15.0;
@@ -278,7 +280,22 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.slaveControls.get(machine).canHostNewTask();
     }
 
-    protected abstract Optional<Tarefa> findTaskSuitableFor(UserControl uc);
+    protected boolean isUserEligibleForTask(final UserControl uc) {
+        return uc.hasTaskDemand();
+    }
+
+    protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
+        if (!this.isUserEligibleForTask(uc)) {
+            return Optional.empty();
+        }
+
+        return this.tasksOwnedBy(uc)
+                .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
+    }
+
+    protected Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
+        return this.tarefas.stream().filter(uc::isOwnerOf);
+    }
 
     protected abstract Optional<CS_Processamento> findMachineBestSuitedFor(
             Tarefa task, UserControl taskOwner);
