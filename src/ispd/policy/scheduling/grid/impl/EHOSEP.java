@@ -6,7 +6,6 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
-import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
@@ -38,43 +37,8 @@ public class EHOSEP extends AbstractHOSEP {
         return uc;
     }
 
-
-    /**
-     * Attempts to initiate the execution (host) of the given {@link Tarefa
-     * task} in the given {@link CS_Processamento processing center}.<br>
-     * If it is determined that the given {@code machine}'s <i>status</i>
-     * {@link SlaveControl#canHostNewTask() is not suited} for hosting a new
-     * task, an {@link IllegalStateException} is thrown; otherwise, will
-     * host the task in the given machine.<br>
-     * Once it is determined that the machine is suitable for receiving a new
-     * task, the hosting process is <i>guaranteed to succeed</i>.<br>
-     *
-     * @param task      {@link Tarefa task} to host in the given
-     *                  {@link CS_Processamento machine}
-     * @param taskOwner {@link UserControl} representing the owner of the
-     *                  given {@link Tarefa task}
-     * @param machine   {@link CS_Processamento processing center} that may
-     *                  host the task; it must be in a valid state to do so
-     * @throws IllegalStateException if the given {@link CS_Processamento
-     *                               machine} is not in a suitable state for
-     *                               hosting a new task
-     * @see #canMachineHostNewTask(CS_Processamento) Machine Status Validation
-     */
     @Override
-    protected void tryHostTaskFromUserInMachine(
-            final Tarefa task, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        if (!this.canMachineHostNewTask(machine)) {
-            throw new IllegalStateException("""
-                    Scheduled machine %s can not host tasks"""
-                    .formatted(machine));
-        }
-
-        this.hostTaskFromUserInMachine(task, taskOwner, machine);
-    }
-
-
-    private void hostTaskFromUserInMachine(
+    protected void hostTaskFromUserInMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         this.sendTaskToResource(task, machine);
@@ -134,10 +98,6 @@ public class EHOSEP extends AbstractHOSEP {
 
     private boolean isMachineOccupied(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isOccupied();
-    }
-
-    private boolean canMachineHostNewTask(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).canHostNewTask();
     }
 
     @Override

@@ -194,9 +194,25 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
      *                               hosting a new task
      * @see #canMachineHostNewTask(CS_Processamento) Machine Status Validation
      */
-    protected abstract void tryHostTaskFromUserInMachine(
+    protected void tryHostTaskFromUserInMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        if (!this.canMachineHostNewTask(machine)) {
+            throw new IllegalStateException("""
+                    Scheduled machine %s can not host tasks"""
+                    .formatted(machine));
+        }
+
+        this.hostTaskFromUserInMachine(task, taskOwner, machine);
+    }
+
+    protected abstract void hostTaskFromUserInMachine(
             Tarefa task, UserControl taskOwner,
             CS_Processamento machine);
+
+    protected boolean canMachineHostNewTask(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).canHostNewTask();
+    }
 
     protected abstract Optional<Tarefa> findTaskSuitableFor(UserControl uc);
 

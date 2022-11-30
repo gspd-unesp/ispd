@@ -21,32 +21,7 @@ public class HOSEP extends AbstractHOSEP {
         this.filaEscravo = new ArrayList<>();
     }
 
-    protected void tryFindTaskAndResourceFor(final UserControl uc) {
-        final var task = this
-                .findTaskSuitableFor(uc)
-                .orElseThrow();
-
-        final var machine = this
-                .findMachineBestSuitedFor(task, uc)
-                .orElseThrow();
-
-        this.tryHostTaskFromUserInMachine(task, uc, machine);
-    }
-
-
-    protected void tryHostTaskFromUserInMachine(
-            final Tarefa task, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        if (!this.canMachineHostNewTask(machine)) {
-            throw new IllegalStateException("""
-                    Scheduled machine %s can not host tasks"""
-                    .formatted(machine));
-        }
-
-        this.hostTaskFromUserInMachine(task, taskOwner, machine);
-    }
-
-    private void hostTaskFromUserInMachine(
+    protected void hostTaskFromUserInMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         this.sendTaskToResource(task, machine);
@@ -89,16 +64,17 @@ public class HOSEP extends AbstractHOSEP {
         taskOwner.decreaseTaskDemand();
     }
 
+    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).firstTaskInProcessing();
+    }
+
     private void sendTaskToResource(
             final Tarefa task, final CentroServico resource) {
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
     }
 
-    private boolean canMachineHostNewTask(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).canHostNewTask();
-    }
-
+    @Override
     protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
         if (!HOSEP.isUserEligibleForTask(uc)) {
             return Optional.empty();
@@ -116,6 +92,7 @@ public class HOSEP extends AbstractHOSEP {
         return this.tarefas.stream().filter(uc::isOwnerOf);
     }
 
+    @Override
     protected Optional<CS_Processamento> findMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this
@@ -140,10 +117,6 @@ public class HOSEP extends AbstractHOSEP {
     private Stream<CS_Processamento> availableMachinesFor(final UserControl taskOwner) {
         return this.escravos.stream()
                 .filter(this::isMachineAvailable);
-    }
-
-    private boolean isMachineAvailable(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isFree();
     }
 
     private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
@@ -193,17 +166,17 @@ public class HOSEP extends AbstractHOSEP {
                 .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)));
     }
 
-    private boolean isMachineOccupied(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isOccupied();
-    }
-
-    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).firstTaskInProcessing();
-    }
-
     private UserControl bestUser() {
         return this.userControls.values().stream()
                 .max(Comparator.naturalOrder())
                 .orElseThrow();
+    }
+
+    private boolean isMachineAvailable(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isFree();
+    }
+
+    private boolean isMachineOccupied(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isOccupied();
     }
 }
