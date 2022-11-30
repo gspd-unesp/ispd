@@ -57,6 +57,21 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
     }
 
     /**
+     * This algorithm's resource scheduling does not conform to the standard
+     * {@link SchedulingPolicy} interface.<br>
+     * Therefore, calling this method on instances of this algorithm will
+     * result in an {@link UnsupportedOperationException} being thrown.
+     *
+     * @return not applicable in this context, an exception is thrown instead.
+     * @throws UnsupportedOperationException whenever called.
+     */
+    @Override
+    public CS_Processamento escalonarRecurso() {
+        throw new UnsupportedOperationException("""
+                Do not call method .escalonarRecurso() on HOSEP-like algorithms.""");
+    }
+
+    /**
      * This algorithm's task scheduling does not conform to the standard
      * {@link SchedulingPolicy} interface.<br>
      * Therefore, calling this method on instances of this algorithm will
