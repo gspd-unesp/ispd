@@ -1,5 +1,6 @@
 package ispd.policy.scheduling.grid.impl;
 
+import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.PolicyConditions;
@@ -148,5 +149,14 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
             final CS_Processamento machine) {
         this.mestre.sendTask(task);
         taskOwner.startTaskFrom(machine);
+    }
+
+    @Override
+    public void resultadoAtualizar(final Mensagem mensagem) {
+        final var sc = this.slaveControls
+                .get((CS_Processamento) mensagem.getOrigem());
+
+        sc.setTasksInProcessing(mensagem.getProcessadorEscravo());
+        sc.updateStatusIfNeeded();
     }
 }
