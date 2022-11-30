@@ -90,4 +90,24 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         throw new UnsupportedOperationException("""
                 Do not call method .escalonarTarefa() on HOSEP-like algorithms.""");
     }
+
+    @Override
+    public void addTarefaConcluida(final Tarefa tarefa) {
+        super.addTarefaConcluida(tarefa);
+
+        final var maq = tarefa.getCSLProcessamento();
+        final var sc = this.slaveControls.get(maq);
+
+        if (sc.isOccupied()) {
+            this.userControls
+                    .get(tarefa.getProprietario())
+                    .stopTaskFrom(maq);
+
+            sc.setAsFree();
+        } else if (sc.isBlocked()) {
+            this.processPreemptedTask(tarefa);
+        }
+    }
+
+    protected abstract void processPreemptedTask(Tarefa task);
 }

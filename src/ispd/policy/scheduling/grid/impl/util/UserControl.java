@@ -62,6 +62,8 @@ public class UserControl implements Comparable<UserControl> {
     public void stopTaskFrom(final CS_Processamento maq) {
         this.decreaseAvailableMachines();
         this.decreaseAvailableProcessingPower(maq.getPoderComputacional());
+
+        // TODO: Should not do this in HOSEP
         this.decreaseEnergyConsumption(maq.getConsumoEnergia());
     }
 

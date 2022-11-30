@@ -42,24 +42,7 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
     @Override
-    public void addTarefaConcluida(final Tarefa tarefa) {
-        super.addTarefaConcluida(tarefa);
-
-        final var maq = tarefa.getCSLProcessamento();
-        final var sc = this.slaveControls.get(maq);
-
-        if (sc.isOccupied()) {
-            this.userControls
-                    .get(tarefa.getProprietario())
-                    .stopTaskFrom(maq);
-
-            sc.setAsFree();
-        } else if (sc.isBlocked()) {
-            this.processPreemptedTask(tarefa);
-        }
-    }
-
-    private void processPreemptedTask(final Tarefa task) {
+    protected void processPreemptedTask(final Tarefa task) {
         final var pe = this.findEntryForPreemptedTask(task);
 
         this.tasksToSchedule.stream()
