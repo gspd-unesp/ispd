@@ -39,7 +39,7 @@ public class HOSEP extends AbstractHOSEP {
     private Optional<CS_Processamento> findMachineToTransferBetween(
             final UserControl userToPreempt, final UserControl taskOwner) {
         return this.machinesOccupiedBy(userToPreempt)
-                .min(this.bestAvailableMachinesFor(null))
+                .min(this.compareAvailableMachinesFor(null))
                 .filter(machine -> this.shouldTransferMachine(
                         machine, userToPreempt, taskOwner));
     }

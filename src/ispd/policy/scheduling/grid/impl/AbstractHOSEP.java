@@ -26,7 +26,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public abstract class AbstractHOSEP extends GridSchedulingPolicy {
-    protected static final double REFRESH_TIME = 15.0;
+    private static final double REFRESH_TIME = 15.0;
     protected final Map<String, UserControl> userControls = new HashMap<>();
     protected final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
@@ -303,14 +303,10 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
     protected Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this.availableMachinesFor(taskOwner)
-                .max(this.bestAvailableMachinesFor(task));
+                .max(this.compareAvailableMachinesFor(task));
     }
 
-    protected Comparator<CS_Processamento> bestAvailableMachinesFor(final Tarefa task) {
-        return AbstractHOSEP.bestComputationalPower();
-    }
-
-    protected static Comparator<CS_Processamento> bestComputationalPower() {
+    protected Comparator<CS_Processamento> compareAvailableMachinesFor(final Tarefa task) {
         return Comparator.comparingDouble(CS_Processamento::getPoderComputacional);
     }
 

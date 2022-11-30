@@ -40,14 +40,7 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
     @Override
-    protected Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
-            final Tarefa task, final UserControl taskOwner) {
-        return this.availableMachinesFor(taskOwner)
-                .max(this.bestAvailableMachinesFor(task));
-    }
-
-    @Override
-    protected Comparator<CS_Processamento> bestAvailableMachinesFor(final Tarefa task) {
+    protected Comparator<CS_Processamento> compareAvailableMachinesFor(final Tarefa task) {
         // Extracted as a variable to aid type inference
         final ToDoubleFunction<CS_Processamento> energyConsumption =
                 m -> EHOSEP.calculateEnergyConsumptionForTask(m, task);
@@ -55,7 +48,7 @@ public class EHOSEP extends AbstractHOSEP {
         return Comparator
                 .comparingDouble(energyConsumption)
                 .reversed()
-                .thenComparing(super.bestAvailableMachinesFor(task));
+                .thenComparing(super.compareAvailableMachinesFor(task));
     }
 
     private static double calculateEnergyConsumptionForTask(
