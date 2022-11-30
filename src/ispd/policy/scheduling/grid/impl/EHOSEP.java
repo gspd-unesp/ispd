@@ -16,10 +16,7 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -28,14 +25,6 @@ import java.util.stream.Stream;
 
 @Policy
 public class EHOSEP extends AbstractHOSEP {
-    private static final double REFRESH_TIME = 15.0;
-    private final Map<String, UserControl> userControls = new HashMap<>();
-    private final Map<CS_Processamento, SlaveControl> slaveControls =
-            new HashMap<>();
-    private final Collection<Tarefa> tasksToSchedule = new HashSet<>();
-    private final Collection<PreemptionEntry> preemptionEntries =
-            new HashSet<>();
-
     public EHOSEP() {
         this.tarefas = new ArrayList<>();
         this.escravos = new ArrayList<>();
@@ -421,7 +410,7 @@ public class EHOSEP extends AbstractHOSEP {
 
     @Override
     public Double getTempoAtualizar() {
-        return EHOSEP.REFRESH_TIME;
+        return AbstractHOSEP.REFRESH_TIME;
     }
 
     /**
