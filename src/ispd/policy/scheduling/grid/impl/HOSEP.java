@@ -6,20 +6,15 @@ import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.SchedulingPolicy;
-import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
-import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Policy
@@ -30,44 +25,43 @@ public class HOSEP extends AbstractHOSEP {
         this.filaEscravo = new ArrayList<>();
     }
 
+
+    /**
+     * This algorithm's task scheduling does not conform to the standard
+     * {@link SchedulingPolicy} interface.<br>
+     * Therefore, calling this method on instances of this algorithm will
+     * result in an {@link UnsupportedOperationException} being thrown.
+     *
+     * @return not applicable in this context, an exception is thrown instead.
+     * @throws UnsupportedOperationException whenever called.
+     */
     @Override
-    public void iniciar() {
-        this.mestre.setSchedulingConditions(PolicyConditions.ALL);
-
-        final var nonMasters = this.escravos.stream()
-                .filter(Predicate.not(GridMaster.class::isInstance))
-                .toList();
-
-        for (final var userId : this.metricaUsuarios.getUsuarios()) {
-            final var userOwnedMachines = nonMasters.stream()
-                    .filter(machine -> userId.equals(machine.getProprietario()))
-                    .toList();
-
-            final var uc = this.makeUserControlFor(userId, userOwnedMachines);
-            this.userControls.put(userId, uc);
-        }
-
-        for (final var s : this.escravos)
-            this.slaveControls.put(s, new SlaveControl());
-    }
-
-    private UserControl makeUserControlFor(
-            final String userId,
-            final Collection<CS_Processamento> userOwnedMachines) {
-        final double compPower = userOwnedMachines.stream()
-                .mapToDouble(CS_Processamento::getPoderComputacional)
-                .sum();
-
-        return new UserControl(userId, compPower, this.escravos);
-    }
-
-    @Override
+    public Tarefa escalonarTarefa() {
+        throw new UnsupportedOperationException("""
+                Do not call method .escalonarTarefa() on instances of HOSEP.""");
+    }    @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
         final int index = this.escravos.indexOf(destino);
         return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
 
     @Override
+    public void addTarefaConcluida(final Tarefa tarefa) {
+        super.addTarefaConcluida(tarefa);
+
+        final var maq = tarefa.getCSLProcessamento();
+        final var sc = this.slaveControls.get(maq);
+
+        if (sc.isOccupied()) {
+            this.userControls
+                    .get(tarefa.getProprietario())
+                    .decreaseAvailableProcessingPower(maq.getPoderComputacional());
+
+            sc.setAsFree();
+        } else if (sc.isBlocked()) {
+            this.processPreemptedTask(tarefa);
+        }
+    }    @Override
     public void escalonar() {
         for (final var uc : this.sortedUserControls()) {
             if (this.canScheduleTaskFor(uc)) {
@@ -76,7 +70,14 @@ public class HOSEP extends AbstractHOSEP {
         }
     }
 
-    /**
+    @Override
+    public void resultadoAtualizar(final Mensagem mensagem) {
+        final var sc = this.slaveControls
+                .get((CS_Processamento) mensagem.getOrigem());
+
+        sc.setTasksInProcessing(mensagem.getProcessadorEscravo());
+        sc.updateStatusIfNeeded();
+    }    /**
      * This algorithm's resource scheduling does not conform to the standard
      * {@link SchedulingPolicy} interface.<br>
      * Therefore, calling this method on instances of this algorithm will
@@ -92,17 +93,38 @@ public class HOSEP extends AbstractHOSEP {
     }
 
     @Override
+    public void adicionarTarefa(final Tarefa tarefa) {
+        super.adicionarTarefa(tarefa);
+
+        this.userControls
+                .get(tarefa.getProprietario())
+                .increaseTaskDemand();
+
+        Optional.of(tarefa)
+                .filter(HOSEP::hasProcessingCenter)
+                .ifPresent(this::processPreemptedTask);
+    }    @Override
     public Double getTempoAtualizar() {
         return AbstractHOSEP.REFRESH_TIME;
     }
 
-    private List<UserControl> sortedUserControls() {
+    private static boolean hasProcessingCenter(final Tarefa tarefa) {
+        return tarefa.getLocalProcessamento() != null;
+    }    private List<UserControl> sortedUserControls() {
         return this.userControls.values().stream()
                 .sorted()
                 .toList();
     }
 
-    private boolean canScheduleTaskFor(final UserControl uc) {
+    private void processPreemptedTask(final Tarefa task) {
+        final var pe = this.findEntryForPreemptedTask(task);
+
+        this.tasksToSchedule.stream()
+                .filter(pe::willScheduleTask)
+                .findFirst()
+                .ifPresent(t -> this
+                        .insertTaskIntoPreemptedTaskSlot(t, task));
+    }    private boolean canScheduleTaskFor(final UserControl uc) {
         try {
             this.tryFindTaskAndResourceFor(uc);
             return true;
@@ -111,7 +133,22 @@ public class HOSEP extends AbstractHOSEP {
         }
     }
 
-    private void tryFindTaskAndResourceFor(final UserControl uc) {
+    private void insertTaskIntoPreemptedTaskSlot(
+            final Tarefa scheduled, final Tarefa preempted) {
+        this.tasksToSchedule.remove(scheduled);
+
+        final var mach = preempted.getCSLProcessamento();
+        final var pe = this.findEntryForPreemptedTask(preempted);
+
+
+        this.senTaskFromUserToMachine(scheduled,
+                this.userControls.get(pe.scheduledTaskUser()), mach);
+
+        this.userControls.get(pe.preemptedTaskUser())
+                .decreaseAvailableProcessingPower(mach.getPoderComputacional());
+
+        this.preemptionEntries.remove(pe);
+    }    private void tryFindTaskAndResourceFor(final UserControl uc) {
         final var task = this
                 .findTaskSuitableFor(uc)
                 .orElseThrow();
@@ -123,7 +160,12 @@ public class HOSEP extends AbstractHOSEP {
         this.tryHostTaskFromUserWithMachine(task, uc, machine);
     }
 
-    private void tryHostTaskFromUserWithMachine(
+    private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
+        return this.preemptionEntries.stream()
+                .filter(pe -> pe.willPreemptTask(t))
+                .findFirst()
+                .orElseThrow();
+    }    private void tryHostTaskFromUserWithMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         if (!this.canMachineHostNewTask(machine)) {
@@ -303,96 +345,19 @@ public class HOSEP extends AbstractHOSEP {
                 .orElseThrow();
     }
 
-    /**
-     * This algorithm's task scheduling does not conform to the standard
-     * {@link SchedulingPolicy} interface.<br>
-     * Therefore, calling this method on instances of this algorithm will
-     * result in an {@link UnsupportedOperationException} being thrown.
-     *
-     * @return not applicable in this context, an exception is thrown instead.
-     * @throws UnsupportedOperationException whenever called.
-     */
-    @Override
-    public Tarefa escalonarTarefa() {
-        throw new UnsupportedOperationException("""
-                Do not call method .escalonarTarefa() on instances of HOSEP.""");
-    }
-
-    @Override
-    public void addTarefaConcluida(final Tarefa tarefa) {
-        super.addTarefaConcluida(tarefa);
-
-        final var maq = tarefa.getCSLProcessamento();
-        final var sc = this.slaveControls.get(maq);
-
-        if (sc.isOccupied()) {
-            this.userControls
-                    .get(tarefa.getProprietario())
-                    .decreaseAvailableProcessingPower(maq.getPoderComputacional());
-
-            sc.setAsFree();
-        } else if (sc.isBlocked()) {
-            this.processPreemptedTask(tarefa);
-        }
-    }
-
-    @Override
-    public void resultadoAtualizar(final Mensagem mensagem) {
-        final var sc = this.slaveControls
-                .get((CS_Processamento) mensagem.getOrigem());
-
-        sc.setTasksInProcessing(mensagem.getProcessadorEscravo());
-        sc.updateStatusIfNeeded();
-    }
-
-    @Override
-    public void adicionarTarefa(final Tarefa tarefa) {
-        super.adicionarTarefa(tarefa);
-
-        this.userControls
-                .get(tarefa.getProprietario())
-                .increaseTaskDemand();
-
-        Optional.of(tarefa)
-                .filter(HOSEP::hasProcessingCenter)
-                .ifPresent(this::processPreemptedTask);
-    }
-
-    private static boolean hasProcessingCenter(final Tarefa tarefa) {
-        return tarefa.getLocalProcessamento() != null;
-    }
-
-    private void processPreemptedTask(final Tarefa task) {
-        final var pe = this.findEntryForPreemptedTask(task);
-
-        this.tasksToSchedule.stream()
-                .filter(pe::willScheduleTask)
-                .findFirst()
-                .ifPresent(t -> this
-                        .insertTaskIntoPreemptedTaskSlot(t, task));
-    }
-
-    private void insertTaskIntoPreemptedTaskSlot(
-            final Tarefa scheduled, final Tarefa preempted) {
-        this.tasksToSchedule.remove(scheduled);
-
-        final var mach = preempted.getCSLProcessamento();
-        final var pe = this.findEntryForPreemptedTask(preempted);
 
 
-        this.senTaskFromUserToMachine(scheduled,
-                this.userControls.get(pe.scheduledTaskUser()), mach);
 
-        this.userControls.get(pe.preemptedTaskUser())
-                .decreaseAvailableProcessingPower(mach.getPoderComputacional());
 
-        this.preemptionEntries.remove(pe);
-    }
 
-    private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
-        return this.preemptionEntries.stream()
-                .filter(pe -> pe.willPreemptTask(t))
-                .findFirst()
-                .orElseThrow();
-    }
+
+
+
+
+
+
+
+
+
+
 }
