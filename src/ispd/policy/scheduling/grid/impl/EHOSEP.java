@@ -41,30 +41,6 @@ public class EHOSEP extends AbstractHOSEP {
 
 
     /**
-     * Attempts to find a task and a resource to execute such task, for the
-     * user represented in {@code uc}. If successful, will initiate the
-     * execution of the selected task in the selected resource and return
-     * {@code true} if such procedure succeeds; otherwise, won't do anything
-     * and will return {@code false}.<br>
-     *
-     * @param uc {@link UserControl} for the user whose tasks may need
-     *           scheduling
-     * @return {@code true} if a task and resource were selected
-     * successfully, and the task was sent to be executed in the resource
-     * successfully; {@code false} otherwise
-     */
-    @Override
-    protected boolean canScheduleTaskFor(final UserControl uc) {
-        try {
-            this.tryFindTaskAndResourceFor(uc);
-            return true;
-        } catch (final NoSuchElementException | IllegalStateException ex) {
-            return false;
-        }
-    }
-
-
-    /**
      * Attempts to find a task and a resource for the user represented in
      * {@code uc}, and initiate the process of hosting the selected task in
      * the selected resource.<br>
@@ -84,7 +60,8 @@ public class EHOSEP extends AbstractHOSEP {
      * @throws IllegalStateException  if hosting the selected task in the
      *                                selected resource fails
      */
-    private void tryFindTaskAndResourceFor(final UserControl uc) {
+    @Override
+    protected void tryFindTaskAndResourceFor(final UserControl uc) {
         final var task = this
                 .findTaskSuitableFor(uc)
                 .orElseThrow();

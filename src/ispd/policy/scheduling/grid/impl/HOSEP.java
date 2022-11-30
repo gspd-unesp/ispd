@@ -32,7 +32,7 @@ public class HOSEP extends AbstractHOSEP {
     }
 
 
-    private void tryFindTaskAndResourceFor(final UserControl uc) {
+    protected void tryFindTaskAndResourceFor(final UserControl uc) {
         final var task = this
                 .findTaskSuitableFor(uc)
                 .orElseThrow();

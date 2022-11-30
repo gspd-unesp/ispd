@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -231,5 +232,34 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
      * successfully, and the task was sent to be executed in the resource
      * successfully; {@code false} otherwise
      */
-    protected abstract boolean canScheduleTaskFor(UserControl uc);
+    protected boolean canScheduleTaskFor(final UserControl uc) {
+        try {
+            this.tryFindTaskAndResourceFor(uc);
+            return true;
+        } catch (final NoSuchElementException | IllegalStateException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Attempts to find a task and a resource for the user represented in
+     * {@code uc}, and initiate the process of hosting the selected task in
+     * the selected resource.<br>
+     * If it fails in finding either an appropriate task or a suitable
+     * resource for the selected task, will throw a
+     * {@link NoSuchElementException}.<br>
+     * If hosting the selected task in the selected resource fails, will echo
+     * the exception thrown in the process. Namely,
+     * {@link IllegalStateException}.<br>
+     *
+     * @param uc {@link UserControl} representing the user whose tasks may
+     *           need scheduling
+     * @throws NoSuchElementException if it cannot select either an
+     *                                appropriate task or a suitable resource
+     *                                for a selected task, for the
+     *                                given {@link UserControl}
+     * @throws IllegalStateException  if hosting the selected task in the
+     *                                selected resource fails
+     */
+    protected abstract void tryFindTaskAndResourceFor(UserControl uc);
 }
