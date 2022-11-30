@@ -15,12 +15,12 @@ public record PreemptionEntry(
     }
 
     public boolean willPreemptTask(final Tarefa task) {
-        return this.preemptedTaskUser.equals(task.getProprietario()) &&
-               this.preemptedTaskId == task.getIdentificador();
+        return this.preemptedTaskId == task.getIdentificador()
+               && this.preemptedTaskUser.equals(task.getProprietario());
     }
 
     public boolean willScheduleTask(final Tarefa task) {
-        return this.scheduledTaskUser.equals(task.getProprietario()) &&
-               this.scheduledTaskId == task.getIdentificador();
+        return this.scheduledTaskId == task.getIdentificador()
+               && this.scheduledTaskUser.equals(task.getProprietario());
     }
 }
