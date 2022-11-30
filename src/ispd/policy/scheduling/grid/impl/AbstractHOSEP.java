@@ -186,4 +186,50 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         final int index = this.escravos.indexOf(destino);
         return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
+
+    /**
+     * Attempts to schedule a task and a suitable machine for one of the
+     * users, giving preference to users "first" in a sorted list according
+     * to the {@link UserControl#compareTo(UserControl) comparison criteria} of
+     * {@link UserControl}.<br>
+     * <p>
+     * The method stops immediately upon any successful scheduling of a task
+     * in a resource, be it 'normally' or through preemption.
+     * </p>
+     * For details on scheduling criteria, see:
+     * <ul>
+     * <li>{@link #findTaskSuitableFor(UserControl) Task selection}</li>
+     * <li>{@link #findMachineBestSuitedFor(Tarefa, UserControl) Machine
+     * selection}</li>
+     * </ul>
+     */
+    @Override
+    public void escalonar() {
+        for (final var uc : this.sortedUserControls()) {
+            if (this.canScheduleTaskFor(uc)) {
+                return;
+            }
+        }
+    }
+
+    protected List<UserControl> sortedUserControls() {
+        return this.userControls.values().stream()
+                .sorted()
+                .toList();
+    }
+
+    /**
+     * Attempts to find a task and a resource to execute such task, for the
+     * user represented in {@code uc}. If successful, will initiate the
+     * execution of the selected task in the selected resource and return
+     * {@code true} if such procedure succeeds; otherwise, won't do anything
+     * and will return {@code false}.<br>
+     *
+     * @param uc {@link UserControl} for the user whose tasks may need
+     *           scheduling
+     * @return {@code true} if a task and resource were selected
+     * successfully, and the task was sent to be executed in the resource
+     * successfully; {@code false} otherwise
+     */
+    protected abstract boolean canScheduleTaskFor(UserControl uc);
 }

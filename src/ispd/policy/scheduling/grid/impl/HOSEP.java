@@ -10,7 +10,6 @@ import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -23,24 +22,7 @@ public class HOSEP extends AbstractHOSEP {
         this.filaEscravo = new ArrayList<>();
     }
 
-    @Override
-    public void escalonar() {
-        for (final var uc : this.sortedUserControls()) {
-            if (this.canScheduleTaskFor(uc)) {
-                return;
-            }
-        }
-    }
-
-
-    private List<UserControl> sortedUserControls() {
-        return this.userControls.values().stream()
-                .sorted()
-                .toList();
-    }
-
-
-    private boolean canScheduleTaskFor(final UserControl uc) {
+    protected boolean canScheduleTaskFor(final UserControl uc) {
         try {
             this.tryFindTaskAndResourceFor(uc);
             return true;
@@ -235,6 +217,4 @@ public class HOSEP extends AbstractHOSEP {
                 .max(Comparator.naturalOrder())
                 .orElseThrow();
     }
-
-
 }
