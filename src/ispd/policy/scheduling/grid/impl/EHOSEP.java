@@ -1,11 +1,9 @@
 package ispd.policy.scheduling.grid.impl;
 
 import ispd.annotations.Policy;
-import ispd.motor.Mensagens;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
@@ -51,32 +49,6 @@ public class EHOSEP extends AbstractHOSEP {
         }
 
         this.slaveControls.get(machine).setAsBlocked();
-    }
-
-
-    @Override
-    protected void hostTaskWithPreemption(
-            final Tarefa taskToSchedule, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        final var taskToPreempt = this.taskToPreemptIn(machine);
-
-        this.preemptionEntries.add(
-                new PreemptionEntry(taskToPreempt, taskToSchedule)
-        );
-
-        this.tasksToSchedule.add(taskToSchedule);
-
-        this.mestre.sendMessage(
-                taskToPreempt,
-                machine,
-                Mensagens.DEVOLVER_COM_PREEMPCAO
-        );
-
-        taskOwner.decreaseTaskDemand();
-    }
-
-    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).firstTaskInProcessing();
     }
 
     @Override

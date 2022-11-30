@@ -1,5 +1,6 @@
 package ispd.policy.scheduling.grid.impl;
 
+import ispd.motor.Mensagens;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -232,9 +233,29 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         uc.decreaseTaskDemand();
     }
 
-    protected abstract void hostTaskWithPreemption(
-            Tarefa taskToSchedule, UserControl taskOwner,
-            CS_Processamento machine);
+    protected void hostTaskWithPreemption(
+            final Tarefa taskToSchedule, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        final var taskToPreempt = this.taskToPreemptIn(machine);
+
+        this.preemptionEntries.add(
+                new PreemptionEntry(taskToPreempt, taskToSchedule)
+        );
+
+        this.tasksToSchedule.add(taskToSchedule);
+
+        this.mestre.sendMessage(
+                taskToPreempt,
+                machine,
+                Mensagens.DEVOLVER_COM_PREEMPCAO
+        );
+
+        taskOwner.decreaseTaskDemand();
+    }
+
+    protected Tarefa taskToPreemptIn(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).firstTaskInProcessing();
+    }
 
     protected abstract void sendTaskToResource(
             Tarefa task, CentroServico resource);
