@@ -24,13 +24,6 @@ public class HOSEP extends AbstractHOSEP {
     }
 
     @Override
-    public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.escravos.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
-    }
-
-
-    @Override
     public void escalonar() {
         for (final var uc : this.sortedUserControls()) {
             if (this.canScheduleTaskFor(uc)) {

@@ -40,12 +40,6 @@ public class EHOSEP extends AbstractHOSEP {
         return uc;
     }
 
-    @Override
-    public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.escravos.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
-    }
-
 
     /**
      * Attempts to schedule a task and a suitable machine for one of the

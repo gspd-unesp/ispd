@@ -3,6 +3,7 @@ package ispd.policy.scheduling.grid.impl;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
+import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.SchedulingPolicy;
 import ispd.policy.scheduling.grid.GridMaster;
@@ -11,9 +12,11 @@ import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -176,5 +179,11 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
 
     protected static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
+    }
+
+    @Override
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
 }
