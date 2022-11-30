@@ -25,26 +25,6 @@ public class HOSEP extends AbstractHOSEP {
         this.filaEscravo = new ArrayList<>();
     }
 
-
-    /**
-     * This algorithm's task scheduling does not conform to the standard
-     * {@link SchedulingPolicy} interface.<br>
-     * Therefore, calling this method on instances of this algorithm will
-     * result in an {@link UnsupportedOperationException} being thrown.
-     *
-     * @return not applicable in this context, an exception is thrown instead.
-     * @throws UnsupportedOperationException whenever called.
-     */
-    @Override
-    public Tarefa escalonarTarefa() {
-        throw new UnsupportedOperationException("""
-                Do not call method .escalonarTarefa() on instances of HOSEP.""");
-    }    @Override
-    public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.escravos.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
-    }
-
     @Override
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
@@ -61,13 +41,6 @@ public class HOSEP extends AbstractHOSEP {
         } else if (sc.isBlocked()) {
             this.processPreemptedTask(tarefa);
         }
-    }    @Override
-    public void escalonar() {
-        for (final var uc : this.sortedUserControls()) {
-            if (this.canScheduleTaskFor(uc)) {
-                return;
-            }
-        }
     }
 
     @Override
@@ -77,19 +50,6 @@ public class HOSEP extends AbstractHOSEP {
 
         sc.setTasksInProcessing(mensagem.getProcessadorEscravo());
         sc.updateStatusIfNeeded();
-    }    /**
-     * This algorithm's resource scheduling does not conform to the standard
-     * {@link SchedulingPolicy} interface.<br>
-     * Therefore, calling this method on instances of this algorithm will
-     * result in an {@link UnsupportedOperationException} being thrown.
-     *
-     * @return not applicable in this context, an exception is thrown instead.
-     * @throws UnsupportedOperationException whenever called.
-     */
-    @Override
-    public CS_Processamento escalonarRecurso() {
-        throw new UnsupportedOperationException("""
-                Do not call method .escalonarRecurso() on instances of HOSEP.""");
     }
 
     @Override
@@ -103,17 +63,10 @@ public class HOSEP extends AbstractHOSEP {
         Optional.of(tarefa)
                 .filter(HOSEP::hasProcessingCenter)
                 .ifPresent(this::processPreemptedTask);
-    }    @Override
-    public Double getTempoAtualizar() {
-        return AbstractHOSEP.REFRESH_TIME;
     }
 
     private static boolean hasProcessingCenter(final Tarefa tarefa) {
         return tarefa.getLocalProcessamento() != null;
-    }    private List<UserControl> sortedUserControls() {
-        return this.userControls.values().stream()
-                .sorted()
-                .toList();
     }
 
     private void processPreemptedTask(final Tarefa task) {
@@ -124,13 +77,6 @@ public class HOSEP extends AbstractHOSEP {
                 .findFirst()
                 .ifPresent(t -> this
                         .insertTaskIntoPreemptedTaskSlot(t, task));
-    }    private boolean canScheduleTaskFor(final UserControl uc) {
-        try {
-            this.tryFindTaskAndResourceFor(uc);
-            return true;
-        } catch (final NoSuchElementException | IllegalStateException ex) {
-            return false;
-        }
     }
 
     private void insertTaskIntoPreemptedTaskSlot(
@@ -148,7 +94,80 @@ public class HOSEP extends AbstractHOSEP {
                 .decreaseAvailableProcessingPower(mach.getPoderComputacional());
 
         this.preemptionEntries.remove(pe);
-    }    private void tryFindTaskAndResourceFor(final UserControl uc) {
+    }
+
+    private void senTaskFromUserToMachine(
+            final Tarefa task, final UserControl taskOwner,
+            final CS_Processamento machine) {
+        this.mestre.sendTask(task);
+        // TODO: Inherit behavior
+        taskOwner.increaseAvailableProcessingPower(machine.getPoderComputacional());
+    }
+
+    private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
+        return this.preemptionEntries.stream()
+                .filter(pe -> pe.willPreemptTask(t))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    @Override
+    public List<CentroServico> escalonarRota(final CentroServico destino) {
+        final int index = this.escravos.indexOf(destino);
+        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
+    }
+
+
+    @Override
+    public void escalonar() {
+        for (final var uc : this.sortedUserControls()) {
+            if (this.canScheduleTaskFor(uc)) {
+                return;
+            }
+        }
+    }
+
+
+    /**
+     * This algorithm's resource scheduling does not conform to the standard
+     * {@link SchedulingPolicy} interface.<br>
+     * Therefore, calling this method on instances of this algorithm will
+     * result in an {@link UnsupportedOperationException} being thrown.
+     *
+     * @return not applicable in this context, an exception is thrown instead.
+     * @throws UnsupportedOperationException whenever called.
+     */
+    @Override
+    public CS_Processamento escalonarRecurso() {
+        throw new UnsupportedOperationException("""
+                Do not call method .escalonarRecurso() on instances of HOSEP.""");
+    }
+
+
+    @Override
+    public Double getTempoAtualizar() {
+        return AbstractHOSEP.REFRESH_TIME;
+    }
+
+
+    private List<UserControl> sortedUserControls() {
+        return this.userControls.values().stream()
+                .sorted()
+                .toList();
+    }
+
+
+    private boolean canScheduleTaskFor(final UserControl uc) {
+        try {
+            this.tryFindTaskAndResourceFor(uc);
+            return true;
+        } catch (final NoSuchElementException | IllegalStateException ex) {
+            return false;
+        }
+    }
+
+
+    private void tryFindTaskAndResourceFor(final UserControl uc) {
         final var task = this
                 .findTaskSuitableFor(uc)
                 .orElseThrow();
@@ -160,12 +179,8 @@ public class HOSEP extends AbstractHOSEP {
         this.tryHostTaskFromUserWithMachine(task, uc, machine);
     }
 
-    private PreemptionEntry findEntryForPreemptedTask(final Tarefa t) {
-        return this.preemptionEntries.stream()
-                .filter(pe -> pe.willPreemptTask(t))
-                .findFirst()
-                .orElseThrow();
-    }    private void tryHostTaskFromUserWithMachine(
+
+    private void tryHostTaskFromUserWithMachine(
             final Tarefa task, final UserControl taskOwner,
             final CS_Processamento machine) {
         if (!this.canMachineHostNewTask(machine)) {
@@ -199,13 +214,6 @@ public class HOSEP extends AbstractHOSEP {
         uc.decreaseTaskDemand();
     }
 
-    private void senTaskFromUserToMachine(
-            final Tarefa task, final UserControl taskOwner,
-            final CS_Processamento machine) {
-        this.mestre.sendTask(task);
-        // TODO: Inherit behavior
-        taskOwner.increaseAvailableProcessingPower(machine.getPoderComputacional());
-    }
 
     private void hostTaskWithPreemption(
             final Tarefa taskToSchedule, final UserControl taskOwner,
@@ -344,20 +352,6 @@ public class HOSEP extends AbstractHOSEP {
                 .max(Comparator.naturalOrder())
                 .orElseThrow();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

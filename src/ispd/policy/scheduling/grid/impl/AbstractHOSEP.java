@@ -3,6 +3,7 @@ package ispd.policy.scheduling.grid.impl;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.PolicyConditions;
+import ispd.policy.scheduling.SchedulingPolicy;
 import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
@@ -53,5 +54,20 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
                 .sum();
 
         return new UserControl(userId, compPower, this.escravos);
+    }
+
+    /**
+     * This algorithm's task scheduling does not conform to the standard
+     * {@link SchedulingPolicy} interface.<br>
+     * Therefore, calling this method on instances of this algorithm will
+     * result in an {@link UnsupportedOperationException} being thrown.
+     *
+     * @return not applicable in this context, an exception is thrown instead.
+     * @throws UnsupportedOperationException whenever called.
+     */
+    @Override
+    public Tarefa escalonarTarefa() {
+        throw new UnsupportedOperationException("""
+                Do not call method .escalonarTarefa() on HOSEP-like algorithms.""");
     }
 }

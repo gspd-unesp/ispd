@@ -42,21 +42,6 @@ public class EHOSEP extends AbstractHOSEP {
         return uc;
     }
 
-    /**
-     * This algorithm's task scheduling does not conform to the standard
-     * {@link SchedulingPolicy} interface.<br>
-     * Therefore, calling this method on instances of this algorithm will
-     * result in an {@link UnsupportedOperationException} being thrown.
-     *
-     * @return not applicable in this context, an exception is thrown instead.
-     * @throws UnsupportedOperationException whenever called.
-     */
-    @Override
-    public Tarefa escalonarTarefa() {
-        throw new UnsupportedOperationException("""
-                Do not call method .escalonarTarefa() on instances of EHOSEP.""");
-    }
-
     @Override
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
