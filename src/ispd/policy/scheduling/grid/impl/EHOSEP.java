@@ -450,9 +450,4 @@ public class EHOSEP extends AbstractHOSEP {
             return processingSize;
         }
     }
-
-    @Override
-    public Double getTempoAtualizar() {
-        return AbstractHOSEP.REFRESH_TIME;
-    }
 }

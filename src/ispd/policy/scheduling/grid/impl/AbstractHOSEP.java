@@ -71,6 +71,11 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
                 Do not call method .escalonarRecurso() on HOSEP-like algorithms.""");
     }
 
+    @Override
+    public Double getTempoAtualizar() {
+        return AbstractHOSEP.REFRESH_TIME;
+    }
+
     /**
      * This algorithm's task scheduling does not conform to the standard
      * {@link SchedulingPolicy} interface.<br>

@@ -127,12 +127,6 @@ public class HOSEP extends AbstractHOSEP {
     }
 
 
-    @Override
-    public Double getTempoAtualizar() {
-        return AbstractHOSEP.REFRESH_TIME;
-    }
-
-
     private List<UserControl> sortedUserControls() {
         return this.userControls.values().stream()
                 .sorted()
