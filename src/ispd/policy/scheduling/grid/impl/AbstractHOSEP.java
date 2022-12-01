@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 
 public abstract class AbstractHOSEP <T extends UserControl> extends GridSchedulingPolicy {
     private static final double REFRESH_TIME = 15.0;
-    protected final Map<String, UserControl> userControls = new HashMap<>();
+    protected final Map<String, T> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
     private final Collection<Tarefa> tasksToSchedule = new HashSet<>();
@@ -61,7 +61,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
             this.slaveControls.put(s, new SlaveControl());
     }
 
-    protected abstract UserControl makeUserControlFor(
+    protected abstract T makeUserControlFor(
             String userId,
             Collection<? extends CS_Processamento> userOwnedMachines
     );
@@ -117,7 +117,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
         return AbstractHOSEP.REFRESH_TIME;
     }
 
-    private List<UserControl> sortedUserControls() {
+    private List<T> sortedUserControls() {
         return this.userControls.values().stream()
                 .sorted()
                 .toList();
@@ -136,7 +136,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
      * successfully, and the task was sent to be executed in the resource
      * successfully; {@code false} otherwise
      */
-    private boolean canScheduleTaskFor(final UserControl uc) {
+    private boolean canScheduleTaskFor(final T uc) {
         try {
             this.tryFindTaskAndResourceFor(uc);
             return true;
@@ -165,7 +165,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
      * @throws IllegalStateException  if hosting the selected task in the
      *                                selected resource fails
      */
-    private void tryFindTaskAndResourceFor(final UserControl uc) {
+    private void tryFindTaskAndResourceFor(final T uc) {
         final var task = this
                 .findTaskSuitableFor(uc)
                 .orElseThrow();
@@ -199,7 +199,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
      * @see #canMachineHostNewTask(CS_Processamento) Machine Status Validation
      */
     private void tryHostTaskFromUserInMachine(
-            final Tarefa task, final UserControl taskOwner,
+            final Tarefa task, final T taskOwner,
             final CS_Processamento machine) {
         if (!this.canMachineHostNewTask(machine)) {
             throw new IllegalStateException("""
@@ -211,7 +211,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
     }
 
     private void hostTaskFromUserInMachine(
-            final Tarefa task, final UserControl taskOwner,
+            final Tarefa task, final T taskOwner,
             final CS_Processamento machine) {
         this.sendTaskToResource(task, machine);
         this.tarefas.remove(task);
@@ -226,21 +226,21 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
     }
 
     private void hostTaskNormally(
-            final Tarefa task, final UserControl uc,
+            final Tarefa task, final T uc,
             final CS_Processamento machine) {
         this.sendTaskFromUserToMachine(task, uc, machine);
         uc.decreaseTaskDemand();
     }
 
     private void sendTaskFromUserToMachine(
-            final Tarefa task, final UserControl taskOwner,
+            final Tarefa task, final T taskOwner,
             final CS_Processamento machine) {
         this.mestre.sendTask(task);
         taskOwner.startTaskFrom(machine);
     }
 
     private void hostTaskWithPreemption(
-            final Tarefa taskToSchedule, final UserControl taskOwner,
+            final Tarefa taskToSchedule, final T taskOwner,
             final CS_Processamento machine) {
         final var taskToPreempt = this.taskToPreemptIn(machine);
 
@@ -269,7 +269,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
         return this.slaveControls.get(machine).canHostNewTask();
     }
 
-    private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
+    private Optional<Tarefa> findTaskSuitableFor(final T uc) {
         if (!this.isUserEligibleForTask(uc)) {
             return Optional.empty();
         }
@@ -278,23 +278,23 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
                 .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
     }
 
-    protected boolean isUserEligibleForTask(final UserControl uc) {
+    protected boolean isUserEligibleForTask(final T uc) {
         return uc.hasTaskDemand();
     }
 
-    private Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
+    private Stream<Tarefa> tasksOwnedBy(final T uc) {
         return this.tarefas.stream().filter(uc::isOwnerOf);
     }
 
     private Optional<CS_Processamento> findMachineBestSuitedFor(
-            final Tarefa task, final UserControl taskOwner) {
+            final Tarefa task, final T taskOwner) {
         return this
                 .findAvailableMachineBestSuitedFor(task, taskOwner)
                 .or(() -> this.findOccupiedMachineBestSuitedFor(taskOwner));
     }
 
     private Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
-            final Tarefa task, final UserControl taskOwner) {
+            final Tarefa task, final T taskOwner) {
         return this.availableMachinesFor(taskOwner)
                 .max(this.compareAvailableMachinesFor(task));
     }
@@ -303,7 +303,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
         return Comparator.comparingDouble(CS_Processamento::getPoderComputacional);
     }
 
-    protected Stream<CS_Processamento> availableMachinesFor(final UserControl taskOwner) {
+    protected Stream<CS_Processamento> availableMachinesFor(final T taskOwner) {
         return this.escravos.stream().filter(this::isMachineAvailable);
     }
 
@@ -311,7 +311,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
         return this.slaveControls.get(machine).isFree();
     }
 
-    private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
+    private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final T taskOwner) {
         // If no available machine is found, preemption may be used to force
         // the task into one. However, if the task owner has excess
         // processing power, preemption will NOT be used to accommodate them
@@ -323,15 +323,15 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
         return this.findMachineToPreemptFor(taskOwner);
     }
 
-    protected Optional<CS_Processamento> findMachineToPreemptFor(final UserControl taskOwner) {
+    protected Optional<CS_Processamento> findMachineToPreemptFor(final T taskOwner) {
         return this.findUserToPreemptFor(taskOwner).flatMap(
                 userToPreempt -> this.findMachineToTransferBetween(userToPreempt, taskOwner));
     }
 
-    protected abstract Optional<UserControl> findUserToPreemptFor(UserControl taskOwner);
+    protected abstract Optional<T> findUserToPreemptFor(T taskOwner);
 
     protected Optional<CS_Processamento> findMachineToTransferBetween(
-            final UserControl userToPreempt, final UserControl taskOwner) {
+            final T userToPreempt, final T taskOwner) {
         return this.machinesTransferableBetween(userToPreempt, taskOwner)
                 .min(this.compareOccupiedMachines())
                 .filter(machine -> this.shouldTransferMachine(
@@ -340,16 +340,16 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
 
     protected boolean shouldTransferMachine(
             final CS_Processamento machine,
-            final UserControl machineOwner, final UserControl nextOwner) {
+            final T machineOwner, final T nextOwner) {
         return machineOwner.canConcedeProcessingPower(machine);
     }
 
     protected Stream<CS_Processamento> machinesTransferableBetween(
-            final UserControl userToPreempt, final UserControl taskOwner) {
+            final T userToPreempt, final T taskOwner) {
         return this.machinesOccupiedBy(userToPreempt);
     }
 
-    private Stream<CS_Processamento> machinesOccupiedBy(final UserControl userToPreempt) {
+    private Stream<CS_Processamento> machinesOccupiedBy(final T userToPreempt) {
         return this.escravos.stream()
                 .filter(this::isMachineOccupied)
                 .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)));
@@ -367,7 +367,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
         return Comparator.comparingDouble(CS_Processamento::getPoderComputacional);
     }
 
-    protected UserControl theBestUser() {
+    protected T theBestUser() {
         return this.userControls.values().stream()
                 .max(Comparator.naturalOrder())
                 .orElseThrow();
