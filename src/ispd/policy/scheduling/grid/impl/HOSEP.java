@@ -4,22 +4,20 @@ import ispd.annotations.Policy;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 @Policy
 public class HOSEP extends AbstractHOSEP {
-    public HOSEP() {
-        this.tarefas = new ArrayList<>();
-        this.escravos = new ArrayList<>();
-        this.filaEscravo = new ArrayList<>();
+    @Override
+    protected Optional<UserControl> findUserToPreemptFor(final UserControl taskOwner) {
+        return Optional.of(this.theBestUser());
     }
 
     @Override
     protected boolean shouldTransferMachine(
             final CS_Processamento machine,
             final UserControl machineOwner, final UserControl nextOwner) {
-        if (machineOwner.canConcedeProcessingPower(machine)) {
+        if (super.shouldTransferMachine(machine, machineOwner, nextOwner)) {
             return true;
         }
 
@@ -30,10 +28,4 @@ public class HOSEP extends AbstractHOSEP {
 
         return machineOwnerPenalty >= nextOwnerPenalty;
     }
-
-    @Override
-    protected Optional<UserControl> findUserToPreemptFor(final UserControl taskOwner) {
-        return Optional.of(this.theBestUser());
-    }
-
 }

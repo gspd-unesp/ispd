@@ -28,11 +28,17 @@ import java.util.stream.Stream;
 public abstract class AbstractHOSEP extends GridSchedulingPolicy {
     private static final double REFRESH_TIME = 15.0;
     protected final Map<String, UserControl> userControls = new HashMap<>();
-    protected final Map<CS_Processamento, SlaveControl> slaveControls =
+    private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
-    protected final Collection<Tarefa> tasksToSchedule = new HashSet<>();
-    protected final Collection<PreemptionEntry> preemptionEntries =
+    private final Collection<Tarefa> tasksToSchedule = new HashSet<>();
+    private final Collection<PreemptionEntry> preemptionEntries =
             new HashSet<>();
+
+    protected AbstractHOSEP() {
+        this.tarefas = new ArrayList<>();
+        this.escravos = new ArrayList<>();
+        this.filaEscravo = new ArrayList<>();
+    }
 
     @Override
     public void iniciar() {
@@ -268,7 +274,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.slaveControls.get(machine).canHostNewTask();
     }
 
-    protected Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
+    private Optional<Tarefa> findTaskSuitableFor(final UserControl uc) {
         if (!this.isUserEligibleForTask(uc)) {
             return Optional.empty();
         }
@@ -281,18 +287,18 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return uc.hasTaskDemand();
     }
 
-    protected Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
+    private Stream<Tarefa> tasksOwnedBy(final UserControl uc) {
         return this.tarefas.stream().filter(uc::isOwnerOf);
     }
 
-    protected Optional<CS_Processamento> findMachineBestSuitedFor(
+    private Optional<CS_Processamento> findMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this
                 .findAvailableMachineBestSuitedFor(task, taskOwner)
                 .or(() -> this.findOccupiedMachineBestSuitedFor(taskOwner));
     }
 
-    protected Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
+    private Optional<CS_Processamento> findAvailableMachineBestSuitedFor(
             final Tarefa task, final UserControl taskOwner) {
         return this.availableMachinesFor(taskOwner)
                 .max(this.compareAvailableMachinesFor(task));
@@ -306,11 +312,11 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.escravos.stream().filter(this::isMachineAvailable);
     }
 
-    protected boolean isMachineAvailable(final CS_Processamento machine) {
+    private boolean isMachineAvailable(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isFree();
     }
 
-    protected Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
+    private Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
         // If no available machine is found, preemption may be used to force
         // the task into one. However, if the task owner has excess
         // processing power, preemption will NOT be used to accommodate them
@@ -337,16 +343,18 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
                         machine, userToPreempt, taskOwner));
     }
 
-    protected abstract boolean shouldTransferMachine(
-            CS_Processamento machine,
-            UserControl machineOwner, UserControl nextOwner);
+    protected boolean shouldTransferMachine(
+            final CS_Processamento machine,
+            final UserControl machineOwner, final UserControl nextOwner) {
+        return machineOwner.canConcedeProcessingPower(machine);
+    }
 
     protected Stream<CS_Processamento> machinesTransferableBetween(
             final UserControl userToPreempt, final UserControl taskOwner) {
         return this.machinesOccupiedBy(userToPreempt);
     }
 
-    protected Stream<CS_Processamento> machinesOccupiedBy(final UserControl userToPreempt) {
+    private Stream<CS_Processamento> machinesOccupiedBy(final UserControl userToPreempt) {
         return this.escravos.stream()
                 .filter(this::isMachineOccupied)
                 .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)));
@@ -356,7 +364,7 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.slaveControls.get(machine).firstTaskInProcessing();
     }
 
-    protected boolean isMachineOccupied(final CS_Processamento machine) {
+    private boolean isMachineOccupied(final CS_Processamento machine) {
         return this.slaveControls.get(machine).isOccupied();
     }
 
