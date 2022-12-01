@@ -2,7 +2,6 @@ package ispd.policy.scheduling.grid.impl.util;
 
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.metricas.MetricasUsuarios;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,8 +12,6 @@ public class UserControl implements Comparable<UserControl> {
     protected final double ownedMachinesProcessingPower;
     protected double energyEfficiencyRatioAgainstSystem;
     protected double ownedMachinesEnergyConsumption = 0.0;
-    protected double currentEnergyConsumption = 0.0;
-    protected double energyConsumptionLimit = 0.0;
     protected int taskDemand = 0;
     protected int availableMachineCount = 0;
     protected double availableProcessingPower = 0.0;
@@ -56,14 +53,6 @@ public class UserControl implements Comparable<UserControl> {
         this.availableProcessingPower -= amount;
     }
 
-    public void decreaseEnergyConsumption(final double amount) {
-        this.currentEnergyConsumption -= amount;
-    }
-
-    public boolean hasLessEnergyConsumptionThan(final UserControl other) {
-        return this.energyConsumptionLimit <= other.energyConsumptionLimit;
-    }
-
     public boolean canConcedeProcessingPower(final CS_Processamento machine) {
         return this.availableProcessingPower - machine.getPoderComputacional() >= this.ownedMachinesProcessingPower;
     }
@@ -72,16 +61,8 @@ public class UserControl implements Comparable<UserControl> {
         return this.availableProcessingPower - this.ownedMachinesProcessingPower;
     }
 
-    public boolean canUseMachineWithoutExceedingEnergyLimit(final CS_Processamento machine) {
-        return this.currentEnergyConsumption + machine.getConsumoEnergia() <= this.energyConsumptionLimit;
-    }
-
     public boolean isOwnerOf(final Tarefa task) {
         return this.userId.equals(task.getProprietario());
-    }
-
-    public boolean hasExceededEnergyLimit() {
-        return this.currentEnergyConsumption >= this.energyConsumptionLimit;
     }
 
     public int currentTaskDemand() {
@@ -99,10 +80,6 @@ public class UserControl implements Comparable<UserControl> {
 
     public void increaseAvailableProcessingPower(final double amount) {
         this.availableProcessingPower += amount;
-    }
-
-    public void increaseEnergyConsumption(final double amount) {
-        this.currentEnergyConsumption += amount;
     }
 
     public void decreaseTaskDemand() {
@@ -148,12 +125,6 @@ public class UserControl implements Comparable<UserControl> {
 
     public long getOwnedMachinesCount() {
         return this.ownedMachinesCount;
-    }
-
-    public void calculateEnergyConsumptionLimit(final MetricasUsuarios metrics) {
-        final var metricsLimit = metrics.getLimites().get(this.userId);
-        this.energyConsumptionLimit =
-                this.ownedMachinesEnergyConsumption * metricsLimit / 100;
     }
 
     public boolean hasExcessProcessingPower() {
