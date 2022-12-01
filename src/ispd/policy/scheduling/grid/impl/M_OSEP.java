@@ -16,23 +16,24 @@ import java.util.List;
 
 @Policy
 public class M_OSEP extends AbstractOSEP {
-    private final List<SlaveControl> controleEscravos = new ArrayList<>();
-    private final List<Tarefa> esperaTarefas = new ArrayList<>();
-    private final List<PreemptionEntry> controlePreempcao = new ArrayList<>();
-    private final List<UserProcessingControl> status = new ArrayList<>();
-    private Tarefa tarefaSelec = null;
-    private int contadorEscravos = 0;
+    private final List<SlaveControl> slaveControls = new ArrayList<>();
+    private final List<Tarefa> tasksInWaiting = new ArrayList<>();
+    private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
+    private final List<UserProcessingControl> userControls = new ArrayList<>();
+    private Tarefa selectedTask = null;
+    private int slaveCounter = 0;
 
     @Override
     public void iniciar() {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
 
         for (final var user : this.metricaUsuarios.getUsuarios()) {
-            this.status.add(new UserProcessingControl(user, this.escravos));
+            this.userControls.add(new UserProcessingControl(user,
+                    this.escravos));
         }
 
         for (final var ignored : this.escravos) {
-            this.controleEscravos.add(new SlaveControl());
+            this.slaveControls.add(new SlaveControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
         }
     }
@@ -46,7 +47,7 @@ public class M_OSEP extends AbstractOSEP {
     @Override
     public void escalonar() {
         final var task = this.escalonarTarefa();
-        this.tarefaSelec = task;
+        this.selectedTask = task;
 
         if (task == null) {
             return;
@@ -56,27 +57,27 @@ public class M_OSEP extends AbstractOSEP {
 
         if (resource == null) {
             this.tarefas.add(task);
-            this.tarefaSelec = null;
+            this.selectedTask = null;
             return;
         }
 
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
         //Verifica se não é caso de preempção
-        if (!this.controleEscravos.get(this.escravos.indexOf(resource)).isPreempted()) {
-            this.status.get(this.metricaUsuarios.getUsuarios().indexOf(task.getProprietario()))
+        if (!this.slaveControls.get(this.escravos.indexOf(resource)).isPreempted()) {
+            this.userControls.get(this.metricaUsuarios.getUsuarios().indexOf(task.getProprietario()))
                     .increaseUsedProcessingPower(resource.getPoderComputacional());
             this.mestre.sendTask(task);
         } else {
             final int resourceIndex = this.escravos.indexOf(resource);
-            this.esperaTarefas.add(task);
-            this.controlePreempcao.add(new PreemptionEntry(
+            this.tasksInWaiting.add(task);
+            this.preemptionEntries.add(new PreemptionEntry(
                     this.firstTaskIn(resourceIndex).getProprietario(),
                     this.firstTaskIn(resourceIndex).getIdentificador(),
                     task.getProprietario(),
                     task.getIdentificador()
             ));
-            this.status
+            this.userControls
                     .get(this.metricaUsuarios.getUsuarios().indexOf(this.firstTaskIn(resourceIndex).getProprietario()))
                     .decreaseUsedProcessingPower(resource.getPoderComputacional());
         }
@@ -102,16 +103,16 @@ public class M_OSEP extends AbstractOSEP {
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
-            if ((this.status.get(i).currentlyUsedProcessingPower() < this.status.get(i).getOwnedMachinesProcessingPower()) && demanda) {
+            if ((this.userControls.get(i).currentlyUsedProcessingPower() < this.userControls.get(i).getOwnedMachinesProcessingPower()) && demanda) {
 
                 if (difUsuarioMinimo == (double) -1) {
                     difUsuarioMinimo =
-                            this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyUsedProcessingPower();
+                            this.userControls.get(i).getOwnedMachinesProcessingPower() - this.userControls.get(i).currentlyUsedProcessingPower();
                     indexUsuarioMinimo = i;
                 } else {
-                    if (difUsuarioMinimo < this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyUsedProcessingPower()) {
+                    if (difUsuarioMinimo < this.userControls.get(i).getOwnedMachinesProcessingPower() - this.userControls.get(i).currentlyUsedProcessingPower()) {
                         difUsuarioMinimo =
-                                this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyUsedProcessingPower();
+                                this.userControls.get(i).getOwnedMachinesProcessingPower() - this.userControls.get(i).currentlyUsedProcessingPower();
                         indexUsuarioMinimo = i;
                     }
 
@@ -154,7 +155,7 @@ public class M_OSEP extends AbstractOSEP {
         final var maq = tarefa.getCSLProcessamento();
         final int indexUser =
                 this.metricaUsuarios.getUsuarios().indexOf(tarefa.getProprietario());
-        this.status.get(indexUser)
+        this.userControls.get(indexUser)
                 .decreaseUsedProcessingPower(maq.getPoderComputacional());
     }
 
@@ -162,23 +163,23 @@ public class M_OSEP extends AbstractOSEP {
     public void resultadoAtualizar(final Mensagem mensagem) {
         super.resultadoAtualizar(mensagem);
         final int index = this.escravos.indexOf(mensagem.getOrigem());
-        this.controleEscravos.get(index).setTasksInProcessing(mensagem.getProcessadorEscravo());
-        this.contadorEscravos++;
-        if (this.contadorEscravos == this.escravos.size()) {
+        this.slaveControls.get(index).setTasksInProcessing(mensagem.getProcessadorEscravo());
+        this.slaveCounter++;
+        if (this.slaveCounter == this.escravos.size()) {
             boolean escalona = false;
             for (int i = 0; i < this.escravos.size(); i++) {
-                if (this.controleEscravos.get(i).hasTasksInProcessing()
-                    && !this.controleEscravos.get(i).isPreempted()) {
-                    this.controleEscravos.get(i).setAsOccupied();
-                } else if (!this.controleEscravos.get(i).hasTasksInProcessing()
-                           && !this.controleEscravos.get(i).isPreempted()) {
+                if (this.slaveControls.get(i).hasTasksInProcessing()
+                    && !this.slaveControls.get(i).isPreempted()) {
+                    this.slaveControls.get(i).setAsOccupied();
+                } else if (!this.slaveControls.get(i).hasTasksInProcessing()
+                           && !this.slaveControls.get(i).isPreempted()) {
                     escalona = true;
-                    this.controleEscravos.get(i).setAsFree();
-                } else if (this.controleEscravos.get(i).isPreempted()) {
-                    this.controleEscravos.get(i).setAsBlocked();
+                    this.slaveControls.get(i).setAsFree();
+                } else if (this.slaveControls.get(i).isPreempted()) {
+                    this.slaveControls.get(i).setAsBlocked();
                 }
             }
-            this.contadorEscravos = 0;
+            this.slaveCounter = 0;
             if (!this.tarefas.isEmpty() && escalona) {
                 this.mestre.executeScheduling();
             }
@@ -199,21 +200,21 @@ public class M_OSEP extends AbstractOSEP {
         // enviada ao escravo agora desocupado
         int j;
         int indexControle = -1;
-        for (j = 0; j < this.controlePreempcao.size(); j++) {
-            if (this.controlePreempcao.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.controlePreempcao.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
+        for (j = 0; j < this.preemptionEntries.size(); j++) {
+            if (this.preemptionEntries.get(j).preemptedTaskId() == tarefa.getIdentificador() && this.preemptionEntries.get(j).preemptedTaskUser().equals(tarefa.getProprietario())) {
                 indexControle = j;
                 break;
             }
         }
 
-        for (int i = 0; i < this.esperaTarefas.size(); i++) {
-            if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).scheduledTaskId()) {
+        for (int i = 0; i < this.tasksInWaiting.size(); i++) {
+            if (this.tasksInWaiting.get(i).getProprietario().equals(this.preemptionEntries.get(indexControle).scheduledTaskUser()) && this.tasksInWaiting.get(i).getIdentificador() == this.preemptionEntries.get(j).scheduledTaskId()) {
                 final int indexUser =
-                        this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).scheduledTaskUser());
-                this.status.get(indexUser).increaseUsedProcessingPower(maq.getPoderComputacional());
-                this.mestre.sendTask(this.esperaTarefas.get(i));
-                this.esperaTarefas.remove(i);
-                this.controlePreempcao.remove(j);
+                        this.metricaUsuarios.getUsuarios().indexOf(this.preemptionEntries.get(indexControle).scheduledTaskUser());
+                this.userControls.get(indexUser).increaseUsedProcessingPower(maq.getPoderComputacional());
+                this.mestre.sendTask(this.tasksInWaiting.get(i));
+                this.tasksInWaiting.remove(i);
+                this.preemptionEntries.remove(j);
                 break;
             }
         }
@@ -228,17 +229,17 @@ public class M_OSEP extends AbstractOSEP {
 
         for (int i = 0; i < this.escravos.size(); i++) {
 
-            if (this.filaEscravo.get(i).isEmpty() && !this.controleEscravos.get(i).hasTasksInProcessing() && this.controleEscravos.get(i).isFree()) {//Garantir que o escravo está de fato livre e que não há nenhuma tarefa em trânsito para o escravo
+            if (this.filaEscravo.get(i).isEmpty() && !this.slaveControls.get(i).hasTasksInProcessing() && this.slaveControls.get(i).isFree()) {//Garantir que o escravo está de fato livre e que não há nenhuma tarefa em trânsito para o escravo
                 if (selec == null) {
                     selec = this.escravos.get(i);
-                } else if (Math.abs(this.escravos.get(i).getPoderComputacional() - this.tarefaSelec.getTamProcessamento()) < Math.abs(selec.getPoderComputacional() - this.tarefaSelec.getTamProcessamento())) {//Best Fit
+                } else if (Math.abs(this.escravos.get(i).getPoderComputacional() - this.selectedTask.getTamProcessamento()) < Math.abs(selec.getPoderComputacional() - this.selectedTask.getTamProcessamento())) {//Best Fit
                     selec = this.escravos.get(i);
                 }
             }
         }
 
         if (selec != null) {
-            this.controleEscravos.get(this.escravos.indexOf(selec)).setAsBlocked();//Inidcar que uma tarefa será enviada e que , portanto , este escravo deve ser bloqueada até a próxima atualização
+            this.slaveControls.get(this.escravos.indexOf(selec)).setAsBlocked();//Inidcar que uma tarefa será enviada e que , portanto , este escravo deve ser bloqueada até a próxima atualização
             return selec;
         }
 
@@ -247,19 +248,19 @@ public class M_OSEP extends AbstractOSEP {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
 
-            if (this.status.get(i).currentlyUsedProcessingPower() > this.status.get(i).getOwnedMachinesProcessingPower() && !this.metricaUsuarios.getUsuarios().get(i).equals(this.tarefaSelec.getProprietario())) {
+            if (this.userControls.get(i).currentlyUsedProcessingPower() > this.userControls.get(i).getOwnedMachinesProcessingPower() && !this.metricaUsuarios.getUsuarios().get(i).equals(this.selectedTask.getProprietario())) {
 
                 if (diff == (double) -1) {
 
                     usermax = this.metricaUsuarios.getUsuarios().get(i);
-                    diff = this.status.get(i).currentlyUsedProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower();
+                    diff = this.userControls.get(i).currentlyUsedProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower();
 
                 } else {
 
-                    if (this.status.get(i).currentlyUsedProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower() > diff) {
+                    if (this.userControls.get(i).currentlyUsedProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower() > diff) {
 
                         usermax = this.metricaUsuarios.getUsuarios().get(i);
-                        diff = this.status.get(i).currentlyUsedProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower();
+                        diff = this.userControls.get(i).currentlyUsedProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower();
 
                     }
 
@@ -273,7 +274,7 @@ public class M_OSEP extends AbstractOSEP {
         if (usermax != null) {
 
             for (int i = 0; i < this.escravos.size(); i++) {
-                if (this.controleEscravos.get(i).hasTasksInProcessing() && this.controleEscravos.get(i).isOccupied() && this.filaEscravo.get(i).isEmpty() && this.firstTaskIn(i).getProprietario().equals(usermax)) {
+                if (this.slaveControls.get(i).hasTasksInProcessing() && this.slaveControls.get(i).isOccupied() && this.filaEscravo.get(i).isEmpty() && this.firstTaskIn(i).getProprietario().equals(usermax)) {
                     if (index == -1) {
 
                         index = i;
@@ -301,24 +302,24 @@ public class M_OSEP extends AbstractOSEP {
             final int indexUserEscravo =
                     this.metricaUsuarios.getUsuarios().indexOf(tar.getProprietario());
             final int indexUserEspera =
-                    this.metricaUsuarios.getUsuarios().indexOf(this.tarefaSelec.getProprietario());
+                    this.metricaUsuarios.getUsuarios().indexOf(this.selectedTask.getProprietario());
 
             //Penalidade do usuário dono da tarefa em execução, caso a
             // preempção seja feita
             final double penalidaUserEscravoPosterior =
-                    (this.status.get(indexUserEscravo).currentlyUsedProcessingPower() - cs_processamento.getPoderComputacional() - this.status.get(indexUserEscravo).getOwnedMachinesProcessingPower()) / this.status.get(indexUserEscravo).getOwnedMachinesProcessingPower();
+                    (this.userControls.get(indexUserEscravo).currentlyUsedProcessingPower() - cs_processamento.getPoderComputacional() - this.userControls.get(indexUserEscravo).getOwnedMachinesProcessingPower()) / this.userControls.get(indexUserEscravo).getOwnedMachinesProcessingPower();
 
             //Penalidade do usuário dono da tarefa slecionada para ser posta
             // em execução, caso a preempção seja feita
             final double penalidaUserEsperaPosterior =
-                    (this.status.get(indexUserEspera).currentlyUsedProcessingPower() + cs_processamento.getPoderComputacional() - this.status.get(indexUserEspera).getOwnedMachinesProcessingPower()) / this.status.get(indexUserEspera).getOwnedMachinesProcessingPower();
+                    (this.userControls.get(indexUserEspera).currentlyUsedProcessingPower() + cs_processamento.getPoderComputacional() - this.userControls.get(indexUserEspera).getOwnedMachinesProcessingPower()) / this.userControls.get(indexUserEspera).getOwnedMachinesProcessingPower();
 
             //Caso o usuário em espera apresente menor penalidade e os donos
             // das tarefas em execução e em espera não sejam a mesma pessoa ,
             // e , ainda, o escravo esteja executando apenas uma tarefa
             if (penalidaUserEscravoPosterior <= penalidaUserEsperaPosterior || (penalidaUserEscravoPosterior > 0 && penalidaUserEsperaPosterior < 0)) {
                 final int i = this.escravos.indexOf(cs_processamento);
-                this.controleEscravos.get(this.escravos.indexOf(cs_processamento)).setAsPreempted();
+                this.slaveControls.get(this.escravos.indexOf(cs_processamento)).setAsPreempted();
                 this.mestre.sendMessage(this.firstTaskIn(i), cs_processamento
                         , Mensagens.DEVOLVER_COM_PREEMPCAO);
                 return cs_processamento;
@@ -329,6 +330,6 @@ public class M_OSEP extends AbstractOSEP {
     }
 
     private Tarefa firstTaskIn(final int i) {
-        return this.controleEscravos.get(i).firstTaskInProcessing();
+        return this.slaveControls.get(i).firstTaskInProcessing();
     }
 }
