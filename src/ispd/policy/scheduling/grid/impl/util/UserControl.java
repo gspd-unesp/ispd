@@ -8,13 +8,11 @@ import java.util.Collection;
 
 public class UserControl {
     protected final String userId;
-    protected final long ownedMachinesCount;
     protected final double ownedMachinesProcessingPower;
-    protected double energyEfficiencyRatioAgainstSystem;
-    protected double ownedMachinesEnergyConsumption = 0.0;
-    protected int taskDemand = 0;
-    protected int usedMachineCount = 0;
-    protected double usedProcessingPower = 0.0;
+    private final long ownedMachinesCount;
+    private int taskDemand = 0;
+    private int usedMachineCount = 0;
+    private double usedProcessingPower = 0.0;
 
     public UserControl(
             final String userId, final double ownedProcPower,

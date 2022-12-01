@@ -6,8 +6,10 @@ import ispd.motor.metricas.MetricasUsuarios;
 import java.util.Collection;
 
 public class EnergyUserControl extends UserControl {
-    protected double currentEnergyConsumption = 0.0;
-    protected double energyConsumptionLimit = 0.0;
+    private final double energyEfficiencyRatioAgainstSystem;
+    private double currentEnergyConsumption = 0.0;
+    private double energyConsumptionLimit = 0.0;
+    private double ownedMachinesEnergyConsumption = 0.0;
 
     public EnergyUserControl(
             final String userId, final double ownedProcPower,
@@ -17,7 +19,7 @@ public class EnergyUserControl extends UserControl {
                 this.energyEfficiencyRatioAgainst(systemMachines);
     }
 
-    public double energyEfficiencyRatioAgainst(
+    private double energyEfficiencyRatioAgainst(
             final Collection<? extends CS_Processamento> machines) {
         final var sysCompPower = machines.stream()
                 .mapToDouble(CS_Processamento::getPoderComputacional)
@@ -53,15 +55,15 @@ public class EnergyUserControl extends UserControl {
         this.increaseEnergyConsumption(machine.getConsumoEnergia());
     }
 
-    public void increaseEnergyConsumption(final double amount) {
+    private void increaseEnergyConsumption(final double amount) {
         this.currentEnergyConsumption += amount;
     }
 
-    public void decreaseEnergyConsumption(final double amount) {
+    private void decreaseEnergyConsumption(final double amount) {
         this.currentEnergyConsumption -= amount;
     }
 
-    public boolean hasExceededEnergyLimit() {
+    private boolean hasExceededEnergyLimit() {
         return this.currentEnergyConsumption >= this.energyConsumptionLimit;
     }
 
