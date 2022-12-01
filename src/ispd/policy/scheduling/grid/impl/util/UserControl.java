@@ -5,9 +5,8 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import jdk.jfr.Percentage;
 
 import java.util.Collection;
-import java.util.Comparator;
 
-public class UserControl implements Comparable<UserControl> {
+public class UserControl {
     protected final String userId;
     protected final long ownedMachinesCount;
     protected final double ownedMachinesProcessingPower;
@@ -95,29 +94,13 @@ public class UserControl implements Comparable<UserControl> {
         return this.usedMachineCount;
     }
 
-    @Override
-    public int compareTo(final UserControl o) {
-        // TODO: Document that comparison uses non-final fields
-        // TODO: Document ordering inconsistent with equals
-        return Comparator
-                .comparingDouble(UserControl::percentageOfProcessingPowerUsed)
-                .thenComparingDouble(UserControl::getOwnedMachinesProcessingPower)
-                .thenComparingDouble(UserControl::getOwnedMachinesEnergyConsumption)
-                .reversed()
-                .compare(this, o);
-    }
-
     @Percentage
-    private double percentageOfProcessingPowerUsed() {
+    public double percentageOfProcessingPowerUsed() {
         return this.usedProcessingPower / this.ownedMachinesProcessingPower;
     }
 
     public double getOwnedMachinesProcessingPower() {
         return this.ownedMachinesProcessingPower;
-    }
-
-    private double getOwnedMachinesEnergyConsumption() {
-        return this.ownedMachinesEnergyConsumption;
     }
 
     public long getOwnedMachinesCount() {

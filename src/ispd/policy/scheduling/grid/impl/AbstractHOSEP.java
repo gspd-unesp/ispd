@@ -75,7 +75,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
     /**
      * Attempts to schedule a task and a suitable machine for one of the
      * users, giving preference to users "first" in a sorted list according
-     * to the {@link UserControl#compareTo(UserControl) comparison criteria} of
+     * to the {@link #getUserComparator()} comparison criteria} of
      * {@link UserControl}.<br>
      * <p>
      * The method stops immediately upon any successful scheduling of a task
@@ -119,8 +119,14 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
 
     private List<T> sortedUserControls() {
         return this.userControls.values().stream()
-                .sorted()
+                .sorted(this.getUserComparator())
                 .toList();
+    }
+
+    protected Comparator<T> getUserComparator() {
+        return Comparator
+                .<T>comparingDouble(UserControl::percentageOfProcessingPowerUsed)
+                .thenComparingDouble(UserControl::getOwnedMachinesProcessingPower);
     }
 
     /**
@@ -365,7 +371,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
 
     protected T theBestUser() {
         return this.userControls.values().stream()
-                .max(Comparator.naturalOrder())
+                .max(this.getUserComparator())
                 .orElseThrow();
     }
 

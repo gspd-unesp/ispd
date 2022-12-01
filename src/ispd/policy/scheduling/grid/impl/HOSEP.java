@@ -10,6 +10,17 @@ import java.util.Optional;
 @Policy
 public class HOSEP extends AbstractHOSEP<UserControl> {
     @Override
+    protected UserControl makeUserControlFor(
+            final String userId,
+            final Collection<? extends CS_Processamento> userOwnedMachines) {
+        final double compPower = userOwnedMachines.stream()
+                .mapToDouble(CS_Processamento::getPoderComputacional)
+                .sum();
+
+        return new UserControl(userId, compPower, this.escravos);
+    }
+
+    @Override
     protected Optional<UserControl> findUserToPreemptFor(final UserControl taskOwner) {
         return Optional.of(this.theBestUser());
     }
@@ -28,16 +39,5 @@ public class HOSEP extends AbstractHOSEP<UserControl> {
                 nextOwner.penaltyWithProcessing(machine.getPoderComputacional());
 
         return machineOwnerPenalty >= nextOwnerPenalty;
-    }
-
-    @Override
-    protected UserControl makeUserControlFor(
-            final String userId,
-            final Collection<? extends CS_Processamento> userOwnedMachines) {
-        final double compPower = userOwnedMachines.stream()
-                .mapToDouble(CS_Processamento::getPoderComputacional)
-                .sum();
-
-        return new UserControl(userId, compPower, this.escravos);
     }
 }

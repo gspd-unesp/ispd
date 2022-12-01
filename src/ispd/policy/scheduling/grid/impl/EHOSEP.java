@@ -32,6 +32,12 @@ public class EHOSEP extends AbstractHOSEP<EnergyUserControl> {
     }
 
     @Override
+    protected Comparator<EnergyUserControl> getUserComparator() {
+        return super.getUserComparator()
+                .thenComparing(EnergyUserControl::getOwnedMachinesEnergyConsumption);
+    }
+
+    @Override
     protected Comparator<CS_Processamento> compareAvailableMachinesFor(final Tarefa task) {
         // Extracted as a variable to aid type inference
         final ToDoubleFunction<CS_Processamento> energyConsumption =
