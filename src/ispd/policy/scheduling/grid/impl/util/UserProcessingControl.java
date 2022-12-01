@@ -102,7 +102,7 @@ public class UserProcessingControl {
         this.taskDemand++;
     }
 
-    public int currentlyAvailableMachineCount() {
+    public int currentlyUsedMachineCount() {
         return this.usedMachineCount;
     }
 

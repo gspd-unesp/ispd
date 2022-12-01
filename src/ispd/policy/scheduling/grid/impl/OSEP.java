@@ -95,20 +95,21 @@ public class OSEP extends AbstractOSEP {
         int indexUsuarioMinimo = -1;
 
         //Encontrar o usuário que está mais abaixo da sua propriedade
-        for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
-            final var user = this.metricaUsuarios.getUsuarios().get(i);
+        final var users = this.metricaUsuarios.getUsuarios();
+        for (int i = 0; i < users.size(); i++) {
+            final var user = users.get(i);
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
-            if ((this.status.get(user).currentlyAvailableMachineCount() < this.status.get(user).getOwnedMachinesCount()) && this.status.get(user).currentTaskDemand() > 0) {
+            if ((this.status.get(user).currentlyUsedMachineCount() < this.status.get(user).getOwnedMachinesCount()) && this.status.get(user).currentTaskDemand() > 0) {
                 if (difUsuarioMinimo == -1) {
                     difUsuarioMinimo =
-                            this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyAvailableMachineCount();
+                            this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyUsedMachineCount();
                     indexUsuarioMinimo = i;
                 } else {
-                    if (difUsuarioMinimo < this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyAvailableMachineCount()) {
+                    if (difUsuarioMinimo < this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyUsedMachineCount()) {
                         difUsuarioMinimo =
-                                this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyAvailableMachineCount();
+                                this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyUsedMachineCount();
                         indexUsuarioMinimo = i;
                     }
                 }
@@ -119,7 +120,7 @@ public class OSEP extends AbstractOSEP {
             int indexTarefa = -1;
 
             for (int i = 0; i < this.tarefas.size(); i++) {
-                if (this.tarefas.get(i).getProprietario().equals(this.metricaUsuarios.getUsuarios().get(indexUsuarioMinimo))) {
+                if (this.tarefas.get(i).getProprietario().equals(users.get(indexUsuarioMinimo))) {
                     indexTarefa = i;
                     break;
                 }
@@ -247,15 +248,15 @@ public class OSEP extends AbstractOSEP {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
             user = this.metricaUsuarios.getUsuarios().get(i);
-            if (this.status.get(user).currentlyAvailableMachineCount() > this.status.get(user).getOwnedMachinesCount() && !user.equals(this.tarefaSelec.getProprietario())) {
+            if (this.status.get(user).currentlyUsedMachineCount() > this.status.get(user).getOwnedMachinesCount() && !user.equals(this.tarefaSelec.getProprietario())) {
 
                 if (diff == -1) {
                     usermax = this.metricaUsuarios.getUsuarios().get(i);
-                    diff = this.status.get(user).currentlyAvailableMachineCount() - this.status.get(user).getOwnedMachinesCount();
+                    diff = this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount();
                 } else {
-                    if (this.status.get(user).currentlyAvailableMachineCount() - this.status.get(user).getOwnedMachinesCount() > diff) {
+                    if (this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount() > diff) {
                         usermax = user;
-                        diff = this.status.get(user).currentlyAvailableMachineCount() - this.status.get(user).getOwnedMachinesCount();
+                        diff = this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount();
                     }
                 }
             }
