@@ -10,7 +10,7 @@ import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
-import ispd.policy.scheduling.grid.impl.util.UserControl;
+import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class M_OSEP extends GridSchedulingPolicy {
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
     private final List<PreemptionEntry> controlePreempcao = new ArrayList<>();
     private final List<List> processadorEscravos = new ArrayList<>();
-    private final List<UserControl> status = new ArrayList<>();
+    private final List<UserProcessingControl> status = new ArrayList<>();
     private Tarefa tarefaSelec = null;
     private int contadorEscravos = 0;
 
@@ -37,7 +37,7 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (final var user : this.metricaUsuarios.getUsuarios()) {
             final var comp = this.metricaUsuarios.getPoderComputacional(user);
-            this.status.add(new UserControl(user, this.escravos));
+            this.status.add(new UserProcessingControl(user, this.escravos));
         }
 
         for (int i = 0; i < this.escravos.size(); i++) {

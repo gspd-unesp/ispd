@@ -10,7 +10,7 @@ import ispd.policy.scheduling.SchedulingPolicy;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
-import ispd.policy.scheduling.grid.impl.util.UserControl;
+import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,7 +23,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public abstract class AbstractHOSEP <T extends UserControl> extends GridSchedulingPolicy {
+public abstract class AbstractHOSEP <T extends UserProcessingControl> extends GridSchedulingPolicy {
     private static final double REFRESH_TIME = 15.0;
     protected final Map<String, T> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
@@ -63,15 +63,15 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
      * Attempts to schedule a task and a suitable machine for one of the
      * users, giving preference to users "first" in a sorted list according
      * to the {@link #getUserComparator()} comparison criteria} of
-     * {@link UserControl}.<br>
+     * {@link UserProcessingControl}.<br>
      * <p>
      * The method stops immediately upon any successful scheduling of a task
      * in a resource, be it 'normally' or through preemption.
      * </p>
      * For details on scheduling criteria, see:
      * <ul>
-     * <li>{@link #findTaskSuitableFor(UserControl) Task selection}</li>
-     * <li>{@link #findMachineBestSuitedFor(Tarefa, UserControl) Machine
+     * <li>{@link #findTaskSuitableFor(UserProcessingControl) Task selection}</li>
+     * <li>{@link #findMachineBestSuitedFor(Tarefa, UserProcessingControl) Machine
      * selection}</li>
      * </ul>
      */
@@ -112,8 +112,8 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
 
     protected Comparator<T> getUserComparator() {
         return Comparator
-                .<T>comparingDouble(UserControl::percentageOfProcessingPowerUsed)
-                .thenComparingDouble(UserControl::getOwnedMachinesProcessingPower);
+                .<T>comparingDouble(UserProcessingControl::percentageOfProcessingPowerUsed)
+                .thenComparingDouble(UserProcessingControl::getOwnedMachinesProcessingPower);
     }
 
     /**
@@ -123,7 +123,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
      * {@code true} if such procedure succeeds; otherwise, won't do anything
      * and will return {@code false}.<br>
      *
-     * @param uc {@link UserControl} for the user whose tasks may need
+     * @param uc {@link UserProcessingControl} for the user whose tasks may need
      *           scheduling
      * @return {@code true} if a task and resource were selected
      * successfully, and the task was sent to be executed in the resource
@@ -149,12 +149,12 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
      * the exception thrown in the process. Namely,
      * {@link IllegalStateException}.<br>
      *
-     * @param uc {@link UserControl} representing the user whose tasks may
+     * @param uc {@link UserProcessingControl} representing the user whose tasks may
      *           need scheduling
      * @throws NoSuchElementException if it cannot select either an
      *                                appropriate task or a suitable resource
      *                                for a selected task, for the
-     *                                given {@link UserControl}
+     *                                given {@link UserProcessingControl}
      * @throws IllegalStateException  if hosting the selected task in the
      *                                selected resource fails
      */
@@ -182,7 +182,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
      *
      * @param task      {@link Tarefa task} to host in the given
      *                  {@link CS_Processamento machine}
-     * @param taskOwner {@link UserControl} representing the owner of the
+     * @param taskOwner {@link UserProcessingControl} representing the owner of the
      *                  given {@link Tarefa task}
      * @param machine   {@link CS_Processamento processing center} that may
      *                  host the task; it must be in a valid state to do so

@@ -2,26 +2,26 @@ package ispd.policy.scheduling.grid.impl;
 
 import ispd.annotations.Policy;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.policy.scheduling.grid.impl.util.UserControl;
+import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.Optional;
 
 @Policy
-public class HOSEP extends AbstractHOSEP<UserControl> {
+public class HOSEP extends AbstractHOSEP<UserProcessingControl> {
     @Override
-    protected UserControl makeUserControlFor(final String userId) {
-        return new UserControl(userId, this.escravos);
+    protected UserProcessingControl makeUserControlFor(final String userId) {
+        return new UserProcessingControl(userId, this.escravos);
     }
 
     @Override
-    protected Optional<UserControl> findUserToPreemptFor(final UserControl taskOwner) {
+    protected Optional<UserProcessingControl> findUserToPreemptFor(final UserProcessingControl taskOwner) {
         return Optional.of(this.theBestUser());
     }
 
     @Override
     protected boolean shouldTransferMachine(
             final CS_Processamento machine,
-            final UserControl machineOwner, final UserControl nextOwner) {
+            final UserProcessingControl machineOwner, final UserProcessingControl nextOwner) {
         if (super.shouldTransferMachine(machine, machineOwner, nextOwner)) {
             return true;
         }

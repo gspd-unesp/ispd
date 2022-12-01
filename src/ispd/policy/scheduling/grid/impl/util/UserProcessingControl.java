@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class UserControl {
+public class UserProcessingControl {
     private final String userId;
     private final long ownedMachinesCount;
     private final double ownedMachinesProcessingPower;
@@ -17,7 +17,7 @@ public class UserControl {
     private int usedMachineCount = 0;
     private double usedProcessingPower = 0.0;
 
-    public UserControl(
+    public UserProcessingControl(
             final String userId,
             final Collection<? extends CS_Processamento> systemMachines) {
         this.userId = userId;

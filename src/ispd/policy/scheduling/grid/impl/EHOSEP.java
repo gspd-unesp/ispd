@@ -3,7 +3,7 @@ package ispd.policy.scheduling.grid.impl;
 import ispd.annotations.Policy;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.policy.scheduling.grid.impl.util.EnergyUserControl;
+import ispd.policy.scheduling.grid.impl.util.UserEnergyControl;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -11,19 +11,19 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
 @Policy
-public class EHOSEP extends AbstractHOSEP<EnergyUserControl> {
+public class EHOSEP extends AbstractHOSEP<UserEnergyControl> {
     @Override
-    protected EnergyUserControl makeUserControlFor(final String userId) {
-        return new EnergyUserControl(
+    protected UserEnergyControl makeUserControlFor(final String userId) {
+        return new UserEnergyControl(
                 userId, this.escravos,
                 this.metricaUsuarios.getLimites().get(userId)
         );
     }
 
     @Override
-    protected Comparator<EnergyUserControl> getUserComparator() {
+    protected Comparator<UserEnergyControl> getUserComparator() {
         return super.getUserComparator()
-                .thenComparing(EnergyUserControl::getOwnedMachinesEnergyConsumption);
+                .thenComparing(UserEnergyControl::getOwnedMachinesEnergyConsumption);
     }
 
     @Override
@@ -46,27 +46,27 @@ public class EHOSEP extends AbstractHOSEP<EnergyUserControl> {
     }
 
     @Override
-    protected Stream<CS_Processamento> availableMachinesFor(final EnergyUserControl taskOwner) {
+    protected Stream<CS_Processamento> availableMachinesFor(final UserEnergyControl taskOwner) {
         return super.availableMachinesFor(taskOwner)
                 .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit);
     }
 
     @Override
-    protected Optional<CS_Processamento> findMachineToPreemptFor(final EnergyUserControl taskOwner) {
+    protected Optional<CS_Processamento> findMachineToPreemptFor(final UserEnergyControl taskOwner) {
         return this.findUserToPreemptFor(taskOwner).flatMap(
                 userToPreempt -> this.findMachineToTransferBetween(userToPreempt, taskOwner));
     }
 
     @Override
-    protected Optional<EnergyUserControl> findUserToPreemptFor(final EnergyUserControl taskOwner) {
+    protected Optional<UserEnergyControl> findUserToPreemptFor(final UserEnergyControl taskOwner) {
         return this.userControls.values().stream()
-                .filter(EnergyUserControl::hasExcessProcessingPower)
+                .filter(UserEnergyControl::hasExcessProcessingPower)
                 .max(EHOSEP.compareConsumptionWeightedByEfficiency())
                 .filter(taskOwner::hasLessEnergyConsumptionThan);
     }
 
     @Override
-    protected Stream<CS_Processamento> machinesTransferableBetween(final EnergyUserControl userToPreempt, final EnergyUserControl taskOwner) {
+    protected Stream<CS_Processamento> machinesTransferableBetween(final UserEnergyControl userToPreempt, final UserEnergyControl taskOwner) {
         return super.machinesTransferableBetween(userToPreempt, taskOwner)
                 .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit);
     }
@@ -93,9 +93,9 @@ public class EHOSEP extends AbstractHOSEP<EnergyUserControl> {
         }
     }
 
-    private static Comparator<EnergyUserControl> compareConsumptionWeightedByEfficiency() {
+    private static Comparator<UserEnergyControl> compareConsumptionWeightedByEfficiency() {
         return Comparator
-                .comparingDouble(EnergyUserControl::currentConsumptionWeightedByEfficiency)
-                .thenComparing(EnergyUserControl::excessProcessingPower);
+                .comparingDouble(UserEnergyControl::currentConsumptionWeightedByEfficiency)
+                .thenComparing(UserEnergyControl::excessProcessingPower);
     }
 }

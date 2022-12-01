@@ -4,13 +4,13 @@ import ispd.motor.filas.servidores.CS_Processamento;
 
 import java.util.Collection;
 
-public class EnergyUserControl extends UserControl {
+public class UserEnergyControl extends UserProcessingControl {
     private final double energyEfficiencyRatioAgainstSystem;
     private final double energyConsumptionLimit;
     private final double ownedMachinesEnergyConsumption;
     private double currentEnergyConsumption = 0.0;
 
-    public EnergyUserControl(
+    public UserEnergyControl(
             final String userId,
             final Collection<? extends CS_Processamento> systemMachines,
             final double energyConsPercentage) {
@@ -84,7 +84,7 @@ public class EnergyUserControl extends UserControl {
         return this.currentEnergyConsumption * this.energyEfficiencyRatioAgainstSystem;
     }
 
-    public boolean hasLessEnergyConsumptionThan(final EnergyUserControl other) {
+    public boolean hasLessEnergyConsumptionThan(final UserEnergyControl other) {
         return this.energyConsumptionLimit <= other.energyConsumptionLimit;
     }
 

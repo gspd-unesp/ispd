@@ -10,7 +10,7 @@ import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
-import ispd.policy.scheduling.grid.impl.util.UserControl;
+import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ public class OSEP extends GridSchedulingPolicy {
     private final List<PreemptionEntry> controlePreempcao =
             new ArrayList<>();
     private final List<List> processadorEscravos = new ArrayList<>();
-    private final HashMap<String, UserControl> status = new HashMap<>();
+    private final HashMap<String, UserProcessingControl> status = new HashMap<>();
     private Tarefa tarefaSelec = null;
     private int contadorEscravos = 0;
 
@@ -39,7 +39,7 @@ public class OSEP extends GridSchedulingPolicy {
 
         for (final var user : this.metricaUsuarios.getUsuarios()) {
             final var comp = this.metricaUsuarios.getPoderComputacional(user);
-            this.status.put(user, new UserControl(user, this.escravos));
+            this.status.put(user, new UserProcessingControl(user, this.escravos));
         }
 
         for (final var ignored : this.escravos) {
@@ -190,7 +190,7 @@ public class OSEP extends GridSchedulingPolicy {
         super.adicionarTarefa(tarefa);
         final CS_Processamento maq =
                 (CS_Processamento) tarefa.getLocalProcessamento();
-        final UserControl estadoUser =
+        final UserProcessingControl estadoUser =
                 this.status.get(tarefa.getProprietario());
         //Em caso de preempção, é procurada a tarefa correspondente para ser
         // enviada ao escravo agora desocupado
