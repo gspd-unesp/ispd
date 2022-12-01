@@ -14,6 +14,7 @@ import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Policy
 public class OSEP extends AbstractOSEP {
@@ -21,9 +22,8 @@ public class OSEP extends AbstractOSEP {
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
     private final List<PreemptionEntry> controlePreempcao =
             new ArrayList<>();
-    private final List<List> processadorEscravos = new ArrayList<>();
-    private final HashMap<String, UserProcessingControl> status =
-            new HashMap<>();
+    private final List<List<Tarefa>> processadorEscravos = new ArrayList<>();
+    private final Map<String, UserProcessingControl> status = new HashMap<>();
     private Tarefa tarefaSelec = null;
     private int contadorEscravos = 0;
 
@@ -45,7 +45,7 @@ public class OSEP extends AbstractOSEP {
         for (final var ignored : this.escravos) {
             this.controleEscravos.add(new SlaveControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
-            this.processadorEscravos.add(new ArrayList<Tarefa>());
+            this.processadorEscravos.add(new ArrayList<>());
         }
     }
 

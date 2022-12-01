@@ -19,7 +19,7 @@ public class M_OSEP extends AbstractOSEP {
     private final List<SlaveControl> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
     private final List<PreemptionEntry> controlePreempcao = new ArrayList<>();
-    private final List<List> processadorEscravos = new ArrayList<>();
+    private final List<List<Tarefa>> processadorEscravos = new ArrayList<>();
     private final List<UserProcessingControl> status = new ArrayList<>();
     private Tarefa tarefaSelec = null;
     private int contadorEscravos = 0;
@@ -41,7 +41,7 @@ public class M_OSEP extends AbstractOSEP {
         for (final var ignored : this.escravos) {
             this.controleEscravos.add(new SlaveControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
-            this.processadorEscravos.add(new ArrayList<Tarefa>());
+            this.processadorEscravos.add(new ArrayList<>());
         }
     }
 
