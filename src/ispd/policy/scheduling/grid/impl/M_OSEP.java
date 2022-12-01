@@ -37,7 +37,7 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (final var user : this.metricaUsuarios.getUsuarios()) {
             final var comp = this.metricaUsuarios.getPoderComputacional(user);
-            this.status.add(new UserControl(user, comp, this.escravos));
+            this.status.add(new UserControl(user, this.escravos));
         }
 
         for (int i = 0; i < this.escravos.size(); i++) {

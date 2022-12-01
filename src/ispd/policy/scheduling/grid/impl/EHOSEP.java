@@ -5,7 +5,6 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.scheduling.grid.impl.util.EnergyUserControl;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.ToDoubleFunction;
@@ -14,21 +13,11 @@ import java.util.stream.Stream;
 @Policy
 public class EHOSEP extends AbstractHOSEP<EnergyUserControl> {
     @Override
-    protected EnergyUserControl makeUserControlFor(
-            final String userId,
-            final Collection<? extends CS_Processamento> userOwnedMachines) {
-        final double energyConsumption = userOwnedMachines.stream()
-                .mapToDouble(CS_Processamento::getConsumoEnergia)
-                .sum();
-
-        final double compPower = userOwnedMachines.stream()
-                .mapToDouble(CS_Processamento::getPoderComputacional)
-                .sum();
-
-        final var uc = new EnergyUserControl(userId, compPower, this.escravos);
-        uc.setOwnedMachinesEnergyConsumption(energyConsumption);
-        uc.calculateEnergyConsumptionLimit(this.metricaUsuarios);
-        return uc;
+    protected EnergyUserControl makeUserControlFor(final String userId) {
+        return new EnergyUserControl(
+                userId, this.escravos,
+                this.metricaUsuarios.getLimites().get(userId)
+        );
     }
 
     @Override

@@ -39,7 +39,7 @@ public class OSEP extends GridSchedulingPolicy {
 
         for (final var user : this.metricaUsuarios.getUsuarios()) {
             final var comp = this.metricaUsuarios.getPoderComputacional(user);
-            this.status.put(user, new UserControl(user, comp, this.escravos));
+            this.status.put(user, new UserControl(user, this.escravos));
         }
 
         for (final var ignored : this.escravos) {

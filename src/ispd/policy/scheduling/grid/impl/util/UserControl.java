@@ -2,27 +2,41 @@ package ispd.policy.scheduling.grid.impl.util;
 
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
+import ispd.policy.scheduling.grid.GridMaster;
 import jdk.jfr.Percentage;
 
 import java.util.Collection;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class UserControl {
-    protected final String userId;
-    protected final double ownedMachinesProcessingPower;
+    private final String userId;
     private final long ownedMachinesCount;
+    private final double ownedMachinesProcessingPower;
     private int taskDemand = 0;
     private int usedMachineCount = 0;
     private double usedProcessingPower = 0.0;
 
     public UserControl(
-            final String userId, final double ownedProcPower,
+            final String userId,
             final Collection<? extends CS_Processamento> systemMachines) {
         this.userId = userId;
-        // TODO: Warn if oPP is zero (ZDE in comparison)
-        this.ownedMachinesProcessingPower = ownedProcPower;
+
+        this.ownedMachinesProcessingPower = this
+                .ownedNonMasterMachinesIn(systemMachines)
+                .mapToDouble(CS_Processamento::getPoderComputacional)
+                .sum();
+
         this.ownedMachinesCount = systemMachines.stream()
                 .filter(this::hasMachine)
-                .count();
+                .toList().size();
+    }
+
+    protected Stream<? extends CS_Processamento> ownedNonMasterMachinesIn(
+            final Collection<? extends CS_Processamento> systemMachines) {
+        return systemMachines.stream()
+                .filter(this::hasMachine)
+                .filter(Predicate.not(GridMaster.class::isInstance));
     }
 
     private boolean hasMachine(final CS_Processamento machine) {

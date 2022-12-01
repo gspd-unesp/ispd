@@ -7,7 +7,6 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.SchedulingPolicy;
-import ispd.policy.scheduling.grid.GridMaster;
 import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public abstract class AbstractHOSEP <T extends UserControl> extends GridSchedulingPolicy {
@@ -44,16 +42,8 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
     public void iniciar() {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
 
-        final var nonMasters = this.escravos.stream()
-                .filter(Predicate.not(GridMaster.class::isInstance))
-                .toList();
-
         for (final var userId : this.metricaUsuarios.getUsuarios()) {
-            final var userOwnedMachines = nonMasters.stream()
-                    .filter(machine -> userId.equals(machine.getProprietario()))
-                    .toList();
-
-            final var uc = this.makeUserControlFor(userId, userOwnedMachines);
+            final var uc = this.makeUserControlFor(userId);
             this.userControls.put(userId, uc);
         }
 
@@ -61,10 +51,7 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
             this.slaveControls.put(s, new SlaveControl());
     }
 
-    protected abstract T makeUserControlFor(
-            String userId,
-            Collection<? extends CS_Processamento> userOwnedMachines
-    );
+    protected abstract T makeUserControlFor(String userId);
 
     @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {

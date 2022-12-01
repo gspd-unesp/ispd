@@ -1,40 +1,53 @@
 package ispd.policy.scheduling.grid.impl.util;
 
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.metricas.MetricasUsuarios;
 
 import java.util.Collection;
 
 public class EnergyUserControl extends UserControl {
     private final double energyEfficiencyRatioAgainstSystem;
+    private final double energyConsumptionLimit;
+    private final double ownedMachinesEnergyConsumption;
     private double currentEnergyConsumption = 0.0;
-    private double energyConsumptionLimit = 0.0;
-    private double ownedMachinesEnergyConsumption = 0.0;
 
     public EnergyUserControl(
-            final String userId, final double ownedProcPower,
-            final Collection<? extends CS_Processamento> systemMachines) {
-        super(userId, ownedProcPower, systemMachines);
-        this.energyEfficiencyRatioAgainstSystem =
-                this.energyEfficiencyRatioAgainst(systemMachines);
-    }
+            final String userId,
+            final Collection<? extends CS_Processamento> systemMachines,
+            final double energyConsPercentage) {
+        super(userId, systemMachines);
 
-    private double energyEfficiencyRatioAgainst(
-            final Collection<? extends CS_Processamento> machines) {
-        final var sysCompPower = machines.stream()
-                .mapToDouble(CS_Processamento::getPoderComputacional)
-                .sum();
-
-        final var sysEnergyCons = machines.stream()
+        this.ownedMachinesEnergyConsumption = this
+                .ownedNonMasterMachinesIn(systemMachines)
                 .mapToDouble(CS_Processamento::getConsumoEnergia)
                 .sum();
 
-        final var sysEnergyEfficiency = sysCompPower / sysEnergyCons;
-        return sysEnergyEfficiency / this.energyEfficiency();
+        this.energyConsumptionLimit =
+                this.calculateEnergyConsumptionLimit(energyConsPercentage);
+
+        this.energyEfficiencyRatioAgainstSystem =
+                this.calculateEnergyEfficiencyRatioAgainst(systemMachines);
+    }
+
+    private double calculateEnergyConsumptionLimit(final double energyConsPercentage) {
+        return this.ownedMachinesEnergyConsumption * energyConsPercentage / 100;
+    }
+
+    private double calculateEnergyEfficiencyRatioAgainst(
+            final Collection<? extends CS_Processamento> machines) {
+        final var sysComputationPower = machines.stream()
+                .mapToDouble(CS_Processamento::getPoderComputacional)
+                .sum();
+
+        final var sysEnergyConsumption = machines.stream()
+                .mapToDouble(CS_Processamento::getConsumoEnergia)
+                .sum();
+
+        final var sysEnergyEff = sysComputationPower / sysEnergyConsumption;
+        return sysEnergyEff / this.energyEfficiency();
     }
 
     private double energyEfficiency() {
-        return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
+        return this.getOwnedMachinesProcessingPower() / this.ownedMachinesEnergyConsumption;
     }
 
     @Override
@@ -79,17 +92,7 @@ public class EnergyUserControl extends UserControl {
         return this.currentEnergyConsumption + machine.getConsumoEnergia() <= this.energyConsumptionLimit;
     }
 
-    public void calculateEnergyConsumptionLimit(final MetricasUsuarios metrics) {
-        final var metricsLimit = metrics.getLimites().get(this.userId);
-        this.energyConsumptionLimit =
-                this.ownedMachinesEnergyConsumption * metricsLimit / 100;
-    }
-
     public double getOwnedMachinesEnergyConsumption() {
         return this.ownedMachinesEnergyConsumption;
-    }
-
-    public void setOwnedMachinesEnergyConsumption(final double consumption) {
-        this.ownedMachinesEnergyConsumption = consumption;
     }
 }

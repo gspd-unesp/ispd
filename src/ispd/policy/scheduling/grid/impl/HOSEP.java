@@ -4,20 +4,13 @@ import ispd.annotations.Policy;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
-import java.util.Collection;
 import java.util.Optional;
 
 @Policy
 public class HOSEP extends AbstractHOSEP<UserControl> {
     @Override
-    protected UserControl makeUserControlFor(
-            final String userId,
-            final Collection<? extends CS_Processamento> userOwnedMachines) {
-        final double compPower = userOwnedMachines.stream()
-                .mapToDouble(CS_Processamento::getPoderComputacional)
-                .sum();
-
-        return new UserControl(userId, compPower, this.escravos);
+    protected UserControl makeUserControlFor(final String userId) {
+        return new UserControl(userId, this.escravos);
     }
 
     @Override
