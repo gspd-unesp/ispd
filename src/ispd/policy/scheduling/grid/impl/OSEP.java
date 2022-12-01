@@ -169,19 +169,12 @@ public class OSEP extends AbstractOSEP {
     private Optional<UserProcessingControl> getBestUserForSomeTask() {
         return this.status.values().stream()
                 .filter(this::isUserEligibleForTask)
-                .max(Comparator.comparingLong(this::calculateMachineExcess));
+                .max(Comparator
+                        .comparingLong(UserProcessingControl::excessMachines));
     }
 
     private boolean isUserEligibleForTask(final UserProcessingControl user) {
-        return this.hasMachineExcess(user) && user.isEligibleForTask();
-    }
-
-    private boolean hasMachineExcess(final UserProcessingControl uc) {
-        return uc.currentlyUsedMachineCount() < uc.getOwnedMachinesCount();
-    }
-
-    private long calculateMachineExcess(final UserProcessingControl uc) {
-        return uc.getOwnedMachinesCount() - uc.currentlyUsedMachineCount();
+        return user.hasExcessMachines() && user.isEligibleForTask();
     }
 
     private Optional<Tarefa> findAnyTaskOf(final UserProcessingControl uc) {
@@ -296,8 +289,8 @@ public class OSEP extends AbstractOSEP {
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
             if (this.isUserEligibleForTask(user)) {
-                if (maximalExcess == -1 || this.calculateMachineExcess(user) > maximalExcess) {
-                    maximalExcess = this.calculateMachineExcess(user);
+                if (maximalExcess == -1 || user.excessMachines() > maximalExcess) {
+                    maximalExcess = user.excessMachines();
                     selectedIndex = i;
                 }
             }

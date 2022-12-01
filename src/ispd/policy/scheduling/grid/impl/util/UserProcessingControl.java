@@ -4,6 +4,7 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.scheduling.grid.GridMaster;
 import jdk.jfr.Percentage;
+import jdk.jfr.Unsigned;
 
 import java.util.Collection;
 import java.util.function.Predicate;
@@ -11,10 +12,15 @@ import java.util.stream.Stream;
 
 public class UserProcessingControl {
     private final String userId;
+    @Unsigned
     private final long ownedMachinesCount;
+    @Unsigned
     private final double ownedMachinesProcessingPower;
+    @Unsigned
     private int taskDemand = 0;
+    @Unsigned
     private int usedMachineCount = 0;
+    @Unsigned
     private double usedProcessingPower = 0.0;
 
     public UserProcessingControl(
@@ -77,10 +83,6 @@ public class UserProcessingControl {
         return this.userId.equals(task.getProprietario());
     }
 
-    public int currentTaskDemand() {
-        return this.taskDemand;
-    }
-
     public void startTaskFrom(final CS_Processamento machine) {
         this.increaseUsedMachines();
         this.increaseUsedProcessingPower(machine.getPoderComputacional());
@@ -127,7 +129,11 @@ public class UserProcessingControl {
         return this.usedProcessingPower;
     }
 
-    public String getUserId() {
-        return userId;
+    public boolean hasExcessMachines() {
+        return this.excessMachines() > 0;
+    }
+
+    public long excessMachines() {
+        return this.ownedMachinesCount - this.usedMachineCount;
     }
 }
