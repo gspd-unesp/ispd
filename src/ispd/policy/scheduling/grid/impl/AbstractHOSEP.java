@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public abstract class AbstractHOSEP <T extends UserProcessingControl> extends AbstractOSEP {
-    private static final double REFRESH_TIME = 15.0;
     protected final Map<String, T> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
             new HashMap<>();
@@ -92,11 +91,6 @@ public abstract class AbstractHOSEP <T extends UserProcessingControl> extends Ab
     public CS_Processamento escalonarRecurso() {
         throw new UnsupportedOperationException("""
                 Do not call method .escalonarRecurso() on HOSEP-like algorithms.""");
-    }
-
-    @Override
-    public Double getTempoAtualizar() {
-        return AbstractHOSEP.REFRESH_TIME;
     }
 
     private List<T> sortedUserControls() {

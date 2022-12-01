@@ -326,9 +326,4 @@ public class M_OSEP extends AbstractOSEP {
 
         return null;
     }
-
-    @Override
-    public Double getTempoAtualizar() {
-        return 15.0;
-    }
 }
