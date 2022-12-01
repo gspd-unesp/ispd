@@ -66,7 +66,7 @@ public class M_OSEP extends GridSchedulingPolicy {
                 //Verifica se não é caso de preempção
                 if (!this.controleEscravos.get(this.escravos.indexOf(resource)).isPreempted()) {
                     this.status.get(this.metricaUsuarios.getUsuarios().indexOf(task.getProprietario()))
-                            .increaseAvailableProcessingPower(resource.getPoderComputacional());
+                            .increaseUsedProcessingPower(resource.getPoderComputacional());
                     this.mestre.sendTask(task);
                 } else {
                     final int resourceIndex = this.escravos.indexOf(resource);
@@ -78,7 +78,7 @@ public class M_OSEP extends GridSchedulingPolicy {
                             task.getIdentificador()
                     ));
                     this.status.get(this.metricaUsuarios.getUsuarios().indexOf(((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getProprietario()))
-                            .decreaseAvailableProcessingPower(resource.getPoderComputacional());
+                            .decreaseUsedProcessingPower(resource.getPoderComputacional());
                 }
             } else {
                 this.tarefas.add(task);
@@ -107,16 +107,16 @@ public class M_OSEP extends GridSchedulingPolicy {
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
-            if ((this.status.get(i).currentlyAvailableProcessingPower() < this.status.get(i).getOwnedMachinesProcessingPower()) && demanda) {
+            if ((this.status.get(i).currentlyUsedProcessingPower() < this.status.get(i).getOwnedMachinesProcessingPower()) && demanda) {
 
                 if (difUsuarioMinimo == (double) -1) {
                     difUsuarioMinimo =
-                            this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyAvailableProcessingPower();
+                            this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyUsedProcessingPower();
                     indexUsuarioMinimo = i;
                 } else {
-                    if (difUsuarioMinimo < this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyAvailableProcessingPower()) {
+                    if (difUsuarioMinimo < this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyUsedProcessingPower()) {
                         difUsuarioMinimo =
-                                this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyAvailableProcessingPower();
+                                this.status.get(i).getOwnedMachinesProcessingPower() - this.status.get(i).currentlyUsedProcessingPower();
                         indexUsuarioMinimo = i;
                     }
 
@@ -162,7 +162,7 @@ public class M_OSEP extends GridSchedulingPolicy {
         final int indexUser =
                 this.metricaUsuarios.getUsuarios().indexOf(tarefa.getProprietario());
         this.status.get(indexUser)
-                .decreaseAvailableProcessingPower(maq.getPoderComputacional());
+                .decreaseUsedProcessingPower(maq.getPoderComputacional());
     }
 
     @Override
@@ -212,7 +212,7 @@ public class M_OSEP extends GridSchedulingPolicy {
                 if (this.esperaTarefas.get(i).getProprietario().equals(this.controlePreempcao.get(indexControle).scheduledTaskUser()) && this.esperaTarefas.get(i).getIdentificador() == this.controlePreempcao.get(j).scheduledTaskId()) {
                     final int indexUser =
                             this.metricaUsuarios.getUsuarios().indexOf(this.controlePreempcao.get(indexControle).scheduledTaskUser());
-                    this.status.get(indexUser).increaseAvailableProcessingPower(maq.getPoderComputacional());
+                    this.status.get(indexUser).increaseUsedProcessingPower(maq.getPoderComputacional());
                     this.mestre.sendTask(this.esperaTarefas.get(i));
                     this.esperaTarefas.remove(i);
                     this.controlePreempcao.remove(j);
@@ -261,19 +261,19 @@ public class M_OSEP extends GridSchedulingPolicy {
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
 
-            if (this.status.get(i).currentlyAvailableProcessingPower() > this.status.get(i).getOwnedMachinesProcessingPower() && !this.metricaUsuarios.getUsuarios().get(i).equals(this.tarefaSelec.getProprietario())) {
+            if (this.status.get(i).currentlyUsedProcessingPower() > this.status.get(i).getOwnedMachinesProcessingPower() && !this.metricaUsuarios.getUsuarios().get(i).equals(this.tarefaSelec.getProprietario())) {
 
                 if (diff == (double) -1) {
 
                     usermax = this.metricaUsuarios.getUsuarios().get(i);
-                    diff = this.status.get(i).currentlyAvailableProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower();
+                    diff = this.status.get(i).currentlyUsedProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower();
 
                 } else {
 
-                    if (this.status.get(i).currentlyAvailableProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower() > diff) {
+                    if (this.status.get(i).currentlyUsedProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower() > diff) {
 
                         usermax = this.metricaUsuarios.getUsuarios().get(i);
-                        diff = this.status.get(i).currentlyAvailableProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower();
+                        diff = this.status.get(i).currentlyUsedProcessingPower() - this.status.get(i).getOwnedMachinesProcessingPower();
 
                     }
 
@@ -320,12 +320,12 @@ public class M_OSEP extends GridSchedulingPolicy {
             //Penalidade do usuário dono da tarefa em execução, caso a
             // preempção seja feita
             final double penalidaUserEscravoPosterior =
-                    (this.status.get(indexUserEscravo).currentlyAvailableProcessingPower() - selec.getPoderComputacional() - this.status.get(indexUserEscravo).getOwnedMachinesProcessingPower()) / this.status.get(indexUserEscravo).getOwnedMachinesProcessingPower();
+                    (this.status.get(indexUserEscravo).currentlyUsedProcessingPower() - selec.getPoderComputacional() - this.status.get(indexUserEscravo).getOwnedMachinesProcessingPower()) / this.status.get(indexUserEscravo).getOwnedMachinesProcessingPower();
 
             //Penalidade do usuário dono da tarefa slecionada para ser posta
             // em execução, caso a preempção seja feita
             final double penalidaUserEsperaPosterior =
-                    (this.status.get(indexUserEspera).currentlyAvailableProcessingPower() + selec.getPoderComputacional() - this.status.get(indexUserEspera).getOwnedMachinesProcessingPower()) / this.status.get(indexUserEspera).getOwnedMachinesProcessingPower();
+                    (this.status.get(indexUserEspera).currentlyUsedProcessingPower() + selec.getPoderComputacional() - this.status.get(indexUserEspera).getOwnedMachinesProcessingPower()) / this.status.get(indexUserEspera).getOwnedMachinesProcessingPower();
 
             //Caso o usuário em espera apresente menor penalidade e os donos
             // das tarefas em execução e em espera não sejam a mesma pessoa ,

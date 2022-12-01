@@ -70,7 +70,7 @@ public class OSEP extends GridSchedulingPolicy {
                 if (this.controleEscravos.get(this.escravos.indexOf(resource)).isFree()) {
 
                     userStatus.decreaseTaskDemand();
-                    userStatus.increaseAvailableMachines();
+                    userStatus.increaseUsedMachines();
 
                     this.controleEscravos.get(this.escravos.indexOf(resource)).setAsBlocked();
                     this.mestre.sendTask(task);
@@ -151,7 +151,7 @@ public class OSEP extends GridSchedulingPolicy {
         final var maq = (CS_Processamento) tarefa.getLocalProcessamento();
         final var uc = this.status.get(tarefa.getProprietario());
 
-        uc.decreaseAvailableMachines();
+        uc.decreaseUsedMachines();
         final int index = this.escravos.indexOf(maq);
         this.controleEscravos.get(index).setAsFree();
     }
@@ -210,10 +210,10 @@ public class OSEP extends GridSchedulingPolicy {
 
                     this.mestre.sendTask(this.esperaTarefas.get(i));
 
-                    this.status.get(this.controlePreempcao.get(indexControle).scheduledTaskUser()).increaseAvailableMachines();
+                    this.status.get(this.controlePreempcao.get(indexControle).scheduledTaskUser()).increaseUsedMachines();
 
                     this.status.get(this.controlePreempcao.get(indexControle).preemptedTaskUser()).increaseTaskDemand();
-                    this.status.get(this.controlePreempcao.get(indexControle).preemptedTaskUser()).decreaseAvailableMachines();
+                    this.status.get(this.controlePreempcao.get(indexControle).preemptedTaskUser()).decreaseUsedMachines();
 
                     this.controleEscravos.get(this.escravos.indexOf(maq)).setAsBlocked();
 

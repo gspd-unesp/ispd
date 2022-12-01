@@ -2,6 +2,7 @@ package ispd.policy.scheduling.grid.impl.util;
 
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
+import jdk.jfr.Percentage;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,8 +14,8 @@ public class UserControl implements Comparable<UserControl> {
     protected double energyEfficiencyRatioAgainstSystem;
     protected double ownedMachinesEnergyConsumption = 0.0;
     protected int taskDemand = 0;
-    protected int availableMachineCount = 0;
-    protected double availableProcessingPower = 0.0;
+    protected int usedMachineCount = 0;
+    protected double usedProcessingPower = 0.0;
 
     public UserControl(
             final String userId, final double ownedProcPower,
@@ -36,29 +37,29 @@ public class UserControl implements Comparable<UserControl> {
     }
 
     public double penaltyWithProcessing(final double delta) {
-        return (this.availableProcessingPower + delta - this.ownedMachinesProcessingPower)
+        return (this.usedProcessingPower + delta - this.ownedMachinesProcessingPower)
                / this.ownedMachinesProcessingPower;
     }
 
     public void stopTaskFrom(final CS_Processamento machine) {
-        this.decreaseAvailableMachines();
-        this.decreaseAvailableProcessingPower(machine.getPoderComputacional());
+        this.decreaseUsedMachines();
+        this.decreaseUsedProcessingPower(machine.getPoderComputacional());
     }
 
-    public void decreaseAvailableMachines() {
-        this.availableMachineCount--;
+    public void decreaseUsedMachines() {
+        this.usedMachineCount--;
     }
 
-    public void decreaseAvailableProcessingPower(final double amount) {
-        this.availableProcessingPower -= amount;
+    public void decreaseUsedProcessingPower(final double amount) {
+        this.usedProcessingPower -= amount;
     }
 
     public boolean canConcedeProcessingPower(final CS_Processamento machine) {
-        return this.availableProcessingPower - machine.getPoderComputacional() >= this.ownedMachinesProcessingPower;
+        return this.excessProcessingPower() >= machine.getPoderComputacional();
     }
 
     public double excessProcessingPower() {
-        return this.availableProcessingPower - this.ownedMachinesProcessingPower;
+        return this.ownedMachinesProcessingPower - this.usedProcessingPower;
     }
 
     public boolean isOwnerOf(final Tarefa task) {
@@ -70,16 +71,16 @@ public class UserControl implements Comparable<UserControl> {
     }
 
     public void startTaskFrom(final CS_Processamento machine) {
-        this.increaseAvailableMachines();
-        this.increaseAvailableProcessingPower(machine.getPoderComputacional());
+        this.increaseUsedMachines();
+        this.increaseUsedProcessingPower(machine.getPoderComputacional());
     }
 
-    public void increaseAvailableMachines() {
-        this.availableMachineCount++;
+    public void increaseUsedMachines() {
+        this.usedMachineCount++;
     }
 
-    public void increaseAvailableProcessingPower(final double amount) {
-        this.availableProcessingPower += amount;
+    public void increaseUsedProcessingPower(final double amount) {
+        this.usedProcessingPower += amount;
     }
 
     public void decreaseTaskDemand() {
@@ -91,7 +92,7 @@ public class UserControl implements Comparable<UserControl> {
     }
 
     public int currentlyAvailableMachineCount() {
-        return this.availableMachineCount;
+        return this.usedMachineCount;
     }
 
     @Override
@@ -99,16 +100,16 @@ public class UserControl implements Comparable<UserControl> {
         // TODO: Document that comparison uses non-final fields
         // TODO: Document ordering inconsistent with equals
         return Comparator
-                .comparingDouble(UserControl::ratioOfProcessingPowerInUse)
+                .comparingDouble(UserControl::percentageOfProcessingPowerUsed)
                 .thenComparingDouble(UserControl::getOwnedMachinesProcessingPower)
                 .thenComparingDouble(UserControl::getOwnedMachinesEnergyConsumption)
                 .reversed()
                 .compare(this, o);
     }
 
-    private double ratioOfProcessingPowerInUse() {
-        return (this.availableProcessingPower - this.ownedMachinesProcessingPower)
-               / this.ownedMachinesProcessingPower;
+    @Percentage
+    private double percentageOfProcessingPowerUsed() {
+        return this.usedProcessingPower / this.ownedMachinesProcessingPower;
     }
 
     public double getOwnedMachinesProcessingPower() {
@@ -128,10 +129,10 @@ public class UserControl implements Comparable<UserControl> {
     }
 
     public boolean hasExcessProcessingPower() {
-        return this.ownedMachinesProcessingPower <= this.availableProcessingPower;
+        return this.excessProcessingPower() >= 0;
     }
 
-    public double currentlyAvailableProcessingPower() {
-        return this.availableProcessingPower;
+    public double currentlyUsedProcessingPower() {
+        return this.usedProcessingPower;
     }
 }
