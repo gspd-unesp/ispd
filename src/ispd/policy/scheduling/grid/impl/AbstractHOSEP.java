@@ -258,18 +258,10 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         taskOwner.decreaseTaskDemand();
     }
 
-    protected Tarefa taskToPreemptIn(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).firstTaskInProcessing();
-    }
-
     private void sendTaskToResource(
             final Tarefa task, final CentroServico resource) {
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
-    }
-
-    protected boolean isMachineOccupied(final CS_Processamento machine) {
-        return this.slaveControls.get(machine).isOccupied();
     }
 
     private boolean canMachineHostNewTask(final CS_Processamento machine) {
@@ -328,6 +320,54 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         }
 
         return this.findMachineToPreemptFor(taskOwner);
+    }
+
+    protected Optional<CS_Processamento> findMachineToPreemptFor(final UserControl taskOwner) {
+        return this.findUserToPreemptFor(taskOwner).flatMap(
+                userToPreempt -> this.findMachineToTransferBetween(userToPreempt, taskOwner));
+    }
+
+    protected abstract Optional<UserControl> findUserToPreemptFor(UserControl taskOwner);
+
+    protected Optional<CS_Processamento> findMachineToTransferBetween(
+            final UserControl userToPreempt, final UserControl taskOwner) {
+        return this.machinesTransferableBetween(userToPreempt, taskOwner)
+                .min(this.compareOccupiedMachines())
+                .filter(machine -> this.shouldTransferMachine(
+                        machine, userToPreempt, taskOwner));
+    }
+
+    protected abstract boolean shouldTransferMachine(
+            CS_Processamento machine,
+            UserControl machineOwner, UserControl nextOwner);
+
+    protected Stream<CS_Processamento> machinesTransferableBetween(
+            final UserControl userToPreempt, final UserControl taskOwner) {
+        return this.machinesOccupiedBy(userToPreempt);
+    }
+
+    protected Stream<CS_Processamento> machinesOccupiedBy(final UserControl userToPreempt) {
+        return this.escravos.stream()
+                .filter(this::isMachineOccupied)
+                .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)));
+    }
+
+    protected Tarefa taskToPreemptIn(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).firstTaskInProcessing();
+    }
+
+    protected boolean isMachineOccupied(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).isOccupied();
+    }
+
+    protected Comparator<CS_Processamento> compareOccupiedMachines() {
+        return Comparator.comparingDouble(CS_Processamento::getPoderComputacional);
+    }
+
+    protected UserControl theBestUser() {
+        return this.userControls.values().stream()
+                .max(Comparator.naturalOrder())
+                .orElseThrow();
     }
 
     /**
@@ -421,13 +461,5 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
 
     private static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
-    }
-
-    protected abstract Optional<CS_Processamento> findMachineToPreemptFor(UserControl taskOwner);
-
-    protected UserControl theBestUser() {
-        return this.userControls.values().stream()
-                .max(Comparator.naturalOrder())
-                .orElseThrow();
     }
 }

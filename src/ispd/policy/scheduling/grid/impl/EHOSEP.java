@@ -21,6 +21,13 @@ public class EHOSEP extends AbstractHOSEP {
     }
 
     @Override
+    protected boolean shouldTransferMachine(
+            final CS_Processamento machine,
+            final UserControl machineOwner, final UserControl nextOwner) {
+        return machineOwner.canConcedeProcessingPower(machine);
+    }
+
+    @Override
     protected UserControl makeUserControlFor(
             final String userId,
             final Collection<? extends CS_Processamento> userOwnedMachines) {
@@ -71,44 +78,31 @@ public class EHOSEP extends AbstractHOSEP {
                 userToPreempt -> this.findMachineToTransferBetween(userToPreempt, taskOwner));
     }
 
-    private Optional<UserControl> findUserToPreemptFor(final UserControl userWithTask) {
+    @Override
+    protected Stream<CS_Processamento> machinesTransferableBetween(final UserControl userToPreempt, final UserControl taskOwner) {
+        return super.machinesTransferableBetween(userToPreempt, taskOwner)
+                .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit);
+    }
+
+    @Override
+    protected Comparator<CS_Processamento> compareOccupiedMachines() {
+        return Comparator
+                .comparingDouble(this::wastedProcessingIfPreempted)
+                .thenComparing(super.compareOccupiedMachines());
+    }
+
+    @Override
+    protected Optional<UserControl> findUserToPreemptFor(final UserControl taskOwner) {
         return this.userControls.values().stream()
                 .filter(UserControl::hasExcessProcessingPower)
                 .max(EHOSEP.bestConsumptionWeightedByEfficiency())
-                .filter(userWithTask::hasLessEnergyConsumptionThan);
+                .filter(taskOwner::hasLessEnergyConsumptionThan);
     }
 
     private static Comparator<UserControl> bestConsumptionWeightedByEfficiency() {
         return Comparator
                 .comparingDouble(UserControl::currentConsumptionWeightedByEfficiency)
                 .thenComparing(UserControl::excessProcessingPower);
-    }
-
-    private Optional<CS_Processamento> findMachineToTransferBetween(
-            final UserControl userToPreempt, final UserControl userWithTask) {
-        return this.machinesOccupiedBy(userToPreempt)
-                .filter(userWithTask::canUseMachineWithoutExceedingEnergyLimit)
-                .min(this.leastWastedProcessingIfPreempted())
-                .filter(machine -> EHOSEP.shouldTransferMachine(
-                        machine, userToPreempt, userWithTask));
-    }
-
-    private static boolean shouldTransferMachine(
-            final CS_Processamento machine,
-            final UserControl machineOwner, final UserControl nextOwner) {
-        return machineOwner.canConcedeProcessingPower(machine);
-    }
-
-    private Stream<CS_Processamento> machinesOccupiedBy(final UserControl userToPreempt) {
-        return this.escravos.stream()
-                .filter(this::isMachineOccupied)
-                .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)));
-    }
-
-    private Comparator<CS_Processamento> leastWastedProcessingIfPreempted() {
-        return Comparator
-                .comparingDouble(this::wastedProcessingIfPreempted)
-                .thenComparing(CS_Processamento::getPoderComputacional);
     }
 
     private double wastedProcessingIfPreempted(final CS_Processamento machine) {
