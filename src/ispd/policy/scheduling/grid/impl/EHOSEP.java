@@ -12,7 +12,7 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
 @Policy
-public class EHOSEP extends AbstractHOSEP {
+public class EHOSEP extends AbstractHOSEP<UserControl> {
     @Override
     protected UserControl makeUserControlFor(
             final String userId,
@@ -21,7 +21,11 @@ public class EHOSEP extends AbstractHOSEP {
                 .mapToDouble(CS_Processamento::getConsumoEnergia)
                 .sum();
 
-        final var uc = super.makeUserControlFor(userId, userOwnedMachines);
+        final double compPower = userOwnedMachines.stream()
+                .mapToDouble(CS_Processamento::getPoderComputacional)
+                .sum();
+
+        final var uc = new UserControl(userId, compPower, this.escravos);
         uc.setOwnedMachinesEnergyConsumption(energyConsumption);
         uc.calculateEnergyConsumptionLimit(this.metricaUsuarios);
         return uc;

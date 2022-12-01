@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public abstract class AbstractHOSEP extends GridSchedulingPolicy {
+public abstract class AbstractHOSEP <T extends UserControl> extends GridSchedulingPolicy {
     private static final double REFRESH_TIME = 15.0;
     protected final Map<String, UserControl> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
@@ -61,15 +61,10 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
             this.slaveControls.put(s, new SlaveControl());
     }
 
-    protected UserControl makeUserControlFor(
-            final String userId,
-            final Collection<? extends CS_Processamento> userOwnedMachines) {
-        final double compPower = userOwnedMachines.stream()
-                .mapToDouble(CS_Processamento::getPoderComputacional)
-                .sum();
-
-        return new UserControl(userId, compPower, this.escravos);
-    }
+    protected abstract UserControl makeUserControlFor(
+            String userId,
+            Collection<? extends CS_Processamento> userOwnedMachines
+    );
 
     @Override
     public List<CentroServico> escalonarRota(final CentroServico destino) {
