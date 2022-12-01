@@ -32,12 +32,6 @@ public class EHOSEP extends AbstractHOSEP<EnergyUserControl> {
     }
 
     @Override
-    protected boolean isUserEligibleForTask(final EnergyUserControl uc) {
-        return super.isUserEligibleForTask(uc)
-               && !uc.hasExceededEnergyLimit();
-    }
-
-    @Override
     protected Comparator<CS_Processamento> compareAvailableMachinesFor(final Tarefa task) {
         // Extracted as a variable to aid type inference
         final ToDoubleFunction<CS_Processamento> energyConsumption =

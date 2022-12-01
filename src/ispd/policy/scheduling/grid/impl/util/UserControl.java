@@ -8,16 +8,16 @@ import java.util.Collection;
 import java.util.Comparator;
 
 public class UserControl implements Comparable<UserControl> {
-    private final long ownedMachinesCount;
-    private final String userId;
-    private final double ownedMachinesProcessingPower;
-    private final double energyEfficiencyRatioAgainstSystem;
-    private int taskDemand = 0;
-    private double ownedMachinesEnergyConsumption = 0.0;
-    private int availableMachineCount = 0;
-    private double availableProcessingPower = 0.0;
-    private double currentEnergyConsumption = 0.0;
-    private double energyConsumptionLimit = 0.0;
+    protected final String userId;
+    protected final long ownedMachinesCount;
+    protected final double ownedMachinesProcessingPower;
+    protected double energyEfficiencyRatioAgainstSystem;
+    protected double ownedMachinesEnergyConsumption = 0.0;
+    protected double currentEnergyConsumption = 0.0;
+    protected double energyConsumptionLimit = 0.0;
+    protected int taskDemand = 0;
+    protected int availableMachineCount = 0;
+    protected double availableProcessingPower = 0.0;
 
     public UserControl(
             final String userId, final double ownedProcPower,
@@ -26,32 +26,16 @@ public class UserControl implements Comparable<UserControl> {
         // TODO: Warn if oPP is zero (ZDE in comparison)
         this.ownedMachinesProcessingPower = ownedProcPower;
         this.ownedMachinesCount = systemMachines.stream()
-                .filter(this::isOwnedByUser)
+                .filter(this::hasMachine)
                 .count();
-        this.energyEfficiencyRatioAgainstSystem =
-                this.energyEfficiencyRatioAgainst(systemMachines);
     }
 
-    private boolean isOwnedByUser(final CS_Processamento machine) {
+    private boolean hasMachine(final CS_Processamento machine) {
         return machine.getProprietario().equals(this.userId);
     }
 
-    private double energyEfficiencyRatioAgainst(
-            final Collection<? extends CS_Processamento> machines) {
-        final var sysCompPower = machines.stream()
-                .mapToDouble(CS_Processamento::getPoderComputacional)
-                .sum();
-
-        final var sysEnergyCons = machines.stream()
-                .mapToDouble(CS_Processamento::getConsumoEnergia)
-                .sum();
-
-        final var sysEnergyEfficiency = sysCompPower / sysEnergyCons;
-        return sysEnergyEfficiency / this.energyEfficiency();
-    }
-
-    private double energyEfficiency() {
-        return this.ownedMachinesProcessingPower / this.ownedMachinesEnergyConsumption;
+    public boolean isEligibleForTask() {
+        return this.taskDemand > 0;
     }
 
     public double penaltyWithProcessing(final double delta) {
@@ -59,12 +43,9 @@ public class UserControl implements Comparable<UserControl> {
                / this.ownedMachinesProcessingPower;
     }
 
-    public void stopTaskFrom(final CS_Processamento maq) {
+    public void stopTaskFrom(final CS_Processamento machine) {
         this.decreaseAvailableMachines();
-        this.decreaseAvailableProcessingPower(maq.getPoderComputacional());
-
-        // TODO: Should not do this in HOSEP
-        this.decreaseEnergyConsumption(maq.getConsumoEnergia());
+        this.decreaseAvailableProcessingPower(machine.getPoderComputacional());
     }
 
     public void decreaseAvailableMachines() {
@@ -91,10 +72,6 @@ public class UserControl implements Comparable<UserControl> {
         return this.availableProcessingPower - this.ownedMachinesProcessingPower;
     }
 
-    public double currentConsumptionWeightedByEfficiency() {
-        return this.currentEnergyConsumption * this.energyEfficiencyRatioAgainstSystem;
-    }
-
     public boolean canUseMachineWithoutExceedingEnergyLimit(final CS_Processamento machine) {
         return this.currentEnergyConsumption + machine.getConsumoEnergia() <= this.energyConsumptionLimit;
     }
@@ -107,20 +84,13 @@ public class UserControl implements Comparable<UserControl> {
         return this.currentEnergyConsumption >= this.energyConsumptionLimit;
     }
 
-    public boolean hasTaskDemand() {
-        return this.currentTaskDemand() != 0;
-    }
-
     public int currentTaskDemand() {
         return this.taskDemand;
     }
 
-    public void startTaskFrom(final CS_Processamento resource) {
+    public void startTaskFrom(final CS_Processamento machine) {
         this.increaseAvailableMachines();
-        this.increaseAvailableProcessingPower(resource.getPoderComputacional());
-
-        // TODO: Should not do this in HOSEP
-        this.increaseEnergyConsumption(resource.getConsumoEnergia());
+        this.increaseAvailableProcessingPower(machine.getPoderComputacional());
     }
 
     public void increaseAvailableMachines() {

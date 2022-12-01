@@ -270,16 +270,12 @@ public abstract class AbstractHOSEP <T extends UserControl> extends GridScheduli
     }
 
     private Optional<Tarefa> findTaskSuitableFor(final T uc) {
-        if (!this.isUserEligibleForTask(uc)) {
+        if (!uc.isEligibleForTask()) {
             return Optional.empty();
         }
 
         return this.tasksOwnedBy(uc)
                 .min(Comparator.comparingDouble(Tarefa::getTamProcessamento));
-    }
-
-    protected boolean isUserEligibleForTask(final T uc) {
-        return uc.hasTaskDemand();
     }
 
     private Stream<Tarefa> tasksOwnedBy(final T uc) {
