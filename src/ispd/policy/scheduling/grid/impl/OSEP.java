@@ -12,9 +12,11 @@ import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Policy
 public class OSEP extends AbstractOSEP {
@@ -89,49 +91,89 @@ public class OSEP extends AbstractOSEP {
     }
 
     @Override
-    public Tarefa escalonarTarefa() {
-        //Usuários com maior diferença entre uso e posse terão preferência
-        long maximalExcess = -1;
-        int selectedIndex = -1;
+    public CS_Processamento escalonarRecurso() {
+        String user;
+        //Buscando recurso livre
+        CS_Processamento selec = null;
 
-        //Encontrar o usuário que está mais abaixo da sua propriedade
-        final var users = this.metricaUsuarios.getUsuarios();
-        for (int i = 0; i < users.size(); i++) {
-            final var user = this.status.get(users.get(i));
+        for (int i = 0; i < this.escravos.size(); i++) {
 
-            //Caso existam tarefas do usuário corrente e ele esteja com uso
-            // menor que sua posse
-            if (this.hasMachineExcess(user) && user.isEligibleForTask()) {
-                if (maximalExcess == -1 || this.calculateMachineExcess(user) > maximalExcess) {
-                    maximalExcess = this.calculateMachineExcess(user);
-                    selectedIndex = i;
-                }
+            if (this.controleEscravos.get(i).isFree()) {
+                //Garantir que o escravo está de fato livre e que não há
+                // nenhuma tarefa em trânsito para o escravo
+                selec = this.escravos.get(i);
+                break;
             }
-
         }
 
-        if (selectedIndex == -1) {
-        } else {
-            final var user = users.get(selectedIndex);
-            int indexTarefa = -1;
+        if (selec != null) {
+            // Inidcar que uma tarefa será enviada e que , portanto , este
+            // escravo deve ser bloqueada até a próxima atualização
+            return selec;
+        }
 
-            for (int i = 0; i < this.tarefas.size(); i++) {
-                if (this.tarefas.get(i).getProprietario().equals(user)) {
-                    indexTarefa = i;
+        String usermax = null;
+        long diff = -1;
+
+        for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
+            user = this.metricaUsuarios.getUsuarios().get(i);
+            if (this.status.get(user).currentlyUsedMachineCount() > this.status.get(user).getOwnedMachinesCount() && !user.equals(this.tarefaSelec.getProprietario())) {
+
+                if (diff == -1) {
+                    usermax = this.metricaUsuarios.getUsuarios().get(i);
+                    diff = this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount();
+                } else {
+                    if (this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount() > diff) {
+                        usermax = user;
+                        diff = this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount();
+                    }
+                }
+            }
+        }
+
+        int index = -1;
+        if (usermax != null) {
+            for (int i = 0; i < this.escravos.size(); i++) {
+                if (this.controleEscravos.get(i).isOccupied() && this.firstTaskIn(i).getProprietario().equals(usermax)) {
+                    index = i;
                     break;
                 }
             }
-
-            if (indexTarefa != -1) {
-                return this.tarefas.remove(indexTarefa);
-            }
         }
 
-        if (this.tarefas.isEmpty()) {
-            return null;
-        } else {
-            return this.tarefas.remove(0);
+        //Fazer a preempção
+        if (index != -1) {
+            final CS_Processamento cs_processamento = this.escravos.get(index);
+            final int index_selec = this.escravos.indexOf(cs_processamento);
+            this.mestre.sendMessage(this.firstTaskIn(index_selec),
+                    cs_processamento, Mensagens.DEVOLVER_COM_PREEMPCAO);
+            return cs_processamento;
         }
+
+        return null;
+    }
+
+    private Tarefa firstTaskIn(final int index) {
+        return this.controleEscravos.get(index).firstTaskInProcessing();
+    }
+
+    @Override
+    public Tarefa escalonarTarefa() {
+        return this.getBestUserForSomeTask()
+                .flatMap(this::findAnyTaskOf)
+                .map(this::popTaskFromQueue)
+                .or(this::firstAvailableTask)
+                .orElse(null);
+    }
+
+    private Optional<UserProcessingControl> getBestUserForSomeTask() {
+        return this.status.values().stream()
+                .filter(this::isUserEligibleForTask)
+                .max(Comparator.comparingLong(this::calculateMachineExcess));
+    }
+
+    private boolean isUserEligibleForTask(final UserProcessingControl user) {
+        return this.hasMachineExcess(user) && user.isEligibleForTask();
     }
 
     private boolean hasMachineExcess(final UserProcessingControl uc) {
@@ -140,6 +182,17 @@ public class OSEP extends AbstractOSEP {
 
     private long calculateMachineExcess(final UserProcessingControl uc) {
         return uc.getOwnedMachinesCount() - uc.currentlyUsedMachineCount();
+    }
+
+    private Optional<Tarefa> findAnyTaskOf(final UserProcessingControl uc) {
+        return this.tarefas.stream()
+                .filter(uc::isOwnerOf)
+                .findAny();
+    }
+
+    private Tarefa popTaskFromQueue(final Tarefa task) {
+        this.tarefas.remove(task);
+        return task;
     }
 
     @Override
@@ -225,70 +278,30 @@ public class OSEP extends AbstractOSEP {
 
     }
 
-    @Override
-    public CS_Processamento escalonarRecurso() {
-        String user;
-        //Buscando recurso livre
-        CS_Processamento selec = null;
-
-        for (int i = 0; i < this.escravos.size(); i++) {
-
-            if (this.controleEscravos.get(i).isFree()) {
-                //Garantir que o escravo está de fato livre e que não há
-                // nenhuma tarefa em trânsito para o escravo
-                selec = this.escravos.get(i);
-                break;
-            }
-        }
-
-        if (selec != null) {
-            // Inidcar que uma tarefa será enviada e que , portanto , este
-            // escravo deve ser bloqueada até a próxima atualização
-            return selec;
-        }
-
-        String usermax = null;
-        long diff = -1;
-
-        for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
-            user = this.metricaUsuarios.getUsuarios().get(i);
-            if (this.status.get(user).currentlyUsedMachineCount() > this.status.get(user).getOwnedMachinesCount() && !user.equals(this.tarefaSelec.getProprietario())) {
-
-                if (diff == -1) {
-                    usermax = this.metricaUsuarios.getUsuarios().get(i);
-                    diff = this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount();
-                } else {
-                    if (this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount() > diff) {
-                        usermax = user;
-                        diff = this.status.get(user).currentlyUsedMachineCount() - this.status.get(user).getOwnedMachinesCount();
-                    }
-                }
-            }
-        }
-
-        int index = -1;
-        if (usermax != null) {
-            for (int i = 0; i < this.escravos.size(); i++) {
-                if (this.controleEscravos.get(i).isOccupied() && this.firstTaskIn(i).getProprietario().equals(usermax)) {
-                    index = i;
-                    break;
-                }
-            }
-        }
-
-        //Fazer a preempção
-        if (index != -1) {
-            final CS_Processamento cs_processamento = this.escravos.get(index);
-            final int index_selec = this.escravos.indexOf(cs_processamento);
-            this.mestre.sendMessage(this.firstTaskIn(index_selec),
-                    cs_processamento, Mensagens.DEVOLVER_COM_PREEMPCAO);
-            return cs_processamento;
-        }
-
-        return null;
+    private Optional<Tarefa> firstAvailableTask() {
+        return this.tarefas.stream()
+                .findFirst()
+                .map(this::popTaskFromQueue);
     }
 
-    private Tarefa firstTaskIn(final int index) {
-        return this.controleEscravos.get(index).firstTaskInProcessing();
+    private int getSelectedIndex() {
+        long maximalExcess = -1;
+        int selectedIndex = -1;
+
+        //Encontrar o usuário que está mais abaixo da sua propriedade
+        final var users = this.metricaUsuarios.getUsuarios();
+        for (int i = 0; i < users.size(); i++) {
+            final var user = this.status.get(users.get(i));
+
+            //Caso existam tarefas do usuário corrente e ele esteja com uso
+            // menor que sua posse
+            if (this.isUserEligibleForTask(user)) {
+                if (maximalExcess == -1 || this.calculateMachineExcess(user) > maximalExcess) {
+                    maximalExcess = this.calculateMachineExcess(user);
+                    selectedIndex = i;
+                }
+            }
+        }
+        return selectedIndex;
     }
 }

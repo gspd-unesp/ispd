@@ -126,4 +126,8 @@ public class UserProcessingControl {
     public double currentlyUsedProcessingPower() {
         return this.usedProcessingPower;
     }
+
+    public String getUserId() {
+        return userId;
+    }
 }
