@@ -5,7 +5,6 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.scheduling.grid.impl.util.UserControl;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -18,22 +17,13 @@ public class HOSEP extends AbstractHOSEP {
     }
 
     @Override
-    protected Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
-        if (taskOwner.hasExcessProcessingPower() ||
-            !this.bestUser().hasExcessProcessingPower()) {
-            return Optional.empty();
-        }
-
-        return this.findMachineToPreemptFor(taskOwner);
-    }
-
-    private Optional<CS_Processamento> findMachineToPreemptFor(final UserControl taskOwner) {
+    protected Optional<CS_Processamento> findMachineToPreemptFor(final UserControl taskOwner) {
         return this.findUserToPreemptFor().flatMap(
                 userToPreempt -> this.findMachineToTransferBetween(userToPreempt, taskOwner));
     }
 
     private Optional<UserControl> findUserToPreemptFor() {
-        return Optional.of(this.bestUser());
+        return Optional.of(this.theBestUser());
     }
 
     private Optional<CS_Processamento> findMachineToTransferBetween(
@@ -65,9 +55,4 @@ public class HOSEP extends AbstractHOSEP {
                 .filter(machine -> userToPreempt.isOwnerOf(this.taskToPreemptIn(machine)));
     }
 
-    private UserControl bestUser() {
-        return this.userControls.values().stream()
-                .max(Comparator.naturalOrder())
-                .orElseThrow();
-    }
 }

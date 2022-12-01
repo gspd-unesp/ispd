@@ -36,7 +36,8 @@ public class EHOSEP extends AbstractHOSEP {
 
     @Override
     protected boolean isUserEligibleForTask(final UserControl uc) {
-        return super.isUserEligibleForTask(uc) && !uc.hasExceededEnergyLimit();
+        return super.isUserEligibleForTask(uc)
+               && !uc.hasExceededEnergyLimit();
     }
 
     @Override
@@ -58,26 +59,16 @@ public class EHOSEP extends AbstractHOSEP {
                * machine.getConsumoEnergia();
     }
 
+    @Override
     protected Stream<CS_Processamento> availableMachinesFor(final UserControl taskOwner) {
         return super.availableMachinesFor(taskOwner)
                 .filter(taskOwner::canUseMachineWithoutExceedingEnergyLimit);
     }
 
     @Override
-    protected Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
-        // If no available machine is found, preemption may be used to force
-        // the task into one. However, if the task owner has excess
-        // processing power, preemption will NOT be used to accommodate them
-        if (taskOwner.hasExcessProcessingPower()) {
-            return Optional.empty();
-        }
-
-        return this.findMachineToPreemptFor(taskOwner);
-    }
-
-    private Optional<CS_Processamento> findMachineToPreemptFor(final UserControl userWithTask) {
-        return this.findUserToPreemptFor(userWithTask).flatMap(
-                userToPreempt -> this.findMachineToTransferBetween(userToPreempt, userWithTask));
+    protected Optional<CS_Processamento> findMachineToPreemptFor(final UserControl taskOwner) {
+        return this.findUserToPreemptFor(taskOwner).flatMap(
+                userToPreempt -> this.findMachineToTransferBetween(userToPreempt, taskOwner));
     }
 
     private Optional<UserControl> findUserToPreemptFor(final UserControl userWithTask) {

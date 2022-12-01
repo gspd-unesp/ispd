@@ -318,7 +318,17 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
         return this.slaveControls.get(machine).isFree();
     }
 
-    protected abstract Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(UserControl taskOwner);
+    protected Optional<CS_Processamento> findOccupiedMachineBestSuitedFor(final UserControl taskOwner) {
+        // If no available machine is found, preemption may be used to force
+        // the task into one. However, if the task owner has excess
+        // processing power, preemption will NOT be used to accommodate them
+        if (taskOwner.hasExcessProcessingPower() ||
+            !this.theBestUser().hasExcessProcessingPower()) {
+            return Optional.empty();
+        }
+
+        return this.findMachineToPreemptFor(taskOwner);
+    }
 
     /**
      * This algorithm's task scheduling does not conform to the standard
@@ -411,5 +421,13 @@ public abstract class AbstractHOSEP extends GridSchedulingPolicy {
 
     private static boolean hasProcessingCenter(final Tarefa t) {
         return t.getLocalProcessamento() != null;
+    }
+
+    protected abstract Optional<CS_Processamento> findMachineToPreemptFor(UserControl taskOwner);
+
+    protected UserControl theBestUser() {
+        return this.userControls.values().stream()
+                .max(Comparator.naturalOrder())
+                .orElseThrow();
     }
 }
