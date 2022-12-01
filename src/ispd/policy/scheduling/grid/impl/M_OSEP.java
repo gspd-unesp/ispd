@@ -7,7 +7,6 @@ import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
-import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
@@ -16,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Policy
-public class M_OSEP extends GridSchedulingPolicy {
+public class M_OSEP extends AbstractOSEP {
     private final List<SlaveControl> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
     private final List<PreemptionEntry> controlePreempcao = new ArrayList<>();

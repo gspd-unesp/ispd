@@ -7,7 +7,6 @@ import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.SchedulingPolicy;
-import ispd.policy.scheduling.grid.GridSchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
@@ -23,7 +22,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public abstract class AbstractHOSEP <T extends UserProcessingControl> extends GridSchedulingPolicy {
+public abstract class AbstractHOSEP <T extends UserProcessingControl> extends AbstractOSEP {
     private static final double REFRESH_TIME = 15.0;
     protected final Map<String, T> userControls = new HashMap<>();
     private final Map<CS_Processamento, SlaveControl> slaveControls =
@@ -70,8 +69,10 @@ public abstract class AbstractHOSEP <T extends UserProcessingControl> extends Gr
      * </p>
      * For details on scheduling criteria, see:
      * <ul>
-     * <li>{@link #findTaskSuitableFor(UserProcessingControl) Task selection}</li>
-     * <li>{@link #findMachineBestSuitedFor(Tarefa, UserProcessingControl) Machine
+     * <li>{@link #findTaskSuitableFor(UserProcessingControl) Task selection}
+     * </li>
+     * <li>{@link #findMachineBestSuitedFor(Tarefa, UserProcessingControl)
+     * Machine
      * selection}</li>
      * </ul>
      */
@@ -149,7 +150,8 @@ public abstract class AbstractHOSEP <T extends UserProcessingControl> extends Gr
      * the exception thrown in the process. Namely,
      * {@link IllegalStateException}.<br>
      *
-     * @param uc {@link UserProcessingControl} representing the user whose tasks may
+     * @param uc {@link UserProcessingControl} representing the user whose
+     *                                        tasks may
      *           need scheduling
      * @throws NoSuchElementException if it cannot select either an
      *                                appropriate task or a suitable resource
@@ -182,7 +184,8 @@ public abstract class AbstractHOSEP <T extends UserProcessingControl> extends Gr
      *
      * @param task      {@link Tarefa task} to host in the given
      *                  {@link CS_Processamento machine}
-     * @param taskOwner {@link UserProcessingControl} representing the owner of the
+     * @param taskOwner {@link UserProcessingControl} representing the owner
+     *                                               of the
      *                  given {@link Tarefa task}
      * @param machine   {@link CS_Processamento processing center} that may
      *                  host the task; it must be in a valid state to do so
