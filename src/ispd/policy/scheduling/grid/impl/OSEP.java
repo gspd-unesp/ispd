@@ -91,36 +91,32 @@ public class OSEP extends AbstractOSEP {
     @Override
     public Tarefa escalonarTarefa() {
         //Usuários com maior diferença entre uso e posse terão preferência
-        long difUsuarioMinimo = -1;
-        int indexUsuarioMinimo = -1;
+        long maximalExcess = -1;
+        int selectedIndex = -1;
 
         //Encontrar o usuário que está mais abaixo da sua propriedade
         final var users = this.metricaUsuarios.getUsuarios();
         for (int i = 0; i < users.size(); i++) {
-            final var user = users.get(i);
+            final var user = this.status.get(users.get(i));
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
-            if ((this.status.get(user).currentlyUsedMachineCount() < this.status.get(user).getOwnedMachinesCount()) && this.status.get(user).currentTaskDemand() > 0) {
-                if (difUsuarioMinimo == -1) {
-                    difUsuarioMinimo =
-                            this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyUsedMachineCount();
-                    indexUsuarioMinimo = i;
-                } else {
-                    if (difUsuarioMinimo < this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyUsedMachineCount()) {
-                        difUsuarioMinimo =
-                                this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyUsedMachineCount();
-                        indexUsuarioMinimo = i;
-                    }
+            if (this.hasMachineExcess(user) && user.isEligibleForTask()) {
+                if (maximalExcess == -1 || this.calculateMachineExcess(user) > maximalExcess) {
+                    maximalExcess = this.calculateMachineExcess(user);
+                    selectedIndex = i;
                 }
             }
+
         }
 
-        if (indexUsuarioMinimo != -1) {
+        if (selectedIndex == -1) {
+        } else {
+            final var user = users.get(selectedIndex);
             int indexTarefa = -1;
 
             for (int i = 0; i < this.tarefas.size(); i++) {
-                if (this.tarefas.get(i).getProprietario().equals(users.get(indexUsuarioMinimo))) {
+                if (this.tarefas.get(i).getProprietario().equals(user)) {
                     indexTarefa = i;
                     break;
                 }
@@ -136,6 +132,14 @@ public class OSEP extends AbstractOSEP {
         } else {
             return this.tarefas.remove(0);
         }
+    }
+
+    private boolean hasMachineExcess(final UserProcessingControl uc) {
+        return uc.currentlyUsedMachineCount() < uc.getOwnedMachinesCount();
+    }
+
+    private long calculateMachineExcess(final UserProcessingControl uc) {
+        return uc.getOwnedMachinesCount() - uc.currentlyUsedMachineCount();
     }
 
     @Override
