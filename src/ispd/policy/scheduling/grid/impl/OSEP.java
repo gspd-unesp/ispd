@@ -110,7 +110,6 @@ public class OSEP extends AbstractOSEP {
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
             if ((this.status.get(user).currentlyAvailableMachineCount() < this.status.get(user).getOwnedMachinesCount()) && this.status.get(user).currentTaskDemand() > 0) {
-
                 if (difUsuarioMinimo == -1) {
                     difUsuarioMinimo =
                             this.status.get(user).getOwnedMachinesCount() - this.status.get(user).currentlyAvailableMachineCount();
@@ -145,7 +144,6 @@ public class OSEP extends AbstractOSEP {
         } else {
             return this.tarefas.remove(0);
         }
-
     }
 
     @Override
@@ -268,24 +266,18 @@ public class OSEP extends AbstractOSEP {
                         usermax = user;
                         diff = this.status.get(user).currentlyAvailableMachineCount() - this.status.get(user).getOwnedMachinesCount();
                     }
-
                 }
-
             }
-
         }
 
         int index = -1;
         if (usermax != null) {
-
             for (int i = 0; i < this.escravos.size(); i++) {
                 if (this.controleEscravos.get(i).isOccupied() && ((Tarefa) this.processadorEscravos.get(i).get(0)).getProprietario().equals(usermax)) {
                     index = i;
                     break;
                 }
-
             }
-
         }
 
         //Fazer a preempção
