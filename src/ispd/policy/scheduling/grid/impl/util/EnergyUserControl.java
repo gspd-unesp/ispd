@@ -82,4 +82,8 @@ public class EnergyUserControl extends UserControl {
         this.energyConsumptionLimit =
                 this.ownedMachinesEnergyConsumption * metricsLimit / 100;
     }
+
+    public void setOwnedMachinesEnergyConsumption(final double consumption) {
+        this.ownedMachinesEnergyConsumption = consumption;
+    }
 }

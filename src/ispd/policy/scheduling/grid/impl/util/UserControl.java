@@ -120,10 +120,6 @@ public class UserControl implements Comparable<UserControl> {
         return this.ownedMachinesEnergyConsumption;
     }
 
-    public void setOwnedMachinesEnergyConsumption(final double consumption) {
-        this.ownedMachinesEnergyConsumption = consumption;
-    }
-
     public long getOwnedMachinesCount() {
         return this.ownedMachinesCount;
     }
