@@ -78,6 +78,10 @@ public class SlaveControl {
         this.tasksInProcessing = tasksInProcessing;
     }
 
+    public boolean hasTasksInProcessing() {
+        return !this.tasksInProcessing.isEmpty();
+    }
+
     private enum SlaveStatus {
         FREE,
         OCCUPIED,

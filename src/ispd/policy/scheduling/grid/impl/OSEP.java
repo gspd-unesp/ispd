@@ -21,7 +21,6 @@ public class OSEP extends AbstractOSEP {
     private final List<SlaveControl> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
     private final List<PreemptionEntry> controlePreempcao = new ArrayList<>();
-    private final List<List<Tarefa>> processadorEscravos = new ArrayList<>();
     private final Map<String, UserProcessingControl> status = new HashMap<>();
     private Tarefa tarefaSelec = null;
     private int contadorEscravos = 0;
@@ -38,7 +37,6 @@ public class OSEP extends AbstractOSEP {
         for (final var ignored : this.escravos) {
             this.controleEscravos.add(new SlaveControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
-            this.processadorEscravos.add(new ArrayList<>());
         }
     }
 
@@ -79,8 +77,8 @@ public class OSEP extends AbstractOSEP {
             final int resourceIndex = this.escravos.indexOf(resource);
             this.esperaTarefas.add(task);
             this.controlePreempcao.add(new PreemptionEntry(
-                    ((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getProprietario(),
-                    ((Tarefa) this.processadorEscravos.get(resourceIndex).get(0)).getIdentificador(),
+                    this.firstTaskIn(resourceIndex).getProprietario(),
+                    this.firstTaskIn(resourceIndex).getIdentificador(),
                     task.getProprietario(),
                     task.getIdentificador())
             );
@@ -154,7 +152,8 @@ public class OSEP extends AbstractOSEP {
     public void resultadoAtualizar(final Mensagem mensagem) {
         super.resultadoAtualizar(mensagem);
         final int index = this.escravos.indexOf(mensagem.getOrigem());
-        this.processadorEscravos.set(index, mensagem.getProcessadorEscravo());
+        this.controleEscravos.get(index)
+                .setTasksInProcessing(mensagem.getProcessadorEscravo());
         this.contadorEscravos++;
         if (this.contadorEscravos == this.escravos.size()) {
             boolean escalona = false;
@@ -163,12 +162,11 @@ public class OSEP extends AbstractOSEP {
                     this.controleEscravos.get(i).setAsUncertain();
                 }
                 if (this.controleEscravos.get(i).isUncertain()) {
-                    if (this.processadorEscravos.get(i).isEmpty()) {
+                    if (this.controleEscravos.get(i).hasTasksInProcessing()) {
+                        this.controleEscravos.get(i).setAsOccupied();
+                    } else {
                         this.controleEscravos.get(i).setAsFree();
                         escalona = true;
-                    }
-                    if (this.processadorEscravos.size() == 1) {
-                        this.controleEscravos.get(i).setAsOccupied();
                     }
                 }
             }
@@ -266,7 +264,7 @@ public class OSEP extends AbstractOSEP {
         int index = -1;
         if (usermax != null) {
             for (int i = 0; i < this.escravos.size(); i++) {
-                if (this.controleEscravos.get(i).isOccupied() && ((Tarefa) this.processadorEscravos.get(i).get(0)).getProprietario().equals(usermax)) {
+                if (this.controleEscravos.get(i).isOccupied() && this.firstTaskIn(i).getProprietario().equals(usermax)) {
                     index = i;
                     break;
                 }
@@ -277,10 +275,15 @@ public class OSEP extends AbstractOSEP {
         if (index != -1) {
             final CS_Processamento cs_processamento = this.escravos.get(index);
             final int index_selec = this.escravos.indexOf(cs_processamento);
-            this.mestre.sendMessage((Tarefa) this.processadorEscravos.get(index_selec).get(0), cs_processamento, Mensagens.DEVOLVER_COM_PREEMPCAO);
+            this.mestre.sendMessage(this.firstTaskIn(index_selec),
+                    cs_processamento, Mensagens.DEVOLVER_COM_PREEMPCAO);
             return cs_processamento;
         }
 
         return null;
+    }
+
+    private Tarefa firstTaskIn(final int index) {
+        return this.controleEscravos.get(index).firstTaskInProcessing();
     }
 }
