@@ -24,12 +24,6 @@ public class M_OSEP extends AbstractOSEP {
     private Tarefa tarefaSelec = null;
     private int contadorEscravos = 0;
 
-    public M_OSEP() {
-        this.tarefas = new ArrayList<>();
-        this.escravos = new ArrayList<>();
-        this.filaEscravo = new ArrayList<>();
-    }
-
     @Override
     public void iniciar() {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);

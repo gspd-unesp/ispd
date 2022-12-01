@@ -20,18 +20,11 @@ import java.util.Map;
 public class OSEP extends AbstractOSEP {
     private final List<SlaveControl> controleEscravos = new ArrayList<>();
     private final List<Tarefa> esperaTarefas = new ArrayList<>();
-    private final List<PreemptionEntry> controlePreempcao =
-            new ArrayList<>();
+    private final List<PreemptionEntry> controlePreempcao = new ArrayList<>();
     private final List<List<Tarefa>> processadorEscravos = new ArrayList<>();
     private final Map<String, UserProcessingControl> status = new HashMap<>();
     private Tarefa tarefaSelec = null;
     private int contadorEscravos = 0;
-
-    public OSEP() {
-        this.tarefas = new ArrayList<>();
-        this.escravos = new ArrayList<>();
-        this.filaEscravo = new ArrayList<>();
-    }
 
     @Override
     public void iniciar() {

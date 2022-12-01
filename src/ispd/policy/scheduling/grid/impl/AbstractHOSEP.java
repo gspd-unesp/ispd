@@ -31,12 +31,6 @@ public abstract class AbstractHOSEP <T extends UserProcessingControl> extends Ab
     private final Collection<PreemptionEntry> preemptionEntries =
             new HashSet<>();
 
-    protected AbstractHOSEP() {
-        this.tarefas = new ArrayList<>();
-        this.escravos = new ArrayList<>();
-        this.filaEscravo = new ArrayList<>();
-    }
-
     @Override
     public void iniciar() {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
