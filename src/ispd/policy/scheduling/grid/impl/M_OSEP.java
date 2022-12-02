@@ -22,7 +22,8 @@ public class M_OSEP extends AbstractOSEP {
             new HashMap<>();
     private final List<Tarefa> tasksInWaiting = new ArrayList<>();
     private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
-    private final List<UserProcessingControl> userControls = new ArrayList<>();
+    private final Map<String, UserProcessingControl> userControls =
+            new HashMap<>();
     private Tarefa selectedTask = null;
     private int slaveCounter = 0;
 
@@ -31,7 +32,8 @@ public class M_OSEP extends AbstractOSEP {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
 
         for (final var user : this.metricaUsuarios.getUsuarios()) {
-            this.userControls.add(
+            this.userControls.put(
+                    user,
                     new UserProcessingControl(user, this.escravos)
             );
         }
@@ -64,7 +66,7 @@ public class M_OSEP extends AbstractOSEP {
         final var sc = this.slaveControls.get(resource);
         if (!sc.isPreempted()) {
             final var userId = task.getProprietario();
-            this.userControlFromId(userId)
+            this.userControls.get(userId)
                     .increaseUsedProcessingPower(resource.getPoderComputacional());
             this.mestre.sendTask(task);
         } else {
@@ -77,14 +79,10 @@ public class M_OSEP extends AbstractOSEP {
                     task.getIdentificador()
             ));
 
-            this.userControlFromId(sc.firstTaskInProcessing().getProprietario())
+            this.userControls.get(sc.firstTaskInProcessing().getProprietario())
                     .decreaseUsedProcessingPower(resource.getPoderComputacional());
         }
 
-    }
-
-    private UserProcessingControl userControlFromId(final String userId) {
-        return this.userControls.get(this.metricaUsuarios.getUsuarios().indexOf(userId));
     }
 
     @Override
@@ -94,11 +92,13 @@ public class M_OSEP extends AbstractOSEP {
         int indexUsuarioMinimo = -1;
         //Encontrar o usuário que está mais abaixo da sua propriedade
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
+            final var userId = this.metricaUsuarios.getUsuarios().get(i);
+
             //Verificar se existem tarefas do usuário corrente
             boolean demanda = false;
 
             for (final Tarefa tarefa : this.tarefas) {
-                if (tarefa.getProprietario().equals(this.metricaUsuarios.getUsuarios().get(i))) {
+                if (tarefa.getProprietario().equals(userId)) {
                     demanda = true;
                     break;
                 }
@@ -106,7 +106,7 @@ public class M_OSEP extends AbstractOSEP {
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
-            final var uc = this.userControls.get(i);
+            final var uc = this.userControls.get(userId);
 
             if ((uc.currentlyUsedProcessingPower() < uc.getOwnedMachinesProcessingPower()) && demanda) {
 
@@ -158,7 +158,7 @@ public class M_OSEP extends AbstractOSEP {
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
         final var maq = tarefa.getCSLProcessamento();
-        this.userControlFromId(tarefa.getProprietario())
+        this.userControls.get(tarefa.getProprietario())
                 .decreaseUsedProcessingPower(maq.getPoderComputacional());
     }
 
@@ -217,10 +217,11 @@ public class M_OSEP extends AbstractOSEP {
         }
 
         for (int i = 0; i < this.tasksInWaiting.size(); i++) {
-            if (this.tasksInWaiting.get(i).getProprietario().equals(this.preemptionEntries.get(indexControle).scheduledTaskUser()) && this.tasksInWaiting.get(i).getIdentificador() == this.preemptionEntries.get(j).scheduledTaskId()) {
-                final int indexUser =
-                        this.metricaUsuarios.getUsuarios().indexOf(this.preemptionEntries.get(indexControle).scheduledTaskUser());
-                this.userControls.get(indexUser).increaseUsedProcessingPower(maq.getPoderComputacional());
+            final var stu =
+                    this.preemptionEntries.get(indexControle).scheduledTaskUser();
+
+            if (this.tasksInWaiting.get(i).getProprietario().equals(stu) && this.tasksInWaiting.get(i).getIdentificador() == this.preemptionEntries.get(j).scheduledTaskId()) {
+                this.userControls.get(stu).increaseUsedProcessingPower(maq.getPoderComputacional());
                 this.mestre.sendTask(this.tasksInWaiting.get(i));
                 this.tasksInWaiting.remove(i);
                 this.preemptionEntries.remove(j);
@@ -247,20 +248,22 @@ public class M_OSEP extends AbstractOSEP {
         double diff = -1;
 
         for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
+            final var userId = this.metricaUsuarios.getUsuarios().get(i);
+            final var uc = this.userControls.get(userId);
 
-            if (this.userControls.get(i).currentlyUsedProcessingPower() > this.userControls.get(i).getOwnedMachinesProcessingPower() && !this.metricaUsuarios.getUsuarios().get(i).equals(this.selectedTask.getProprietario())) {
+            if (uc.currentlyUsedProcessingPower() > uc.getOwnedMachinesProcessingPower() && !userId.equals(this.selectedTask.getProprietario())) {
 
                 if (diff == (double) -1) {
 
-                    usermax = this.metricaUsuarios.getUsuarios().get(i);
-                    diff = this.userControls.get(i).currentlyUsedProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower();
+                    usermax = userId;
+                    diff = uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower();
 
                 } else {
 
-                    if (this.userControls.get(i).currentlyUsedProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower() > diff) {
+                    if (uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower() > diff) {
 
-                        usermax = this.metricaUsuarios.getUsuarios().get(i);
-                        diff = this.userControls.get(i).currentlyUsedProcessingPower() - this.userControls.get(i).getOwnedMachinesProcessingPower();
+                        usermax = userId;
+                        diff = uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower();
 
                     }
 
@@ -293,23 +296,18 @@ public class M_OSEP extends AbstractOSEP {
             final Tarefa tar =
                     this.slaveControls.get(cs_processamento).firstTaskInProcessing();
 
-            final int indexUserEscravo =
-                    this.metricaUsuarios.getUsuarios().indexOf(tar.getProprietario());
-            final int indexUserEspera =
-                    this.metricaUsuarios.getUsuarios().indexOf(this.selectedTask.getProprietario());
-
             //Penalidade do usuário dono da tarefa em execução, caso a
             // preempção seja feita
             final var delta = -cs_processamento.getPoderComputacional();
             final double penalidaUserEscravoPosterior =
-                    this.someCalculation(indexUserEscravo, delta);
+                    this.someCalculation(tar.getProprietario(), delta);
 
             //Penalidade do usuário dono da tarefa slecionada para ser posta
             // em execução, caso a preempção seja feita
             final var delta2 =
                     cs_processamento.getPoderComputacional();
             final double penalidaUserEsperaPosterior =
-                    this.someCalculation(indexUserEspera, delta2);
+                    this.someCalculation(this.selectedTask.getProprietario(), delta2);
 
             //Caso o usuário em espera apresente menor penalidade e os donos
             // das tarefas em execução e em espera não sejam a mesma pessoa ,
@@ -329,8 +327,8 @@ public class M_OSEP extends AbstractOSEP {
     }
 
     private double someCalculation(
-            final int indexUserEscravo, final double delta) {
-        final var uc = this.userControls.get(indexUserEscravo);
+            final String userId, final double delta) {
+        final var uc = this.userControls.get(userId);
         return (uc.currentlyUsedProcessingPower() + delta - uc.getOwnedMachinesProcessingPower()) / uc.getOwnedMachinesProcessingPower();
     }
 
