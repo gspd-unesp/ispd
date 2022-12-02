@@ -33,8 +33,10 @@ public class OSEP extends AbstractOSEP {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
 
         for (final var user : this.metricaUsuarios.getUsuarios()) {
-            this.userControls.put(user, new UserProcessingControl(user,
-                    this.escravos));
+            this.userControls.put(
+                    user,
+                    new UserProcessingControl(user, this.escravos)
+            );
         }
 
         for (final var ignored : this.escravos) {

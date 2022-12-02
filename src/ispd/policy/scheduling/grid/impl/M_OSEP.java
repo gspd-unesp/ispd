@@ -12,6 +12,7 @@ import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Policy
@@ -28,8 +29,9 @@ public class M_OSEP extends AbstractOSEP {
         this.mestre.setSchedulingConditions(PolicyConditions.ALL);
 
         for (final var user : this.metricaUsuarios.getUsuarios()) {
-            this.userControls.add(new UserProcessingControl(user,
-                    this.escravos));
+            this.userControls.add(
+                    new UserProcessingControl(user, this.escravos)
+            );
         }
 
         for (final var ignored : this.escravos) {
@@ -64,7 +66,7 @@ public class M_OSEP extends AbstractOSEP {
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
         //Verifica se não é caso de preempção
-        if (!this.slaveControls.get(this.escravos.indexOf(resource)).isPreempted()) {
+        if (!this.slaveToControl(resource).isPreempted()) {
             this.userControls.get(this.metricaUsuarios.getUsuarios().indexOf(task.getProprietario()))
                     .increaseUsedProcessingPower(resource.getPoderComputacional());
             this.mestre.sendTask(task);
@@ -224,22 +226,12 @@ public class M_OSEP extends AbstractOSEP {
     @Override
     public CS_Processamento escalonarRecurso() {
 
-        //Buscando recurso livre
-        CS_Processamento selec = null;
-
-        for (int i = 0; i < this.escravos.size(); i++) {
-
-            if (this.filaEscravo.get(i).isEmpty() && !this.slaveControls.get(i).hasTasksInProcessing() && this.slaveControls.get(i).isFree()) {//Garantir que o escravo está de fato livre e que não há nenhuma tarefa em trânsito para o escravo
-                if (selec == null) {
-                    selec = this.escravos.get(i);
-                } else if (Math.abs(this.escravos.get(i).getPoderComputacional() - this.selectedTask.getTamProcessamento()) < Math.abs(selec.getPoderComputacional() - this.selectedTask.getTamProcessamento())) {//Best Fit
-                    selec = this.escravos.get(i);
-                }
-            }
-        }
+        final CS_Processamento selec = this.searchFreeResource();
 
         if (selec != null) {
-            this.slaveControls.get(this.escravos.indexOf(selec)).setAsBlocked();//Inidcar que uma tarefa será enviada e que , portanto , este escravo deve ser bloqueada até a próxima atualização
+            this.slaveToControl(selec).setAsBlocked();//Inidcar que uma tarefa
+            // será enviada e que , portanto , este escravo deve ser
+            // bloqueada até a próxima atualização
             return selec;
         }
 
@@ -295,7 +287,8 @@ public class M_OSEP extends AbstractOSEP {
         if (index != -1) {
             final CS_Processamento cs_processamento = this.escravos.get(index);
             //Verifica se vale apena fazer preempção
-            final int index_selec = this.escravos.indexOf(cs_processamento);
+            final var j = this.escravos.indexOf(cs_processamento);
+            final int index_selec = j;
             final Tarefa tar =
                     this.firstTaskIn(index_selec);
 
@@ -318,15 +311,41 @@ public class M_OSEP extends AbstractOSEP {
             // das tarefas em execução e em espera não sejam a mesma pessoa ,
             // e , ainda, o escravo esteja executando apenas uma tarefa
             if (penalidaUserEscravoPosterior <= penalidaUserEsperaPosterior || (penalidaUserEscravoPosterior > 0 && penalidaUserEsperaPosterior < 0)) {
-                final int i = this.escravos.indexOf(cs_processamento);
-                this.slaveControls.get(this.escravos.indexOf(cs_processamento)).setAsPreempted();
-                this.mestre.sendMessage(this.firstTaskIn(i), cs_processamento
+                this.slaveControls.get(j).setAsPreempted();
+                this.mestre.sendMessage(this.firstTaskIn(j), cs_processamento
                         , Mensagens.DEVOLVER_COM_PREEMPCAO);
                 return cs_processamento;
             }
         }
 
         return null;
+    }
+
+    private CS_Processamento searchFreeResource() {
+        return this.escravos.stream()
+                .filter(this::isEligibleForTask)
+                .min(Comparator.comparingDouble(this::fitForSelectedTask))
+                .orElse(null);
+    }
+
+    private boolean isEligibleForTask(final CS_Processamento slave) {
+        final var sc = this.slaveToControl(slave);
+
+        return this.getSlaveQueue(slave).isEmpty()
+               && !sc.hasTasksInProcessing()
+               && sc.isFree();
+    }
+
+    private SlaveControl slaveToControl(final CS_Processamento s) {
+        return this.slaveControls.get(this.escravos.indexOf(s));
+    }
+
+    private List getSlaveQueue(final CS_Processamento s) {
+        return this.filaEscravo.get(this.escravos.indexOf(s));
+    }
+
+    private double fitForSelectedTask(final CS_Processamento s) {
+        return Math.abs(s.getPoderComputacional() - this.selectedTask.getTamProcessamento());
     }
 
     private Tarefa firstTaskIn(final int i) {
