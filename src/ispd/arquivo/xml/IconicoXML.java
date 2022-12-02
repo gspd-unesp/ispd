@@ -11,7 +11,10 @@ import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.Edge;
 import ispd.gui.iconico.Vertex;
 import ispd.gui.iconico.grade.VirtualMachine;
-import ispd.motor.carga.GerarCarga;
+import ispd.motor.workload.impl.CollectionWorkloadGenerator;
+import ispd.motor.workload.impl.TraceFileWorkloadGenerator;
+import ispd.motor.workload.impl.GlobalWorkloadGenerator;
+import ispd.motor.workload.WorkloadGenerator;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import org.w3c.dom.Document;
@@ -132,7 +135,9 @@ public class IconicoXML {
      * @return Simulable queue network, in accordance to given model
      */
     public static RedeDeFilas newRedeDeFilas(final Document model) {
-        return new QueueNetworkBuilder(new WrappedDocument(model)).build();
+        return new QueueNetworkBuilder()
+                .parseDocument(new WrappedDocument(model))
+                .build();
     }
 
     /**
@@ -143,22 +148,23 @@ public class IconicoXML {
      * @return Simulable cloud queue network, in accordance to given model
      */
     public static RedeDeFilasCloud newRedeDeFilasCloud(final Document model) {
-        return (RedeDeFilasCloud) new CloudQueueNetworkBuilder(
-                new WrappedDocument(model)).build();
+        return (RedeDeFilasCloud) new CloudQueueNetworkBuilder()
+                .parseDocument(new WrappedDocument(model))
+                .build();
     }
 
     /**
      * Get load configuration containing in the iconic model present in the
      * {@link Document}
      *
-     * @return {@link GerarCarga} with load configuration from the model, if
+     * @return {@link WorkloadGenerator} with load configuration from the model, if
      * a valid one is present, {@code null} otherwise
      * @see LoadBuilder
-     * @see ispd.motor.carga.CargaTrace
-     * @see ispd.motor.carga.CargaList
-     * @see ispd.motor.carga.CargaRandom
+     * @see TraceFileWorkloadGenerator
+     * @see CollectionWorkloadGenerator
+     * @see GlobalWorkloadGenerator
      */
-    public static GerarCarga newGerarCarga(final Document doc) {
+    public static WorkloadGenerator newGerarCarga(final Document doc) {
         final var model = LoadBuilder.build(new WrappedDocument(doc));
         if (model.isEmpty()) {
             return null;
@@ -716,15 +722,15 @@ public class IconicoXML {
      *
      * @apiNote This method just be called at most <b>once</b>> per instance,
      * and not mixed with calls to
-     * {@link #setLoadTrace(String, String, String)} or
+     * {@link #setLoadTrace(String, int, String)} or
      * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
      */
     public void setLoadRandom(
-            final Integer taskCount, final Integer arrivalTime,
-            final Integer compMax, final Integer compAvg,
-            final Integer compMin, final Double compProb,
-            final Integer commMax, final Integer commAvg,
-            final Integer commMin, final Double commProb) {
+            final int taskCount, final int arrivalTime,
+            final double compMax, final double compAvg,
+            final double compMin, final double compProb,
+            final double commMax, final double commAvg,
+            final double commMin, final double commProb) {
         this.addElementToLoad(this.anElement(
                 "random", new Object[][] {
                         { "tasks", taskCount },
@@ -765,8 +771,8 @@ public class IconicoXML {
      *
      * @apiNote This method may be called more than once per instance,
      * however it should be mixed with calls to
-     * {@link #setLoadTrace(String, String, String)} or
-     * {@link #setLoadRandom(Integer, Integer, Integer, Integer, Integer, Double, Integer, Integer, Integer, Double)}.
+     * {@link #setLoadTrace(String, int, String)} or
+     * {@link #setLoadRandom(int, int, double, double, double, double, double, double, double, double)}.
      */
     public void addLoadNo(
             final String application,
@@ -801,13 +807,13 @@ public class IconicoXML {
      *
      * @apiNote This method just be called at most <b>once</b>> per instance,
      * and not mixed with calls to
-     * {@link #setLoadRandom(Integer, Integer, Integer, Integer, Integer, Double, Integer, Integer, Integer, Double)} or
+     * {@link #setLoadRandom(int, int, double, double, double, double, double, double, double, double)} or
      * {@link #addLoadNo(String, String, String, Integer, Double, Double, Double, Double)}
      */
     public void setLoadTrace(
-            final String file, final String tasks, final String format) {
+            final String file, final int tasks, final String format) {
         this.addElementToLoad(this.anElement(
-                "trace", new String[][] {
+                "trace", new Object[][] {
                         { "file_path", file },
                         { "tasks", tasks },
                         { "format", format },

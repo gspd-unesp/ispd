@@ -1,6 +1,5 @@
 package ispd.arquivo.exportador;
 
-import ispd.arquivo.xml.utils.SizeInfo;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
 import org.w3c.dom.Document;
@@ -14,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-  
+
 /**
  * Utility class to convert an iSPD file to GridSim java file.
  * Construct it and call method {@link #export()}.
@@ -342,19 +341,15 @@ import java.util.stream.LongStream;
     }
 
     private void processElementSizes(final long i, final WrappedElement e) {
-        final var computation = e.sizes()
-                .filter(WrappedElement::isComputingType)
-                .findFirst()
-                .map(SizeInfo::noProbability)
-                .map(SizeInfo::rangeNormalized)
-                .orElseGet(SizeInfo::new);
+        final var computation = e.makeTwoStageFromInnerSizes(
+                WrappedElement::isComputingType,
+                WrappedElement::toTwoStageImplicitProb
+        ).rangeNormalized();
 
-        final var communication = e.sizes()
-                .filter(WrappedElement::isCommunicationType)
-                .findFirst()
-                .map(SizeInfo::noProbability)
-                .map(SizeInfo::rangeNormalized)
-                .orElseGet(SizeInfo::new);
+        final var communication = e.makeTwoStageFromInnerSizes(
+                WrappedElement::isCommunicationType,
+                WrappedElement::toTwoStageImplicitProb
+        ).rangeNormalized();
 
         final var msg = MessageFormat.format("""
                                 length = GridSimRandom.real({0},{1},{2},random.nextDouble());
@@ -364,10 +359,10 @@ import java.util.stream.LongStream;
 
                                 gridlet{6}.setUserID(0);
                         """,
-                computation.average(),
+                computation.intervalSplit(),
                 computation.minimum(),
                 computation.maximum(),
-                communication.average(),
+                communication.intervalSplit(),
                 communication.minimum(),
                 communication.maximum(),
                 i
