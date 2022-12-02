@@ -5,7 +5,6 @@ import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.motor.filas.servidores.CentroServico;
-import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.SchedulingPolicy;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
@@ -13,36 +12,16 @@ import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public abstract class AbstractHOSEP <T extends UserProcessingControl> extends AbstractOSEP {
-    protected final Map<String, T> userControls = new HashMap<>();
-    private final Map<CS_Processamento, SlaveControl> slaveControls =
-            new HashMap<>();
+public abstract class AbstractHOSEP <T extends UserProcessingControl> extends AbstractOSEP<T> {
     private final Collection<Tarefa> tasksToSchedule = new HashSet<>();
     private final Collection<PreemptionEntry> preemptionEntries =
             new HashSet<>();
-
-    @Override
-    public void iniciar() {
-        this.mestre.setSchedulingConditions(PolicyConditions.ALL);
-
-        for (final var userId : this.metricaUsuarios.getUsuarios()) {
-            final var uc = this.makeUserControlFor(userId);
-            this.userControls.put(userId, uc);
-        }
-
-        for (final var s : this.escravos)
-            this.slaveControls.put(s, new SlaveControl());
-    }
-
-    protected abstract T makeUserControlFor(String userId);
 
     /**
      * Attempts to schedule a task and a suitable machine for one of the
@@ -132,7 +111,7 @@ public abstract class AbstractHOSEP <T extends UserProcessingControl> extends Ab
      * {@link IllegalStateException}.<br>
      *
      * @param uc {@link UserProcessingControl} representing the user whose
-     *                                        tasks may
+     *           tasks may
      *           need scheduling
      * @throws NoSuchElementException if it cannot select either an
      *                                appropriate task or a suitable resource
@@ -166,7 +145,7 @@ public abstract class AbstractHOSEP <T extends UserProcessingControl> extends Ab
      * @param task      {@link Tarefa task} to host in the given
      *                  {@link CS_Processamento machine}
      * @param taskOwner {@link UserProcessingControl} representing the owner
-     *                                               of the
+     *                  of the
      *                  given {@link Tarefa task}
      * @param machine   {@link CS_Processamento processing center} that may
      *                  host the task; it must be in a valid state to do so

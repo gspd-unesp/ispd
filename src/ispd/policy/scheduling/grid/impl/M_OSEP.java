@@ -5,43 +5,19 @@ import ispd.motor.Mensagens;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
-import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Policy
-public class M_OSEP extends AbstractOSEP {
-    private final Map<CS_Processamento, SlaveControl> slaveControls =
-            new HashMap<>();
+public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
     private final List<Tarefa> tasksInWaiting = new ArrayList<>();
     private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
-    private final Map<String, UserProcessingControl> userControls =
-            new HashMap<>();
     private Tarefa selectedTask = null;
     private int slaveCounter = 0;
-
-    @Override
-    public void iniciar() {
-        this.mestre.setSchedulingConditions(PolicyConditions.ALL);
-
-        for (final var user : this.metricaUsuarios.getUsuarios()) {
-            this.userControls.put(
-                    user,
-                    new UserProcessingControl(user, this.escravos)
-            );
-        }
-
-        for (final var slave : this.escravos) {
-            this.slaveControls.put(slave, new SlaveControl());
-        }
-    }
 
     @Override
     public void escalonar() {
@@ -307,7 +283,8 @@ public class M_OSEP extends AbstractOSEP {
             final var delta2 =
                     cs_processamento.getPoderComputacional();
             final double penalidaUserEsperaPosterior =
-                    this.someCalculation(this.selectedTask.getProprietario(), delta2);
+                    this.someCalculation(this.selectedTask.getProprietario(),
+                            delta2);
 
             //Caso o usuário em espera apresente menor penalidade e os donos
             // das tarefas em execução e em espera não sejam a mesma pessoa ,
