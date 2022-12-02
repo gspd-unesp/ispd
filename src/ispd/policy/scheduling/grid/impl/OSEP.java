@@ -19,7 +19,8 @@ import java.util.Optional;
 
 @Policy
 public class OSEP extends AbstractOSEP {
-    private final List<SlaveControl> slaveControls = new ArrayList<>();
+    private final Map<CS_Processamento, SlaveControl> slaveControls =
+            new HashMap<>();
     private final List<Tarefa> tasksInWaiting = new ArrayList<>();
     private final List<PreemptionEntry> preemptionEntries = new ArrayList<>();
     private final Map<String, UserProcessingControl> userControls =
@@ -38,8 +39,8 @@ public class OSEP extends AbstractOSEP {
             );
         }
 
-        for (final var ignored : this.escravos) {
-            this.slaveControls.add(new SlaveControl());
+        for (final var slave : this.escravos) {
+            this.slaveControls.put(slave, new SlaveControl());
         }
     }
 
@@ -131,7 +132,8 @@ public class OSEP extends AbstractOSEP {
         int index = -1;
         if (usermax != null) {
             for (int i = 0; i < this.escravos.size(); i++) {
-                if (this.slaveControls.get(i).isOccupied() && this.firstTaskIn(i).getProprietario().equals(usermax)) {
+                final var s = this.escravos.get(i);
+                if (this.slaveControls.get(s).isOccupied() && this.firstTaskIn(i).getProprietario().equals(usermax)) {
                     index = i;
                     break;
                 }
@@ -151,11 +153,11 @@ public class OSEP extends AbstractOSEP {
     }
 
     private SlaveControl slaveToControl(final CS_Processamento resource) {
-        return this.slaveControls.get(this.escravos.indexOf(resource));
+        return this.slaveControls.get(resource);
     }
 
     private Tarefa firstTaskIn(final int index) {
-        return this.slaveControls.get(index).firstTaskInProcessing();
+        return this.slaveControls.get(this.escravos.get(index)).firstTaskInProcessing();
     }
 
     @Override
@@ -203,7 +205,7 @@ public class OSEP extends AbstractOSEP {
     public void resultadoAtualizar(final Mensagem mensagem) {
         super.resultadoAtualizar(mensagem);
 
-        this.slaveControls.get(this.escravos.indexOf(mensagem.getOrigem()))
+        this.slaveControls.get((CS_Processamento) mensagem.getOrigem())
                 .setTasksInProcessing(mensagem.getProcessadorEscravo());
 
         this.slaveCount++;
@@ -215,9 +217,8 @@ public class OSEP extends AbstractOSEP {
         this.slaveCount = 0;
 
         boolean shouldSchedule = false;
-        for (int i = 0; i < this.escravos.size(); i++) {
-            final var s = this.escravos.get(i);
-            final var sc = this.slaveControls.get(this.escravos.indexOf(s));
+        for (final CS_Processamento s : this.escravos) {
+            final var sc = this.slaveControls.get(s);
             if (sc.isBlocked()) {
                 sc.setAsUncertain();
             }
@@ -276,7 +277,6 @@ public class OSEP extends AbstractOSEP {
                 break;
             }
         }
-
     }
 
     private Optional<Tarefa> firstAvailableTask() {
