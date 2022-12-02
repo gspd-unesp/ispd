@@ -5,7 +5,6 @@ import ispd.motor.Mensagens;
 import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
-import ispd.motor.filas.servidores.CentroServico;
 import ispd.policy.PolicyConditions;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
@@ -38,12 +37,6 @@ public class M_OSEP extends AbstractOSEP {
             this.slaveControls.add(new SlaveControl());
             this.filaEscravo.add(new ArrayList<Tarefa>());
         }
-    }
-
-    @Override
-    public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.escravos.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
     }
 
     @Override

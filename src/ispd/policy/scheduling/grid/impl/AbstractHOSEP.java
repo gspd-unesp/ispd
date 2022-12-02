@@ -11,7 +11,6 @@ import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
 import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -44,12 +43,6 @@ public abstract class AbstractHOSEP <T extends UserProcessingControl> extends Ab
     }
 
     protected abstract T makeUserControlFor(String userId);
-
-    @Override
-    public List<CentroServico> escalonarRota(final CentroServico destino) {
-        final int index = this.escravos.indexOf(destino);
-        return new ArrayList<>((List<CentroServico>) this.caminhoEscravo.get(index));
-    }
 
     /**
      * Attempts to schedule a task and a suitable machine for one of the
