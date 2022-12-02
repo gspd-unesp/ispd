@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @Policy
 public class M_OSEP extends AbstractOSEP {
@@ -40,11 +39,6 @@ public class M_OSEP extends AbstractOSEP {
         for (final var slave : this.escravos) {
             this.slaveControls.put(slave, new SlaveControl());
         }
-
-        Stream
-                .generate(ArrayList<Tarefa>::new)
-                .limit(this.escravos.size())
-                .forEach(this.filaEscravo::add);
     }
 
     @Override
@@ -349,14 +343,7 @@ public class M_OSEP extends AbstractOSEP {
 
     private boolean isSlaveFree(final CS_Processamento slave) {
         final var sc = this.slaveControls.get(slave);
-
-        return this.getSlaveQueue(slave).isEmpty()
-               && !sc.hasTasksInProcessing()
-               && sc.isFree();
-    }
-
-    private List getSlaveQueue(final CS_Processamento s) {
-        return this.filaEscravo.get(this.escravos.indexOf(s));
+        return !sc.hasTasksInProcessing() && sc.isFree();
     }
 
     private double fitForSelectedTask(final CS_Processamento s) {
