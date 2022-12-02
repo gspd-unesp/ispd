@@ -171,8 +171,12 @@ public class M_OSEP extends AbstractOSEP {
     @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
         super.resultadoAtualizar(mensagem);
-        this.slaveControls.get((CS_Processamento) mensagem.getOrigem()).setTasksInProcessing(mensagem.getProcessadorEscravo());
+
+        this.slaveControls.get((CS_Processamento) mensagem.getOrigem())
+                .setTasksInProcessing(mensagem.getProcessadorEscravo());
+
         this.slaveCounter++;
+
         if (this.slaveCounter == this.escravos.size()) {
             boolean escalona = false;
             for (int i = 0; i < this.escravos.size(); i++) {
@@ -280,18 +284,9 @@ public class M_OSEP extends AbstractOSEP {
                 final var sc =
                         this.slaveControls.get(slave);
 
-                if (sc.hasTasksInProcessing() && sc.isOccupied() && this.filaEscravo.get(i).isEmpty() && this.slaveControls.get(slave).firstTaskInProcessing().getProprietario().equals(usermax)) {
-                    if (index == -1) {
-
+                if (sc.hasTasksInProcessing() && sc.isOccupied() && sc.firstTaskInProcessing().getProprietario().equals(usermax)) {
+                    if (index == -1 || slave.getPoderComputacional() < this.escravos.get(index).getPoderComputacional()) {
                         index = i;
-
-                    } else {
-
-                        if (slave.getPoderComputacional() < this.escravos.get(index).getPoderComputacional()) {
-
-                            index = i;
-
-                        }
                     }
                 }
             }

@@ -40,7 +40,6 @@ public class OSEP extends AbstractOSEP {
 
         for (final var ignored : this.escravos) {
             this.slaveControls.add(new SlaveControl());
-            this.filaEscravo.add(new ArrayList<Tarefa>());
         }
     }
 
@@ -203,28 +202,37 @@ public class OSEP extends AbstractOSEP {
     @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
         super.resultadoAtualizar(mensagem);
+
         this.slaveControls.get(this.escravos.indexOf(mensagem.getOrigem()))
                 .setTasksInProcessing(mensagem.getProcessadorEscravo());
+
         this.slaveCount++;
-        if (this.slaveCount == this.escravos.size()) {
-            boolean escalona = false;
-            for (int i = 0; i < this.escravos.size(); i++) {
-                if (this.slaveControls.get(i).isBlocked()) {
-                    this.slaveControls.get(i).setAsUncertain();
-                }
-                if (this.slaveControls.get(i).isUncertain()) {
-                    if (this.slaveControls.get(i).hasTasksInProcessing()) {
-                        this.slaveControls.get(i).setAsOccupied();
-                    } else {
-                        this.slaveControls.get(i).setAsFree();
-                        escalona = true;
-                    }
+
+        if (this.slaveCount != this.escravos.size()) {
+            return;
+        }
+
+        this.slaveCount = 0;
+
+        boolean shouldSchedule = false;
+        for (int i = 0; i < this.escravos.size(); i++) {
+            final var s = this.escravos.get(i);
+            final var sc = this.slaveControls.get(this.escravos.indexOf(s));
+            if (sc.isBlocked()) {
+                sc.setAsUncertain();
+            }
+            if (sc.isUncertain()) {
+                if (sc.hasTasksInProcessing()) {
+                    sc.setAsOccupied();
+                } else {
+                    sc.setAsFree();
+                    shouldSchedule = true;
                 }
             }
-            this.slaveCount = 0;
-            if (!this.tarefas.isEmpty() && escalona) {
-                this.mestre.executeScheduling();
-            }
+        }
+
+        if (!this.tarefas.isEmpty() && shouldSchedule) {
+            this.mestre.executeScheduling();
         }
     }
 
