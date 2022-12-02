@@ -93,11 +93,12 @@ public class OSEP extends AbstractOSEP {
         CS_Processamento selec = null;
 
         for (int i = 0; i < this.escravos.size(); i++) {
+                final var slave = this.escravos.get(i);
 
-            if (this.slaveControls.get(i).isFree()) {
+            if (this.slaveControls.get(this.escravos.indexOf(slave)).isFree()) {
                 //Garantir que o escravo está de fato livre e que não há
                 // nenhuma tarefa em trânsito para o escravo
-                selec = this.escravos.get(i);
+                selec = slave;
                 break;
             }
         }
@@ -191,15 +192,13 @@ public class OSEP extends AbstractOSEP {
         final var uc = this.userControls.get(tarefa.getProprietario());
 
         uc.decreaseUsedMachines();
-        final int index = this.escravos.indexOf(maq);
-        this.slaveControls.get(index).setAsFree();
+        this.slaveControls.get(this.escravos.indexOf(maq)).setAsFree();
     }
 
     @Override
     public void resultadoAtualizar(final Mensagem mensagem) {
         super.resultadoAtualizar(mensagem);
-        final int index = this.escravos.indexOf(mensagem.getOrigem());
-        this.slaveControls.get(index)
+        this.slaveControls.get(this.escravos.indexOf(mensagem.getOrigem()))
                 .setTasksInProcessing(mensagem.getProcessadorEscravo());
         this.slaveCount++;
         if (this.slaveCount == this.escravos.size()) {
