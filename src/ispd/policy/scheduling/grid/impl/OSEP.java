@@ -53,12 +53,7 @@ public class OSEP extends AbstractOSEP<UserProcessingControl> {
 
             final var t2 =
                     this.slaveControls.get(resource).firstTaskInProcessing();
-            this.preemptionEntries.add(new PreemptionEntry(
-                    t2.getProprietario(),
-                    t2.getIdentificador(),
-                    task.getProprietario(),
-                    task.getIdentificador())
-            );
+            this.preemptionEntries.add(new PreemptionEntry(t2, task));
 
             sc.setAsBlocked();
         }
@@ -234,9 +229,9 @@ public class OSEP extends AbstractOSEP<UserProcessingControl> {
             }
         }
 
+        final var pe = this.preemptionEntries.get(indexControle);
+
         for (int i = 0; i < this.tasksInWaiting.size(); i++) {
-            final var pe =
-                    this.preemptionEntries.get(indexControle);
             if (this.tasksInWaiting.get(i).getProprietario().equals(pe.scheduledTaskUser()) && this.tasksInWaiting.get(i).getIdentificador() == this.preemptionEntries.get(j).scheduledTaskId()) {
 
                 this.mestre.sendTask(this.tasksInWaiting.get(i));

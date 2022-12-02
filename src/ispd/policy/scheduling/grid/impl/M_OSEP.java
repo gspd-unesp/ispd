@@ -40,23 +40,20 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
         task.setCaminho(this.escalonarRota(resource));
         //Verifica se não é caso de preempção
         final var sc = this.slaveControls.get(resource);
-        if (!sc.isPreempted()) {
+
+        if (sc.isPreempted()) {
+            this.tasksInWaiting.add(task);
+
+            this.preemptionEntries.add(new PreemptionEntry(sc.firstTaskInProcessing(), task));
+
+            this.userControls.get(sc.firstTaskInProcessing().getProprietario())
+                    .decreaseUsedProcessingPower(resource.getPoderComputacional());
+
+        } else {
             final var userId = task.getProprietario();
             this.userControls.get(userId)
                     .increaseUsedProcessingPower(resource.getPoderComputacional());
             this.mestre.sendTask(task);
-        } else {
-            this.tasksInWaiting.add(task);
-
-            this.preemptionEntries.add(new PreemptionEntry(
-                    sc.firstTaskInProcessing().getProprietario(),
-                    sc.firstTaskInProcessing().getIdentificador(),
-                    task.getProprietario(),
-                    task.getIdentificador()
-            ));
-
-            this.userControls.get(sc.firstTaskInProcessing().getProprietario())
-                    .decreaseUsedProcessingPower(resource.getPoderComputacional());
         }
 
     }

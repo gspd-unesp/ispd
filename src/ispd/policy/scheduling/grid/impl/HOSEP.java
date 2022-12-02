@@ -9,11 +9,6 @@ import java.util.Optional;
 @Policy
 public class HOSEP extends AbstractHOSEP<UserProcessingControl> {
     @Override
-    protected UserProcessingControl makeUserControlFor(final String userId) {
-        return new UserProcessingControl(userId, this.escravos);
-    }
-
-    @Override
     protected Optional<UserProcessingControl> findUserToPreemptFor(final UserProcessingControl taskOwner) {
         return Optional.of(this.theBestUser());
     }
