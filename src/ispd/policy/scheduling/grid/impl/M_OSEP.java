@@ -299,21 +299,27 @@ public class M_OSEP extends AbstractOSEP {
 
             //Penalidade do usuário dono da tarefa em execução, caso a
             // preempção seja feita
+            final var delta = -cs_processamento.getPoderComputacional();
             final double penalidaUserEscravoPosterior =
-                    (this.userControls.get(indexUserEscravo).currentlyUsedProcessingPower() - cs_processamento.getPoderComputacional() - this.userControls.get(indexUserEscravo).getOwnedMachinesProcessingPower()) / this.userControls.get(indexUserEscravo).getOwnedMachinesProcessingPower();
+                    this.someCalculation(indexUserEscravo, delta);
 
             //Penalidade do usuário dono da tarefa slecionada para ser posta
             // em execução, caso a preempção seja feita
+            final var delta2 =
+                    cs_processamento.getPoderComputacional();
             final double penalidaUserEsperaPosterior =
-                    (this.userControls.get(indexUserEspera).currentlyUsedProcessingPower() + cs_processamento.getPoderComputacional() - this.userControls.get(indexUserEspera).getOwnedMachinesProcessingPower()) / this.userControls.get(indexUserEspera).getOwnedMachinesProcessingPower();
+                    this.someCalculation(indexUserEspera, delta2);
 
             //Caso o usuário em espera apresente menor penalidade e os donos
             // das tarefas em execução e em espera não sejam a mesma pessoa ,
             // e , ainda, o escravo esteja executando apenas uma tarefa
             if (penalidaUserEscravoPosterior <= penalidaUserEsperaPosterior || (penalidaUserEscravoPosterior > 0 && penalidaUserEsperaPosterior < 0)) {
                 this.slaveControls.get(j).setAsPreempted();
-                this.mestre.sendMessage(this.firstTaskIn(j), cs_processamento
-                        , Mensagens.DEVOLVER_COM_PREEMPCAO);
+                this.mestre.sendMessage(
+                        this.firstTaskIn(j),
+                        cs_processamento,
+                        Mensagens.DEVOLVER_COM_PREEMPCAO
+                );
                 return cs_processamento;
             }
         }
@@ -321,14 +327,20 @@ public class M_OSEP extends AbstractOSEP {
         return null;
     }
 
+    private double someCalculation(
+            final int indexUserEscravo, final double delta) {
+        final var uc = this.userControls.get(indexUserEscravo);
+        return (uc.currentlyUsedProcessingPower() + delta - uc.getOwnedMachinesProcessingPower()) / uc.getOwnedMachinesProcessingPower();
+    }
+
     private CS_Processamento searchFreeResource() {
         return this.escravos.stream()
-                .filter(this::isEligibleForTask)
+                .filter(this::isSlaveFree)
                 .min(Comparator.comparingDouble(this::fitForSelectedTask))
                 .orElse(null);
     }
 
-    private boolean isEligibleForTask(final CS_Processamento slave) {
+    private boolean isSlaveFree(final CS_Processamento slave) {
         final var sc = this.slaveToControl(slave);
 
         return this.getSlaveQueue(slave).isEmpty()
