@@ -66,23 +66,24 @@ public class OSEP extends AbstractOSEP {
         task.setCaminho(this.escalonarRota(resource));
 
         //Verifica se não é caso de preempção
-        if (this.slaveControls.get(this.escravos.indexOf(resource)).isFree()) {
+        final var sc = this.slaveToControl(resource);
+        if (sc.isFree()) {
             userStatus.decreaseTaskDemand();
             userStatus.increaseUsedMachines();
-            this.slaveControls.get(this.escravos.indexOf(resource)).setAsBlocked();
+            sc.setAsBlocked();
             this.mestre.sendTask(task);
-        } else if (this.slaveControls.get(this.escravos.indexOf(resource)).isOccupied()) {
+        } else if (sc.isOccupied()) {
             final int resourceIndex = this.escravos.indexOf(resource);
             this.tasksInWaiting.add(task);
+
             this.preemptionEntries.add(new PreemptionEntry(
                     this.firstTaskIn(resourceIndex).getProprietario(),
                     this.firstTaskIn(resourceIndex).getIdentificador(),
                     task.getProprietario(),
                     task.getIdentificador())
             );
-            this.slaveControls
-                    .get(this.escravos.indexOf(resource))
-                    .setAsBlocked();
+
+            sc.setAsBlocked();
         }
     }
 
@@ -93,9 +94,9 @@ public class OSEP extends AbstractOSEP {
         CS_Processamento selec = null;
 
         for (int i = 0; i < this.escravos.size(); i++) {
-                final var slave = this.escravos.get(i);
+            final var slave = this.escravos.get(i);
 
-            if (this.slaveControls.get(this.escravos.indexOf(slave)).isFree()) {
+            if (this.slaveToControl(slave).isFree()) {
                 //Garantir que o escravo está de fato livre e que não há
                 // nenhuma tarefa em trânsito para o escravo
                 selec = slave;
@@ -150,6 +151,10 @@ public class OSEP extends AbstractOSEP {
         return null;
     }
 
+    private SlaveControl slaveToControl(final CS_Processamento resource) {
+        return this.slaveControls.get(this.escravos.indexOf(resource));
+    }
+
     private Tarefa firstTaskIn(final int index) {
         return this.slaveControls.get(index).firstTaskInProcessing();
     }
@@ -192,7 +197,7 @@ public class OSEP extends AbstractOSEP {
         final var uc = this.userControls.get(tarefa.getProprietario());
 
         uc.decreaseUsedMachines();
-        this.slaveControls.get(this.escravos.indexOf(maq)).setAsFree();
+        this.slaveToControl(maq).setAsFree();
     }
 
     @Override
@@ -256,7 +261,7 @@ public class OSEP extends AbstractOSEP {
                 this.userControls.get(this.preemptionEntries.get(indexControle).preemptedTaskUser()).increaseTaskDemand();
                 this.userControls.get(this.preemptionEntries.get(indexControle).preemptedTaskUser()).decreaseUsedMachines();
 
-                this.slaveControls.get(this.escravos.indexOf(maq)).setAsBlocked();
+                this.slaveToControl(maq).setAsBlocked();
 
                 this.tasksInWaiting.remove(i);
                 this.preemptionEntries.remove(j);
@@ -270,26 +275,5 @@ public class OSEP extends AbstractOSEP {
         return this.tarefas.stream()
                 .findFirst()
                 .map(this::popTaskFromQueue);
-    }
-
-    private int getSelectedIndex() {
-        long maximalExcess = -1;
-        int selectedIndex = -1;
-
-        //Encontrar o usuário que está mais abaixo da sua propriedade
-        final var users = this.metricaUsuarios.getUsuarios();
-        for (int i = 0; i < users.size(); i++) {
-            final var user = this.userControls.get(users.get(i));
-
-            //Caso existam tarefas do usuário corrente e ele esteja com uso
-            // menor que sua posse
-            if (this.isUserEligibleForTask(user)) {
-                if (maximalExcess == -1 || user.excessMachines() > maximalExcess) {
-                    maximalExcess = user.excessMachines();
-                    selectedIndex = i;
-                }
-            }
-        }
-        return selectedIndex;
     }
 }

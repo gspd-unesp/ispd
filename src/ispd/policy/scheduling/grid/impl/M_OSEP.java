@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Policy
 public class M_OSEP extends AbstractOSEP {
@@ -36,10 +37,14 @@ public class M_OSEP extends AbstractOSEP {
             );
         }
 
-        for (final var ignored : this.escravos) {
-            this.slaveControls.put(ignored, new SlaveControl());
-            this.filaEscravo.add(new ArrayList<Tarefa>());
+        for (final var slave : this.escravos) {
+            this.slaveControls.put(slave, new SlaveControl());
         }
+
+        Stream
+                .generate(ArrayList<Tarefa>::new)
+                .limit(this.escravos.size())
+                .forEach(this.filaEscravo::add);
     }
 
     @Override
@@ -62,24 +67,30 @@ public class M_OSEP extends AbstractOSEP {
         task.setLocalProcessamento(resource);
         task.setCaminho(this.escalonarRota(resource));
         //Verifica se não é caso de preempção
-        if (!this.slaveControls.get(resource).isPreempted()) {
-            this.userControls.get(this.metricaUsuarios.getUsuarios().indexOf(task.getProprietario()))
+        final var sc = this.slaveControls.get(resource);
+        if (!sc.isPreempted()) {
+            final var userId = task.getProprietario();
+            this.userControlFromId(userId)
                     .increaseUsedProcessingPower(resource.getPoderComputacional());
             this.mestre.sendTask(task);
         } else {
-            final int resourceIndex = this.escravos.indexOf(resource);
             this.tasksInWaiting.add(task);
+
             this.preemptionEntries.add(new PreemptionEntry(
-                    this.slaveControls.get(resource).firstTaskInProcessing().getProprietario(),
-                    this.slaveControls.get(resource).firstTaskInProcessing().getIdentificador(),
+                    sc.firstTaskInProcessing().getProprietario(),
+                    sc.firstTaskInProcessing().getIdentificador(),
                     task.getProprietario(),
                     task.getIdentificador()
             ));
-            this.userControls
-                    .get(this.metricaUsuarios.getUsuarios().indexOf(this.slaveControls.get(resource).firstTaskInProcessing().getProprietario()))
+
+            this.userControlFromId(sc.firstTaskInProcessing().getProprietario())
                     .decreaseUsedProcessingPower(resource.getPoderComputacional());
         }
 
+    }
+
+    private UserProcessingControl userControlFromId(final String userId) {
+        return this.userControls.get(this.metricaUsuarios.getUsuarios().indexOf(userId));
     }
 
     @Override
@@ -101,16 +112,18 @@ public class M_OSEP extends AbstractOSEP {
 
             //Caso existam tarefas do usuário corrente e ele esteja com uso
             // menor que sua posse
-            if ((this.userControls.get(i).currentlyUsedProcessingPower() < this.userControls.get(i).getOwnedMachinesProcessingPower()) && demanda) {
+            final var uc = this.userControls.get(i);
+
+            if ((uc.currentlyUsedProcessingPower() < uc.getOwnedMachinesProcessingPower()) && demanda) {
 
                 if (difUsuarioMinimo == (double) -1) {
                     difUsuarioMinimo =
-                            this.userControls.get(i).getOwnedMachinesProcessingPower() - this.userControls.get(i).currentlyUsedProcessingPower();
+                            uc.getOwnedMachinesProcessingPower() - uc.currentlyUsedProcessingPower();
                     indexUsuarioMinimo = i;
                 } else {
-                    if (difUsuarioMinimo < this.userControls.get(i).getOwnedMachinesProcessingPower() - this.userControls.get(i).currentlyUsedProcessingPower()) {
+                    if (difUsuarioMinimo < uc.getOwnedMachinesProcessingPower() - uc.currentlyUsedProcessingPower()) {
                         difUsuarioMinimo =
-                                this.userControls.get(i).getOwnedMachinesProcessingPower() - this.userControls.get(i).currentlyUsedProcessingPower();
+                                uc.getOwnedMachinesProcessingPower() - uc.currentlyUsedProcessingPower();
                         indexUsuarioMinimo = i;
                     }
 
@@ -151,9 +164,7 @@ public class M_OSEP extends AbstractOSEP {
     public void addTarefaConcluida(final Tarefa tarefa) {
         super.addTarefaConcluida(tarefa);
         final var maq = tarefa.getCSLProcessamento();
-        final int indexUser =
-                this.metricaUsuarios.getUsuarios().indexOf(tarefa.getProprietario());
-        this.userControls.get(indexUser)
+        this.userControlFromId(tarefa.getProprietario())
                 .decreaseUsedProcessingPower(maq.getPoderComputacional());
     }
 
@@ -356,5 +367,4 @@ public class M_OSEP extends AbstractOSEP {
     private double fitForSelectedTask(final CS_Processamento s) {
         return Math.abs(s.getPoderComputacional() - this.selectedTask.getTamProcessamento());
     }
-
 }
