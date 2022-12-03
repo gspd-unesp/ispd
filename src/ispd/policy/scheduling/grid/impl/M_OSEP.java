@@ -206,7 +206,8 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
 
     @Override
     public CS_Processamento escalonarRecurso() {
-        final CS_Processamento selec = this.searchFreeResource();
+        final CS_Processamento selec =
+                this.searchAvailableMachine(this.selectedTask);
 
         if (selec != null) {
             this.slaveControls.get(selec).setAsBlocked();//Inidcar que uma
@@ -216,22 +217,20 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
             return selec;
         }
 
-        String usermax = null;
-        double diff = -1;
+        final var bestUser = this.userControls.values().stream()
+                .filter(uc2 -> uc2.isOwnerOf(this.selectedTask))
+                .filter(UserProcessingControl::hasExcessProcessingPower)
+                .max(Comparator.comparingDouble(UserProcessingControl::excessProcessingPower));
 
-        for (int i = 0; i < this.metricaUsuarios.getUsuarios().size(); i++) {
-            final var userId = this.metricaUsuarios.getUsuarios().get(i);
-            final var uc = this.userControls.get(userId);
-
-            if (uc.currentlyUsedProcessingPower() > uc.getOwnedMachinesProcessingPower() && !userId.equals(this.selectedTask.getProprietario())) {
-                if (diff == -1 || uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower() > diff) {
-                    usermax = userId;
-                    diff = uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower();
-                }
-            }
+        if (bestUser.isEmpty()) {
+            return null;
         }
 
-        final var machine = this.getMachineForSomething(usermax);
+        final var machine = this.escravos.stream()
+                .filter(this::isMachineOccupied)
+                .filter(m -> bestUser.get().isOwnerOf(this.taskToPreemptIn(m)))
+                .min(Comparator.comparingDouble(CS_Processamento::getPoderComputacional))
+                .orElse(null);
 
         if (machine == null)
             return null;
@@ -239,7 +238,7 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
         //Fazer a preempção
         //Verifica se vale apena fazer preempção
         final Tarefa tar =
-                this.slaveControls.get(machine).firstTaskInProcessing();
+                this.taskToPreemptIn(machine);
 
         //Penalidade do usuário dono da tarefa em execução, caso a
         // preempção seja feita
@@ -270,42 +269,30 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
         return null;
     }
 
-    private CS_Processamento getMachineForSomething(final String usermax) {
-        int index = -1;
-        if (usermax != null) {
-            for (int i = 0; i < this.escravos.size(); i++) {
-                final var slave = this.escravos.get(i);
-                final var sc =
-                        this.slaveControls.get(slave);
-
-                if (sc.hasTasksInProcessing() && sc.isOccupied() && sc.firstTaskInProcessing().getProprietario().equals(usermax)) {
-                    if (index == -1 || slave.getPoderComputacional() < this.escravos.get(index).getPoderComputacional()) {
-                        index = i;
-                    }
-                }
-            }
-        }
-
-        if (index == -1) {
-            return null;
-        }
-
-        return this.escravos.get(index);
+    private boolean isMachineOccupied(final CS_Processamento machine) {
+        final var sc = this.slaveControls.get(machine);
+        return sc.hasTasksInProcessing() && sc.isOccupied();
     }
 
-    private CS_Processamento searchFreeResource() {
+    private Tarefa taskToPreemptIn(final CS_Processamento machine) {
+        return this.slaveControls.get(machine).firstTaskInProcessing();
+    }
+
+    private CS_Processamento searchAvailableMachine(final Tarefa task) {
         return this.escravos.stream()
-                .filter(this::isSlaveFree)
-                .min(Comparator.comparingDouble(this::fitForSelectedTask))
+                .filter(this::isMachineAvailable)
+                .min(Comparator
+                        .comparingDouble(s -> this.fitForSelectedTask(s, task)))
                 .orElse(null);
     }
 
-    private boolean isSlaveFree(final CS_Processamento slave) {
+    private boolean isMachineAvailable(final CS_Processamento slave) {
         final var sc = this.slaveControls.get(slave);
         return !sc.hasTasksInProcessing() && sc.isFree();
     }
 
-    private double fitForSelectedTask(final CS_Processamento s) {
-        return Math.abs(s.getPoderComputacional() - this.selectedTask.getTamProcessamento());
+    private double fitForSelectedTask(
+            final CS_Processamento s, final Tarefa task) {
+        return Math.abs(s.getPoderComputacional() - task.getTamProcessamento());
     }
 }
