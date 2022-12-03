@@ -6,6 +6,7 @@ import ispd.motor.filas.Mensagem;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.CS_Processamento;
 import ispd.policy.scheduling.grid.impl.util.PreemptionEntry;
+import ispd.policy.scheduling.grid.impl.util.SlaveControl;
 import ispd.policy.scheduling.grid.impl.util.UserProcessingControl;
 
 import java.util.ArrayList;
@@ -143,29 +144,42 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
                 .setTasksInProcessing(mensagem.getProcessadorEscravo());
 
         this.slaveCounter++;
-
-        if (this.slaveCounter == this.escravos.size()) {
-            boolean escalona = false;
-            for (int i = 0; i < this.escravos.size(); i++) {
-                final var slave = this.escravos.get(i);
-                final var sc = this.slaveControls.get(slave);
-
-                if (sc.hasTasksInProcessing()
-                    && !sc.isPreempted()) {
-                    sc.setAsOccupied();
-                } else if (!sc.hasTasksInProcessing()
-                           && !sc.isPreempted()) {
-                    escalona = true;
-                    sc.setAsFree();
-                } else if (sc.isPreempted()) {
-                    sc.setAsBlocked();
-                }
-            }
-            this.slaveCounter = 0;
-            if (!this.tarefas.isEmpty() && escalona) {
-                this.mestre.executeScheduling();
-            }
+        if (this.slaveCounter != this.escravos.size()) {
+            return;
         }
+        this.slaveCounter = 0;
+
+
+        // TODO: Separate updateAndShouldSchedule function
+        final var result = this.slaveControls.values().stream()
+                .map(M_OSEP::updateAndShouldSchedule)
+                .toList();
+
+        final var shouldSchedule = result.stream()
+                .anyMatch(Boolean::booleanValue);
+
+        if (!this.tarefas.isEmpty() && shouldSchedule) {
+            this.mestre.executeScheduling();
+        }
+    }
+
+    private static boolean updateAndShouldSchedule(final SlaveControl sc) {
+        if (sc.isPreempted()) {
+            sc.setAsBlocked();
+            return false;
+        }
+
+        if (sc.hasTasksInProcessing()) {
+            sc.setAsOccupied();
+            return false;
+        }
+
+        if (!sc.hasTasksInProcessing()) {
+            sc.setAsFree();
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -206,17 +220,21 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
 
     @Override
     public CS_Processamento escalonarRecurso() {
-        final CS_Processamento selec =
-                this.searchAvailableMachine(this.selectedTask);
+        final var selec = this.escravos.stream()
+                .filter(this::isMachineAvailable)
+                .min(Comparator.comparingDouble(
+                        s -> this.fitForSelectedTask(s, this.selectedTask)))
+                .orElse(null);
 
         if (selec != null) {
-            this.slaveControls.get(selec).setAsBlocked();//Inidcar que uma
-            // tarefa
-            // será enviada e que , portanto , este escravo deve ser
-            // bloqueada até a próxima atualização
+            this.slaveControls.get(selec).setAsBlocked();
             return selec;
         }
 
+        return this.preemptedMachine();
+    }
+
+    private CS_Processamento preemptedMachine() {
         final var bestUser = this.userControls.values().stream()
                 .filter(uc2 -> uc2.isOwnerOf(this.selectedTask))
                 .filter(UserProcessingControl::hasExcessProcessingPower)
@@ -276,14 +294,6 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
 
     private Tarefa taskToPreemptIn(final CS_Processamento machine) {
         return this.slaveControls.get(machine).firstTaskInProcessing();
-    }
-
-    private CS_Processamento searchAvailableMachine(final Tarefa task) {
-        return this.escravos.stream()
-                .filter(this::isMachineAvailable)
-                .min(Comparator
-                        .comparingDouble(s -> this.fitForSelectedTask(s, task)))
-                .orElse(null);
     }
 
     private boolean isMachineAvailable(final CS_Processamento slave) {
