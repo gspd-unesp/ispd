@@ -206,7 +206,6 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
 
     @Override
     public CS_Processamento escalonarRecurso() {
-
         final CS_Processamento selec = this.searchFreeResource();
 
         if (selec != null) {
@@ -225,30 +224,55 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
             final var uc = this.userControls.get(userId);
 
             if (uc.currentlyUsedProcessingPower() > uc.getOwnedMachinesProcessingPower() && !userId.equals(this.selectedTask.getProprietario())) {
-
-                if (diff == (double) -1) {
-
+                if (diff == -1 || uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower() > diff) {
                     usermax = userId;
                     diff = uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower();
-
-                } else {
-
-                    if (uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower() > diff) {
-
-                        usermax = userId;
-                        diff = uc.currentlyUsedProcessingPower() - uc.getOwnedMachinesProcessingPower();
-
-                    }
-
                 }
-
             }
-
         }
 
+        final var machine = this.getMachineForSomething(usermax);
+
+        if (machine == null)
+            return null;
+
+        //Fazer a preempção
+        //Verifica se vale apena fazer preempção
+        final Tarefa tar =
+                this.slaveControls.get(machine).firstTaskInProcessing();
+
+        //Penalidade do usuário dono da tarefa em execução, caso a
+        // preempção seja feita
+        final var uc1 = this.userControls.get(tar.getProprietario());
+        final double penalidaUserEscravoPosterior =
+                uc1.penaltyWithProcessing(-machine.getPoderComputacional());
+
+        //Penalidade do usuário dono da tarefa slecionada para ser posta
+        // em execução, caso a preempção seja feita
+        final var uc =
+                this.userControls.get(this.selectedTask.getProprietario());
+        final double penalidaUserEsperaPosterior =
+                uc.penaltyWithProcessing(machine.getPoderComputacional());
+
+        //Caso o usuário em espera apresente menor penalidade e os donos
+        // das tarefas em execução e em espera não sejam a mesma pessoa ,
+        // e , ainda, o escravo esteja executando apenas uma tarefa
+        if (penalidaUserEscravoPosterior <= penalidaUserEsperaPosterior || (penalidaUserEscravoPosterior > 0 && penalidaUserEsperaPosterior < 0)) {
+            this.slaveControls.get(machine).setAsPreempted();
+            this.mestre.sendMessage(
+                    tar,
+                    machine,
+                    Mensagens.DEVOLVER_COM_PREEMPCAO
+            );
+            return machine;
+        }
+
+        return null;
+    }
+
+    private CS_Processamento getMachineForSomething(final String usermax) {
         int index = -1;
         if (usermax != null) {
-
             for (int i = 0; i < this.escravos.size(); i++) {
                 final var slave = this.escravos.get(i);
                 final var sc =
@@ -262,48 +286,11 @@ public class M_OSEP extends AbstractOSEP<UserProcessingControl> {
             }
         }
 
-        //Fazer a preempção
-        if (index != -1) {
-            final CS_Processamento cs_processamento = this.escravos.get(index);
-            //Verifica se vale apena fazer preempção
-            final Tarefa tar =
-                    this.slaveControls.get(cs_processamento).firstTaskInProcessing();
-
-            //Penalidade do usuário dono da tarefa em execução, caso a
-            // preempção seja feita
-            final var delta = -cs_processamento.getPoderComputacional();
-            final double penalidaUserEscravoPosterior =
-                    this.someCalculation(tar.getProprietario(), delta);
-
-            //Penalidade do usuário dono da tarefa slecionada para ser posta
-            // em execução, caso a preempção seja feita
-            final var delta2 =
-                    cs_processamento.getPoderComputacional();
-            final double penalidaUserEsperaPosterior =
-                    this.someCalculation(this.selectedTask.getProprietario(),
-                            delta2);
-
-            //Caso o usuário em espera apresente menor penalidade e os donos
-            // das tarefas em execução e em espera não sejam a mesma pessoa ,
-            // e , ainda, o escravo esteja executando apenas uma tarefa
-            if (penalidaUserEscravoPosterior <= penalidaUserEsperaPosterior || (penalidaUserEscravoPosterior > 0 && penalidaUserEsperaPosterior < 0)) {
-                this.slaveControls.get(cs_processamento).setAsPreempted();
-                this.mestre.sendMessage(
-                        tar,
-                        cs_processamento,
-                        Mensagens.DEVOLVER_COM_PREEMPCAO
-                );
-                return cs_processamento;
-            }
+        if (index == -1) {
+            return null;
         }
 
-        return null;
-    }
-
-    private double someCalculation(
-            final String userId, final double delta) {
-        final var uc = this.userControls.get(userId);
-        return (uc.currentlyUsedProcessingPower() + delta - uc.getOwnedMachinesProcessingPower()) / uc.getOwnedMachinesProcessingPower();
+        return this.escravos.get(index);
     }
 
     private CS_Processamento searchFreeResource() {
