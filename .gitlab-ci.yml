@@ -16,6 +16,10 @@ image: gradle:alpine
 # is usually a priority over speed in CI environments. Using a fresh
 # runtime for each build is more reliable since the runtime is completely
 # isolated from any previous builds.
+stages:
+  - build
+  - release
+  
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
@@ -33,7 +37,7 @@ build:
       - build
       - .gradle
 
-release_job:
+release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   rules:
