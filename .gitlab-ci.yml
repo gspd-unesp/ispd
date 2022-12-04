@@ -29,7 +29,7 @@ before_script:
 
 build:
   stage: build
-  script: gradle --build-cache assemble
+  script: gradle shadowJar
   cache:
     key: "$CI_COMMIT_REF_NAME"
     policy: push
@@ -49,4 +49,8 @@ release:
   release:                                         # See https://docs.gitlab.com/ee/ci/yaml/#release for available properties
     tag_name: 'v0.$CI_PIPELINE_IID'                # The version is incremented per pipeline.
     description: 'v0.$CI_PIPELINE_IID'
-    ref: '$CI_COMMIT_SHA'               
+    ref: '$CI_COMMIT_SHA'            
+    assets:
+      links:
+        - name: ispd.jar  
+          url: ./builds/libs/ispd-merge-1.0-SNAPSHOT-all.jar
