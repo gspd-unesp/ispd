@@ -1,8 +1,6 @@
 package ispd.gui.configuracao;
 
-import ispd.alocacaoVM.ManipularArquivosAlloc;
-import ispd.escalonador.ManipularArquivos;
-import ispd.escalonadorCloud.ManipularArquivosCloud;
+import ispd.policy.PolicyManager;
 import ispd.gui.PickModelTypeDialog;
 import ispd.gui.iconico.grade.Cluster;
 import ispd.gui.iconico.grade.Internet;
@@ -48,9 +46,9 @@ public class JPanelConfigIcon extends JPanel {
     private final VariedRowTable linkTable = this.createTableWith(
             LinkVariedRowTable::new,
             LinkTable::new);
-    private ManipularArquivos schedulers = null;
-    private ManipularArquivosCloud cloudSchedulers = null;
-    private ManipularArquivosAlloc allocators = null;
+    private PolicyManager schedulers = null;
+    private PolicyManager cloudSchedulers = null;
+    private PolicyManager allocators = null;
 
     public JPanelConfigIcon() {
         this.setLayout();
@@ -108,7 +106,7 @@ public class JPanelConfigIcon extends JPanel {
         return t;
     }
 
-    public void setEscalonadores(final ManipularArquivos schedulers) {
+    public void setEscalonadores(final PolicyManager schedulers) {
         this.schedulers = schedulers;
         schedulers.listar().forEach(sch -> {
             this.getTabelaMaquina().getEscalonadores().addItem(sch);
@@ -124,7 +122,7 @@ public class JPanelConfigIcon extends JPanel {
         return (ClusterTable) this.clusterTable.getModel();
     }
 
-    public void setEscalonadoresCloud(final ManipularArquivosCloud cloudSchedulers) {
+    public void setEscalonadoresCloud(final PolicyManager cloudSchedulers) {
         this.cloudSchedulers = cloudSchedulers;
         cloudSchedulers.listar().forEach(sch -> {
             this.getTabelaMaquinaIaaS().getEscalonadores().addItem(sch);
@@ -140,7 +138,7 @@ public class JPanelConfigIcon extends JPanel {
         return (ClusterTableIaaS) this.iassClusterTable.getModel();
     }
 
-    public void setAlocadores(final ManipularArquivosAlloc allocators) {
+    public void setAlocadores(final PolicyManager allocators) {
         this.allocators = allocators;
         allocators.listar().forEach(alloc -> {
             this.getTabelaMaquinaIaaS().getAlocadores().addItem(alloc);

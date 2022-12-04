@@ -39,11 +39,11 @@
  */
 package ispd.motor.filas.servidores;
 
-import ispd.alocacaoVM.VMM;
+import ispd.policy.allocation.vm.VmMaster;
 import ispd.motor.filas.servidores.implementacao.CS_Link;
 import ispd.motor.filas.servidores.implementacao.CS_Switch;
 import ispd.motor.filas.servidores.implementacao.CS_Internet;
-import ispd.escalonador.Mestre;
+import ispd.policy.scheduling.grid.GridMaster;
 import ispd.motor.metricas.MetricasProcessamento;
 import java.util.ArrayList;
 import java.util.List;
@@ -351,7 +351,7 @@ public abstract class CS_Processamento extends CentroServico {
                     CS_Comunicacao cs = (CS_Comunicacao) atual.getConexoesSaida();
                     caminhoItem[1] = cs.tempoTransmitir(10000) + acumulado;
                     caminhoItem[2] = atual.getConexoesSaida();
-                } else if (atual.getConexoesSaida() instanceof Mestre || atual.getConexoesSaida() == destino) {
+                } else if (atual.getConexoesSaida() instanceof GridMaster || atual.getConexoesSaida() == destino) {
                     caminhoItem[1] = 0.0 + acumulado;
                     caminhoItem[2] = atual.getConexoesSaida();
                 } else {
@@ -369,7 +369,7 @@ public abstract class CS_Processamento extends CentroServico {
                         CS_Comunicacao comu = (CS_Comunicacao) cs;
                         caminhoItem[1] = comu.tempoTransmitir(10000) + acumulado;
                         caminhoItem[2] = cs;
-                    } else if (cs instanceof Mestre || cs == destino) {
+                    } else if (cs instanceof GridMaster || cs == destino) {
                         caminhoItem[1] = 0.0 + acumulado;
                         caminhoItem[2] = cs;
                     } else {
@@ -530,7 +530,7 @@ public abstract class CS_Processamento extends CentroServico {
                     CS_Comunicacao cs = (CS_Comunicacao) atual.getConexoesSaida();
                     caminhoItem[1] = cs.tempoTransmitir(10000) + acumulado;
                     caminhoItem[2] = atual.getConexoesSaida();
-                } else if (atual.getConexoesSaida() instanceof VMM || atual.getConexoesSaida() == destino) {
+                } else if (atual.getConexoesSaida() instanceof VmMaster || atual.getConexoesSaida() == destino) {
                     caminhoItem[1] = 0.0 + acumulado;
                     caminhoItem[2] = atual.getConexoesSaida();
                 } else {
@@ -548,7 +548,7 @@ public abstract class CS_Processamento extends CentroServico {
                         CS_Comunicacao comu = (CS_Comunicacao) cs;
                         caminhoItem[1] = comu.tempoTransmitir(10000) + acumulado;
                         caminhoItem[2] = cs;
-                    } else if (cs instanceof VMM || cs == destino) {
+                    } else if (cs instanceof VmMaster || cs == destino) {
                         caminhoItem[1] = 0.0 + acumulado;
                         caminhoItem[2] = cs;
                     } else {

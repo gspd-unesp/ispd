@@ -1,6 +1,6 @@
 package ispd.gui.iconico.grade;
 
-import ispd.alocacaoVM.VMM;
+import ispd.policy.allocation.vm.VmMaster;
 
 import java.awt.Image;
 import java.util.ResourceBundle;
@@ -82,7 +82,7 @@ public class Cluster extends VertexGridItem {
     private String owner;
 
     /**
-     * It contains the {@link VMM} allocation policy.
+     * It contains the {@link VmMaster} allocation policy.
      */
     private String vmmAllocationPolicy;
 
@@ -463,18 +463,18 @@ public class Cluster extends VertexGridItem {
     }
 
     /**
-     * Returns the {@link VMM} allocation policy.
+     * Returns the {@link VmMaster} allocation policy.
      *
-     * @return the {@link VMM} allocation policy
+     * @return the {@link VmMaster} allocation policy
      */
     public String getVmmAllocationPolicy() {
         return vmmAllocationPolicy;
     }
 
     /**
-     * It sets the {@link VMM} allocation policy.
+     * It sets the {@link VmMaster} allocation policy.
      *
-     * @param vmmAllocationPolicy the {@link VMM} allocation
+     * @param vmmAllocationPolicy the {@link VmMaster} allocation
      *                            policy to be set
      */
     public void setVmmAllocationPolicy(

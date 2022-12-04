@@ -65,15 +65,15 @@ public class TextEditorStyle extends DefaultStyledDocument implements CaretListe
             "escravos", "filaEscravo", "tarefas", "metricaUsuarios",
             "mestre", "caminhoEscravo", "adicionarTarefa(tarefa)",
             "getTempoAtualizar()", "resultadoAtualizar(mensagem)",
-            "addTarefaConcluida(tarefa)", "enviarTarefa(Tarefa tarefa)",
-            "processarTarefa(Tarefa tarefa)", "executarEscalonamento()",
-            "enviarMensagem(tarefa, escravo, tipo)",
-            "atualizar(CS_Processamento escravo)", "criarCopia(Tarefa get)",
+            "addTarefaConcluida(tarefa)", "sendTask(Tarefa tarefa)",
+            "processTask(Tarefa tarefa)", "executeScheduling()",
+            "sendMessage(tarefa, escravo, tipo)",
+            "updateSubordinate(CS_Processamento escravo)", "cloneTask(Tarefa get)",
             "Mensagens.CANCELAR", "Mensagens.PARAR", "Mensagens.DEVOLVER",
             "Mensagens.DEVOLVER_COM_PREEMPCAO", "Mensagens.ATUALIZAR"
     };
     private final Element rootElement = this.getDefaultRootElement();
-    private final String[] keywords = { 
+    private final String[] keywords = {
             "\\bfor\\b",
             "\\bif\\b",
             "\\belse\\b",
@@ -250,7 +250,6 @@ public class TextEditorStyle extends DefaultStyledDocument implements CaretListe
         final var textBefore = this.getText(0, offset);
         int depth = 0;
 
-        
 
         for (int i = 0; i < textBefore.length(); i++) {
             if (textBefore.charAt(i) == TextEditorStyle.OPEN_BRACKET) {

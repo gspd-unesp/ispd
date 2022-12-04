@@ -5,7 +5,7 @@
  */
 package ispd.motor.falhas;
 
-import ispd.escalonadorCloud.EscalonadorCloud;
+import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 import ispd.gui.PickSimulationFaultsDialog;
 import ispd.motor.FutureEvent;
 import ispd.motor.ProgressoSimulacao;
@@ -41,7 +41,7 @@ public class FISoftware {
      */
     public int OHHH;
     private double time = 0;
-    private EscalonadorCloud escalonador;//Camila
+    private CloudSchedulingPolicy escalonador;//Camila
     private PriorityQueue<FutureEvent> eventos;
     private ArrayList<CS_VirtualMac> maquinasVirtuais;
     private LinkedList<CS_Processamento> maquinasFisicas;

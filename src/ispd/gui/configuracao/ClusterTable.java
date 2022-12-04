@@ -1,7 +1,7 @@
 package ispd.gui.configuracao;
 
-import ispd.arquivo.Escalonadores;
 import ispd.gui.iconico.grade.Cluster;
+import ispd.policy.managers.GridSchedulingPolicyManager;
 
 import javax.swing.JComboBox;
 import javax.swing.table.AbstractTableModel;
@@ -12,8 +12,9 @@ public class ClusterTable extends AbstractTableModel {
     private static final int COLUMN_COUNT = 2;
     private static final int TYPE = 0;
     private static final int VALUE = 1;
-    private final JComboBox<Object> schedulers =
-            new JComboBox<>(Escalonadores.ESCALONADORES);
+    private final JComboBox<Object> schedulers = new JComboBox<>(
+            GridSchedulingPolicyManager.NATIVE_POLICIES.toArray(String[]::new)
+    );
     private final JComboBox<Object> users = new JComboBox<>();
     private Cluster cluster = null;
     private ResourceBundle words;

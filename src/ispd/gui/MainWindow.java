@@ -7,8 +7,8 @@ import ispd.arquivo.interpretador.simgrid.InterpretadorSimGrid;
 import ispd.arquivo.xml.ConfiguracaoISPD;
 import ispd.arquivo.xml.IconicoXML;
 import ispd.gui.auxiliar.Corner;
-import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.HtmlPane;
+import ispd.gui.auxiliar.MultipleExtensionFileFilter;
 import ispd.gui.auxiliar.Stalemate;
 import ispd.gui.configuracao.JPanelConfigIcon;
 import ispd.gui.configuracao.SimplePanel;
@@ -17,6 +17,11 @@ import ispd.gui.iconico.grade.DesenhoGrade;
 import ispd.gui.iconico.grade.GridItem;
 import ispd.gui.iconico.grade.Machine;
 import ispd.gui.iconico.grade.VirtualMachine;
+import ispd.gui.policy.CloudSchedulingPolicyManagementWindow;
+import ispd.gui.policy.GenericPolicyManagementWindow;
+import ispd.gui.policy.GridSchedulingPolicyManagementWindow;
+import ispd.gui.policy.PolicyGeneratorWindow;
+import ispd.gui.policy.VmAllocationPolicyManagementWindow;
 import ispd.gui.utils.ButtonBuilder;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -95,12 +100,12 @@ public class MainWindow extends JFrame implements KeyListener {
     private static final int NOTIFICATION_AREA_ROWS = 5;
     private final ConfiguracaoISPD configure = new ConfiguracaoISPD();
     private final JFileChooser jFileChooser = new JFileChooser();
-    private final ManageSchedulers jFrameManager =
-            new ManageSchedulers();
-    private final ManageAllocationPolicies jFrameAllocManager =
-            new ManageAllocationPolicies();
-    private final ManageCloudSchedulers jFrameCloudManager =
-            new ManageCloudSchedulers();
+    private final GenericPolicyManagementWindow jFrameManager =
+            new GridSchedulingPolicyManagementWindow();
+    private final GenericPolicyManagementWindow jFrameAllocManager =
+            new VmAllocationPolicyManagementWindow();
+    private final GenericPolicyManagementWindow jFrameCloudManager =
+            new CloudSchedulingPolicyManagementWindow();
     private final SimplePanel jPanelSimple = new SimplePanel();
     private final JScrollPane jScrollPaneDrawingArea = new JScrollPane();
     private final JScrollPane jScrollPaneSideBar = new JScrollPane();
@@ -178,11 +183,12 @@ public class MainWindow extends JFrame implements KeyListener {
     private int modelType = 0; //define se o modelo é GRID, IAAS ou PAAS;
     private ResourceBundle words = ResourceBundle.getBundle(
             "ispd.idioma.Idioma", Locale.getDefault());
-    private final MultipleExtensionFileFilter fileFilter = new MultipleExtensionFileFilter(
-            this.translate("Iconic Model of Simulation"),
-            MainWindow.ALL_FILE_EXTENSIONS,
-            true
-    );
+    private final MultipleExtensionFileFilter fileFilter =
+            new MultipleExtensionFileFilter(
+                    this.translate("Iconic Model of Simulation"),
+                    MainWindow.ALL_FILE_EXTENSIONS,
+                    true
+            );
     private boolean currentFileHasUnsavedChanges = false;
     private File openFile = null;
     private DesenhoGrade drawingArea = null;
@@ -323,9 +329,9 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void initPanels() {
         this.jPanelSettings = new JPanelConfigIcon();
-        this.jPanelSettings.setEscalonadores(this.jFrameManager.getEscalonadores());
-        this.jPanelSettings.setEscalonadoresCloud(this.jFrameCloudManager.getEscalonadores());
-        this.jPanelSettings.setAlocadores(this.jFrameAllocManager.getAlocadores());
+        this.jPanelSettings.setEscalonadores(this.jFrameManager.getManager());
+        this.jPanelSettings.setEscalonadoresCloud(this.jFrameCloudManager.getManager());
+        this.jPanelSettings.setAlocadores(this.jFrameAllocManager.getManager());
 
         this.jPanelSimple.setText(this.translate("No icon selected."));
 
@@ -598,7 +604,7 @@ public class MainWindow extends JFrame implements KeyListener {
         this.setIconImage(Toolkit.getDefaultToolkit().getImage(
                 MainWindow.getResourceOrThrow(MainWindow.ISPD_LOGO_FILE_PATH)));
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        this.addWindowListener(new IspdWindowAdapter(this));
+        this.addWindowListener(new IspdWindowAdapter());
     }
 
     private void initToolBarAndButtons() {
@@ -933,7 +939,7 @@ public class MainWindow extends JFrame implements KeyListener {
         this.configureFileFilterAndChooser(
                 "Iconic Model of Simulation",
                 MainWindow.ISPD_FILE_EXTENSIONS,
-                true 
+                true
         );
 
         if (this.jFileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
@@ -1196,7 +1202,7 @@ public class MainWindow extends JFrame implements KeyListener {
         final boolean isSelected = box.isSelected();
         final String text = isSelected ? textIfSelected : textIfUnselected;
         box.setSelected(isSelected);
-        if (this.drawingArea != null) 
+        if (this.drawingArea != null)
             drawingAreaSetter.accept(isSelected);
         if (event != null)
             this.appendNotificacao(this.translate(text));
@@ -1267,49 +1273,27 @@ public class MainWindow extends JFrame implements KeyListener {
 
     private void jMenuItemGenerateActionPerformed(final ActionEvent evt) {
         if (this.modelType == PickModelTypeDialog.GRID) {
-            this.generateSchedulerGrid();
+            this.generatePolicy(this.jFrameManager);
             return;
         }
 
         if (this.modelType == PickModelTypeDialog.IAAS) {
-            this.generateSchedulerCloud();
-            this.generateSchedulerAlloc();
+            this.generatePolicy(this.jFrameCloudManager);
+            this.generatePolicy(this.jFrameAllocManager);
         }
     }
 
-    private void generateScheduler(
-            final String path,
-            final Consumer<? super CreateSchedulerDialog> transferSchedulers,
-            final Runnable updateSchedulers) {
-        final var ge = new CreateSchedulerDialog(this, true, path, this.words);
-        transferSchedulers.accept(ge);
-        this.showSubWindow(ge);
-        if (ge.getParse() != null)
-            updateSchedulers.run();
-    }
+    private void generatePolicy(final GenericPolicyManagementWindow window) {
+        final var manager = window.getManager();
+        final var path = manager.directory().getAbsolutePath();
 
-    private void generateSchedulerGrid() {
-        this.generateScheduler(
-                this.jFrameManager.getEscalonadores().getDiretorio().getAbsolutePath(),
-                (ge) -> ge.setEscalonadores(this.jFrameManager.getEscalonadores()),
-                this.jFrameManager::atualizarEscalonadores
-        );
-    }
+        final var policyGenerator = new PolicyGeneratorWindow(
+                this, true, path, this.words, manager);
 
-    private void generateSchedulerCloud() {
-        this.generateScheduler(
-                this.jFrameCloudManager.getEscalonadores().getDiretorio().getAbsolutePath(),
-                (ge) -> ge.setEscalonadoresCloud(this.jFrameCloudManager.getEscalonadores()),
-                this.jFrameCloudManager::atualizarEscalonadores
-        );
-    }
+        this.showSubWindow(policyGenerator);
 
-    private void generateSchedulerAlloc() {
-        this.generateScheduler(
-                this.jFrameAllocManager.getAlocadores().getDiretorio().getAbsolutePath(),
-                (ge) -> ge.setAlocadores(this.jFrameAllocManager.getAlocadores()),
-                this.jFrameAllocManager::atualizarAlocadores
-        );
+        Optional.ofNullable(policyGenerator.getParse())
+                .ifPresent(i -> window.updatePolicyList());
     }
 
     private void jMenuItemHelpActionPerformed(final ActionEvent evt) {
@@ -1560,7 +1544,7 @@ public class MainWindow extends JFrame implements KeyListener {
     }
 
     private void updateDrawingVms(final VmConfiguration vmConfigWindow) {
-        
+
         this.drawingArea.setUsers(vmConfigWindow.atualizaUsuarios());
         this.drawingArea.setVirtualMachines(vmConfigWindow.getMaqVirtuais());
     }
@@ -1863,17 +1847,10 @@ public class MainWindow extends JFrame implements KeyListener {
         }
     }
 
-    private static class IspdWindowAdapter extends WindowAdapter {
-        // FIXME: I did this before knowing 'this' access from outer class
-        private final MainWindow mainWindow;
-
-        private IspdWindowAdapter(final MainWindow mw) {
-            this.mainWindow = mw;
-        }
-
+    private class IspdWindowAdapter extends WindowAdapter {
         @Override
         public void windowClosing(final WindowEvent e) {
-            this.mainWindow.formWindowClosing();
+            MainWindow.this.formWindowClosing();
         }
     }
 }

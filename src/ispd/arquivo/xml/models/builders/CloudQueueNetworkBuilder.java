@@ -4,7 +4,6 @@ import ispd.arquivo.xml.utils.SwitchConnection;
 import ispd.arquivo.xml.utils.UserPowerLimit;
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.escalonadorCloud.EscalonadorCloud;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.RedeDeFilasCloud;
 import ispd.motor.filas.servidores.CS_Processamento;
@@ -14,6 +13,7 @@ import ispd.motor.filas.servidores.implementacao.CS_MaquinaCloud;
 import ispd.motor.filas.servidores.implementacao.CS_Switch;
 import ispd.motor.filas.servidores.implementacao.CS_VMM;
 import ispd.motor.filas.servidores.implementacao.CS_VirtualMac;
+import ispd.policy.scheduling.cloud.CloudSchedulingPolicy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -193,7 +193,7 @@ public class CloudQueueNetworkBuilder extends QueueNetworkBuilder {
 
     /**
      * Differently from the overridden method, iterates over {@link CS_VMM}s
-     * and updates {@link EscalonadorCloud}s.
+     * and updates {@link CloudSchedulingPolicy}.
      *
      * @param helper {@link UserPowerLimit} with the power limit information.
      */

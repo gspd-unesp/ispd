@@ -2,7 +2,7 @@ package ispd.arquivo.xml;
 
 import ispd.arquivo.xml.utils.WrappedDocument;
 import ispd.arquivo.xml.utils.WrappedElement;
-import ispd.escalonador.Carregar;
+import ispd.gui.LogExceptions;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -10,6 +10,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -21,9 +22,11 @@ public class ConfiguracaoISPD {
     public static final byte DEFAULT = 0;
     public static final byte OPTIMISTIC = 1;
     public static final byte GRAPHICAL = 2;
+    public static final File DIRETORIO_ISPD =
+            ConfiguracaoISPD.loadIspdDirectory();
     private static final String FILENAME = "configuration.xml";
     private final File configurationFile = new File(
-            Carregar.DIRETORIO_ISPD,
+            ConfiguracaoISPD.DIRETORIO_ISPD,
             ConfiguracaoISPD.FILENAME
     );
     private SimulationType simulationType = SimulationType.Default;
@@ -34,7 +37,7 @@ public class ConfiguracaoISPD {
     private Boolean shouldChartUserTime = true;
     private Boolean shouldChartMachineTime = false;
     private Boolean shouldChartTaskTime = false;
-    private File lastModelOpen = Carregar.DIRETORIO_ISPD;
+    private File lastModelOpen = ConfiguracaoISPD.DIRETORIO_ISPD;
 
     /**
      * If the configuration file exists, reads configuration from it.
@@ -100,6 +103,29 @@ public class ConfiguracaoISPD {
         final var lastFile = e.modelOpen().lastFile();
         if (!lastFile.isEmpty()) {
             this.lastModelOpen = new File(lastFile);
+        }
+    }
+
+    private static File loadIspdDirectory() {
+        final var dir = ConfiguracaoISPD.getDirectory();
+
+        if (dir.getName().endsWith(".jar")) {
+            return dir.getParentFile();
+        } else {
+            return new File(".");
+        }
+    }
+
+    private static File getDirectory() {
+        final var location = LogExceptions.class
+                .getProtectionDomain()
+                .getCodeSource()
+                .getLocation();
+
+        try {
+            return new File(location.toURI());
+        } catch (final URISyntaxException ex) {
+            return new File(location.getPath());
         }
     }
 

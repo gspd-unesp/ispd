@@ -1,6 +1,5 @@
 package ispd.motor.workload.impl;
 
-import ispd.escalonador.Escalonador;
 import ispd.motor.filas.RedeDeFilas;
 import ispd.motor.filas.Tarefa;
 import ispd.motor.filas.servidores.implementacao.CS_Mestre;
@@ -10,6 +9,7 @@ import ispd.motor.workload.WorkloadGeneratorType;
 import ispd.motor.workload.impl.task.ExternalTraceTaskBuilder;
 import ispd.motor.workload.impl.task.TraceTaskBuilder;
 import ispd.motor.workload.impl.task.TraceTaskInfo;
+import ispd.policy.scheduling.SchedulingPolicy;
 import jdk.jfr.Unsigned;
 
 import java.io.BufferedReader;
@@ -177,7 +177,7 @@ public class TraceFileWorkloadGenerator implements WorkloadGenerator {
         qn.getMestres().stream()
                 .map(CS_Mestre.class::cast)
                 .map(CS_Mestre::getEscalonador)
-                .map(Escalonador::getMetricaUsuarios)
+                .map(SchedulingPolicy::getMetricaUsuarios)
                 .forEach(m -> m.addAllUsuarios(users, compPower, limits));
     }
 

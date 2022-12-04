@@ -93,8 +93,8 @@ class Interpretador{
         
         //dados para costruir classe
         private String arquivoNome;
-        private String pacote = "package ispd.externo;\n\n";
-        private String imports = "import ispd.escalonador.Escalonador;\n"
+        private String pacote = "package ispd.policy.externo;\n\n";
+        private String imports = "import ispd.policy.scheduling.grid.GridSchedulingPolicy;\n"
                                 +"import ispd.motor.filas.Tarefa;\n"
                                 +"import ispd.motor.filas.servidores.CS_Processamento;\n"
                                 +"import ispd.motor.filas.servidores.CentroServico;\n"
@@ -125,7 +125,7 @@ class Interpretador{
         private String ifEscalonar =  "        CentroServico rec = escalonarRecurso();\n"
                                      +"        tarefaSelecionada.setLocalProcessamento(rec);\n"
                                      +"        tarefaSelecionada.setCaminho(escalonarRota(rec));\n"
-                                     +"        mestre.enviarTarefa(tarefaSelecionada);\n";
+                                     +"        mestre.sendTask(tarefaSelecionada);\n";
         //private String decResultadoAtualizar = "";
         //private String resultadoAtualizar = "";
         //private String fimResultadoAtualizar = "";
@@ -172,7 +172,7 @@ class Interpretador{
 
         public void escreverNome(String text){
             arquivoNome = text;
-            declaracao = "public class "+text+" extends Escalonador{\n\n";
+            declaracao = "public class "+text+" extends GridSchedulingPolicy{\n\n";
             construtor = "public "+text+"() {\n"
                         +"    this.tarefas = new ArrayList<Tarefa>();\n"
                         +"    this.escravos = new ArrayList<CS_Processamento>();\n"
@@ -190,13 +190,13 @@ class Interpretador{
                                  +"public void adicionarTarefa(Tarefa tarefa){\n"
                                  +"    super.adicionarTarefa(tarefa);\n"
                                  +"    for(CS_Processamento maq : this.getEscravos()){\n"
-                                 +"        mestre.atualizar(maq);\n"
+                                 +"        mestre.updateSubordinate(maq);\n"
                                  +"    }\n"
                                  +"}\n\n";
             }
             if(tipo.equals("out")){
                 ifEscalonar = "    for(CS_Processamento maq : this.getEscravos()){\n"
-                             +"        mestre.atualizar(maq);\n"
+                             +"        mestre.updateSubordinate(maq);\n"
                              +"    }\n";
             }
             if(tipo.equals("end")){
@@ -204,7 +204,7 @@ class Interpretador{
                                          +"public void addTarefaConcluida(Tarefa tarefa) {\n"
                                          +"    super.addTarefaConcluida(tarefa);\n";
                 addTarefaConcluida +=     "    for(CS_Processamento maq : this.getEscravos()){\n"
-                                         +"        mestre.atualizar(maq);\n"
+                                         +"        mestre.updateSubordinate(maq);\n"
                                          +"    }\n";
                 fimAddTarefaConcluida =   "}\n\n";
                                      
@@ -325,10 +325,10 @@ class Interpretador{
                                  +"        }\n"
                                  +"    }\n"
                                  +"    if(cont >= tarExecRec.size()){\n"
-                                 +"        mestre.setTipoEscalonamento(mestre.QUANDO_RECEBE_RESULTADO);\n"
+                                 +"        mestre.setSchedulingConditions(PolicyConditions.WHEN_RECEIVES_RESULT);\n"
                                  +"        return false;\n"
                                  +"    }\n"
-                                 +"    mestre.setTipoEscalonamento(mestre.ENQUANTO_HOUVER_TAREFAS);\n"
+                                 +"    mestre.setSchedulingConditions(PolicyConditions.WHILE_MUST_DISTRIBUTE);\n"
                                  +"    return true;\n"
                                  +"}\n\n";
                 if(!variavel.contains("tarExecRec")){
@@ -375,10 +375,10 @@ class Interpretador{
                                  +"        }\n"
                                  +"    }\n"
                                  +"    if(cont >= metricaUsuarios.getUsuarios().size()){\n"
-                                 +"        mestre.setTipoEscalonamento(mestre.QUANDO_RECEBE_RESULTADO);\n"
+                                 +"        mestre.setSchedulingConditions(PolicyConditions.WHEN_RECEIVES_RESULT);\n"
                                  +"        return false;\n"
                                  +"    }\n"
-                                 +"    mestre.setTipoEscalonamento(mestre.ENQUANTO_HOUVER_TAREFAS);\n"
+                                 +"    mestre.setSchedulingConditions(PolicyConditions.WHILE_MUST_DISTRIBUTE);\n"
                                  +"    return true;\n"
                                  +"}\n\n";
             }
@@ -435,13 +435,13 @@ class Interpretador{
               tarefaExpressao += "tNumTarSub";
               if(!declararVariaveisTarefa.contains("tNumTarSub")){
                 if(dinamico)
-                    declararVariaveisTarefa += "int tNumTarSub = mestre.getSimulacao().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasSubmetidas(tarefas.get(0).getProprietario());\n";
+                    declararVariaveisTarefa += "int tNumTarSub = mestre.getSimulation().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasSubmetidas(tarefas.get(0).getProprietario());\n";
                 else
                     declararVariaveisTarefa += "int tNumTarSub = metricaUsuarios.getSizeTarefasSubmetidas(tarefas.get(0).getProprietario());\n";
               }
               if(!carregarVariaveisTarefa.contains("tNumTarSub")){
                 if(dinamico)
-                    carregarVariaveisTarefa += "tNumTarSub = mestre.getSimulacao().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasSubmetidas(tarefas.get(i).getProprietario());\n";
+                    carregarVariaveisTarefa += "tNumTarSub = mestre.getSimulation().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasSubmetidas(tarefas.get(i).getProprietario());\n";
                 else
                     carregarVariaveisTarefa += "tNumTarSub = metricaUsuarios.getSizeTarefasSubmetidas(tarefas.get(i).getProprietario());\n";
               }
@@ -450,13 +450,13 @@ class Interpretador{
               tarefaExpressao += "tNumTarConc";
               if(!declararVariaveisTarefa.contains("tNumTarConc")){
                 if(dinamico)
-                    declararVariaveisTarefa += "int tNumTarConc = mestre.getSimulacao().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasConcluidas(tarefas.get(0).getProprietario());\n";
+                    declararVariaveisTarefa += "int tNumTarConc = mestre.getSimulation().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasConcluidas(tarefas.get(0).getProprietario());\n";
                 else
                     declararVariaveisTarefa += "int tNumTarConc = metricaUsuarios.getSizeTarefasConcluidas(tarefas.get(0).getProprietario());\n";
               }
               if(!carregarVariaveisTarefa.contains("tNumTarConc")){
                 if(dinamico)
-                    carregarVariaveisTarefa += "tNumTarConc = mestre.getSimulacao().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasConcluidas(tarefas.get(i).getProprietario());\n";
+                    carregarVariaveisTarefa += "tNumTarConc = mestre.getSimulation().getRedeDeFilas().getMetricasUsuarios().getSizeTarefasConcluidas(tarefas.get(i).getProprietario());\n";
                 else
                     carregarVariaveisTarefa += "tNumTarConc = metricaUsuarios.getSizeTarefasConcluidas(tarefas.get(i).getProprietario());\n";
               }
